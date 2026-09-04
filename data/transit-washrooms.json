@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-04",
+  "facilities": [
+    {"names":["Bloor-Yonge","Bloor Yonge"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Eglinton"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Finch"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Sheppard-Yonge","Sheppard Yonge"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Sheppard West"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Vaughan Metropolitan Centre"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Wilson"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Finch West"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Kennedy"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Kipling"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Don Mills"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Mount Dennis"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Cedarvale"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Humber College"],"source":"https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations"},
+    {"names":["Union Station Bus Terminal","Union Station GO"],"source":"https://www.gotransit.com/en/find-a-station/un/un-union-station-bus-terminal-usbt-at-cibc-square","wheelchair":"accessible"}
+  ]
+}
