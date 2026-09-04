@@ -23,11 +23,50 @@ test('maps current TTC rapid-transit lines and retains streetcar alerts globally
 });
 
 test('maps TTC website route alerts to subway and LRT lines', () => {
-  const result = parseTtcWebAlerts({ lastUpdated: '2026-09-04T17:53:21.31Z', routeAlerts: [{ id: 'line-5-alert', route: '5', routeType: 'Subway', activePeriod: { start: '2026-09-04T17:00:00Z', end: '2026-09-04T20:00:00Z' }, headerText: 'Line 5: Service change', title: 'Trains are turning back.', url: 'https://www.ttc.ca/service-alerts' }, { id: 'streetcar-alert', route: '505', routeType: 'Streetcar', activePeriod: { start: '2026-09-04T17:00:00Z' }, headerText: '505 Dundas: Detour', title: 'Detour in effect.', url: '' }] }, { now: Date.parse('2026-09-04T18:00:00Z') });
+  const result = parseTtcWebAlerts({ lastUpdated: '2026-09-04T17:53:21.31Z', routeAlerts: [{ id: 'line-5-alert', route: '5', routeType: 'Subway', activePeriod: { start: '2026-09-04T17:00:00Z', end: '2026-09-04T20:00:00Z' }, headerText: 'Line 5: Service change', title: 'Trains are turning back.', url: 'https://www.ttc.ca/service-alerts' }, { id: 'streetcar-alert', route: '505', routeType: 'Streetcar', activePeriod: { start: '2026-09-04T17:00:00Z' }, headerText: '505 Dundas: Detour', title: 'Detour in effect.', url: '' }] }, { fetchedAt: '2026-09-04T18:00:00.000Z', now: Date.parse('2026-09-04T18:00:00Z') });
   assert.equal(result.sourceUrl, TTC_WEB_ALERTS_URL);
+  assert.equal(result.fetchedAt, '2026-09-04T18:00:00.000Z');
+  assert.equal(result.sourceUpdatedAt, '2026-09-04T17:53:21.310Z');
   assert.equal(result.lines.find((line) => line.id === '5').state, 'disrupted');
   assert.equal(result.lines.find((line) => line.id === '1').state, 'good');
   assert.equal(result.alerts.length, 2);
+});
+
+test('rejects timezone-naive timestamps and makes stale web data unknown', () => {
+  assert.throws(() => parseTtcWebAlerts({ lastUpdated: '2026-09-04T18:00:00', routeAlerts: [] }, { fetchedAt: '2026-09-04T18:00:00.000Z', now: Date.parse('2026-09-04T18:00:00Z') }), /explicit timezone/);
+  const stale = parseTtcWebAlerts({ lastUpdated: '2026-09-04T17:00:00Z', routeAlerts: [{ id: 'line-1', route: '1', activePeriod: {}, title: 'Old alert' }] }, { fetchedAt: '2026-09-04T18:00:00.000Z', now: Date.parse('2026-09-04T18:00:00Z') });
+  assert.equal(stale.state, 'stale');
+  assert.ok(stale.lines.every((line) => line.state === 'unknown'));
+});
+
+test('propagates an active network-wide alert to every rapid-transit line', () => {
+  const result = parseTtcWebAlerts({ lastUpdated: '2026-09-04T18:00:00Z', routeAlerts: [{ id: 'network', route: '', activePeriod: {}, title: 'Network-wide disruption' }] }, { fetchedAt: '2026-09-04T18:00:01.000Z', now: Date.parse('2026-09-04T18:00:01Z') });
+  assert.ok(result.lines.every((line) => line.state === 'disrupted'));
+  assert.ok(result.lines.every((line) => line.alerts.length === 1));
+});
+
+test('does not report an active TTC regular-service notice as a disruption', () => {
+  const result = parseTtcWebAlerts({ lastUpdated: '2026-09-04T18:00:00Z', routeAlerts: [{ id: 'resumed', route: '2', effectDesc: 'Regular service', activePeriod: {}, title: 'Service has resumed' }] }, { fetchedAt: '2026-09-04T18:00:01.000Z', now: Date.parse('2026-09-04T18:00:01Z') });
+  assert.equal(result.lines.find((line) => line.id === '2').state, 'good');
+  assert.equal(result.lines.find((line) => line.id === '2').alerts.length, 0);
+  assert.equal(result.alerts.length, 1);
+});
+
+test('web transport is bounded and refuses redirects; stale cache never keeps good lines', async () => {
+  clearTtcStatusCache();
+  const now = Date.parse('2026-09-04T18:00:00Z');
+  const payload = { lastUpdated: '2026-09-04T18:00:00Z', routeAlerts: [] };
+  let init;
+  const first = await getTtcStatus({ fetchImpl: async (_url, options) => { init = options; return new Response(JSON.stringify(payload), { status: 200 }); }, now });
+  assert.equal(first.state, 'live');
+  assert.equal(init.redirect, 'error');
+  const second = await getTtcStatus({ fetchImpl: async () => { throw new Error('offline'); }, now: now + 60_000 });
+  assert.equal(second.state, 'stale');
+  assert.ok(second.lines.every((line) => line.state === 'unknown'));
+  clearTtcStatusCache();
+  const huge = new Response(new Uint8Array(2 * 1024 * 1024 + 1), { status: 200 });
+  const unavailable = await getTtcStatus({ fetchImpl: async () => huge, now });
+  assert.equal(unavailable.state, 'unavailable');
 });
 
 test('returns unknown lines when the feed is unavailable', async () => {
