@@ -2,8 +2,9 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { coverage, searchPlaces } from "./places.mjs";
+import { coverage, graphProvenance, searchPlaces } from "./places.mjs";
 import { departuresWithOtp, planWithOtp } from "./otp-client.mjs";
+import { applyWashroomPreference } from "./washrooms.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
@@ -36,7 +37,8 @@ const server = http.createServer(async (req, res) => {
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking"].includes(preference)) throw new Error("preference must be fastest, transfers, or walking");
       const result = await planWithOtp({ otpUrl: config.otpUrl, timeoutMs: config.requestTimeoutMs, from, to, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults });
-      return json(res, 200, result);
+      const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
+      return json(res, 200, { ...preferred, data: await graphProvenance() });
     }
     return json(res, 404, { error: "route not found" });
   } catch (error) { const upstream = error.name === "AbortError" || error.code === "UPSTREAM"; return json(res, upstream ? 503 : 400, { error: upstream ? "routing service is temporarily unavailable" : String(error.message ?? error) }); }
