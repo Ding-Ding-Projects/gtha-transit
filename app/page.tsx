@@ -566,6 +566,7 @@ export default function Home() {
     );
   }
   const current = journeys[selected];
+  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),6500);return()=>clearTimeout(timer);},[notice]);
   const totalAlerts = status?.alerts?.length || 0;
   const agencies = coverage?.agencies || [];
   const lineState = (line: Line) =>

@@ -6,11 +6,16 @@
 - [x] Implement and test official TTC alert decoding and conservative fallback.
 - [x] Test Toronto daylight-saving conversion and saved coordinate validation.
 - [ ] Complete and verify every passenger flow in the built browser interface.
-- [ ] Build and serve a graph from all eleven validated agency feeds.
+- [x] Build and serve a graph from all eleven validated agency feeds.
 - [ ] Generate local map tiles and address/place search from real regional data.
 - [ ] Verify representative local and cross-agency journeys against the running engine.
 - [ ] Deploy the frontend and private backend services with rollback evidence.
-- [ ] Owner configures the public DNS and tunnel hostname.
+- [x] Owner configures the public DNS and tunnel hostname.
+- [x] Retain disruption history indefinitely with calendar filtering and exports.
+- [x] Make journey and per-leg ride times and kilometres prominent.
+- [x] Prefer confirmed washrooms inside transit facilities only.
+- [ ] Complete intersection-aware search, including Warden and Highway 7.
+- [ ] Connect every available official real-time feed, documenting inaccessible sources.
 - [ ] Verify the public HTTPS hostname and published release.
 
 ## Later capabilities
