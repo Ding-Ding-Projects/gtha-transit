@@ -1,5 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 
 const MAX_TEXT = 2000;
@@ -7,7 +8,7 @@ const MAX_QUERY = 200;
 const MAX_LIMIT = 100;
 const clean = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
 const json = (value) => JSON.stringify(value, Object.keys(value ?? {}).sort());
-const hash = (value) => { let h = 2166136261; for (const c of value) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, '0'); };
+const hash = (value) => createHash('sha256').update(value).digest('hex');
 
 function dayBoundary(value, end = false) {
   if (value == null || value === '') return undefined;
@@ -25,6 +26,7 @@ function dayBoundary(value, end = false) {
       const offset = match ? (match[1] === '+' ? 1 : -1) * (Number(match[2]) * 60 + Number(match[3] || 0)) * 60000 : -18000000;
       guess = Date.UTC(year, month - 1, day) - offset;
     }
+    if (end) return dayBoundary(new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10));
     d = new Date(guess);
   } else d = new Date(raw);
   if (!Number.isFinite(d.getTime())) throw new Error('Date filter is invalid');
@@ -93,7 +95,9 @@ export function createHistoryStore({ directory }) {
         updateSeen.run(record.observedAt, occurrence.occurrence_id);
         db.prepare('INSERT OR IGNORE INTO _seen_history VALUES(?)').run(occurrence.occurrence_id);
         const payloadJson = JSON.stringify(record.payload);
-        addVersion.run(occurrence.occurrence_id, record.observedAt, hash(payloadJson), payloadJson);
+        const contentHash = hash(JSON.stringify({ ...record.payload, updatedAt: '' }));
+        const previous = db.prepare('SELECT payload_hash FROM versions WHERE occurrence_id=? ORDER BY version_id DESC LIMIT 1').get(occurrence.occurrence_id);
+        if (!previous || previous.payload_hash !== contentHash) addVersion.run(occurrence.occurrence_id, record.observedAt, contentHash, payloadJson);
         for (const line of record.routes) addLine.run(occurrence.occurrence_id, line);
       }
       // A missing alert is meaningful only when this exact source gave a complete live snapshot.
@@ -107,15 +111,17 @@ export function createHistoryStore({ directory }) {
     const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), MAX_LIMIT);
     const needle = clean(q).slice(0, MAX_QUERY).toLowerCase();
     const clauses = []; const params = [];
-    if (from != null) { clauses.push('o.first_seen >= ?'); params.push(dayBoundary(from)); }
-    if (to != null) { clauses.push('o.first_seen < ?'); params.push(dayBoundary(to, true)); }
+    const fromValue = from != null ? dayBoundary(from) : undefined;
+    const toValue = to != null ? dayBoundary(to, true) : undefined;
+    if (fromValue) { clauses.push('o.last_seen >= ?'); params.push(fromValue); }
+    if (toValue) { clauses.push('o.first_seen < ?'); params.push(toValue); }
     if (line) { clauses.push('EXISTS (SELECT 1 FROM occurrence_lines l WHERE l.occurrence_id=o.occurrence_id AND l.line_id=?)'); params.push(clean(line)); }
-    if (needle) { clauses.push('lower(v.payload_json) LIKE ?'); params.push(`%${needle}%`); }
+    if (needle) { clauses.push("lower(v.payload_json) LIKE ? ESCAPE '\\'"); params.push(`%${needle.replace(/[\\%_]/g, '\\$&')}%`); }
     if (cursor) { const decoded = Buffer.from(String(cursor), 'base64url').toString(); const [date, id] = decoded.split('|'); if (!date || !/^\d+$/.test(id)) throw new Error('Cursor is invalid'); clauses.push('(o.first_seen > ? OR (o.first_seen = ? AND o.occurrence_id > ?))'); params.push(date, date, Number(id)); }
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
     const rows = db.prepare(`SELECT o.*, v.payload_json, v.observed_at AS version_observed_at, v.payload_hash FROM occurrences o JOIN versions v ON v.version_id=(SELECT vv.version_id FROM versions vv WHERE vv.occurrence_id=o.occurrence_id ORDER BY vv.version_id DESC LIMIT 1) ${where} ORDER BY o.first_seen ASC, o.occurrence_id ASC LIMIT ?`).all(...params, safeLimit + 1);
     const hasMore = rows.length > safeLimit; if (hasMore) rows.pop();
-    return { items: rows.map((row) => ({ occurrenceId: row.occurrence_id, source: row.source, alertId: row.alert_id, firstSeen: row.first_seen, lastSeen: row.last_seen, status: row.status, resolvedAt: row.resolved_at, versionObservedAt: row.version_observed_at, versionHash: row.payload_hash, payload: JSON.parse(row.payload_json), versions: db.prepare('SELECT observed_at AS observedAt, payload_hash AS hash, payload_json AS payload FROM versions WHERE occurrence_id=? ORDER BY version_id ASC').all(row.occurrence_id).map((v) => ({ ...v, payload: JSON.parse(v.payload) })) })), nextCursor: hasMore && rows.length ? Buffer.from(`${rows.at(-1).first_seen}|${rows.at(-1).occurrence_id}`).toString('base64url') : null };
+    return { items: rows.map((row) => ({ occurrenceId: row.occurrence_id, source: row.source, alertId: row.alert_id, firstSeen: row.first_seen, lastSeen: row.last_seen, status: row.status, resolvedAt: row.resolved_at, versionObservedAt: row.version_observed_at, versionHash: row.payload_hash, versionCount: Number(db.prepare('SELECT count(*) AS count FROM versions WHERE occurrence_id=?').get(row.occurrence_id).count), payload: JSON.parse(row.payload_json) })), nextCursor: hasMore && rows.length ? Buffer.from(`${rows.at(-1).first_seen}|${rows.at(-1).occurrence_id}`).toString('base64url') : null };
   }
   function close() { try { db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } finally { db.close(); } }
   return { observe, query, close };

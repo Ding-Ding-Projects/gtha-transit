@@ -16,10 +16,10 @@ test('history persists, deduplicates unchanged payloads and appends changed vers
     let store = createHistoryStore({ directory });
     store.observe(snap('2026-09-04T12:00:00Z', [alert('a')]));
     store.observe(snap('2026-09-04T12:01:00Z', [alert('a')]));
-    let result = store.query(); assert.equal(result.items.length, 1); assert.equal(result.items[0].versions.length, 1); assert.equal(result.items[0].lastSeen, '2026-09-04T12:01:00.000Z');
+    let result = store.query(); assert.equal(result.items.length, 1); assert.equal(result.items[0].versionCount, 1); assert.equal(result.items[0].lastSeen, '2026-09-04T12:01:00.000Z');
     store.observe(snap('2026-09-04T12:02:00Z', [alert('a', 'Changed')]));
-    assert.equal(store.query().items[0].versions.length, 2); store.close();
-    store = createHistoryStore({ directory }); assert.equal(store.query().items[0].versions.length, 2); store.close();
+    assert.equal(store.query().items[0].versionCount, 2); store.close();
+    store = createHistoryStore({ directory }); assert.equal(store.query().items[0].versionCount, 2); store.close();
   } finally { await cleanup(directory); }
 });
 
