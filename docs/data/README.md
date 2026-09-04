@@ -1,5 +1,7 @@
 # Regional transit data
 
-`data/feeds.json` is the authoritative registry for the eleven GTHA agencies and links each feed to its official publisher. Downloaded ZIP feeds belong in the ignored `data/feeds/` directory. Validate each archive with `python scripts/data/validate-gtfs.py data/feeds/<agency>.zip`, then rebuild the local stop index with `python scripts/data/build-stop-index.py data/feeds`.
+`data/feeds.json` is the authoritative registry for the eleven GTHA agencies and links each feed to its official publisher and direct download. Downloaded ZIP feeds belong in the ignored `data/feeds/` directory. Refresh every feed atomically with `python scripts/data/fetch-feeds.py --registry data/feeds.json --output data/feeds`, then rebuild the local stop index with `python scripts/data/build-stop-index.py data/feeds`. The fetcher bounds downloads, retries transient failures, verifies ZIP integrity and required GTFS members, records SHA-256 digests, and publishes a manifest only after all feeds validate.
+
+The deployment uses OpenTripPlanner 2.9.0 and the canonical Geofabrik Ontario extract. Run `backend/refresh.sh` on the deployment host to fetch and validate schedules, rebuild the stop index and regional graph with bounded CPU and memory, atomically replace the last graph, and restart the service. The previous graph remains available until the new graph has built successfully.
 
 The routing service never fabricates itineraries. `/api/plan` calls the configured OpenTripPlanner GraphQL endpoint. If OTP is unavailable, the endpoint returns its bounded error. The OTP GraphQL document follows the public OTP 2 `planConnection` schema and the backend validates the response before returning it.

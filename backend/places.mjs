@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const indexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/stops.json");
+const manifestPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/feeds/manifest.json");
 let cached = null;
 
 async function loadStops() {
@@ -24,5 +25,10 @@ export async function searchPlaces(query, limit = 20) {
 
 export async function coverage() {
   const stops = await loadStops();
-  return { agencies: [...new Set(stops.map((stop) => stop.agency).filter(Boolean))].sort(), indexedStops: stops.length, source: "GTFS stop index" };
+  let manifest = { generatedAt: null, feeds: [] };
+  try { manifest = JSON.parse(await readFile(manifestPath, "utf8")); } catch {}
+  const counts = new Map();
+  for (const stop of stops) counts.set(stop.feedId, (counts.get(stop.feedId) ?? 0) + 1);
+  const feeds = (manifest.feeds ?? []).map((feed) => ({ id: feed.id, name: feed.name, loaded: counts.has(feed.id), indexedStops: counts.get(feed.id) ?? 0, serviceStart: feed.serviceStart ?? null, serviceEnd: feed.serviceEnd ?? null, source: feed.source, sha256: feed.sha256, bytes: feed.bytes }));
+  return { generatedAt: manifest.generatedAt, indexedStops: stops.length, agencies: feeds, feeds, source: "validated official GTFS feeds" };
 }

@@ -1,13 +1,13 @@
 # Routing backend API
 
-Run the service from `backend/` with `node server.mjs`. It binds to loopback on port `8787` and expects OpenTripPlanner 2 at the `otpUrl` in `backend/config.json`.
+Run the service with `docker compose -f backend/compose.yaml up -d --build`. The public API listens on port `8787`; OpenTripPlanner stays on the private Compose network.
 
-* `GET /health` reports service readiness and the configured OTP URL.
+* `GET /health` reports API process readiness.
 * `GET /api/places?q=union` searches the local GTFS stop index. Empty queries return an empty list.
-* `GET /api/coverage` reports indexed stop count and agencies.
-* `GET /api/departures?stopId=<id>&timeRange=3600` reads departures from OTP's GraphQL API. It returns an explicit error when OTP is unavailable.
-* `POST /api/plan` accepts `{from:{lat,lon},to:{lat,lon},date?,time?,modes?}` and returns OTP itineraries in the normalized contract consumed by the frontend.
+* `GET /api/coverage` reports every validated feed, its service calendar, digest, byte size, loaded state, and indexed stop count.
+* `GET /api/departures?stopId=<feed:stop>&timeRange=3600` reads scheduled departures. Arrival and departure values are Unix epoch seconds computed from OTP's `serviceDay` plus the scheduled offset.
+* `POST /api/plan` accepts `{from:{lat,lon},to:{lat,lon},dateTime:"2026-09-05T08:00:00-04:00",arriveBy:false,wheelchair:false,maxWalkDistance:2000,preference:"fastest"}`. Preference may be `fastest`, `transfers`, or `walking`.
 
-Requests are loopback-only, JSON bodies are limited to 32 KiB, coordinates must be finite numbers, OTP calls have an 8 second deadline, and returned legs are discarded when they lack valid endpoints. No route or departure is synthesized locally.
+JSON bodies are limited to 32 KiB, coordinates must be finite numbers, OTP calls have a 15 second deadline, and returned legs are discarded when they lack valid endpoints. Upstream failures return one bounded public message without internal URLs or raw upstream details. No route or departure is synthesized locally.
 
-The plan query uses OTP 2's documented `planConnection(origin, destination, dateTime, first, modes)` operation. See the [official planConnection reference](https://docs.opentripplanner.org/api/dev-2.x/graphql-gtfs/queries/planConnection). GTFS and OSM data are loaded by the OTP deployment, while `data/stops.json` provides fast offline place search.
+The plan query uses OTP 2's documented `planConnection(origin, destination, dateTime, first, modes, preferences)` operation. Each leg includes string route and agency names, duration in seconds, and encoded polyline geometry. See the [official planConnection reference](https://docs.opentripplanner.org/api/dev-2.x/graphql-gtfs/queries/planConnection). GTFS and OpenStreetMap data are loaded by the OTP deployment, while the generated `data/stops.json` provides fast offline stop search.
