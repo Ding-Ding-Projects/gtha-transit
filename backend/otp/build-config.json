@@ -1,0 +1,19 @@
+{
+  "transitServiceStart": "-P1M",
+  "transitServiceEnd": "P6M",
+  "transitModelTimeZone": "America/Toronto",
+  "osm": [{"source":"ontario-latest.osm.pbf","timeZone":"America/Toronto"}],
+  "transitFeeds": [
+    {"type":"gtfs","feedId":"ttc","source":"ttc.gtfs.zip"},
+    {"type":"gtfs","feedId":"go","source":"go.gtfs.zip"},
+    {"type":"gtfs","feedId":"up","source":"up.gtfs.zip"},
+    {"type":"gtfs","feedId":"miway","source":"miway.gtfs.zip"},
+    {"type":"gtfs","feedId":"brampton","source":"brampton.gtfs.zip"},
+    {"type":"gtfs","feedId":"yrt","source":"yrt.gtfs.zip"},
+    {"type":"gtfs","feedId":"drt","source":"drt.gtfs.zip"},
+    {"type":"gtfs","feedId":"oakville","source":"oakville.gtfs.zip"},
+    {"type":"gtfs","feedId":"burlington","source":"burlington.gtfs.zip"},
+    {"type":"gtfs","feedId":"milton","source":"milton.gtfs.zip"},
+    {"type":"gtfs","feedId":"hsr","source":"hsr.gtfs.zip"}
+  ]
+}

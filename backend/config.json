@@ -1,0 +1,7 @@
+{
+  "otpUrl": "http://otp:8080",
+  "requestTimeoutMs": 15000,
+  "maxBodyBytes": 32768,
+  "maxResults": 10,
+  "allowedModes": ["WALK", "TRANSIT", "BUS", "RAIL", "SUBWAY", "TRAM"]
+}

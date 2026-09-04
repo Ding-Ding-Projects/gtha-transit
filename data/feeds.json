@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "region": "Greater Toronto and Hamilton Area",
+  "agencies": [
+    {"id":"ttc","name":"TTC","source":"https://open.toronto.ca/dataset/ttc-routes-and-schedules/","downloadUrl":"https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/7795b45e-e65a-4465-81fc-c36b9dfff169/resource/cfb6b2b8-6191-41e3-bda1-b175c51148cb/download/TTC%20Routes%20and%20Schedules%20Data.zip","format":"GTFS"},
+    {"id":"go","name":"GO Transit","source":"https://www.gotransit.com/en/partner-with-us/software-developers","downloadUrl":"https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip","format":"GTFS"},
+    {"id":"up","name":"UP Express","source":"https://www.gotransit.com/en/partner-with-us/software-developers","downloadUrl":"https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/UP-GTFS.zip","format":"GTFS"},
+    {"id":"miway","name":"MiWay","source":"https://www.mississauga.ca/miway-transit/developer-download/","downloadUrl":"https://www.miapp.ca/GTFS/google_transit.zip","format":"GTFS"},
+    {"id":"brampton","name":"Brampton Transit","source":"https://geohub.brampton.ca/pages/brampton-transit","downloadUrl":"https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data","format":"GTFS"},
+    {"id":"yrt","name":"YRT/Viva","source":"https://www.yrt.ca/en/about-us/open-data.aspx","downloadUrl":"https://www.yrt.ca/google/google_transit.zip","format":"GTFS"},
+    {"id":"drt","name":"Durham Region Transit","source":"https://www.durham.ca/en/regional-government/open-data.aspx","downloadUrl":"https://maps.durham.ca/OpenDataGTFS/GTFS_Durham_TXT.zip","format":"GTFS"},
+    {"id":"oakville","name":"Oakville Transit","source":"https://www.oakville.ca/transportation-roads/transit/open-data/","downloadUrl":"https://www.arcgis.com/sharing/rest/content/items/d78a1c1ad6a940009de8b68839a8f606/data","format":"GTFS"},
+    {"id":"burlington","name":"Burlington Transit","source":"https://www.burlington.ca/en/council-and-city-administration/open-data.aspx","downloadUrl":"https://opendata.burlington.ca/gtfs-rt/GTFS_Data.zip","format":"GTFS"},
+    {"id":"milton","name":"Milton Transit","source":"https://www.milton.ca/en/arts-and-recreation/resources-and-information/transit-data.aspx","downloadUrl":"https://metrolinx.tmix.se/gtfs/gtfs-milton.zip","format":"GTFS"},
+    {"id":"hsr","name":"Hamilton Street Railway (HSR)","source":"https://www.hamilton.ca/home-neighbourhood/getting-around/bus-news-and-updates/open-data","downloadUrl":"https://opendata.hamilton.ca/GTFS-Static/google_transit.zip","format":"GTFS"}
+  ],
+  "validation": {"requiredFiles":["agency.txt","stops.txt","routes.txt","trips.txt","stop_times.txt"]}
+}

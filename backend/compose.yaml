@@ -1,0 +1,14 @@
+services:
+  otp:
+    image: eclipse-temurin:25-jre
+    command: ["java", "-Xms2g", "-Xmx8g", "-XX:+UseG1GC", "-jar", "/var/otp/otp.jar", "--load", "--serve", "/var/otp"]
+    cpus: 4
+    mem_limit: 9g
+    restart: unless-stopped
+    volumes: ["./runtime/otp:/var/otp:ro"]
+  api:
+    build: {context: .., dockerfile: backend/Dockerfile}
+    ports: ["8787:8787"]
+    restart: unless-stopped
+    depends_on: [otp]
+    volumes: ["./runtime/feeds/manifest.json:/data/feeds/manifest.json:ro"]
