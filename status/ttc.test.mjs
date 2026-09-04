@@ -17,7 +17,7 @@ test('maps current TTC rapid-transit lines and retains streetcar alerts globally
   assert.equal(result.state, 'live');
   assert.deepEqual(result.lines.map((line) => line.id), ['1', '2', '4', '5', '6']);
   assert.equal(result.lines.find((line) => line.id === '2').state, 'disrupted');
-  assert.equal(result.lines.find((line) => line.id === '1').state, 'good');
+  assert.equal(result.lines.find((line) => line.id === '1').state, 'unknown');
   assert.equal(result.alerts.length, 2);
   assert.equal(result.sourceUrl, TTC_ALERTS_URL);
 });

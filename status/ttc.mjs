@@ -78,7 +78,8 @@ export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString(), no
   const alerts = parsed.filter((v) => v.active).map((v) => v.alert);
   const age = now - feedTimestamp * 1000;
   const state = age > MAX_AGE_MS || age < -60_000 ? 'stale' : 'live';
-  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && (!v.routes.length || v.routes.includes(line.id))).map((v) => v.alert); return { ...line, state: state === 'live' ? (lineAlerts.length ? 'disrupted' : 'good') : 'unknown', alerts: lineAlerts }; });
+  const coveredRoutes = new Set(parsed.flatMap((v) => v.routes));
+  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && (!v.routes.length || v.routes.includes(line.id))).map((v) => v.alert); const covered = coveredRoutes.has(line.id) || parsed.some((v) => v.active && !v.routes.length); return { ...line, state: state === 'live' && covered ? (lineAlerts.length ? 'disrupted' : 'good') : 'unknown', alerts: lineAlerts }; });
   return { state, fetchedAt, sourceUrl: TTC_ALERTS_URL, lines, alerts };
 }
 
