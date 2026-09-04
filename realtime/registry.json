@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-04T00:00:00.000Z",
+  "agencies": [
+    {
+      "id": "ttc",
+      "name": "Toronto Transit Commission",
+      "officialSource": "https://bustime.ttc.ca/gtfsrt/trips",
+      "licence": "TTC open-data terms apply.",
+      "capabilities": { "vehiclePositions": "public", "tripUpdates": "public", "serviceAlerts": "public" },
+      "feeds": {
+        "vehiclePositions": "https://bustime.ttc.ca/gtfsrt/vehicles",
+        "tripUpdates": "https://bustime.ttc.ca/gtfsrt/trips",
+        "serviceAlerts": "https://bustime.ttc.ca/gtfsrt/alerts"
+      }
+    },
+    {
+      "id": "go", "name": "GO Transit", "staticAgencyId": "go", "officialSource": "https://api.openmetrolinx.com/OpenDataAPI/Help", "licence": "Open Government Licence – Ontario – Metrolinx.",
+      "access": { "type": "registered-api-key", "documentation": "https://api.openmetrolinx.com/OpenDataAPI/" },
+      "capabilities": { "vehiclePositions": "access_required", "tripUpdates": "access_required", "serviceAlerts": "access_required" },
+      "feeds": {
+        "vehiclePositions": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/VehiclePosition",
+        "tripUpdates": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/TripUpdates",
+        "serviceAlerts": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/Alerts"
+      }
+    },
+    {
+      "id": "up", "name": "UP Express", "staticAgencyId": "up", "officialSource": "https://api.openmetrolinx.com/OpenDataAPI/Help", "licence": "Open Government Licence – Ontario – Metrolinx.",
+      "access": { "type": "registered-api-key", "documentation": "https://api.openmetrolinx.com/OpenDataAPI/" },
+      "capabilities": { "vehiclePositions": "access_required", "tripUpdates": "access_required", "serviceAlerts": "access_required" },
+      "feeds": {
+        "vehiclePositions": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs/Feed/VehiclePosition",
+        "tripUpdates": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs/Feed/TripUpdates",
+        "serviceAlerts": "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs/Feed/Alerts"
+      }
+    },
+    {
+      "id": "miway", "name": "MiWay", "officialSource": "https://www.mississauga.ca/miway-transit/developer-download/", "licence": "City of Mississauga terms and conditions.",
+      "capabilities": { "vehiclePositions": "public", "tripUpdates": "public", "serviceAlerts": "public" },
+      "feeds": {
+        "vehiclePositions": "https://www.miapp.ca/GTFS_RT/Vehicle/VehiclePositions.pb",
+        "tripUpdates": "https://www.miapp.ca/GTFS_RT/TripUpdate/TripUpdates.pb",
+        "serviceAlerts": "https://www.miapp.ca/gtfs_rt/Alerts/Alerts.pb"
+      }
+    },
+    {
+      "id": "brampton", "name": "Brampton Transit", "officialSource": "https://www.brampton.ca/en/residents/transit/Pages/Home.aspx", "licence": "City of Brampton terms apply.",
+      "capabilities": { "vehiclePositions": "unavailable", "tripUpdates": "unavailable", "serviceAlerts": "unavailable" },
+      "unavailableReason": "The official customer service exposes real-time information, but no official GTFS-RT endpoint was published in the consulted materials."
+    },
+    {
+      "id": "yrt", "name": "York Region Transit", "officialSource": "https://www.york.ca/transportation/york-region-transit-yrt", "licence": "York Region open-data terms apply.",
+      "capabilities": { "vehiclePositions": "unavailable", "tripUpdates": "unavailable", "serviceAlerts": "unavailable" },
+      "unavailableReason": "Official sources advertise customer real-time information, but no canonical public GTFS-RT endpoint was found."
+    },
+    {
+      "id": "drt", "name": "Durham Region Transit", "officialSource": "https://www.durhamregiontransit.com/travelling-with-us/planning-your-travel/", "licence": "Region of Durham Open Data terms apply.",
+      "capabilities": { "vehiclePositions": "unavailable", "tripUpdates": "unavailable", "serviceAlerts": "unavailable" },
+      "unavailableReason": "The official source documents GTFS scheduled data and customer real-time arrivals, but no public GTFS-RT endpoint was published."
+    },
+    {
+      "id": "oakville", "name": "Oakville Transit", "officialSource": "https://www.oakvilletransit.ca/schedules-maps/google-trip-planner/", "licence": "Town of Oakville open-data terms apply.",
+      "capabilities": { "vehiclePositions": "scheduled_only", "tripUpdates": "scheduled_only", "serviceAlerts": "scheduled_only" },
+      "unavailableReason": "The official trip-planner page explicitly says real-time information is not yet available."
+    },
+    {
+      "id": "burlington", "name": "Burlington Transit", "officialSource": "https://opendata.burlington.ca/gtfs-rt/", "licence": "City of Burlington Open Data Licence.",
+      "capabilities": { "vehiclePositions": "public", "tripUpdates": "public", "serviceAlerts": "public" },
+      "feeds": {
+        "vehiclePositions": "https://opendata.burlington.ca/gtfs-rt/GTFS_VehiclePositions.pb",
+        "tripUpdates": "https://opendata.burlington.ca/gtfs-rt/GTFS_TripUpdates.pb",
+        "serviceAlerts": "https://opendata.burlington.ca/gtfs-rt/GTFS_ServiceAlerts.pb"
+      }
+    },
+    {
+      "id": "milton", "name": "Milton Transit", "officialSource": "https://www.milton.ca/en/living-in-milton/transit.aspx", "licence": "Town of Milton terms apply.",
+      "capabilities": { "vehiclePositions": "unavailable", "tripUpdates": "unavailable", "serviceAlerts": "unavailable" },
+      "unavailableReason": "No official public GTFS-RT endpoint was found in the bounded source review."
+    },
+    {
+      "id": "hsr", "name": "Hamilton Street Railway", "officialSource": "https://opendata.hamilton.ca/GTFS-RT/", "licence": "City of Hamilton open-data terms.",
+      "capabilities": { "vehiclePositions": "public", "tripUpdates": "public", "serviceAlerts": "public" },
+      "feeds": {
+        "vehiclePositions": "https://opendata.hamilton.ca/GTFS-RT/GTFS_VehiclePositions.pb",
+        "tripUpdates": "https://opendata.hamilton.ca/GTFS-RT/GTFS_TripUpdates.pb",
+        "serviceAlerts": "https://opendata.hamilton.ca/GTFS-RT/GTFS_ServiceAlerts.pb"
+      }
+    }
+  ]
+}
