@@ -1005,6 +1005,7 @@ export default function Home() {
                         </button>
                         {index === selected && (
                           <div className="leg-list">
+                            {!!j.washrooms?.length&&<div className="washroom-result"><strong>{t('Transit-facility washrooms','交通設施洗手間')}</strong>{j.washroomPreferenceApplied&&<p>{t('Preferred for confirmed washroom connections.','因已確認洗手間接駁而優先顯示。')}</p>}<ul>{j.washrooms.map((w,i)=><li key={i}><a href={safeUrl(w.source)} target="_blank" rel="noreferrer">{w.name}</a><small>{w.openingHours||t('Opening hours and current availability unconfirmed','開放時間及目前可用狀況未能確認')}</small></li>)}</ul></div>}
                             {j.legs.map((leg, i) => (
                               <div className="leg" key={i}>
                                 <div className="leg-time">

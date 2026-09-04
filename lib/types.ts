@@ -22,6 +22,8 @@ export type Leg = {
   intermediateStops?: Place[];
 };
 export type Itinerary = {
+  washrooms?:{name:string;source:string;openingHours?:string|null;wheelchair?:string|null}[];
+  washroomPreferenceApplied?:boolean;
   id: string;
   startTime: number | string;
   endTime: number | string;

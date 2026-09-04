@@ -14,6 +14,7 @@ COPY --from=builder --chown=node:node /app/dist/client ./dist/client
 COPY --chown=node:node server ./server
 COPY --chown=node:node status ./status
 COPY --chown=node:node history ./history
+COPY --chown=node:node realtime ./realtime
 RUN mkdir -p /data/history && chown node:node /data/history
 USER node
 EXPOSE 8080

@@ -5,6 +5,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import {createHistoryStore} from '../history/store.mjs';
+import {loadRegistry,RealtimeAggregator} from '../realtime/aggregator.mjs';
+const realtime=new RealtimeAggregator({registry:await loadRegistry()});
 const history=process.env.HISTORY_DIR?createHistoryStore({directory:process.env.HISTORY_DIR}):null;
 let collecting=false;
 async function collect(){if(!history||collecting)return;collecting=true;try{history.observe(await getTtcStatus());}catch{console.error('Disruption history collection failed; existing records retained.');}finally{collecting=false;}}
@@ -86,6 +88,7 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname==='/api/realtime'&&req.method==='GET')return send(res,200,await realtime.refresh());
     if(url.pathname.startsWith('/api/history')&&req.method==='GET'){
       if(!history)return send(res,503,{error:'History storage is unavailable.'});
       if(url.pathname==='/api/history/export'){

@@ -1,3 +1,4 @@
+.washroom-result{padding:14px;border-radius:10px;background:var(--surface2);margin-top:15px;font-size:13px}.washroom-result ul{padding-left:20px}.washroom-result small{display:block;color:var(--muted)}
 .history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}
 .history-filters label{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;font-weight:600}
 .history-filters input,.history-filters select{width:100%;min-height:44px;padding:10px;border:1px solid var(--border);background:var(--surface);border-radius:10px;font-size:16px}
