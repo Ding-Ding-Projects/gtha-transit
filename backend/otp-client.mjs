@@ -16,6 +16,7 @@ const DEPARTURES = `query Departures($id:String!,$start:Long!,$timeRange:Int!,$c
 }`;
 
 function finiteNumber(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+function safeText(value) { if (value == null) return null; const text = String(value); return /[\u0000-\u001f\u007f]/.test(text) ? null : text; }
 function point(raw) {
   if (!raw || finiteNumber(raw.lat) === null || finiteNumber(raw.lon) === null) return null;
   return { name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon) };
@@ -31,9 +32,9 @@ function normalizeLeg(leg, index) {
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
-    route: leg.route ? String(leg.route.shortName ?? leg.route.longName ?? "") : null,
-    agency: leg.route?.agency ? String(leg.route.agency.name ?? "") : null,
-    headsign: leg.headsign ? String(leg.headsign) : null,
+    route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
+    agency: leg.route?.agency ? safeText(leg.route.agency.name ?? "") : null,
+    headsign: safeText(leg.headsign),
     geometry: leg.legGeometry?.points ? String(leg.legGeometry.points) : null,
     intermediateStops: Array.isArray(leg.intermediatePlaces) ? leg.intermediatePlaces.map(point).filter(Boolean).slice(0, 500) : [] };
 }
@@ -77,8 +78,8 @@ export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, 
   const departures = (stop.stoptimesWithoutPatterns ?? []).slice(0, maxResults).map((item) => ({
     scheduledArrival: Number(item.serviceDay) + Number(item.scheduledArrival), scheduledDeparture: Number(item.serviceDay) + Number(item.scheduledDeparture),
     predictedArrival: item.realtime ? Number(item.serviceDay) + Number(item.realtimeArrival) : null, predictedDeparture: item.realtime ? Number(item.serviceDay) + Number(item.realtimeDeparture) : null, realtime: Boolean(item.realtime),
-    headsign: item.headsign ?? null, route: item.trip?.route ? String(item.trip.route.shortName ?? item.trip.route.longName ?? "") : null,
-    agency: item.trip?.route?.agency ? String(item.trip.route.agency.name ?? "") : null }));
+    headsign: safeText(item.headsign), route: item.trip?.route ? safeText(item.trip.route.shortName ?? item.trip.route.longName ?? "") : null,
+    agency: item.trip?.route?.agency ? safeText(item.trip.route.agency.name ?? "") : null }));
   return { departures, stop: { id: stop.gtfsId, name: stop.name ?? "", lat: Number(stop.lat), lon: Number(stop.lon) } };
 }
 
