@@ -15,7 +15,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 MBTILES = os.environ.get("MBTILES", os.path.join(ROOT, "data", "ontario.mbtiles"))
 INDEX = os.environ.get("PLACE_INDEX", os.path.join(ROOT, "data", "places.sqlite3"))
 HOST = os.environ.get("MAP_HOST", "0.0.0.0")
-PORT = int(os.environ.get("MAP_PORT", "8787"))
+PORT = int(os.environ.get("MAP_PORT", "8789"))
 
 def _json(handler, status, body):
     data = json.dumps(body, ensure_ascii=False).encode("utf-8")

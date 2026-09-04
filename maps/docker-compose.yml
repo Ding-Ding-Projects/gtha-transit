@@ -3,7 +3,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "8787:8787"
+      - "8789:8789"
     environment:
       MBTILES: /srv/maps/data/ontario.mbtiles
       PLACE_INDEX: /srv/maps/data/places.sqlite3

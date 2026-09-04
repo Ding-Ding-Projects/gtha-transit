@@ -1,6 +1,6 @@
 # Offline regional map service
 
-This service supplies the transit planner with regional raster tiles and local place search. It makes no network request at runtime. The map client can keep using `/tiles/{z}/{x}/{y}.png`; address and place lookup uses `/search?q=...`.
+This service supplies the transit planner with regional raster tiles and local place search on port 8789. It makes no network request at runtime. The map client can keep using `/tiles/{z}/{x}/{y}.png`; address and place lookup uses `/search?q=...`.
 
 ## Data choice
 
@@ -17,6 +17,15 @@ python maps/import_places.py places.tsv maps/data/places.sqlite3
 ```
 
 `source_id` should be the stable OSM element identifier, allowing results to be audited without storing the full source object. The service limits a query to 120 characters and 20 results. It quotes terms before FTS matching, so user punctuation cannot become a query expression.
+
+For direct PBF extraction, run the pinned importer and renderer:
+
+```text
+python maps/import_osm.py ontario.osm.pbf maps/data/places.sqlite3
+python maps/render_mbtiles.py maps/data/places.sqlite3 maps/data/ontario.mbtiles
+```
+
+The importer reads actual OSM nodes and ways, retaining named places, roads, waterways, and coastline geometry. The renderer produces zoom 8 through 13 PNG tiles from that geometry. A nonempty road tile therefore comes from real regional data, not a placeholder.
 
 ## Run
 
