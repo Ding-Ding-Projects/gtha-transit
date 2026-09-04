@@ -69,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
         except sqlite3.Error:
             rows = []
         _json(self, HTTPStatus.OK, {"query": query, "results": [
-            {"name": n, "kind": k, "lat": lat, "lon": lon, "sourceId": sid} for n, k, lat, lon, sid in rows
+            {"id": sid, "name": n, "kind": k, "lat": lat, "lon": lon} for n, k, lat, lon, sid in rows
         ], "offline": True})
 
     def tile(self, z, x, y):

@@ -15,9 +15,9 @@ def main(src,target):
   for x in range(x0,x1):
    for y in range(y0,y1):
     im=Image.new('RGB',(256,256),(242,240,233)); dr=ImageDraw.Draw(im)
-    west,south,east,north=-95.2,41.5,-74.0,57.2
-    lon0=west+(east-west)*x/n; lon1=west+(east-west)*(x+1)/n
-    lat1=57.2-(57.2-41.5)*y/n; lat0=57.2-(57.2-41.5)*(y+1)/n
+    def invx(v): return v/n*360-180
+    def invy(v): return math.degrees(math.atan(math.sinh(math.pi*(1-2*v/n))))
+    lon0,lon1=invx(x),invx(x+1); lat1,lat0=invy(y),invy(y+1)
     for table,col,w in [('water',(167,205,224),2),('roads',(93,91,85),2)]:
      for (raw,) in db.execute(f'SELECT geometry FROM {table} WHERE maxlon>=? AND minlon<=? AND maxlat>=? AND minlat<=?',(lon0,lon1,lat0,lat1)):
       pts=[(int((proj(a,b,z)[0]-x)*256),int((proj(a,b,z)[1]-y)*256)) for a,b in json.loads(raw)]

@@ -11,12 +11,14 @@ class Handler(osmium.SimpleHandler):
         if len(line)<2:return
         kind=obj.tags.get('highway'); water=obj.tags.get('waterway') or obj.tags.get('natural')
         xs=[p[0] for p in line]; ys=[p[1] for p in line]
+        if max(xs)<-80.4 or min(xs)>-78.3 or max(ys)<43.05 or min(ys)>44.55:return
         if kind:self.db.execute('INSERT INTO roads VALUES (?,?,?,?,?,?,?)',(str(obj.id),kind,json.dumps(line,separators=(',',':')),min(xs),min(ys),max(xs),max(ys)))
         if water in ('river','stream','canal','coastline','water'):
             self.db.execute('INSERT INTO water VALUES (?,?,?,?,?,?,?)',(str(obj.id),water,json.dumps(line,separators=(',',':')),min(xs),min(ys),max(xs),max(ys)))
     def node(self,obj):
+        if not (-80.4<=float(obj.location.lon)<=-78.3 and 43.05<=float(obj.location.lat)<=44.55): return
         name=obj.tags.get('name')
-        if name:self.db.execute('INSERT INTO places VALUES (?,?,?,?,?)',(name,obj.tags.get('place') or obj.tags.get('amenity') or 'place',float(obj.location.lat),float(obj.location.lon),f'node/{obj.id}'))
+        if name:self.db.execute('INSERT INTO places VALUES (?,?,?,?,?)',(name,obj.tags.get('place') or obj.tags.get('amenity') or obj.tags.get('addr:street') or 'place',float(obj.location.lat),float(obj.location.lon),f'node/{obj.id}'))
 
 if len(sys.argv)!=3:raise SystemExit('usage: import_osm.py input.osm.pbf data/places.sqlite3')
 source,target=sys.argv[1:]; os.makedirs(os.path.dirname(os.path.abspath(target)),exist_ok=True); tmp=target+'.tmp'
