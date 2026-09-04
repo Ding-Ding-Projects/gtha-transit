@@ -7,3 +7,5 @@
 Records are namespaced by `sourceUrl:id`. Route associations are stored separately, allowing one alert to cover several lines. Queries support `from` inclusive and `to` exclusive ISO date or timestamp boundaries, `line`, plain text `q` (bounded to 200 characters), and a deterministic base64url cursor ordered by `firstSeen, occurrenceId`. `limit` is bounded to 100. Query results include the latest normalized payload and the append-only version list, so exports can page through the same API without loading the whole database.
 
 The focused test file `tests/history-store.test.mjs` covers restart persistence, unchanged deduplication and `lastSeen`, changed versions, live disappearance, stale retention, source changes, episode reappearance, date filters, pagination, invalid cursors, and bounded limits. Run it with `node --test tests/history-store.test.mjs`.
+
+Commit b885fc065af9d56aaa264580a77608d8dd9ff1aa contains the implementation and focused tests.
