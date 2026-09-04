@@ -103,8 +103,8 @@ function staleTtcStatus(value) {
 export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(), now = Date.now() } = {}) {
   if (!payload || typeof payload !== 'object' || !Array.isArray(payload.routeAlerts) || typeof payload.lastUpdated !== 'string') throw new Error('TTC web alert payload is incomplete');
   if (payload.routeAlerts.length > MAX_WEB_ALERTS) throw new Error('TTC web alert count exceeds the safety bound');
-  const sourceUpdatedAt = timestamp(payload.lastUpdated);
-  if (!sourceUpdatedAt) throw new Error('TTC web alert timestamp must include an explicit timezone');
+  const sourceUpdatedAtRaw = text(payload.lastUpdated);
+  const sourceUpdatedAt = timestamp(sourceUpdatedAtRaw);
   if (!timestamp(fetchedAt)) throw new Error('TTC fetch timestamp must include an explicit timezone');
   const alerts = payload.routeAlerts.map((item) => {
     if (!item || typeof item !== 'object') throw new Error('TTC web alert entry is invalid');
@@ -117,11 +117,10 @@ export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(
     const active = (!start || Date.parse(start) <= now) && (!end || Date.parse(end) >= now);
     const effect = text(item.effectDesc);
     const disrupted = !/^regular service(?:\s|$)/i.test(effect);
-    return { routes, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt, ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
+    return { routes, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
   }).filter((item) => item.active);
   const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.disrupted && (!item.routes.length || item.routes.includes(line.id))).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
-  const value = { state: 'live', fetchedAt: timestamp(fetchedAt), sourceUpdatedAt, sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };
-  return now - Date.parse(sourceUpdatedAt) > MAX_AGE_MS || Date.parse(sourceUpdatedAt) - now > 60_000 ? staleTtcStatus(value) : value;
+  return { state: 'live', fetchedAt: timestamp(fetchedAt), sourceUpdatedAtRaw, ...(sourceUpdatedAt ? { sourceUpdatedAt } : {}), sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };
 }
 
 export async function getTtcStatus({ fetchImpl = globalThis.fetch, now = Date.now(), timeoutMs = 8_000, fixturePath } = {}) {

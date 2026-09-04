@@ -32,11 +32,12 @@ test('maps TTC website route alerts to subway and LRT lines', () => {
   assert.equal(result.alerts.length, 2);
 });
 
-test('rejects timezone-naive timestamps and makes stale web data unknown', () => {
-  assert.throws(() => parseTtcWebAlerts({ lastUpdated: '2026-09-04T18:00:00', routeAlerts: [] }, { fetchedAt: '2026-09-04T18:00:00.000Z', now: Date.parse('2026-09-04T18:00:00Z') }), /explicit timezone/);
-  const stale = parseTtcWebAlerts({ lastUpdated: '2026-09-04T17:00:00Z', routeAlerts: [{ id: 'line-1', route: '1', activePeriod: {}, title: 'Old alert' }] }, { fetchedAt: '2026-09-04T18:00:00.000Z', now: Date.parse('2026-09-04T18:00:00Z') });
-  assert.equal(stale.state, 'stale');
-  assert.ok(stale.lines.every((line) => line.state === 'unknown'));
+test('preserves a timezone-naive publisher update as text without inventing an instant', () => {
+  const result = parseTtcWebAlerts({ lastUpdated: 'September 4, 2026 18:07:13', routeAlerts: [{ id: 'line-1', route: '1', effectDesc: 'No Service', activePeriod: {}, title: 'No service' }] }, { fetchedAt: '2026-09-04T22:12:00.000Z', now: Date.parse('2026-09-04T22:12:00Z') });
+  assert.equal(result.state, 'live');
+  assert.equal(result.sourceUpdatedAtRaw, 'September 4, 2026 18:07:13');
+  assert.equal('sourceUpdatedAt' in result, false);
+  assert.equal(result.lines.find((line) => line.id === '1').state, 'disrupted');
 });
 
 test('propagates an active network-wide alert to every rapid-transit line', () => {
