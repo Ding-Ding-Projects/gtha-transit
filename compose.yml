@@ -15,6 +15,7 @@ services:
     cpus: 1.0
     environment:
       HISTORY_DIR: /data/history
+      INTAKE_ORIGIN: ${INTAKE_ORIGIN:-http://gtha-metrolinx-intake:8190}
       TRUST_TUNNEL: '1'
       ROUTING_ORIGIN: ${ROUTING_ORIGIN:?Set the private routing origin}
       MAPS_ORIGIN: ${MAPS_ORIGIN:?Set the private map origin}

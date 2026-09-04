@@ -18,6 +18,7 @@ const root = path.resolve(
 );
 const routing = process.env.ROUTING_ORIGIN || 'http://127.0.0.1:8787';
 const maps = process.env.MAPS_ORIGIN || 'http://127.0.0.1:8789';
+const intake=process.env.INTAKE_ORIGIN;
 const routes = new Set([
   '/api/places',
   '/api/coverage',
@@ -88,6 +89,10 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname==='/setup/metrolinx'&&intake&&['GET','POST'].includes(req.method)){
+      const upstream=await fetch(intake+url.pathname+url.search,{method:req.method,headers:{'content-type':req.headers['content-type']||'application/x-www-form-urlencoded'},body:req.method==='POST'?await body(req):undefined,redirect:'error',signal:AbortSignal.timeout(5000)});
+      const content=await bounded(upstream,65536);res.writeHead(upstream.status,{'content-type':upstream.headers.get('content-type')||'text/html; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"});return res.end(content);
+    }
     if(url.pathname==='/api/realtime'&&req.method==='GET')return send(res,200,await realtime.refresh());
     if(url.pathname.startsWith('/api/history')&&req.method==='GET'){
       if(!history)return send(res,503,{error:'History storage is unavailable.'});
