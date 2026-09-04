@@ -13,6 +13,9 @@ export type Leg = {
   startTime: number | string;
   endTime: number | string;
   duration: number;
+  realtime?:boolean;
+  scheduledStartTime?:string;
+  scheduledEndTime?:string;
   route?: string;
   routeColor?: string;
   agency?: string;
@@ -22,6 +25,7 @@ export type Leg = {
   intermediateStops?: Place[];
 };
 export type Itinerary = {
+  realtime?:{applied:boolean;agencies?:string[]};
   washrooms?:{name:string;source:string;openingHours?:string|null;wheelchair?:string|null}[];
   washroomPreferenceApplied?:boolean;
   id: string;

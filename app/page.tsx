@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
+import RealtimeCoverage from '../components/realtime-coverage';
 import {copyAt} from '../lib/copy';
 import {rideMetrics,kilometres} from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
@@ -795,6 +796,7 @@ export default function Home() {
         </aside>
         <section className="content">
           {tab==='history'&&<DisruptionHistory t={t}/>}
+          {tab==='coverage'&&<RealtimeCoverage t={t}/>}
           {tab === 'plan' && (
             <>
               <div className="content-heading">
@@ -1000,7 +1002,7 @@ export default function Home() {
                               <Footprints size={14} />
                               {distance(j.walkDistance)}
                             </span>
-                            <span>{t('Scheduled', '時間表')}</span>
+                            <span>{j.legs.some(l=>l.realtime)?t('Includes live predictions','包含即時預測'):t('Scheduled', '時間表')}</span>
                           </div>
                         </button>
                         {index === selected && (
@@ -1043,6 +1045,7 @@ export default function Home() {
                                     · {mins(leg.duration)} min
                                   </small>
                                   <div className="leg-metrics"><strong>{mins(leg.duration)} min</strong><span>{kilometres(leg.distance)}</span></div>
+                                  {leg.realtime&&<p className="schedule-badge">{t('Live prediction','即時預測')}{leg.scheduledStartTime?' · '+t('scheduled','原定')+' '+time(leg.scheduledStartTime):''}</p>}
                                   {leg.mode !== 'WALK' && (
                                     <>
                                       <p className="alight">
