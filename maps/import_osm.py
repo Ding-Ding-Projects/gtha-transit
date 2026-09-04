@@ -10,9 +10,10 @@ class Handler(osmium.SimpleHandler):
         except (AttributeError,RuntimeError): return
         if len(line)<2:return
         kind=obj.tags.get('highway'); water=obj.tags.get('waterway') or obj.tags.get('natural')
-        if kind:self.db.execute('INSERT INTO roads VALUES (?,?,?)',(str(obj.id),kind,json.dumps(line,separators=(',',':'))))
+        xs=[p[0] for p in line]; ys=[p[1] for p in line]
+        if kind:self.db.execute('INSERT INTO roads VALUES (?,?,?,?,?,?,?)',(str(obj.id),kind,json.dumps(line,separators=(',',':')),min(xs),min(ys),max(xs),max(ys)))
         if water in ('river','stream','canal','coastline','water'):
-            self.db.execute('INSERT INTO water VALUES (?,?,?)',(str(obj.id),water,json.dumps(line,separators=(',',':'))))
+            self.db.execute('INSERT INTO water VALUES (?,?,?,?,?,?,?)',(str(obj.id),water,json.dumps(line,separators=(',',':')),min(xs),min(ys),max(xs),max(ys)))
     def node(self,obj):
         name=obj.tags.get('name')
         if name:self.db.execute('INSERT INTO places VALUES (?,?,?,?,?)',(name,obj.tags.get('place') or obj.tags.get('amenity') or 'place',float(obj.location.lat),float(obj.location.lon),f'node/{obj.id}'))
@@ -20,5 +21,5 @@ class Handler(osmium.SimpleHandler):
 if len(sys.argv)!=3:raise SystemExit('usage: import_osm.py input.osm.pbf data/places.sqlite3')
 source,target=sys.argv[1:]; os.makedirs(os.path.dirname(os.path.abspath(target)),exist_ok=True); tmp=target+'.tmp'
 if os.path.exists(tmp):os.unlink(tmp)
-db=sqlite3.connect(tmp); db.executescript('CREATE TABLE roads(id TEXT PRIMARY KEY,kind TEXT,geometry TEXT); CREATE TABLE water(id TEXT PRIMARY KEY,kind TEXT,geometry TEXT); CREATE VIRTUAL TABLE places USING fts5(name,kind,lat UNINDEXED,lon UNINDEXED,source_id UNINDEXED);')
+db=sqlite3.connect(tmp); db.executescript('CREATE TABLE roads(id TEXT PRIMARY KEY,kind TEXT,geometry TEXT,minlon REAL,minlat REAL,maxlon REAL,maxlat REAL); CREATE TABLE water(id TEXT PRIMARY KEY,kind TEXT,geometry TEXT,minlon REAL,minlat REAL,maxlon REAL,maxlat REAL); CREATE INDEX roads_bbox ON roads(minlon,maxlon,minlat,maxlat); CREATE INDEX water_bbox ON water(minlon,maxlon,minlat,maxlat); CREATE VIRTUAL TABLE places USING fts5(name,kind,lat UNINDEXED,lon UNINDEXED,source_id UNINDEXED);')
 Handler(db).apply_file(source,locations=True); db.commit(); db.close(); os.replace(tmp,target)

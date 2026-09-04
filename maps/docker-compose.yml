@@ -8,4 +8,5 @@ services:
       MBTILES: /srv/maps/data/ontario.mbtiles
       PLACE_INDEX: /srv/maps/data/places.sqlite3
     volumes:
-      - ./data:/srv/maps/data:ro
+      - ./data:/srv/maps/data
+      - /home/docker/gtha-transit-backend/data:/source:ro
