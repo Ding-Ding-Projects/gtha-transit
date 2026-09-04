@@ -14,13 +14,17 @@ services:
     mem_limit: 256m
     cpus: 1.0
     environment:
+      HISTORY_DIR: /data/history
       TRUST_TUNNEL: '1'
       ROUTING_ORIGIN: ${ROUTING_ORIGIN:?Set the private routing origin}
       MAPS_ORIGIN: ${MAPS_ORIGIN:?Set the private map origin}
     networks: [tunnel]
+    volumes: [disruption-history:/data/history]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
 networks:
   tunnel:
     external: true
     name: ${TUNNEL_NETWORK:?Set the existing tunnel network}
+volumes:
+  disruption-history:

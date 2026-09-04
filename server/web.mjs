@@ -4,6 +4,12 @@ import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
+import {createHistoryStore} from '../history/store.mjs';
+const history=process.env.HISTORY_DIR?createHistoryStore({directory:process.env.HISTORY_DIR}):null;
+let collecting=false;
+async function collect(){if(!history||collecting)return;collecting=true;try{history.observe(await getTtcStatus());}catch{console.error('Disruption history collection failed; existing records retained.');}finally{collecting=false;}}
+if(history){void collect();setInterval(()=>void collect(),60000).unref();}
+function historyPage(params){const page=history.query(Object.fromEntries(params));return {records:page.items.map(row=>({...row.payload,id:String(row.occurrenceId),alertId:row.alertId,firstSeen:row.firstSeen,lastSeen:row.lastSeen,status:row.status,versionCount:row.versionCount})),nextCursor:page.nextCursor};}
 const root = path.resolve(
   process.env.STATIC_ROOT ||
     path.join(path.dirname(fileURLToPath(import.meta.url)), '../dist/client'),
@@ -80,6 +86,15 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname.startsWith('/api/history')&&req.method==='GET'){
+      if(!history)return send(res,503,{error:'History storage is unavailable.'});
+      if(url.pathname==='/api/history/export'){
+        res.writeHead(200,{'content-type':'application/x-ndjson; charset=utf-8','content-disposition':'attachment; filename="ttc-disruption-history.ndjson"','cache-control':'no-store'});
+        const params=new URLSearchParams(url.searchParams);params.set('limit','100');params.delete('cursor');let cursor=null;
+        do{if(res.destroyed)return;if(cursor)params.set('cursor',cursor);const page=historyPage(params);for(const row of page.records){if(!res.write(JSON.stringify(row)+'\n'))await new Promise(resolve=>{res.once('drain',resolve);res.once('close',resolve);});}cursor=page.nextCursor;}while(cursor);return res.end();
+      }
+      if(url.pathname==='/api/history'){try{return send(res,200,historyPage(url.searchParams));}catch{return send(res,400,{error:'Invalid history date range or filter.'});}}
+    }
     if (req.url.length > 4096)
       return send(res, 414, { error: 'Request URL is too long.' });
     if (url.pathname === '/health')

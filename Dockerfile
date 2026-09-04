@@ -13,6 +13,8 @@ ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0 NODE_OPTIONS=--max-old-space-size
 COPY --from=builder --chown=node:node /app/dist/client ./dist/client
 COPY --chown=node:node server ./server
 COPY --chown=node:node status ./status
+COPY --chown=node:node history ./history
+RUN mkdir -p /data/history && chown node:node /data/history
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD node -e "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

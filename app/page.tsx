@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
+import DisruptionHistory from '../components/disruption-history';
 import {copyAt} from '../lib/copy';
 import {rideMetrics,kilometres} from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
@@ -241,6 +242,7 @@ export default function Home() {
     [arriveBy, setArriveBy] = useState(false),
     [preference, setPreference] = useState('fastest'),
     [wheelchair, setWheelchair] = useState(false),
+    [preferWashrooms, setPreferWashrooms] = useState(false),
     [maxWalk, setMaxWalk] = useState(1500);
   const [journeys, setJourneys] = useState<Itinerary[]>([]),
     [selected, setSelected] = useState(0),
@@ -276,6 +278,7 @@ export default function Home() {
         preference,
         wheelchair,
         maxWalk,
+        preferWashrooms,
       ])
     )
       return;
@@ -285,7 +288,7 @@ export default function Home() {
     setPlanned(false);
     setJourneys([]);
     setError('');
-  }, [from, to, when, arriveBy, preference, wheelchair, maxWalk]);
+  }, [from, to, when, arriveBy, preference, wheelchair, maxWalk,preferWashrooms]);
   useEffect(() => {
     setWhen(localInput());
     try {
@@ -424,6 +427,7 @@ export default function Home() {
       preference,
       wheelchair,
       maxWalk,
+      preferWashrooms,
     ]);
     setLoading(true);
     setError('');
@@ -442,6 +446,7 @@ export default function Home() {
           preference,
           wheelchair,
           maxWalkDistance: maxWalk,
+          preferWashrooms,
         }),
         signal: controller.signal,
       });
@@ -585,6 +590,7 @@ export default function Home() {
           {[
             ['plan', t('Plan a trip', '規劃行程')],
             ['status', t('Live TTC', '即時 TTC')],
+            ['history',t('History','歷史')],
             ['saved', t('Saved trips', '已儲存行程')],
             ['coverage', t('Our region', '服務範圍')],
           ].map(([id, label]) => (
@@ -728,6 +734,8 @@ export default function Home() {
                   ))}
                 </select>
               </label>
+              <label className="check"><input type="checkbox" checked={preferWashrooms} onChange={e=>setPreferWashrooms(e.target.checked)}/>{t('Prefer washrooms','優先經有洗手間嘅車站')}</label>
+              <small>{t('Transit-facility washrooms only. Prefers practical connections through confirmed stations or terminals; opening hours and availability may be unknown.','只限交通設施內嘅洗手間，優先選擇經已確認車站或總站嘅合理接駁，開放時間及可用狀況可能未有資料。')}</small>
               <label className="check">
                 <input
                   type="checkbox"
@@ -786,6 +794,7 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
+          {tab==='history'&&<DisruptionHistory t={t}/>}
           {tab === 'plan' && (
             <>
               <div className="content-heading">
