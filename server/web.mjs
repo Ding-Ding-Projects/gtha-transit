@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,7 +67,10 @@ function allowed(key) {
   }
   return ++b.n <= 120;
 }
+let activeRequests=0;
 const server = http.createServer(async (req, res) => {
+  if(activeRequests>=16)return send(res,503,{error:'The service is busy. Please retry shortly.'});
+  activeRequests++;res.once('close',()=>{activeRequests--;});
   res.setHeader('x-content-type-options', 'nosniff');
   res.setHeader('referrer-policy', 'no-referrer');
   res.setHeader('x-frame-options', 'DENY');
@@ -84,7 +87,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/status/ttc' && req.method === 'GET')
       return send(res, 200, await getTtcStatus());
     if (routes.has(url.pathname)) {
-      if (!allowed(req.socket.remoteAddress))
+      if (!allowed(process.env.TRUST_TUNNEL==='1' ? String(req.headers['cf-connecting-ip']||req.socket.remoteAddress).slice(0,80) : req.socket.remoteAddress))
         return send(res, 429, {
           error: 'Too many searches. Please wait a minute.',
         });
@@ -184,6 +187,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.requestTimeout = 30000;
+server.maxConnections=128;
 server.headersTimeout = 10000;
 server.listen(
   Number(process.env.PORT || 8080),

@@ -12,6 +12,7 @@ services:
     mem_limit: 256m
     cpus: 1.0
     environment:
+      TRUST_TUNNEL: '1'
       ROUTING_ORIGIN: ${ROUTING_ORIGIN:?Set the private routing origin}
       MAPS_ORIGIN: ${MAPS_ORIGIN:?Set the private map origin}
     networks: [tunnel]

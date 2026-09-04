@@ -1,0 +1,47 @@
+name: Build and publish web release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record workflow start
+        run: date -u +%Y-%m-%dT%H:%M:%SZ > /tmp/workflow-started
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: npm
+      - name: Install pinned packages
+        run: npm ci
+      - name: Build and package
+        run: |
+          npm run build
+          node scripts/package-release.mjs
+          node scripts/count-lines.mjs > dist/line-counts.md
+      - name: Publish unique release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v0.1.0-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          export TAG
+          node scripts/release-notes.mjs
+          gh release create "$TAG" dist/gtha-transit-web.tar.gz dist/line-counts.md --target "$GITHUB_SHA" --title "GTHA Transit $TAG" --notes-file dist/release-notes.md
+      - name: Retain build evidence
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-${{ github.run_id }}
+          path: |
+            dist/gtha-transit-web.tar.gz
+            dist/line-counts.md
+            dist/release-notes.md
+          if-no-files-found: warn
+          retention-days: 7

@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
+import {copyAt} from '../lib/copy';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   torontoIso as asIso,
@@ -258,11 +259,7 @@ export default function Home() {
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
     hydrated = useRef(false);
-  const t = useCallback(
-    (en: string, zh: string) =>
-      lang === 'zh' ? zh : lang === 'both' ? `${en} · ${zh}` : en,
-    [lang],
-  );
+  const t = useCallback((en:string,zh:string)=>{const a=copyAt(en,'en',funEn),b=copyAt(zh,'zh',funZh);return lang==='zh'?b:lang==='both'?`${a} · ${b}`:a;},[lang,funEn,funZh]);
   const translate = t;
   const statusRequest = useRef<AbortController | null>(null),
     statusGeneration = useRef(0);

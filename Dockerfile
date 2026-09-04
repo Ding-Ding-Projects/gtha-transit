@@ -9,7 +9,7 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 RUN npm run build
 FROM node:24.19.0-bookworm-slim
 WORKDIR /app
-ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0
+ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0 NODE_OPTIONS=--max-old-space-size=128
 COPY --from=builder --chown=node:node /app/dist/client ./dist/client
 COPY --chown=node:node server ./server
 COPY --chown=node:node status ./status
