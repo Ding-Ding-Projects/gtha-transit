@@ -1,7 +1,7 @@
 const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanLabeledLocationInput!,$dateTime:PlanDateTimeInput!,$first:Int!,$modes:PlanModesInput!,$preferences:PlanPreferencesInput) {
   planConnection(origin:$origin,destination:$destination,dateTime:$dateTime,first:$first,modes:$modes,preferences:$preferences) {
     edges { node { start end duration walkDistance numberOfTransfers legs {
-      mode start { scheduledTime } end { scheduledTime } duration distance headsign from { name lat lon } to { name lat lon }
+      mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon } to { name lat lon }
       intermediatePlaces { name lat lon }
       route { gtfsId shortName longName mode agency { gtfsId name } }
       legGeometry { points }
@@ -10,7 +10,7 @@ const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanL
 }`;
 const DEPARTURES = `query Departures($id:String!,$start:Long!,$timeRange:Int!,$count:Int!) {
   stop(id:$id) { gtfsId name lat lon stoptimesWithoutPatterns(startTime:$start,timeRange:$timeRange,numberOfDepartures:$count,omitCanceled:true) {
-    serviceDay scheduledArrival scheduledDeparture headsign
+    serviceDay scheduledArrival scheduledDeparture realtimeArrival realtimeDeparture realtime headsign
     trip { gtfsId route { gtfsId shortName longName agency { gtfsId name } } }
   } }
 }`;
@@ -28,7 +28,8 @@ function durationSeconds(value) {
 function normalizeLeg(leg, index) {
   const from = point(leg.from); const to = point(leg.to);
   if (!from || !to) return null;
-  return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.scheduledTime ?? null, endTime: leg.end?.scheduledTime ?? null,
+  return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
+    scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? String(leg.route.shortName ?? leg.route.longName ?? "") : null,
     agency: leg.route?.agency ? String(leg.route.agency.name ?? "") : null,
@@ -75,6 +76,7 @@ export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, 
   const stop = data?.stop; if (!stop) return { departures: [], stop: null };
   const departures = (stop.stoptimesWithoutPatterns ?? []).slice(0, maxResults).map((item) => ({
     scheduledArrival: Number(item.serviceDay) + Number(item.scheduledArrival), scheduledDeparture: Number(item.serviceDay) + Number(item.scheduledDeparture),
+    predictedArrival: item.realtime ? Number(item.serviceDay) + Number(item.realtimeArrival) : null, predictedDeparture: item.realtime ? Number(item.serviceDay) + Number(item.realtimeDeparture) : null, realtime: Boolean(item.realtime),
     headsign: item.headsign ?? null, route: item.trip?.route ? String(item.trip.route.shortName ?? item.trip.route.longName ?? "") : null,
     agency: item.trip?.route?.agency ? String(item.trip.route.agency.name ?? "") : null }));
   return { departures, stop: { id: stop.gtfsId, name: stop.name ?? "", lat: Number(stop.lat), lon: Number(stop.lon) } };

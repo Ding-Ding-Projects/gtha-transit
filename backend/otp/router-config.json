@@ -1,4 +1,10 @@
 {
   "server": {"apiProcessingTimeout": "PT15S"},
-  "routingDefaults": {"transferSlack": 120}
+  "routingDefaults": {"transferSlack": 120},
+  "updaters": [
+    {"type":"stop-time-updater","feedId":"miway","url":"https://www.miapp.ca/GTFS_RT/TripUpdate/TripUpdates.pb","frequency":"30s"},
+    {"type":"real-time-alerts","feedId":"miway","url":"https://www.miapp.ca/gtfs_rt/Alerts/Alerts.pb","frequency":"1m"},
+    {"type":"stop-time-updater","feedId":"hsr","url":"https://opendata.hamilton.ca/GTFS-RT/GTFS_TripUpdates.pb","frequency":"30s"},
+    {"type":"real-time-alerts","feedId":"hsr","url":"https://opendata.hamilton.ca/GTFS-RT/GTFS_ServiceAlerts.pb","frequency":"1m"}
+  ]
 }
