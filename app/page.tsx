@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
 import {copyAt} from '../lib/copy';
+import {rideMetrics,kilometres} from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   torontoIso as asIso,
@@ -979,6 +980,10 @@ export default function Home() {
                             ))}
                           </div>
                           <div className="journey-meta">
+                            <span className="ride-stat"><TrainFront size={18}/><strong>{mins(rideMetrics(j).rideSeconds)} min</strong>{t('on transit','乘車')}</span>
+                            <span className="ride-stat"><Route size={18}/><strong>{kilometres(rideMetrics(j).totalMetres)}</strong>{t('total distance','全程距離')}</span>
+                            <span className="ride-stat"><Footprints size={18}/><strong>{mins(rideMetrics(j).walkSeconds)} min · {kilometres(j.walkDistance)}</strong>{t('walking','步行')}</span>
+                            <span className="ride-stat"><Clock size={18}/><strong>{mins(rideMetrics(j).waitSeconds)} min</strong>{t('waiting / transfers','等車／轉車')}</span>
                             <span>
                               {j.transfers} {t('transfers', '次轉車')}
                             </span>
@@ -1027,6 +1032,7 @@ export default function Home() {
                                       : leg.agency}{' '}
                                     · {mins(leg.duration)} min
                                   </small>
+                                  <div className="leg-metrics"><strong>{mins(leg.duration)} min</strong><span>{kilometres(leg.distance)}</span></div>
                                   {leg.mode !== 'WALK' && (
                                     <>
                                       <p className="alight">

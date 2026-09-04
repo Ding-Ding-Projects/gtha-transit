@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {rideMetrics,kilometres} from '../lib/ride-metrics.ts';
+test('Ride, walk and waiting durations remain distinct and distance is in kilometres',()=>{const m=rideMetrics({duration:3600,legs:[{mode:'WALK',duration:300,distance:350},{mode:'RAIL',duration:2400,distance:35000}]});assert.deepEqual(m,{rideSeconds:2400,walkSeconds:300,waitSeconds:900,totalMetres:35350});assert.equal(kilometres(m.totalMetres),'35.4 km');assert.equal(kilometres(350),'0.35 km');});
+test('Unknown leg distance cannot silently become a zero or partial total',()=>{assert.equal(rideMetrics({duration:5,legs:[{mode:'WALK',duration:5}]}).totalMetres,null);assert.equal(kilometres(0),'0.00 km');});
