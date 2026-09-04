@@ -1,0 +1,9 @@
+# Disruption history
+
+`history/store.mjs` is the durable local history for successful TTC disruption snapshots. It uses Node 24's built-in `node:sqlite`, WAL mode, full synchronous commits, and a database under the configured directory (`disruptions.sqlite`). It has no network access and no automatic retention or deletion, so the total history is indefinite while each read remains bounded.
+
+`createHistoryStore({ directory })` returns `observe(snapshot)`, `query(options)`, and `close()`. `observe` accepts the status shape from `status/ttc.mjs`. A live snapshot from one source updates `lastSeen`, appends a version only when normalized payload content changes, and marks an alert `no_longer_reported` only when that same source supplies a complete live snapshot in which it is absent. Stale, unavailable, malformed, or source-switched snapshots never resolve an earlier occurrence. If an alert returns after being marked absent, it receives a new occurrence row, preserving episodes without inventing a resolution timestamp.
+
+Records are namespaced by `sourceUrl:id`. Route associations are stored separately, allowing one alert to cover several lines. Queries support `from` inclusive and `to` exclusive ISO date or timestamp boundaries, `line`, plain text `q` (bounded to 200 characters), and a deterministic base64url cursor ordered by `firstSeen, occurrenceId`. `limit` is bounded to 100. Query results include the latest normalized payload and the append-only version list, so exports can page through the same API without loading the whole database.
+
+The focused test file `tests/history-store.test.mjs` covers restart persistence, unchanged deduplication and `lastSeen`, changed versions, live disappearance, stale retention, source changes, episode reappearance, date filters, pagination, invalid cursors, and bounded limits. Run it with `node --test tests/history-store.test.mjs`.
