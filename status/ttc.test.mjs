@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clearTtcStatusCache, getTtcStatus, parseTtcAlerts, TTC_ALERTS_URL } from './ttc.mjs';
+import { clearTtcStatusCache, getTtcStatus, parseTtcAlerts, parseTtcWebAlerts, TTC_ALERTS_URL, TTC_WEB_ALERTS_URL } from './ttc.mjs';
 
 const v = (n) => { const a = []; do { let b = n & 0x7f; n >>>= 7; if (n) b |= 0x80; a.push(b); } while (n); return Uint8Array.from(a); };
 const scalar = (field, value) => Uint8Array.from([...(v(field << 3)), ...v(value)]);
@@ -20,6 +20,14 @@ test('maps current TTC rapid-transit lines and retains streetcar alerts globally
   assert.equal(result.lines.find((line) => line.id === '1').state, 'unknown');
   assert.equal(result.alerts.length, 2);
   assert.equal(result.sourceUrl, TTC_ALERTS_URL);
+});
+
+test('maps TTC website route alerts to subway and LRT lines', () => {
+  const result = parseTtcWebAlerts({ lastUpdated: '2026-09-04T17:53:21.31Z', routeAlerts: [{ id: 'line-5-alert', route: '5', routeType: 'Subway', activePeriod: { start: '2026-09-04T17:00:00Z', end: '2026-09-04T20:00:00Z' }, headerText: 'Line 5: Service change', title: 'Trains are turning back.', url: 'https://www.ttc.ca/service-alerts' }, { id: 'streetcar-alert', route: '505', routeType: 'Streetcar', activePeriod: { start: '2026-09-04T17:00:00Z' }, headerText: '505 Dundas: Detour', title: 'Detour in effect.', url: '' }] }, { now: Date.parse('2026-09-04T18:00:00Z') });
+  assert.equal(result.sourceUrl, TTC_WEB_ALERTS_URL);
+  assert.equal(result.lines.find((line) => line.id === '5').state, 'disrupted');
+  assert.equal(result.lines.find((line) => line.id === '1').state, 'good');
+  assert.equal(result.alerts.length, 2);
 });
 
 test('returns unknown lines when the feed is unavailable', async () => {

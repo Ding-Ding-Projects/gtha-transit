@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
 export const TTC_ALERTS_URL = 'https://bustime.ttc.ca/gtfsrt/alerts';
+export const TTC_WEB_ALERTS_URL = 'https://www.ttc.ca/ttcapi/routedetail/getallroutesandstopsalerts';
 export const TTC_LINES = [
   { id: '1', name: 'Line 1 Yonge-University', color: '#f4c300' },
   { id: '2', name: 'Line 2 Bloor-Danforth', color: '#1d7a3a' },
@@ -87,9 +88,31 @@ export function unavailableTtcStatus({ fetchedAt = new Date().toISOString() } = 
   return { state: 'unavailable', fetchedAt, sourceUrl: TTC_ALERTS_URL, lines: TTC_LINES.map((line) => ({ ...line, state: 'unknown', alerts: [] })), alerts: [] };
 }
 
+export function parseTtcWebAlerts(payload, { now = Date.now() } = {}) {
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.routeAlerts) || typeof payload.lastUpdated !== 'string') throw new Error('TTC web alert payload is incomplete');
+  const fetchedAt = new Date(payload.lastUpdated).toISOString();
+  if (!Number.isFinite(Date.parse(fetchedAt))) throw new Error('TTC web alert timestamp is invalid');
+  const alerts = payload.routeAlerts.map((item) => {
+    const routes = String(item.route ?? '').split('|').map((route) => route.trim()).filter(Boolean);
+    const period = item.activePeriod ?? {};
+    const start = period.start && Date.parse(period.start) ? new Date(period.start).toISOString() : undefined;
+    const end = period.end && Date.parse(period.end) && !String(period.end).startsWith('0001-') ? new Date(period.end).toISOString() : undefined;
+    const active = (!start || Date.parse(start) <= now) && (!end || Date.parse(end) >= now);
+    return { routes, active, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || item.effectDesc), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: text(item.lastUpdated) || fetchedAt, ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
+  }).filter((item) => item.active);
+  const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.routes.includes(line.id)).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
+  return { state: 'live', fetchedAt, sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };
+}
+
 export async function getTtcStatus({ fetchImpl = globalThis.fetch, now = Date.now(), timeoutMs = 8_000, fixturePath } = {}) {
   if (cache && now - cache.receivedAt < CACHE_MS) return cache.value;
   try {
+    if (!fixturePath && typeof fetchImpl === 'function') {
+      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try { const response = await fetchImpl(TTC_WEB_ALERTS_URL, { headers: { accept: 'application/json' }, signal: controller.signal }); if (!response.ok) throw new Error(`TTC web alerts returned HTTP ${response.status}`); const payload = await response.json(); const value = parseTtcWebAlerts(payload, { now }); cache = { receivedAt: now, value }; return value; }
+      catch { /* fall through to the official GTFS-Realtime source */ }
+      finally { clearTimeout(timer); }
+    }
     let bytes;
     if (fixturePath) bytes = new Uint8Array(await readFile(fixturePath));
     else {
