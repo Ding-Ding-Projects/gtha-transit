@@ -1,0 +1,7 @@
+{
+  "note": "Sanitized public-shape fixture. Runtime tests construct protobuf bytes from these values.",
+  "entities": [
+    { "id": "line-2-alert", "routeId": "2", "title": "Service adjustment", "description": "Reduced service near a station.", "url": "https://www.ttc.ca/service-alerts" },
+    { "id": "streetcar-501-alert", "routeId": "501", "title": "Streetcar diversion", "description": "Route 501 buses replace streetcars.", "url": "https://www.ttc.ca/service-alerts" }
+  ]
+}
