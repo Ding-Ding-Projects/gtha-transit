@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "region": "Greater Toronto and Hamilton Area",
+  "agencies": [
+    {"id":"ttc","name":"TTC","source":"https://open.toronto.ca/dataset/ttc-routes-and-schedules/","format":"GTFS"},
+    {"id":"go","name":"GO Transit","source":"https://www.gotransit.com/en/partner-with-us/software-developers","downloadUrl":"https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/GO-GTFS.zip","format":"GTFS"},
+    {"id":"up","name":"UP Express","source":"https://www.gotransit.com/en/partner-with-us/software-developers","downloadUrl":"https://assets.metrolinx.com/raw/upload/Documents/Metrolinx/Open%20Data/UP-GTFS.zip","format":"GTFS"},
+    {"id":"miway","name":"MiWay","source":"https://www.mississauga.ca/publication/gtfs/","format":"GTFS"},
+    {"id":"brampton","name":"Brampton Transit","source":"https://www.brampton.ca/EN/residents/transit/Pages/Welcome.aspx","format":"GTFS"},
+    {"id":"yrt","name":"YRT/Viva","source":"https://www.yrt.ca/en/about-us/open-data.aspx","format":"GTFS"},
+    {"id":"drt","name":"Durham Region Transit","source":"https://www.durham.ca/en/regional-government/open-data.aspx","format":"GTFS"},
+    {"id":"oakville","name":"Oakville Transit","source":"https://www.oakville.ca/transportation-roads/transit/open-data/","format":"GTFS"},
+    {"id":"burlington","name":"Burlington Transit","source":"https://www.burlington.ca/en/transit/open-data.aspx","format":"GTFS"},
+    {"id":"milton","name":"Milton Transit","source":"https://www.milton.ca/en/living-in-milton/open-data.aspx","format":"GTFS"},
+    {"id":"hsr","name":"Hamilton Street Railway (HSR)","source":"https://www.hamilton.ca/home-neighbourhood/hsr/open-data","format":"GTFS"}
+  ],
+  "validation": {"requiredFiles":["agency.txt","stops.txt","routes.txt","trips.txt","stop_times.txt"]}
+}

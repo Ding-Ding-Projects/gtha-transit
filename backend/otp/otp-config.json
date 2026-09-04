@@ -1,0 +1,7 @@
+{
+  "otpRoutingParameters": {"iterationDepartureStepInSeconds": 60},
+  "updaters": [],
+  "transit": {"feeds": ["/var/otp/gtfs"]},
+  "server": {"port": 8080},
+  "apiProcessingTimeoutSeconds": 8
+}
