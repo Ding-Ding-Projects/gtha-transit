@@ -49,3 +49,15 @@
   padding: 7px 10px;
   font-size: 12px;
 }
+@media(max-width:760px){
+ .shell:not([data-tab="plan"]) .planner{display:none}
+ .topbar{position:sticky;top:0;z-index:1300;background:var(--surface)}
+ .icon-button,.text-button,.pill,.results-toolbar button,.rail-link,.swap{min-width:44px;min-height:44px}
+ .swap{right:20px;top:61px}
+ .time-row input,.time-row select,.options select,.input-line input{font-size:16px;min-height:44px}
+ .input-line .icon-button{min-width:40px;min-height:40px}
+ .suggestions button{min-height:48px;font-size:15px}
+ .place-field label{font-size:12px}
+ .planner h1{font-size:30px}
+ .content{scroll-margin-top:135px}
+}

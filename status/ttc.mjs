@@ -3,11 +3,11 @@ import { readFile } from 'node:fs/promises';
 export const TTC_ALERTS_URL = 'https://bustime.ttc.ca/gtfsrt/alerts';
 export const TTC_WEB_ALERTS_URL = 'https://www.ttc.ca/ttcapi/routedetail/getallroutesandstopsalerts';
 export const TTC_LINES = [
-  { id: '1', name: 'Line 1 Yonge-University', color: '#f4c300' },
-  { id: '2', name: 'Line 2 Bloor-Danforth', color: '#1d7a3a' },
-  { id: '4', name: 'Line 4 Sheppard', color: '#6a1b9a' },
-  { id: '5', name: 'Line 5 Eglinton', color: '#8a1538' },
-  { id: '6', name: 'Line 6 Finch West', color: '#00838f' },
+  { id: '1', name: 'Line 1 Yonge-University', color: '#D5C82B' },
+  { id: '2', name: 'Line 2 Bloor-Danforth', color: '#008000' },
+  { id: '4', name: 'Line 4 Sheppard', color: '#B300B3' },
+  { id: '5', name: 'Line 5 Eglinton', color: '#FF8000' },
+  { id: '6', name: 'Line 6 Finch West', color: '#808080' },
 ];
 
 const MAX_BYTES = 2 * 1024 * 1024;

@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: 'GTHA Transit | Your next connection',
   description:
     'Independent transit planning for Greater Toronto and Hamilton. Compare journeys, find stops, and check live TTC subway and light rail alerts.',
-  metadataBase: new URL('https://torontotransit.org'),
+  metadataBase: new URL('https://toronto-transit.org'),
   openGraph: {
     title: 'GTHA Transit',
     description: 'Your region. Your next connection.',
-    url: 'https://torontotransit.org',
+    url: 'https://toronto-transit.org',
     type: 'website',
     siteName: 'GTHA Transit',
   },

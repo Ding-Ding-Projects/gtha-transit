@@ -2,7 +2,7 @@
 
 An independent journey planner for Greater Toronto and Hamilton, with cross-agency schedules, walking connections, and official TTC subway and light rail alerts.
 
-**Public address:** [torontotransit.org](https://torontotransit.org). Domain and tunnel routing are configured separately by the owner. Publication is not verified until the hostname responds.
+**Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. Publication is not verified until the hostname responds.
 
 ## Run locally
 

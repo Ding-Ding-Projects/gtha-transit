@@ -70,6 +70,8 @@ export default function TransitMap({
       );
       L.control.zoom({ position: 'bottomright' }).addTo(map.current);
       L.tileLayer('/tiles/{z}/{x}/{y}.png', {
+        minZoom:8,
+        maxNativeZoom:13,
         maxZoom: 18,
         attribution: '© OpenStreetMap contributors',
       })

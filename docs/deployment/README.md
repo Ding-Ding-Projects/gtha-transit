@@ -6,13 +6,15 @@ Set `SOURCE_COMMIT`, `RELEASE_TAG`, `ROUTING_ORIGIN`, `MAPS_ORIGIN`, and `TUNNEL
 
 ## Owner-managed tunnel routing
 
-After the origin is verified, add the public hostname `torontotransit.org` to the existing tunnel and set its HTTP service destination to:
+After the origin is verified, add the public hostname `toronto-transit.org` to the existing tunnel and set its HTTP service destination to:
 
 ```text
 http://gtha-transit-web:8080
 ```
 
 The connector and frontend must share the configured Docker network. The domain must be active in the owner's Cloudflare account. The dashboard can create the tunnel DNS record when adding the route. Do not replace unrelated hostname records. Verify public HTTPS separately after saving.
+
+Alternatively set `WEB_BIND_ADDRESS` to the host's private LAN address and `WEB_PORT=8188`. The tunnel's HTTP service URL can then use `http://<private-host-address>:8188` even if its connector is on a different container network. The default bind is loopback; never bind every public host interface accidentally.
 
 ## Recovery
 

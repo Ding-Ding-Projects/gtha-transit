@@ -568,7 +568,7 @@ export default function Home() {
         ? t('Service alert', '服務提示')
         : t('Status unconfirmed', '狀態未確認');
   return (
-    <div className="shell">
+    <div className="shell" data-tab={tab}>
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
