@@ -36,3 +36,10 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+*.tsbuildinfo
+/data/feeds/
+/data/runtime/
+/data/*.osm.pbf
+/data/*.obj
+/.private/
+/public/version.json

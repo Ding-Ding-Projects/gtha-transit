@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        SOURCE_COMMIT: ${SOURCE_COMMIT:?Set the source commit}
+    image: gtha-transit-web:${RELEASE_TAG:-local}
+    container_name: gtha-transit-web
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp:size=16m]
+    mem_limit: 256m
+    cpus: 1.0
+    environment:
+      ROUTING_ORIGIN: ${ROUTING_ORIGIN:?Set the private routing origin}
+      MAPS_ORIGIN: ${MAPS_ORIGIN:?Set the private map origin}
+    networks: [tunnel]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+networks:
+  tunnel:
+    external: true
+    name: ${TUNNEL_NETWORK:?Set the existing tunnel network}

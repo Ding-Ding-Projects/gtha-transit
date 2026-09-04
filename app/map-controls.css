@@ -1,0 +1,51 @@
+.map-warning {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  max-width: calc(100% - 75px);
+  z-index: 800;
+  background: var(--alert-bg);
+  color: var(--alert);
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  box-shadow: var(--shadow);
+}
+.coordinate-picker {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  right: 55px;
+  z-index: 850;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+.coordinate-picker label {
+  font-size: 11px;
+  flex: 1;
+  min-width: 85px;
+}
+.coordinate-picker input {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 8px;
+  border-radius: 6px;
+  min-height: 40px;
+}
+.coordinate-picker button {
+  border-radius: 7px;
+  background: var(--primary);
+  color: var(--surface);
+  min-height: 40px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
