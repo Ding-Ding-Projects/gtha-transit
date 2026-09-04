@@ -52,7 +52,7 @@ function translated(bytes) {
 function routeIds(bytes) {
   return many(fields(bytes), 5).map((v) => utf8(first(fields(v), 2) ?? new Uint8Array())).filter(Boolean);
 }
-function parseAlert(bytes, entityId) {
+function parseAlert(bytes, entityId, feedTimestamp, now) {
   const fs = fields(bytes);
   const periods = many(fs, 1).map((v) => fields(v)).map((f) => ({ start: iso(Number(first(f, 1) ?? 0n)), end: iso(Number(first(f, 2) ?? 0n)) }));
   const routes = [...new Set(routeIds(bytes))];
@@ -60,20 +60,27 @@ function parseAlert(bytes, entityId) {
   const description = translated(first(fs, 11) ?? new Uint8Array());
   const activeFrom = periods.map((p) => p.start).filter(Boolean).sort()[0];
   const activeTo = periods.map((p) => p.end).filter(Boolean).sort().at(-1);
-  const now = Date.now();
-  const active = (!activeFrom || Date.parse(activeFrom) <= now) && (!activeTo || Date.parse(activeTo) >= now);
-  return { alert: { id: text(entityId) || `ttc-${Math.random().toString(36).slice(2)}`, title: header || 'TTC service alert', description, url: translated(first(fs, 8) ?? new Uint8Array()), updatedAt: new Date().toISOString(), ...(activeFrom ? { activeFrom } : {}), ...(activeTo ? { activeTo } : {}) }, routes, active };
+  const active = periods.length === 0 || periods.some((period) => (!period.start || Date.parse(period.start) <= now) && (!period.end || Date.parse(period.end) >= now));
+  return { alert: { id: text(entityId) || `ttc-alert-${feedTimestamp}`, title: header || 'TTC service alert', description, url: /^https:\/\//i.test(translated(first(fs, 8) ?? new Uint8Array())) ? translated(first(fs, 8) ?? new Uint8Array()) : '', updatedAt: iso(feedTimestamp) ?? new Date().toISOString(), ...(activeFrom ? { activeFrom } : {}), ...(activeTo ? { activeTo } : {}) }, routes, active };
 }
 
-export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString() } = {}) {
+export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString(), now = Date.now() } = {}) {
   if (!(bytes instanceof Uint8Array) || bytes.byteLength > MAX_BYTES) throw new Error('TTC alert payload exceeds the safety bound');
-  const entities = many(fields(bytes),  entityField()).slice(0, MAX_ENTITIES);
-  const parsed = entities.map((entity) => { const fs = fields(entity); const id = utf8(first(fs, 1) ?? new Uint8Array()); const alert = first(fs, 5); return alert ? parseAlert(alert, id) : null; }).filter(Boolean);
+  const root = fields(bytes);
+  const header = first(root, 1);
+  const headerFields = header ? fields(header) : [];
+  const version = utf8(first(headerFields, 1) ?? new Uint8Array());
+  const feedTimestamp = Number(first(headerFields, 3) ?? 0n);
+  if (!/^\d+\.\d+(?:\.\d+)?$/.test(version) || !feedTimestamp) throw new Error('TTC feed header is missing required version or timestamp');
+  const entities = many(root, 2);
+  if (entities.length > MAX_ENTITIES) throw new Error('TTC alert entity count exceeds the safety bound');
+  const parsed = entities.map((entity) => { const fs = fields(entity); const id = utf8(first(fs, 1) ?? new Uint8Array()); const alert = first(fs, 5); return alert ? parseAlert(alert, id, feedTimestamp, now) : null; }).filter(Boolean);
   const alerts = parsed.filter((v) => v.active).map((v) => v.alert);
-  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && v.routes.includes(line.id)).map((v) => v.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
-  return { state: 'live', fetchedAt, sourceUrl: TTC_ALERTS_URL, lines, alerts };
+  const age = now - feedTimestamp * 1000;
+  const state = age > MAX_AGE_MS || age < -60_000 ? 'stale' : 'live';
+  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && (!v.routes.length || v.routes.includes(line.id))).map((v) => v.alert); return { ...line, state: state === 'live' ? (lineAlerts.length ? 'disrupted' : 'good') : 'unknown', alerts: lineAlerts }; });
+  return { state, fetchedAt, sourceUrl: TTC_ALERTS_URL, lines, alerts };
 }
-function entityField() { return 1; }
 
 export function unavailableTtcStatus({ fetchedAt = new Date().toISOString() } = {}) {
   return { state: 'unavailable', fetchedAt, sourceUrl: TTC_ALERTS_URL, lines: TTC_LINES.map((line) => ({ ...line, state: 'unknown', alerts: [] })), alerts: [] };
@@ -87,14 +94,22 @@ export async function getTtcStatus({ fetchImpl = globalThis.fetch, now = Date.no
     else {
       if (typeof fetchImpl !== 'function') throw new Error('fetch is unavailable');
       const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try { const response = await fetchImpl(TTC_ALERTS_URL, { headers: { accept: 'application/x-google-protobuf' }, signal: controller.signal }); if (!response.ok) throw new Error(`TTC feed returned HTTP ${response.status}`); const length = Number(response.headers?.get?.('content-length') ?? 0); if (length > MAX_BYTES) throw new Error('TTC alert payload exceeds the safety bound'); bytes = new Uint8Array(await response.arrayBuffer()); if (bytes.byteLength > MAX_BYTES) throw new Error('TTC alert payload exceeds the safety bound'); }
+      try { const response = await fetchImpl(TTC_ALERTS_URL, { headers: { accept: 'application/x-google-protobuf' }, signal: controller.signal }); if (!response.ok) throw new Error(`TTC feed returned HTTP ${response.status}`); const length = Number(response.headers?.get?.('content-length') ?? 0); if (length > MAX_BYTES) throw new Error('TTC alert payload exceeds the safety bound'); bytes = await readBoundedBody(response, MAX_BYTES); }
       finally { clearTimeout(timer); }
     }
-    const value = parseTtcAlerts(bytes, { fetchedAt: new Date(now).toISOString() }); cache = { receivedAt: now, value }; return value;
+    const value = parseTtcAlerts(bytes, { fetchedAt: new Date(now).toISOString(), now }); cache = { receivedAt: now, value }; return value;
   } catch {
     if (cache) return { ...cache.value, state: 'stale' };
     return unavailableTtcStatus({ fetchedAt: new Date(now).toISOString() });
   }
+}
+
+async function readBoundedBody(response, limit) {
+  if (!response.body?.getReader) return new Uint8Array(await response.arrayBuffer());
+  const reader = response.body.getReader(); const chunks = []; let total = 0;
+  try { while (true) { const { done, value } = await reader.read(); if (done) break; total += value.byteLength; if (total > limit) throw new Error('TTC alert payload exceeds the safety bound'); chunks.push(value); } }
+  finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; } return bytes;
 }
 
 export function clearTtcStatusCache() { cache = null; }
