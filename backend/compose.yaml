@@ -11,4 +11,6 @@ services:
     ports: ["${ROUTING_BIND_ADDRESS:-127.0.0.1}:8787:8787"]
     restart: unless-stopped
     depends_on: [otp]
-    volumes: ["./runtime/feeds/manifest.json:/data/feeds/manifest.json:ro", "./runtime/otp/graph-provenance.json:/data/graph-provenance.json:ro"]
+    expose: ["8788"]
+    environment: {METROLINX_KEY_FILE: /run/secrets/metrolinx-api-key}
+    volumes: ["./runtime/feeds/manifest.json:/data/feeds/manifest.json:ro", "./runtime/otp/graph-provenance.json:/data/graph-provenance.json:ro", "./runtime/secrets:/run/secrets:ro"]
