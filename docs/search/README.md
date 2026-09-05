@@ -8,6 +8,8 @@ The planner combines generated transit-stop suggestions with the local regional 
 
 Search folds Unicode with NFKD, removes combining marks, lowercases text, treats punctuation and repeated whitespace as separators, and ignores connector words such as `and`, `at`, and `the`. This makes `Églinton / Yonge`, `Yonge & Eglinton`, and `Yonge at Eglinton` equivalent for matching while preserving the source spelling in the result.
 
+Compact letter-number forms are separated without guessing ordinary word boundaries. `Highway7`, `ward high7`, and `highway7warden` are compared as their letter and number terms, so they can find the same source-backed intersection as spaced input. A digit is split before a following word only when that word has two or more letters. This deliberately preserves single-letter suffixes such as `12A` and `501X`, and leaves adjacent ordinary letters untouched.
+
 Common road forms compare as whole terms. `Avenue` and `Ave`, `Road` and `Rd`, and the other supported suffix pairs share a canonical form. `Highway` and `Hwy` are equivalent. `high` and `route` gain a highway alternative only next to a number, so `ward high 7` can find a Warden and Highway 7 intersection without changing the ordinary meaning of names such as High Park. `Saint`, `St`, and `Street` compare as whole terms for place names such as Saint Clair.
 
 Every query term must match the same candidate. Alphabetic terms may use a prefix of two or more characters, while numeric terms remain exact. This permits `yo` to return both Yonge and York candidates, and `ward high 7` to find Warden and Highway 7, without combining a separate Ward result and a separate Highway 7 result into a fictional intersection. Generic edit-distance or arbitrary substring matching is not used.

@@ -143,6 +143,8 @@ class PlaceSearchHttpTest(unittest.TestCase):
                     ("Station Clair Avenue", "station clair ave", "road", None, None, "fixture/station-clair"),
                     ("High Park", "high park", "place", None, None, "fixture/high-park"),
                     ("Route Place", "route place", "place", None, None, "fixture/route-place"),
+                    ("12A Warden Avenue", "12a warden ave", "address", None, None, "fixture/building-12a"),
+                    ("Route 501X", "route 501x", "place", None, None, "fixture/route-501x"),
                     ("Yonge Station", "yonge station", "station", None, None, "fixture/yonge-station"),
                     ("York Mills Station", "york mills station", "station", None, None, "fixture/york-mills"),
                 ],
@@ -166,10 +168,11 @@ class PlaceSearchHttpTest(unittest.TestCase):
             self.assertEqual(response.status, 200)
             return json.loads(response.read())["results"]
 
-    def test_search_matches_partial_aliases_word_order_diacritics_and_ambiguity(self):
-        for query in ("Warden Highway 7", "Warden Hwy 7", "ward high 7", "Highway 7 Warden"):
+    def test_search_matches_compact_aliases_old_index_word_order_diacritics_and_ambiguity(self):
+        for query in ("Warden Highway 7", "Warden Highway7", "Warden Hwy 7", "ward high 7", "ward high7", "Highway 7 Warden", "Highway7Warden", "highway7warden"):
             self.assertEqual(self.search(query)[0]["id"], "fixture/warden-hwy7")
         self.assertEqual([item["id"] for item in self.search("ward high 7")], ["fixture/warden-hwy7"])
+        self.assertEqual([item["id"] for item in self.search("ward high7")], ["fixture/warden-hwy7"])
         for query in ("Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"):
             self.assertEqual(self.search(query)[0]["id"], "fixture/yonge-eglinton")
         for query in ("Saint Clair", "St. Clair"):
@@ -178,6 +181,8 @@ class PlaceSearchHttpTest(unittest.TestCase):
         self.assertEqual(self.search("union")[0]["id"], "fixture/union-station")
         self.assertEqual(self.search("high park")[0]["id"], "fixture/high-park")
         self.assertEqual(self.search("route place")[0]["id"], "fixture/route-place")
+        self.assertEqual(self.search("12A Warden")[0]["id"], "fixture/building-12a")
+        self.assertEqual(self.search("Route 501X")[0]["id"], "fixture/route-501x")
         short_prefix_ids = {item["id"] for item in self.search("yo")}
         self.assertIn("fixture/yonge-station", short_prefix_ids)
         self.assertIn("fixture/york-mills", short_prefix_ids)

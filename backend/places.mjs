@@ -35,6 +35,8 @@ const fold = (value) => String(value ?? "")
   .toLocaleLowerCase();
 const tokenize = (value) => fold(value)
   .replace(/[^a-z0-9]+/g, " ")
+  .replace(/([a-z])(\d)/g, "$1 $2")
+  .replace(/(\d)([a-z]{2,})/g, "$1 $2")
   .trim()
   .split(" ")
   .filter((term) => term && !ignoredTerms.has(term))
