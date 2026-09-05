@@ -296,7 +296,7 @@ export function WashroomDetourPanel({ position, destinations, t, onClose, onFoll
       {result.note && <p>{result.note}</p>}
       {result.facility && <section className="washroom-detour-panel__facility" aria-labelledby="washroom-facility-heading">
         <h4 id="washroom-facility-heading">{facilityName}</h4>
-        <p>{t('Availability', '開放狀況')}: {result.facility.availability === 'confirmed-open' ? t('Confirmed open', '已確認開放') : t('Not confirmed', '未能確認')}</p>
+        <p>{t('Availability', '開放狀況')}: {result.facility.availability === 'confirmed-open' ? t('Open at expected arrival according to published hours', '按已公布時間，預計到達時開放') : t('Not confirmed', '未能確認')}</p>
         {safeUrl(result.facility.source) && <a href={safeUrl(result.facility.source) ?? undefined} target="_blank" rel="noreferrer">{t('Official facility source', '官方設施來源')}</a>}
       </section>}
       <section className="washroom-detour-panel__leg" aria-labelledby="washroom-facility-leg-heading">

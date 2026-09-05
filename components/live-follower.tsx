@@ -936,7 +936,7 @@ export default function LiveFollower({
                 </p>
                 <small>
                   {washroomTarget.availability === 'confirmed-open'
-                    ? t('Confirmed open by the supplied source.', '所提供來源確認開放。')
+                    ? t('Published hours show it open at the planned arrival. Live closures and access may differ.', '已公布時間顯示預計到達時開放。即時關閉或通行安排可能不同。')
                     : t('Current availability is unknown.', '目前開放狀況未知。')}
                   {washroomTarget.note ? ` ${washroomTarget.note}` : ''}
                 </small>
