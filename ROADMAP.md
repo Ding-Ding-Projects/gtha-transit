@@ -26,4 +26,5 @@
 - [ ] Auditable fare estimates and fare-rule coverage.
 - [ ] Specialized/on-demand booking integrations if authorized.
 
-- [ ] Verify and deploy shared exact/representative photo captions and licence links.
+- [x] Deploy shared exact/representative photo captions and licence links; verify tracker rendering at 320px and desktop widths.
+- [ ] Exercise the updated caption on a live assigned-vehicle directions flow and promote validated public gallery evidence.
