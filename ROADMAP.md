@@ -37,5 +37,5 @@
 - [x] Return neutral empty journey results without coordinate-based agency attribution.
 - [x] Preserve distinct same-name stop locations and sort next coverage dates.
 - [x] Version map tiles by the actual dataset revision, verified on both live map surfaces.
-- [ ] Improve map road detail by zoom.
+- [x] Improve map road detail by zoom, preserve full tile coverage, and validate the published dataset.
 - [ ] Obtain consistent replacement photos for TTC XDE60 and HSR.
