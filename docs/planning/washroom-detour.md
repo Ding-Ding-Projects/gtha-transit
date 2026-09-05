@@ -41,6 +41,8 @@ The required input has these fields:
 
 The operation sorts verified-coordinate candidates by straight-line distance, considers at most six, and routes at most two candidates concurrently. It sets a total deadline below 25 seconds. For each candidate it first routes to the facility, checks that the facility is `confirmed-open` at the expected arrival, then plans the remaining journey using the original `to` and ordered `via` list. When more than one complete result exists, the earliest confirmed facility arrival wins; onward-journey duration is only a tie-break. This keeps an urgent washroom request focused on reaching a known-open facility rather than optimizing the entire later trip.
 
+Washroom facility and continuation requests opt in to OTP's documented direct `WALK` search mode while retaining transit choices. Ordinary journey planning keeps its existing transit-only mode. This allows a short walk to a nearby confirmed-open facility without widening unrelated planner requests.
+
 `visitMinutes` is a whole value from 1 through 60 and defaults to 10. For a normal detour, the continuation begins at facility arrival plus this planned visit duration. The result includes `departAfterVisit` so callers can show the planned onward departure time. It is planning time only, never a measured queue, washroom, or indoor-access duration.
 
 `timeToFacilitySeconds` is the elapsed time from the requested route time through facility arrival, including initial waiting for a later service. The continuation duration remains the returned itinerary duration when that value is available. This keeps the urgent facility ETA honest without relabeling onward travel time as waiting-inclusive elapsed time.

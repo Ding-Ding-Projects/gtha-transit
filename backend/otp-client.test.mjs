@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { planWithOtp } from "./otp-client.mjs";
+import { planModes, planWithOtp } from "./otp-client.mjs";
 
 const input = (overrides = {}) => ({
   otpUrl: "http://otp.example",
@@ -59,6 +59,23 @@ test("official anchor stops use OTP visit.stopLocationIds while ordinary places 
   const visits = requests[0].variables.via.map((entry) => entry.visit);
   assert.deepEqual(visits[0], { minimumWaitTime: "PT0S", stopLocationIds: ["ttc:16073"], label: "Eglinton" });
   assert.deepEqual(visits[1], { minimumWaitTime: "PT0S", coordinate: { latitude: 43.71, longitude: -79.39 }, label: "Saved place" });
+});
+
+test("direct walking is opt-in and keeps the ordinary planner transit-only", async () => {
+  assert.deepEqual(planModes(), {
+    transitOnly: true,
+    transit: { access: ["WALK"], egress: ["WALK"], transfer: ["WALK"], transit: ["BUS", "RAIL", "SUBWAY", "TRAM"].map((mode) => ({ mode })) },
+  });
+  assert.deepEqual(planModes({ allowDirectWalking: true }), {
+    direct: ["WALK"],
+    transit: { access: ["WALK"], egress: ["WALK"], transfer: ["WALK"], transit: ["BUS", "RAIL", "SUBWAY", "TRAM"].map((mode) => ({ mode })) },
+  });
+  const ordinary = await withResponse({ data: { planConnection: { edges: [] } } }, () => planWithOtp(input()));
+  assert.equal(ordinary.requests[0].variables.modes.transitOnly, true);
+  assert.equal(ordinary.requests[0].variables.modes.direct, undefined);
+  const walking = await withResponse({ data: { planConnection: { edges: [] } } }, () => planWithOtp(input({ allowDirectWalking: true })));
+  assert.deepEqual(walking.requests[0].variables.modes.direct, ["WALK"]);
+  assert.equal(walking.requests[0].variables.modes.transitOnly, undefined);
 });
 
 test("a stop-identity visit completes only at the requested official stop", async () => {

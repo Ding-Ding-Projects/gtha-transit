@@ -245,7 +245,7 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
   };
   const results = await runPool(pool, MAX_WASHROOM_CONCURRENCY, async (candidate) => {
     try {
-      const immediate = await boundedPlan(planWithOtp, { ...options, from: current.point, to: candidate.location.point, via: [], dateTime, arriveBy: false }, deadline, now);
+      const immediate = await boundedPlan(planWithOtp, { ...options, from: current.point, to: candidate.location.point, via: [], dateTime, arriveBy: false, allowDirectWalking: true }, deadline, now);
       if (immediate.error) return { state: immediate.error, candidate };
       const immediateItinerary = itineraryFrom(immediate.result, dateTime, true);
       if (!immediateItinerary) return { state: "facility-unresolved", candidate };
@@ -255,7 +255,7 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
       const departAfterVisit = new Date(Date.parse(expectedArrival) + plannedVisitSeconds * 1000).toISOString();
       const facilityLeg = { itinerary: immediateItinerary.itinerary, from: current.point, to: candidate.location.point, timeToFacilitySeconds: immediateItinerary.duration, expectedArrival, visitDurationSeconds: plannedVisitSeconds, visitMinutes: plannedVisitSeconds / 60, departAfterVisit, internalWalkingUnknown: true, locationSource: candidate.location.source };
       if (facilityOnly) return { state: "facility-only", candidate, availability, facilityLeg };
-      const continuation = await boundedPlan(planWithOtp, { ...options, from: candidate.location.point, to: destination, via, dateTime: departAfterVisit, arriveBy: false }, deadline, now);
+      const continuation = await boundedPlan(planWithOtp, { ...options, from: candidate.location.point, to: destination, via, dateTime: departAfterVisit, arriveBy: false, allowDirectWalking: true }, deadline, now);
       if (continuation.error) return { state: continuation.error, candidate, availability, facilityLeg };
       const continuationItinerary = itineraryFrom(continuation.result, expectedArrival);
       if (!continuationItinerary) return { state: "continuation-unresolved", candidate, availability, facilityLeg };

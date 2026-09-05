@@ -166,7 +166,12 @@ function firstUnverifiedSegment(from, to, via, completed) {
   return { from: segmentPoint(completed ? via[completed - 1] : from), to: segmentPoint(via[completed] ?? to), state: "unverified" };
 }
 
-export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateTime, arriveBy, wheelchair, maxWalkDistance, preference, maxResults }) {
+export function planModes({ allowDirectWalking = false } = {}) {
+  const transit = { access: ["WALK"], egress: ["WALK"], transfer: ["WALK"], transit: ["BUS", "RAIL", "SUBWAY", "TRAM"].map((mode) => ({ mode })) };
+  return allowDirectWalking ? { direct: ["WALK"], transit } : { transitOnly: true, transit };
+}
+
+export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateTime, arriveBy, wheelchair, maxWalkDistance, preference, maxResults, allowDirectWalking = false }) {
   const requestedVia = Array.isArray(via) ? via : [];
   const preferences = {};
   if (wheelchair) preferences.accessibility = { wheelchair: { enabled: true } };
@@ -176,7 +181,7 @@ export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateT
     origin: { location: { coordinate: { latitude: from.lat, longitude: from.lon } } }, destination: { location: { coordinate: { latitude: to.lat, longitude: to.lon } } },
     via: requestedVia.length ? requestedVia.map(visitInput) : null,
     dateTime: arriveBy ? { latestArrival: dateTime } : { earliestDeparture: dateTime }, first: requestedVia.length ? 1 : maxResults,
-    modes: { transitOnly: true, transit: { access: ["WALK"], egress: ["WALK"], transfer: ["WALK"], transit: ["BUS", "RAIL", "SUBWAY", "TRAM"].map((mode) => ({ mode })) } },
+    modes: planModes({ allowDirectWalking }),
     preferences: Object.keys(preferences).length ? preferences : null
   };
   const data = await queryOtp(otpUrl, timeoutMs, GRAPHQL, variables);
