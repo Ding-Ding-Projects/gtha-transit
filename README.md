@@ -37,6 +37,7 @@ Set `ROUTING_ORIGIN` and `MAPS_ORIGIN` to the private services. Without validate
 - Compare first-service and transfer waiting times for each returned departure option.
 - Choose an optional [spoken narrator](docs/accessibility/narrator.md), with independent English and Cantonese voices, preview, rate, pitch and quiet controls.
 - Set [manufacturer, model and build-year preferences or avoidance](docs/planning/vehicle-preferences.md) using verified current assignments, with explicit handling of unknown vehicles.
+- Open the [advanced regular-expression workbench](docs/search/regex-builder.md) using the compact star beside each vehicle, agency, route, manufacturer and model search field.
 
 Accessibility attributes reflect available data, not a guarantee of elevator availability. Planned service does not automatically incorporate unplanned disruptions. Fares and specialized transit bookings are not calculated.
 </details>

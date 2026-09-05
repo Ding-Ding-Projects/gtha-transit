@@ -2,12 +2,12 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
-  Code2,
   Copy,
   Download,
   FileUp,
   Plus,
   Search,
+  Star,
   Trash2,
   X,
 } from 'lucide-react';
@@ -155,7 +155,21 @@ function downloadJson(filename: string, content: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function SearchWorkbench({
+function loadSnippetState(storageKey: string): { snippets: RegexSnippet[]; notice: string | null } {
+  if (typeof window === 'undefined') return { snippets: [], notice: null };
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    return { snippets: raw ? parseRegexSnippets(raw) : [], notice: null };
+  } catch {
+    return { snippets: [], notice: 'invalid-snippet-json' };
+  }
+}
+
+export function SearchWorkbench(props: SearchWorkbenchProps) {
+  return <SearchWorkbenchSurface key={props.storageId} {...props} />;
+}
+
+function SearchWorkbenchSurface({
   storageId,
   label,
   value,
@@ -172,11 +186,11 @@ export function SearchWorkbench({
   const [replacement, setReplacement] = useState('');
   const [cases, setCases] = useState<RegexCase[]>([]);
   const [snippetName, setSnippetName] = useState('');
-  const [snippets, setSnippets] = useState<RegexSnippet[]>([]);
-  const [snippetsLoadedKey, setSnippetsLoadedKey] = useState<string | null>(null);
   const snippetStorageKey = `${SNIPPET_STORAGE_KEY}:${storageId}`;
+  const [snippetState, setSnippetState] = useState(() => loadSnippetState(snippetStorageKey));
+  const snippets = snippetState.snippets;
+  const snippetNotice = snippetState.notice;
   const [importText, setImportText] = useState('');
-  const [snippetNotice, setSnippetNotice] = useState<string | null>(null);
   const tokens = useMemo(() => describeRegexTokens(value.pattern), [value.pattern]);
   const risks = useMemo(() => staticRegexRiskNotes(value.pattern), [value.pattern]);
   const evaluation = useRegexWorkbenchEvaluation(samples, value, replacement, cases);
@@ -184,26 +198,17 @@ export function SearchWorkbench({
   const panelId = `${id}-builder`;
   const activeValue = value.mode === 'text' ? value.query : value.pattern;
 
-  useEffect(() => {
+  const setSnippetNotice = (notice: string | null) => {
+    setSnippetState((current) => ({ ...current, notice }));
+  };
+  const persistSnippets = (next: RegexSnippet[], notice: string) => {
     try {
-      const raw = window.localStorage.getItem(snippetStorageKey);
-      setSnippets(raw ? parseRegexSnippets(raw) : []);
+      window.localStorage.setItem(snippetStorageKey, serializeRegexSnippets(next));
+      setSnippetState({ snippets: next, notice });
     } catch {
-      setSnippets([]);
-      setSnippetNotice('invalid-snippet-json');
-    } finally {
-      setSnippetsLoadedKey(snippetStorageKey);
+      setSnippetState({ snippets: next, notice: 'snippet-storage-failed' });
     }
-  }, [snippetStorageKey]);
-
-  useEffect(() => {
-    if (snippetsLoadedKey !== snippetStorageKey) return;
-    try {
-      window.localStorage.setItem(snippetStorageKey, serializeRegexSnippets(snippets));
-    } catch {
-      setSnippetNotice('snippet-storage-failed');
-    }
-  }, [snippets, snippetsLoadedKey, snippetStorageKey, t]);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -264,12 +269,11 @@ export function SearchWorkbench({
       return;
     }
     const candidate: RegexSnippet = { name, pattern: value.pattern, flags: value.flags, replacement };
-    setSnippets((items) => [
-      ...items.filter((item) => item.name !== name),
+    persistSnippets([
+      ...snippets.filter((item) => item.name !== name),
       candidate,
-    ].slice(-SEARCH_LIMITS.maxSnippetCount));
+    ].slice(-SEARCH_LIMITS.maxSnippetCount), 'snippet-saved');
     setSnippetName('');
-    setSnippetNotice('snippet-saved');
   };
   const applySnippet = (snippet: RegexSnippet) => {
     update({ mode: 'regex', pattern: snippet.pattern, flags: snippet.flags });
@@ -277,9 +281,8 @@ export function SearchWorkbench({
   };
   const importSnippets = (raw = importText) => {
     try {
-      setSnippets(parseRegexSnippets(raw));
+      persistSnippets(parseRegexSnippets(raw), 'snippet-imported');
       setImportText('');
-      setSnippetNotice('snippet-imported');
     } catch (error) {
       setSnippetNotice(error instanceof Error ? error.message : 'invalid-snippet-json');
     }
@@ -312,13 +315,14 @@ export function SearchWorkbench({
             type="button"
             className="regex-workbench__trigger"
             ref={triggerRef}
+            aria-label={t('Open regular expression workbench', '開啟規則工作台')}
             aria-controls={panelId}
             aria-expanded={open}
             aria-haspopup="dialog"
+            title={t('Open regular expression workbench', '開啟規則工作台')}
             onClick={() => setOpen((isOpen) => !isOpen)}
           >
-            <Code2 size={17} aria-hidden="true" />
-            <span>{t('Build regex', '建立規則')}</span>
+            <Star size={18} fill={open ? 'currentColor' : 'none'} aria-hidden="true" />
           </button>
         </div>
         <p id={`${id}-mode`} className="regex-workbench__mode">
@@ -339,10 +343,10 @@ export function SearchWorkbench({
       </div>
 
       {open && (
-        <section
+        <dialog
+          open
           id={panelId}
           className="regex-workbench__popover"
-          role="dialog"
           aria-label={t('Regular expression workbench', '規則工作台')}
           aria-modal="false"
           style={{ maxHeight: 'min(72vh, 48rem)', maxWidth: 'calc(100vw - 2rem)' }}
@@ -575,7 +579,7 @@ export function SearchWorkbench({
                   <li key={snippet.name}>
                     <button type="button" onClick={() => applySnippet(snippet)}><code>{snippet.name}</code></button>
                     <code>{`/${snippet.pattern}/${snippet.flags}`}</code>
-                    <button type="button" onClick={() => { setSnippets((items) => items.filter((item) => item.name !== snippet.name)); setSnippetNotice('snippet-deleted'); }} aria-label={t('Delete saved snippet', '刪除已儲存規則')}>
+                    <button type="button" onClick={() => persistSnippets(snippets.filter((item) => item.name !== snippet.name), 'snippet-deleted')} aria-label={t('Delete saved snippet', '刪除已儲存規則')}>
                       <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </li>
@@ -609,7 +613,7 @@ export function SearchWorkbench({
               <textarea value={importText} maxLength={SEARCH_LIMITS.maxSnippetPayloadLength} onChange={(event) => setImportText(event.target.value)} />
             </label>
             <button type="button" onClick={() => importSnippets()} disabled={!importText.trim()}>{t('Import pasted JSON', '匯入已貼上 JSON')}</button>
-            {snippetNotice && <p role="status">{message(t, snippetNotice)}</p>}
+            {snippetNotice && <output>{message(t, snippetNotice)}</output>}
           </section>
 
           <section className="regex-workbench__capabilities" aria-labelledby={`${id}-capabilities`}>
@@ -621,7 +625,7 @@ export function SearchWorkbench({
               })}
             </ul>
           </section>
-        </section>
+        </dialog>
       )}
     </div>
   );

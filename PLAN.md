@@ -84,6 +84,7 @@ This is the durable scope record for the owner's transit-planner requests. It is
 
 ## Priority 7: useful interface and accessibility
 
+- [ ] Replace repeated Build regex labels with compact, accessible 44px star controls. Implemented and locally checked; live interaction verification is pending.
 - [ ] Replace generic-looking controls with cohesive modern styling, clear hierarchy and responsive layouts, especially route selection and vehicle preferences.
 - [ ] Verify phone/tablet layouts, long bilingual labels, both themes, keyboard operation, visible focus and supported display scales. Browser emulation is not physical-device testing.
 - [x] Provide English, Cantonese and bilingual presentation, independent playfulness controls and light/dark appearance.

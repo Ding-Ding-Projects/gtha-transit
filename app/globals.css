@@ -1600,8 +1600,9 @@ select {
 .regex-workbench__input-line input { border: 0; background: transparent; min-width: 0; width: 100%; color: var(--text); min-height: 40px; }
 .regex-workbench__clear { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; border-radius:50%; background:var(--surface2); color:var(--text); }
 .regex-workbench__input-line input::-webkit-search-cancel-button { -webkit-appearance:none; }
-.regex-workbench__trigger { min-width: 44px; min-height: 44px; border-radius: 12px; color: var(--primary); background: var(--surface2); }
-.regex-workbench__popover { position: relative; z-index: 5; width: 100%; min-width: 0; overflow: auto; margin-top: 10px; padding: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 12px 32px #0002; overflow-wrap: anywhere; }
+.regex-workbench__trigger { display: grid; place-items: center; flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 0; border-radius: 50%; color: var(--primary); background: var(--surface2); }
+.regex-workbench__trigger[aria-expanded='true'] { color: var(--bg); background: var(--primary); }
+.regex-workbench__popover { position: relative; z-index: 5; box-sizing: border-box; width: 100%; min-width: 0; overflow: auto; margin: 10px 0 0; padding: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 12px 32px #0002; overflow-wrap: anywhere; }
 .regex-workbench__header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .regex-workbench__header h3 { margin: 5px 0; }
 .regex-workbench__mode-picker, .regex-workbench__flag-chips, .regex-workbench__guides, .regex-workbench__snippet-transfer { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }

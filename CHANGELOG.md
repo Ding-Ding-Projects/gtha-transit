@@ -2,6 +2,7 @@
 
 ## 0.1.0, unreleased
 
+- Replace repeated Build regex labels with compact star controls, retaining localized accessible names, tooltips and 44px touch targets. Use a native nonmodal dialog and persist saved snippets directly from save, import and delete actions.
 - Add the regional journey-planning interface and local saved-trip controls.
 - Add official TTC alert ingestion with bounded reads and conservative unavailable states.
 - Add Toronto timezone handling with explicit daylight-saving gap rejection and earlier repeated-time selection.

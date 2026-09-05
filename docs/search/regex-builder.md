@@ -51,6 +51,8 @@ SearchWorkbench({ label, value, onChange, samples?, t });
 useSearchMatches(samples, state);
 ```
 
+Each search field opens its workbench from the adjacent star control. The visible trigger stays compact, while its localized accessible name and tooltip state that it opens the regular-expression workbench. The control remains a 44 by 44 pixel touch target and reflects its open state visually and through `aria-expanded`.
+
 The builder switches into regex mode by escaping the current plain-text query when no pattern has been entered. Switching back preserves the last plain-text query when available. All visible copy goes through the supplied `t(english, cantonese)` function, so the host can render English, Cantonese, or bilingual content.
 
 ## What the builder offers
