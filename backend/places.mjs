@@ -45,8 +45,24 @@ export function rankPlaces(stops, query, limit = 20) {
 }
 
 export function coverageContextForDate(provenance, date) {
-  const unavailableAgencies = (provenance.feeds ?? []).filter((feed) => feed.activeTripsByDate?.[date] === 0).map((feed) => ({ id: feed.id, nextServiceDate: Object.entries(feed.activeTripsByDate).sort(([left], [right]) => left.localeCompare(right)).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null }));
+  const unavailableAgencies = groupGraphFeeds(provenance.feeds ?? []).filter((feed) => feed.activeTripsByDate?.[date] === 0).map((feed) => ({ id: feed.id, nextServiceDate: Object.entries(feed.activeTripsByDate).sort(([left], [right]) => left.localeCompare(right)).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null }));
   return { date, unavailableAgencies };
+}
+
+export function groupGraphFeeds(feeds) {
+  const grouped = new Map();
+  for (const feed of feeds) {
+    const id = feed.publicAgencyId ?? feed.id;
+    const current = grouped.get(id) ?? { ...feed, id, activeTripsByDate: {}, sources: [], versions: [] };
+    current.serviceStart = [current.serviceStart, feed.serviceStart].filter(Boolean).sort()[0] ?? null;
+    current.serviceEnd = [current.serviceEnd, feed.serviceEnd].filter(Boolean).sort().at(-1) ?? null;
+    for (const [date, count] of Object.entries(feed.activeTripsByDate ?? {})) current.activeTripsByDate[date] = (current.activeTripsByDate[date] ?? 0) + Number(count);
+    const source = feed.publisherDownloadUrl ?? feed.source ?? null;
+    if (source && !current.sources.includes(source)) current.sources.push(source);
+    current.versions.push({ id: feed.id, sha256: feed.sha256 ?? null, source, serviceStart: feed.serviceStart ?? null, serviceEnd: feed.serviceEnd ?? null, retireAfter: feed.retireAfter ?? null, promoteAfter: feed.promoteAfter ?? null });
+    grouped.set(id, current);
+  }
+  return [...grouped.values()];
 }
 
 export function calendarDateInTimeZone(dateTime, timeZone = "America/Toronto") {
@@ -65,9 +81,11 @@ export async function coverage() {
   try { manifest = JSON.parse(await readFile(manifestPath, "utf8")); } catch {}
   const provenance = await graphProvenance();
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: provenance.timezone ?? "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const provenanceFeeds = new Map((provenance.feeds ?? []).map((feed) => [feed.id, feed]));
+  const provenanceFeeds = new Map(groupGraphFeeds(provenance.feeds ?? []).map((feed) => [feed.id, feed]));
   const counts = new Map();
   for (const stop of stops) counts.set(stop.feedId, (counts.get(stop.feedId) ?? 0) + 1);
-  const feeds = (manifest.feeds ?? []).map((feed) => { const graphFeed = provenanceFeeds.get(feed.id); const activeTripsToday = graphFeed?.activeTripsByDate?.[today] ?? null; return { id: feed.id, name: feed.name, loaded: Boolean(graphFeed), availableToday: activeTripsToday === null ? null : activeTripsToday > 0, activeTripsToday, activeTripsByDate: graphFeed?.activeTripsByDate ?? {}, indexedStops: counts.get(feed.id) ?? 0, serviceStart: graphFeed?.serviceStart ?? null, serviceEnd: graphFeed?.serviceEnd ?? null, source: feed.source, sha256: graphFeed?.sha256 ?? null, bytes: feed.bytes, warning: activeTripsToday === 0 ? `No scheduled trips are available for ${today} in the active graph.` : null }; });
+  const manifestFeeds = new Map();
+  for (const feed of manifest.feeds ?? []) { const id = feed.publicAgencyId ?? feed.id; if (!manifestFeeds.has(id) || feed.id === id) manifestFeeds.set(id, { ...feed, id }); }
+  const feeds = [...manifestFeeds.values()].map((feed) => { const graphFeed = provenanceFeeds.get(feed.id); const activeTripsToday = graphFeed?.activeTripsByDate?.[today] ?? null; return { id: feed.id, name: feed.name, loaded: Boolean(graphFeed), availableToday: activeTripsToday === null ? null : activeTripsToday > 0, activeTripsToday, activeTripsByDate: graphFeed?.activeTripsByDate ?? {}, indexedStops: counts.get(feed.id) ?? 0, serviceStart: graphFeed?.serviceStart ?? null, serviceEnd: graphFeed?.serviceEnd ?? null, source: feed.source, sources: graphFeed?.sources ?? [], sha256: graphFeed?.sha256 ?? null, versions: graphFeed?.versions ?? [], bytes: feed.bytes, warning: activeTripsToday === 0 ? `No scheduled trips are available for ${today} in the active graph.` : null }; });
   return { generatedAt: provenance.updatedAt, graphBuiltAt: provenance.graphBuiltAt, timezone: provenance.timezone, indexedStops: stops.length, agencies: feeds, feeds, warnings: feeds.filter((feed) => feed.warning).map((feed) => ({ id: feed.id, message: feed.warning })), source: "active OpenTripPlanner graph and validated official GTFS feeds" };
 }

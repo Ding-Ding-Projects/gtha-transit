@@ -20,8 +20,9 @@ MAX_FEED_BYTES = 600 * 1024 * 1024
 REQUIRED = {"agency.txt", "stops.txt", "routes.txt", "trips.txt", "stop_times.txt"}
 
 
-def download(url: str, destination: Path) -> tuple[int, str]:
+def download(url: str, destination: Path) -> tuple[int, str, str]:
     digest = hashlib.sha256()
+    digest_sha1 = hashlib.sha1()
     size = 0
     request = urllib.request.Request(url, headers={"User-Agent": "GTHATransitFeedFetcher/1.0"})
     with urllib.request.urlopen(request, timeout=120) as response, destination.open("wb") as output:
@@ -30,8 +31,9 @@ def download(url: str, destination: Path) -> tuple[int, str]:
             if size > MAX_FEED_BYTES:
                 raise ValueError(f"feed exceeds {MAX_FEED_BYTES} bytes")
             digest.update(chunk)
+            digest_sha1.update(chunk)
             output.write(chunk)
-    return size, digest.hexdigest()
+    return size, digest.hexdigest(), digest_sha1.hexdigest()
 
 
 def calendar_range(archive: zipfile.ZipFile) -> tuple[str | None, str | None]:
@@ -81,7 +83,11 @@ def main() -> int:
             last_error: Exception | None = None
             for attempt in range(1, args.attempts + 1):
                 try:
-                    size, sha256 = download(url, partial)
+                    size, sha256, sha1 = download(url, partial)
+                    if agency.get("expectedSha256") and sha256.lower() != agency["expectedSha256"].lower():
+                        raise ValueError("download SHA-256 does not match the pinned publisher snapshot")
+                    if agency.get("expectedSha1") and sha1.lower() != agency["expectedSha1"].lower():
+                        raise ValueError("download SHA-1 does not match the independently recorded archive digest")
                     details = validate(partial)
                     break
                 except Exception as error:
@@ -95,7 +101,14 @@ def main() -> int:
             os.replace(partial, target)
             manifest.append({
                 "id": agency["id"], "name": agency["name"], "source": url,
-                "file": target.name, "bytes": size, "sha256": sha256, **details,
+                "file": target.name, "bytes": size, "sha256": sha256,
+                "publicAgencyId": agency.get("publicAgencyId", agency["id"]),
+                "publisherDownloadUrl": agency.get("publisherDownloadUrl", url),
+                "archivedPublisherBytes": bool(agency.get("archivedPublisherBytes", False)),
+                "archiveProvider": agency.get("archiveProvider"),
+                "archiveRetrievedAt": agency.get("archiveRetrievedAt"),
+                "retireAfter": agency.get("retireAfter"), "promoteAfter": agency.get("promoteAfter"),
+                **details,
             })
             print(f"validated {agency['id']}: {size} bytes, {details['members']} members", flush=True)
     payload = {

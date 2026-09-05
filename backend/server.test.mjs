@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, rankPlaces, searchPlaces } from "./places.mjs";
+import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, groupGraphFeeds, rankPlaces, searchPlaces } from "./places.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { graphqlDocument } from "./otp-client.mjs";
+import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -63,6 +63,30 @@ test("empty-route coverage reports every unavailable feed without selecting one"
 test("coverage date uses the graph timezone across an offset boundary", () => {
   assert.equal(calendarDateInTimeZone("2026-09-05T02:30:00Z", "America/Toronto"), "2026-09-04");
   assert.equal(calendarDateInTimeZone("2026-09-05T04:30:00Z", "America/Toronto"), "2026-09-05");
+});
+test("adjacent TTC graph snapshots expose one truthful public calendar", () => {
+  const grouped = groupGraphFeeds([
+    { id: "ttc", publicAgencyId: "ttc", sha256: "summer", publisherDownloadUrl: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 3000, "2026-09-06": 0 } },
+    { id: "ttc-next", publicAgencyId: "ttc", sha256: "fall", publisherDownloadUrl: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 0, "2026-09-06": 3100 } }
+  ]);
+  assert.equal(grouped.length, 1);
+  assert.equal(grouped[0].serviceStart, "20260726");
+  assert.equal(grouped[0].serviceEnd, "20261031");
+  assert.deepEqual(grouped[0].activeTripsByDate, { "2026-09-05": 3000, "2026-09-06": 3100 });
+  assert.deepEqual(grouped[0].sources, ["https://archive.example/summer.zip", "https://publisher.example/fall.zip"]);
+  assert.deepEqual(grouped[0].versions, [
+    { id: "ttc", sha256: "summer", source: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", promoteAfter: null },
+    { id: "ttc-next", sha256: "fall", source: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", retireAfter: null, promoteAfter: "2026-09-05" }
+  ]);
+  assert.equal(publicAgencyFeedId("ttc-next"), "ttc");
+});
+test("journey ranking includes waiting time and respects arrival planning", () => {
+  const leavingSoon = { id: "soon", startTime: "2026-09-05T12:05:00-04:00", endTime: "2026-09-05T12:25:00-04:00", duration: 1200, transfers: 1, walkDistance: 400 };
+  const shortRideLater = { id: "later", startTime: "2026-09-05T13:00:00-04:00", endTime: "2026-09-05T13:10:00-04:00", duration: 600, transfers: 0, walkDistance: 100 };
+  assert.equal(rankItineraries([shortRideLater, leavingSoon], "fastest", false)[0].id, "soon");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "fastest", true)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "transfers", false)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "walking", false)[0].id, "later");
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {

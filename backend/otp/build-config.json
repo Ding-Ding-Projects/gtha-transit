@@ -5,6 +5,7 @@
   "osm": [{"source":"ontario-latest.osm.pbf","timeZone":"America/Toronto"}],
   "transitFeeds": [
     {"type":"gtfs","feedId":"ttc","source":"ttc.gtfs.zip"},
+    {"type":"gtfs","feedId":"ttc-next","source":"ttc-next.gtfs.zip"},
     {"type":"gtfs","feedId":"go","source":"go.gtfs.zip"},
     {"type":"gtfs","feedId":"up","source":"up.gtfs.zip"},
     {"type":"gtfs","feedId":"miway","source":"miway.gtfs.zip"},
