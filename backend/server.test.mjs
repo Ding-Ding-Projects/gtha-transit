@@ -50,15 +50,14 @@ test("Pearson search ranks transit airports before unrelated street stops", () =
   assert.equal(ranked[0].id, "go:PA");
   assert.equal(ranked[1].id, "up:PA");
 });
-test("place ranking deduplicates deterministically and preserves identity metadata", () => {
-  const ranked = rankPlaces([{ id: "ttc:2", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 0 }, { id: "ttc:1", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 1 }], "Finch", 20);
-  assert.equal(ranked.length, 1);
-  assert.equal(ranked[0].id, "ttc:1");
+test("place ranking collapses coordinate duplicates but preserves distinct same-name stops", () => {
+  const ranked = rankPlaces([{ id: "ttc:2", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 0, lat: 43.7801, lon: -79.4151 }, { id: "ttc:1", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 1, lat: 43.7801, lon: -79.4151 }, { id: "ttc:3", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 0, lat: 43.7802, lon: -79.4152 }, { id: "ttc:4", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 0 }], "Finch", 20);
+  assert.deepEqual(ranked.map((place) => place.id), ["ttc:1", "ttc:3", "ttc:4"]);
   assert.equal(ranked[0].feedId, "ttc");
   assert.equal(ranked[0].locationType, 1);
 });
 test("empty-route coverage reports every unavailable feed without selecting one", () => {
-  const context = coverageContextForDate({ feeds: [{ id: "ttc", activeTripsByDate: { "2026-09-04": 0, "2026-09-06": 10 } }, { id: "burlington", activeTripsByDate: { "2026-09-04": 0, "2026-09-07": 5 } }, { id: "up", activeTripsByDate: { "2026-09-04": 2 } }] }, "2026-09-04");
+  const context = coverageContextForDate({ feeds: [{ id: "ttc", activeTripsByDate: { "2026-09-04": 0, "2026-09-09": 10, "2026-09-06": 10 } }, { id: "burlington", activeTripsByDate: { "2026-09-04": 0, "2026-09-07": 5 } }, { id: "up", activeTripsByDate: { "2026-09-04": 2 } }] }, "2026-09-04");
   assert.deepEqual(context, { date: "2026-09-04", unavailableAgencies: [{ id: "ttc", nextServiceDate: "2026-09-06" }, { id: "burlington", nextServiceDate: "2026-09-07" }] });
 });
 test("coverage date uses the graph timezone across an offset boundary", () => {

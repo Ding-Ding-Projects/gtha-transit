@@ -39,13 +39,13 @@ export function rankPlaces(stops, query, limit = 20) {
   const compare = (a, b) => { for (let index = 0; index < a.length; index += 1) { const value = typeof a[index] === "number" ? a[index] - b[index] : String(a[index]).localeCompare(String(b[index])); if (value) return value; } return 0; };
   const ranked = stops.map((stop) => ({ stop, score: score(stop) })).filter((item) => item.score !== null).sort((a, b) => compare(a.score, b.score));
   const seen = new Set();
-  return ranked.filter(({ stop }) => { const key = `${normalize(stop.name)}|${normalize(stop.agency)}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, limit).map(({ stop }) => ({
+  return ranked.filter(({ stop }) => { const lat = Number(stop.lat); const lon = Number(stop.lon); const location = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat}|${lon}` : `id:${stop.id}`; const key = `${normalize(stop.name)}|${normalize(stop.agency)}|${location}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, limit).map(({ stop }) => ({
     id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", feedId: stop.feedId ?? null, locationType: Number(stop.locationType ?? 0), parentStation: stop.parentStation ?? null, ...(stop.agency ? { agency: String(stop.agency) } : {})
   }));
 }
 
 export function coverageContextForDate(provenance, date) {
-  const unavailableAgencies = (provenance.feeds ?? []).filter((feed) => feed.activeTripsByDate?.[date] === 0).map((feed) => ({ id: feed.id, nextServiceDate: Object.entries(feed.activeTripsByDate).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null }));
+  const unavailableAgencies = (provenance.feeds ?? []).filter((feed) => feed.activeTripsByDate?.[date] === 0).map((feed) => ({ id: feed.id, nextServiceDate: Object.entries(feed.activeTripsByDate).sort(([left], [right]) => left.localeCompare(right)).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null }));
   return { date, unavailableAgencies };
 }
 
