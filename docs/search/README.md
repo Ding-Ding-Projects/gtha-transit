@@ -1,6 +1,6 @@
 # Place search and suggestions
 
-Related tools: [Agency and route picker](route-picker.md), [advanced regex workbench](regex-builder.md).
+Related tools: [Agency and route picker](route-picker.md), [advanced regex workbench](regex-builder.md), and [scheduled routes at a stop](stop-routes.md).
 
 The planner combines generated transit-stop suggestions with the local regional map index. A result keeps the name, stable identifier, and coordinates supplied by its source. The search path does not synthesize a road, intersection, or coordinate.
 

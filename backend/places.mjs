@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { servingRoutesForStop } from "./stop-routes.mjs";
 
 const indexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/stops.json");
 const manifestPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/feeds/manifest.json");
@@ -15,8 +16,12 @@ async function loadStops() {
   return cached;
 }
 
-export async function searchPlaces(query, limit = 20) {
-  return rankPlaces(await loadStops(), query, limit);
+export async function searchPlaces(query, limit = 20, { date = null } = {}) {
+  return withServingRoutes(rankPlaces(await loadStops(), query, limit), date);
+}
+
+export async function withServingRoutes(places, date, lookup = servingRoutesForStop) {
+  return Promise.all(places.map(async (place) => ({ ...place, servingRoutes: await lookup(place.id, { date }) })));
 }
 
 const ignoredTerms = new Set(["and", "at", "the"]);
