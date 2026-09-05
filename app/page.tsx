@@ -702,8 +702,8 @@ export default function Home() {
                 />
               </label>
             </div>
-            <details className="options">
               <div className="date-presets"><button type="button" className="pill" onClick={()=>setWhen(localInput())}>{t('Leave now','而家出發')}</button><button type="button" className="pill" onClick={()=>{const tomorrow=new Date(Date.now()+86400000);setWhen(torontoLocalInput(tomorrow).slice(0,10)+'T09:00');}}>{t('Tomorrow at 9','聽朝 9 點')}</button></div>
+            <details className="options">
               <summary>
                 <Settings size={16} />
                 {t('Journey preferences', '行程偏好')}
