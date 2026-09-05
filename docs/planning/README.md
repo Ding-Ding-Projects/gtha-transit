@@ -9,3 +9,5 @@ Save a trip for later use, then plan again before travelling so current schedule
 No result can mean missing data, a service-calendar boundary, an inaccessible connection or no available service. Check coverage and official agency notices. Live TTC notices are separate from scheduled routing and do not guarantee automatic rerouting.
 
 Suggested articles: [TTC status](../status/README.md), [regional data](../data/README.md), [deployment](../deployment/README.md).
+
+Each journey option shows its first boarding time, initial waiting from the chosen departure time with access walking excluded, transfer waiting, and total elapsed time to arrival. Each transit leg identifies its own boarding wait. Arrive-by planning does not invent an initial departure wait. Invalid or overlapping connection times are unavailable rather than a false zero. These values describe the returned itinerary; they do not claim every later departure is represented.

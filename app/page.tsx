@@ -33,6 +33,7 @@ import VehicleTracker from '../components/vehicle-tracker';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
+import { journeyWaits } from '../lib/journey-waits';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   torontoIso as asIso,
@@ -250,6 +251,7 @@ export default function Home() {
     [preferWashrooms, setPreferWashrooms] = useState(false),
     [maxWalk, setMaxWalk] = useState(1500);
   const [journeys, setJourneys] = useState<Itinerary[]>([]),
+    [plannedDeparture, setPlannedDeparture] = useState<string | null>(null),
     [selected, setSelected] = useState(0),
     [loading, setLoading] = useState(false),
     [planned, setPlanned] = useState(false),
@@ -456,13 +458,14 @@ export default function Home() {
     setJourneys([]);
     const timer = setTimeout(() => controller.abort(), 25000);
     try {
+      const requestedTime = asIso(override || when || localInput());
       const r = await fetch('/api/plan', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           from,
           to,
-          dateTime: asIso(override || when || localInput()),
+          dateTime: requestedTime,
           arriveBy,
           preference,
           wheelchair,
@@ -488,6 +491,7 @@ export default function Home() {
         );
       if (id !== generation.current) return;
       setJourneys(data.itineraries || []);
+      setPlannedDeparture(arriveBy ? null : requestedTime);
       setSelected(0);
       setProvenance(data.data);
       setTab('plan');
@@ -1095,6 +1099,71 @@ export default function Home() {
                               </span>
                             ))}
                           </div>
+                          <div className="departure-comparison">
+                            {journeyWaits(j, plannedDeparture)
+                              .transferWaitSeconds === null && (
+                              <span>
+                                {t(
+                                  'Transfer timing is unavailable or too short; check the connection before travelling.',
+                                  '轉車時間未能核實或太短，出發前請確認接駁。',
+                                )}
+                              </span>
+                            )}
+                            {plannedDeparture && (
+                              <span>
+                                {t('If you leave at', '如果你喺以下時間出發')}{' '}
+                                {time(plannedDeparture)}
+                              </span>
+                            )}
+                            {journeyWaits(j, plannedDeparture)
+                              .firstBoarding && (
+                              <strong>
+                                {t('First boarding', '首次上車')}{' '}
+                                {time(
+                                  journeyWaits(j, plannedDeparture)
+                                    .firstBoarding!,
+                                )}
+                              </strong>
+                            )}
+                            {journeyWaits(j, plannedDeparture)
+                              .firstWaitSeconds !== null && (
+                              <span>
+                                {mins(
+                                  journeyWaits(j, plannedDeparture)
+                                    .firstWaitSeconds!,
+                                )}{' '}
+                                min{' '}
+                                {t(
+                                  'waiting before first service, walking excluded',
+                                  '首次上車前等候，不包括步行',
+                                )}
+                              </span>
+                            )}
+                            {journeyWaits(j, plannedDeparture)
+                              .transferWaitSeconds !== null && (
+                              <span>
+                                {mins(
+                                  journeyWaits(j, plannedDeparture)
+                                    .transferWaitSeconds!,
+                                )}{' '}
+                                min {t('transfer waiting', '轉車等候')}
+                              </span>
+                            )}
+                            {journeyWaits(j, plannedDeparture)
+                              .elapsedSeconds !== null && (
+                              <strong>
+                                {mins(
+                                  journeyWaits(j, plannedDeparture)
+                                    .elapsedSeconds!,
+                                )}{' '}
+                                min{' '}
+                                {t(
+                                  'from your chosen departure time',
+                                  '由你選定出發時間計起',
+                                )}
+                              </strong>
+                            )}
+                          </div>
                           <div className="journey-meta">
                             <span className="ride-stat">
                               <TrainFront size={18} />
@@ -1215,6 +1284,44 @@ export default function Home() {
                                       : leg.agency}{' '}
                                     · {mins(leg.duration)} min
                                   </small>
+                                  {leg.mode !== 'WALK' &&
+                                    journeyWaits(
+                                      j,
+                                      plannedDeparture,
+                                    ).waits.find((wait) => wait.legIndex === i)
+                                      ?.seconds !== null &&
+                                    journeyWaits(
+                                      j,
+                                      plannedDeparture,
+                                    ).waits.find((wait) => wait.legIndex === i)
+                                      ?.seconds !== undefined && (
+                                      <p className="boarding-wait">
+                                        <Clock size={14} />{' '}
+                                        {mins(
+                                          journeyWaits(
+                                            j,
+                                            plannedDeparture,
+                                          ).waits.find(
+                                            (wait) => wait.legIndex === i,
+                                          )!.seconds!,
+                                        )}{' '}
+                                        min{' '}
+                                        {journeyWaits(
+                                          j,
+                                          plannedDeparture,
+                                        ).waits.find(
+                                          (wait) => wait.legIndex === i,
+                                        )!.transfer
+                                          ? t(
+                                              'transfer wait before boarding',
+                                              '轉車上車前等候',
+                                            )
+                                          : t(
+                                              'wait before first boarding',
+                                              '首次上車前等候',
+                                            )}
+                                      </p>
+                                    )}
                                   <div className="leg-metrics">
                                     <strong>{mins(leg.duration)} min</strong>
                                     <span>{kilometres(leg.distance)}</span>

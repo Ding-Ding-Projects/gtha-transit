@@ -272,3 +272,17 @@
   text-align: center;
   min-width: 120px;
 }
+
+.departure-comparison {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  font-size: 13px;
+}
+.boarding-wait {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: var(--primary);
+}

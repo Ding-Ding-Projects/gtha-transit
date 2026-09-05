@@ -24,3 +24,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Paginate the vehicle list while retaining all loaded map markers, use stable fleet ordering, and discard stale selections when live results change.
 
 - Bring selected vehicle details into view automatically on phones and keyboard navigation instead of requiring a manual scroll back up.
+
+- Compare first-service and transfer waiting for each journey option from the chosen departure time, including per-leg boarding waits.
