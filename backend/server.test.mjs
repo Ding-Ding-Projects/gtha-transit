@@ -6,7 +6,7 @@ import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
 import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
-import { filterRouteCatalog, routeCatalogPage } from "./routes.mjs";
+import { filterRouteCatalog, isCalendarDate, routeCatalogPage } from "./routes.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -44,6 +44,8 @@ test("service readiness uses a typed public code without guessing an agency", as
   assert.doesNotMatch(source, /inTtcArea|SCHEDULE_DATE_UNAVAILABLE/);
   assert.match(source, /"\/api\/vehicles\/metrolinx"/);
   assert.match(source, /"\/api\/routes"/);
+  assert.match(source, /Buffer\.byteLength\(req\.url \?\? ""\) > max/);
+  assert.match(source, /isCalendarDate\(date\)/);
   assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
 });
 test("Pearson search ranks transit airports before unrelated street stops", () => {
@@ -113,8 +115,14 @@ test("route catalog paginates canonical routes in natural route order", () => {
   const second = routeCatalogPage(routes, { agency: "ttc", date: "2026-09-05", limit: 2, cursor: first.nextCursor });
   assert.deepEqual(second.routes.map((route) => route.routeId), ["10"]); assert.equal(second.nextCursor, null);
   const outside = routeCatalogPage(routes, { agency: "ttc", date: "2028-01-01", limit: 2 });
-  assert.equal(outside.coverage.exact, 0); assert.equal(outside.coverage.fallback, 2);
+  assert.equal(outside.coverage.exact, 0); assert.equal(outside.coverage.fallback, 2); assert.equal(outside.coverage.unknown, 0);
   assert.throws(() => routeCatalogPage(routes, { cursor: "invalid" }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "MDE" }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "A".repeat(17) }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { offset: 1.5 }), /offset is invalid/);
+  const unknown = routeCatalogPage([{ id: "go:unknown", routeId: "unknown", shortName: "unknown", agency: "GO Transit", feedId: "go", version: "go", color: null, textColor: null, validity: {} }], { date: "2026-09-05" });
+  assert.deepEqual(unknown.coverage, { date: "2026-09-05", exact: 0, fallback: 0, unknown: 1 });
+  assert.equal(isCalendarDate("2026-02-28"), true); assert.equal(isCalendarDate("2026-02-29"), false); assert.equal(isCalendarDate("2026-99-99"), false);
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {
