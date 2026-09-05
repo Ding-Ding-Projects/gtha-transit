@@ -2,7 +2,7 @@
 
 ## Current verified deployment
 
-Frontend: `f45bf93c55d1f57448de2f3e362613121c35c65f`, built `2026-09-05T11:05:15.77Z`, live at https://toronto-transit.org. Backend source: `3b66327`. Public version and endpoint responses were independently checked. The graph remains `f4763bf444d82e922b892ff2a4dd3368176df4f308d63b7743617e7cc9c9e2b4`. Map revision remains `199cc9933f670a7fc1c33099a18891a53f5d187212c0041ce2b95ac6bafd381c`.
+Frontend: `f45bf93c55d1f57448de2f3e362613121c35c65f`, built `2026-09-05T11:05:15.77Z`, live at https://toronto-transit.org. Backend source/data: `9e7a39b`, including direct-walk implementation `3b66327`. Public version and endpoint responses were independently checked. The graph remains `f4763bf444d82e922b892ff2a4dd3368176df4f308d63b7743617e7cc9c9e2b4`. Map revision remains `199cc9933f670a7fc1c33099a18891a53f5d187212c0041ce2b95ac6bafd381c`.
 
 Expanded indexes contain 38526 stops, 1015 source routes and 4070 representative patterns from 16218863 stop-time rows. Of 575587 declared trips, 575517 have stop times. The 70 empty HSR trips are explicitly excluded from patterns. Source archive checksums and exact exclusion arithmetic accompany the generated indexes. Compact query normalization is deployed to the map service; the public query `high7 ward` returns Highway 7 & Warden Avenue first.
 
@@ -36,7 +36,7 @@ TTC status uses the official website endpoint with the official GTFS-Realtime fe
 
 Disruption collection began at `2026-09-04T23:50:13.603Z`. SQLite retains occurrences and changed versions indefinitely in a persistent volume. Calendar filtering, NDJSON export, and survival across container replacement were verified. No earlier historical backfill is claimed.
 
-Washroom preference uses confirmed facilities inside transit stations/terminals at actual boarding, transfer or arrival points. It does not count arbitrary public toilets or merely passing through a station. Ride, walk, wait and kilometre totals are displayed prominently.
+Washroom preference uses confirmed facilities at actual boarding and alighting points. Transit facilities may be preferred by presence when hours are unknown; municipal facilities require published open-at-arrival hours. Intermediate pass-through stops display presence without boosting ranking. Urgent diversion permits direct walking and transit to verified-open municipal facilities. The registry now has 32 facilities, 18 source receipts and 12 coordinate-backed records. Seven additional City/TPL branches were deployed in backend image `9e7a39b`; public near-branch probes selected North York Central in 82 seconds and Scarborough Civic Centre in 45 seconds, both WALK. Every new City record was independently checked for one branch, washroom flag and exact coordinates.
 
 ## Vehicles and photos
 

@@ -14,7 +14,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Add location clear buttons and ordered multi-destination planning, drag reordering, keyboard reordering and saved/shared order.
 - [ ] Add Less transfer waiting, explicitly allowing longer rides in exchange for shorter platform waits.
 - [ ] Finish full live follower verification. Trip simulation, next-stop advancement, washroom review and close-focus behavior are deployed and browser-verified; physical GPS and live vehicle switching remain unverified.
-- [ ] Research missing transit and official municipal washrooms, including published hours and exceptions.
+- [ ] Continue official washroom coverage research. 32 facilities are deployed, including nine Toronto library branches with published hours and dated exceptions; missing agency and community-centre records remain explicit gaps.
 - [ ] Show washrooms throughout planning and add urgent washroom diversion with ETA and retained remaining destinations.
 - [x] Deploy required-line selection and verify an actual Line 5 detour in the public API and built browser, preserving the extra Bloor-Yonge destination. Other selectable routes use the same exact-identity contract; availability remains bounded by published data.
 - [ ] Expand live route-by-route checks beyond Line 5 and promote validated public captures of the new flows.
@@ -37,7 +37,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Owner configures the public DNS and tunnel hostname.
 - [x] Retain disruption history indefinitely with calendar filtering and exports.
 - [x] Make journey and per-leg ride times and kilometres prominent.
-- [x] Prefer confirmed washrooms inside transit facilities only.
+- [x] Prefer confirmed transit-facility presence at boarding/alighting points, keeping unknown hours explicit. Official municipal facilities are also valid for urgent diversions when their published hours confirm arrival-time availability.
 - [x] Complete intersection-aware search, including Warden and Highway 7.
 - [x] Add live vehicle maps for six connected agencies and exact-trip assignments.
 - [x] Show verified fleet details, CPTDB references and attributed photos where available.
