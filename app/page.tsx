@@ -569,6 +569,8 @@ export default function Home() {
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),6500);return()=>clearTimeout(timer);},[notice]);
   const totalAlerts = status?.alerts?.length || 0;
   const agencies = coverage?.agencies || [];
+  const serviceDate=(when||localInput()).slice(0,10).replaceAll('-','');
+  const dateGaps=agencies.filter((a:any)=>(a.serviceStart&&String(a.serviceStart)>serviceDate)||(a.serviceEnd&&String(a.serviceEnd)<serviceDate));
   const lineState = (line: Line) =>
     line.state === 'good'
       ? t('No reported disruption', '未有通報事故')
@@ -701,6 +703,7 @@ export default function Home() {
               </label>
             </div>
             <details className="options">
+              <div className="date-presets"><button type="button" className="pill" onClick={()=>setWhen(localInput())}>{t('Leave now','而家出發')}</button><button type="button" className="pill" onClick={()=>{const tomorrow=new Date(Date.now()+86400000);setWhen(torontoLocalInput(tomorrow).slice(0,10)+'T09:00');}}>{t('Tomorrow at 9','聽朝 9 點')}</button></div>
               <summary>
                 <Settings size={16} />
                 {t('Journey preferences', '行程偏好')}
@@ -768,6 +771,7 @@ export default function Home() {
               <ArrowRight size={19} />
             </button>
           </form>
+          {!!dateGaps.length&&<div className="error" role="status"><TriangleAlert size={18}/><span>{t('The selected date is outside the published calendar range for:','所選日期超出以下公司已發佈嘅時間表範圍：')} {dateGaps.map((a:any)=>a.name).join(', ')}. {t('Results may omit these services. Check coverage before travelling.','結果可能缺少呢啲服務，出發前請查閱服務範圍。')}</span></div>}
           {error && (
             <div className="error" role="alert">
               <TriangleAlert size={19} />
