@@ -45,6 +45,20 @@ docker compose -f maps/docker-compose.yml up -d --build
 
 The service listens on port 8789. Check `/health`, request a tile inside the documented MBTiles bounds, or query `/search?q=Union%20Station`. Keep MBTiles and the SQLite index outside version control because they are generated regional data. Back up their source revision and build manifest beside the deployment record.
 
+## Candidate verification and promotion
+
+Render into a separate candidate path and leave the current MBTiles file in place. Before promotion, compare the candidate with the current baseline:
+
+```text
+python maps/verify_mbtiles.py maps/data/ontario.candidate.mbtiles maps/data/ontario.mbtiles
+```
+
+Create a consistent single-file rendering source through SQLite's backup API before starting a read-only renderer container. Set `PRAGMA journal_mode=DELETE` on that snapshot after the backup completes, close it, and verify `PRAGMA integrity_check` before mounting it read-only. Do not copy a live WAL database as one ordinary file: committed pages may still live in its `-wal` sidecar, and a container that can see only the main file can report an input/output error or read an inconsistent state.
+
+The verifier opens both databases read-only, runs `PRAGMA integrity_check`, requires PNG metadata and zooms 8 through 13, and compares the complete XYZ coordinate set at every zoom. It verifies every baseline and candidate tile as a decodable 256×256 PNG without changing the stored bytes. A successful JSON report includes each file's SHA-256 and byte size plus tile counts and tile-byte totals by zoom. Any integrity, metadata, coverage, or image failure exits nonzero. Promote only a candidate whose report has `"ok":true`, using an atomic replacement on the same filesystem.
+
+The renderer process must be able to create its candidate and temporary files in the destination directory. When a container drops all capabilities, run it with the numeric user and group that own the destination, or with a group that has write permission there. Directory mode `0775` does not help a process whose user and groups match neither owner nor group. Keep the existing baseline untouched when this preflight fails.
+
 ## Verification
 
 Before connecting the planner, verify that `/health` reports both data files, `/map-info` returns the actual file digest, a revision-bound known tile returns a decodable nonempty `image/png`, an unknown tile returns 404, and a valid query returns `offline: true`. Atomically replace a temporary test database, confirm its revision changes, and confirm the old revision returns 409 with `no-store` rather than current tile bytes. Verify at least one known intersection using `and`, `at`, `&`, or `/`, and inspect its shared-node source identifier and coordinates. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
