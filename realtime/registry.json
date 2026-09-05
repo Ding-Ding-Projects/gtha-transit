@@ -51,7 +51,7 @@
     {
       "id": "yrt", "name": "York Region Transit", "officialSource": "https://www.york.ca/transportation/york-region-transit-yrt", "licence": "York Region open-data terms apply.",
       "capabilities": { "vehiclePositions": "unavailable", "tripUpdates": "unavailable", "serviceAlerts": "unavailable" },
-      "unavailableReason": "Official sources advertise customer real-time information, but no canonical public GTFS-RT endpoint was found."
+      "unavailableReason": "The official GTFS acquisition route requires a contact form with company, name, phone, email and licence agreement, and does not publish a GTFS-RT endpoint."
     },
     {
       "id": "drt", "name": "Durham Region Transit", "officialSource": "https://www.durhamregiontransit.com/travelling-with-us/planning-your-travel/", "licence": "Region of Durham Open Data terms apply.",
