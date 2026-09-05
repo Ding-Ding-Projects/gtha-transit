@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "publisher": "Toronto Transit Commission",
+    "title": "Service Summary, July 26 to September 5, 2026",
+    "url": "https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-07-26.pdf?rev=e6ea84654386468186317a3c3c440c89",
+    "publisherPage": "https://www.ttc.ca/transparency-and-accountability/transit-planning",
+    "retrievedAt": "2026-09-05T05:17:42.9406509Z",
+    "sha256": "5A81E7680049BDFADDD9187C1867AE966939B0E5D35085E4EF583D77CEE1466C",
+    "bytes": 1592234,
+    "validFrom": "2026-07-26",
+    "validThrough": "2026-09-05",
+    "fleetAllocationUpdated": "2026-07-27"
+  },
+  "garageNames": { "Arw": "Arrow Road", "Bir": "Birchmount", "Egl": "Eglinton", "Mal": "Malvern", "McN": "McNicoll", "MtD": "Mount Dennis", "Qsy": "Queensway", "Wil": "Wilson", "Les": "Leslie", "Ron": "Roncesvalles" },
+  "routesByGarage": {
+    "Arw": ["36", "52", "84", "96", "99", "108", "119", "120", "165", "906", "927", "952", "984", "996", "336", "339", "352", "384", "396"],
+    "Bir": ["9", "12", "16", "19", "20", "21", "22", "23", "24", "31", "64", "65", "69", "70", "75", "82", "83", "87", "92", "93", "94", "113", "114", "117", "121", "135", "924", "316", "322", "324", "325", "365"],
+    "Egl": ["11", "34", "51", "54", "67", "74", "88", "91", "100", "103", "154", "156", "162", "201", "202", "954", "325", "334", "354"],
+    "Mal": ["38", "86", "95", "102", "116", "122", "130", "131", "132", "133", "134", "169", "185", "191", "200", "902", "904", "905", "938", "985", "986", "995", "385", "386", "395"],
+    "McN": ["17", "39", "42", "43", "53", "57", "68", "129", "151", "167", "903", "939", "953", "316", "336", "339", "343"],
+    "MtD": ["14", "27", "28", "29", "32", "35", "41", "45", "71", "77", "79", "112", "158", "161", "164", "168", "929", "935", "329", "335", "341"],
+    "Qsy": ["507", "301", "15", "26", "30", "37", "40", "44", "46", "48", "49", "50", "55", "66", "73", "76", "80", "110", "111", "123", "127", "149", "189", "203", "900", "937", "315", "320", "337", "340"],
+    "Wil": ["7", "13", "18", "33", "47", "59", "60", "61", "63", "78", "89", "90", "97", "98", "101", "104", "105", "106", "107", "109", "115", "118", "124", "125", "126", "160", "166", "184", "960", "989", "307", "363"],
+    "Les": ["504", "510", "511", "512", "304", "305", "310", "312"],
+    "Ron": ["501", "505", "509", "301"]
+  },
+  "fleetAllocations": [
+    { "first": 1200, "last": 1423, "garages": ["Mal", "MtD"] }, { "first": 1500, "last": 1689, "garages": ["Mal"] },
+    { "first": 3100, "last": 3369, "garages": ["Arw", "McN", "Qsy"] }, { "first": 3400, "last": 3454, "garages": ["Mal"] },
+    { "first": 3455, "last": 3654, "garages": ["Arw", "Mal", "Wil"] }, { "first": 3700, "last": 3724, "garages": ["Arw", "Bir"] },
+    { "first": 3750, "last": 3759, "garages": ["Egl"] }, { "first": 6000, "last": 6203, "garages": ["Arw", "Bir", "Mal", "McN", "MtD"] },
+    { "first": 6600, "last": 6735, "garages": ["Egl", "McN", "MtD", "Wil"] }, { "first": 7000, "last": 7133, "garages": ["Wil"] },
+    { "first": 7200, "last": 7333, "garages": ["MtD"] }, { "first": 8000, "last": 8099, "garages": ["Qsy"] },
+    { "first": 8100, "last": 8219, "garages": ["Qsy"] }, { "first": 8300, "last": 8396, "garages": ["Qsy", "Wil"] },
+    { "first": 8400, "last": 8617, "garages": ["Bir"] }, { "first": 8620, "last": 8964, "garages": ["Arw", "Bir", "Egl", "Mal", "McN"] },
+    { "first": 9000, "last": 9152, "garages": ["Arw", "Mal", "McN", "Wil"] }, { "first": 9200, "last": 9239, "garages": ["McN"] },
+    { "first": 9400, "last": 9468, "garages": ["McN", "MtD"] }
+  ]
+}
