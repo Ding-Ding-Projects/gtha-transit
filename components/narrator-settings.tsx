@@ -349,11 +349,13 @@ export function NarratorSettings({
           <SlidersHorizontal aria-hidden="true" size={17} />
           {t('Voice tuning', '語音微調')}
         </legend>
-        <label>
+        <label htmlFor="narrator-rate">
           <span>
             {t('Rate', '速度')} <output>{settings.rate.toFixed(1)}×</output>
           </span>
           <input
+            id="narrator-rate"
+            aria-label={t('Rate', '速度')}
             type="range"
             min="0.1"
             max="10"
@@ -364,11 +366,13 @@ export function NarratorSettings({
             }
           />
         </label>
-        <label>
+        <label htmlFor="narrator-pitch">
           <span>
             {t('Pitch', '音調')} <output>{settings.pitch.toFixed(1)}</output>
           </span>
           <input
+            id="narrator-pitch"
+            aria-label={t('Pitch', '音調')}
             type="range"
             min="0"
             max="2"
