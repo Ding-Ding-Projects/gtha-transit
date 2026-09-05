@@ -81,7 +81,8 @@ export function remainingDestinationPlaces(items: readonly DestinationReview[]) 
 export function washroomDetourRequest(position: WashroomPosition, remaining: readonly Place[], dateTime: string, visitMinutes = DEFAULT_WASHROOM_VISIT_MINUTES) {
   const currentPosition = { lat: position.lat, lon: position.lon };
   if (!remaining.length) return { currentPosition, dateTime, visitMinutes, facilityOnly: true };
-  return { currentPosition, dateTime, visitMinutes, to: remaining.at(-1), via: remaining.slice(0, -1) };
+  const points = remaining.map(({ id, name, lat, lon }) => ({ id, name, lat, lon }));
+  return { currentPosition, dateTime, visitMinutes, to: points.at(-1), via: points.slice(0, -1) };
 }
 
 function displaySeconds(seconds: number | undefined, t: WashroomTranslate) {

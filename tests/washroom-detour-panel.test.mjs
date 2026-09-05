@@ -30,6 +30,9 @@ test('builds ordered continuation requests and facility-only requests without mu
   assert.deepEqual(JSON.parse(JSON.stringify(request(position, [], '2026-09-08T12:00:00.000Z'))), { currentPosition: position, dateTime: '2026-09-08T12:00:00.000Z', visitMinutes: 10, facilityOnly: true });
   assert.deepEqual(destinations.map((place) => place.id), ['home', 'work']);
   assert.equal(deadline, 35_000);
+  const enriched = request(position, [{ ...destinations[0], servingRoutes: [{ id: 'route', longName: 'x'.repeat(40000) }], washroom: { name: 'metadata' } }], '2026-09-08T12:00:00.000Z');
+  assert.deepEqual(JSON.parse(JSON.stringify(enriched.to)), destinations[0]);
+  assert.ok(JSON.stringify(enriched).length < 1000);
 });
 
 test('keeps duplicate place IDs in separate review rows and requires a fresh timestamp', () => {
