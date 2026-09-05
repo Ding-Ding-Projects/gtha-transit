@@ -1,8 +1,10 @@
+import { canonicalAgencyId } from "./washroom-identities.mjs";
+
 const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 function text(value) { return typeof value === "string" && value.trim() ? value.trim() : null; }
 
-function agencyKey(value) { return text(value)?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? null; }
+function agencyKey(value) { return canonicalAgencyId(value); }
 
 function localParts(at, timeZone) {
   try {

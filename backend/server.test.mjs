@@ -174,6 +174,7 @@ test("service readiness uses a typed public code without guessing an agency", as
 test("backend container copies the shared washroom matcher", async () => {
   const dockerfile = await readFile(new URL("./Dockerfile", import.meta.url), "utf8");
   assert.match(dockerfile, /^COPY shared\/washrooms\.mjs \/shared\/washrooms\.mjs$/m);
+  assert.match(dockerfile, /^COPY shared\/washroom-identities\.mjs \/shared\/washroom-identities\.mjs$/m);
 });
 test("Pearson search ranks transit airports before unrelated street stops", () => {
   const streets = Array.from({ length: 25 }, (_, index) => ({ id: `yrt:${index}`, name: `Pearson Av at Street ${index}`, agency: "YRT", feedId: "yrt" }));

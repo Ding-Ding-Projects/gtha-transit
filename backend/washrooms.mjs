@@ -2,13 +2,26 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { matchWashroom } from "../shared/washrooms.mjs";
+import { resolveFacilityStopIdentities } from "../shared/washroom-identities.mjs";
 
 const registryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/transit-washrooms.json");
+const stopIndexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/stops.json");
 const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY", "TRAM"]);
 const TRANSIT_FACILITY_TYPES = new Set(["transit-station", "transit-terminal"]);
 let registry;
 
-async function load() { return registry ??= JSON.parse(await readFile(registryPath, "utf8")); }
+async function load() {
+  if (!registry) {
+    const [facilityRegistry, stopIndex] = await Promise.all([readFile(registryPath, "utf8"), readFile(stopIndexPath, "utf8")]);
+    const parsedRegistry = JSON.parse(facilityRegistry); const parsedStopIndex = JSON.parse(stopIndex);
+    const resolution = resolveFacilityStopIdentities(parsedRegistry.facilities, parsedStopIndex);
+    registry = { ...parsedRegistry, facilities: resolution.facilities, washroomIdentityMap: resolution.identityMap };
+  }
+  return registry;
+}
+
+/** Exposes the source-backed identity map for the selected-places API adapter. */
+export async function washroomIdentityMap() { return (await load()).washroomIdentityMap; }
 
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const stamp = (value) => typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : new Date(0).toISOString();
