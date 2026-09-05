@@ -8,6 +8,10 @@ Only selecting an actual route or explicitly applying all routes commits the sel
 
 The agency and route search fields have independent plain-text and regular-expression state. Each opens its own adjacent [advanced regex workbench](regex-builder.md). Regex evaluation runs in a bounded worker; an invalid or timed-out expression does not silently fall back to plain text.
 
+Agency search includes familiar full names and service brands alongside the catalog's published label. For example, `Toron` finds TTC, `Viva` finds York Region Transit and `Hamil` finds HSR. These aliases filter existing published agencies; they do not add an agency or claim additional service coverage.
+
+Enter is suppressed for search inputs and workbench radio/checkbox inputs inside the picker so it cannot implicitly submit the surrounding journey form. Space still selects radio and checkbox controls, and actual buttons retain Enter activation. A live nested-form check at `145398a` exposed the radio-Enter path; the followup repairs it and requires a separate browser check with the planning-request count.
+
 The catalog includes scheduled routes, which may have no vehicle in a current live feed. Selecting a route does not invent live coverage. An unavailable catalog leaves the current tracker selection unchanged and offers Retry. The dialog bounds its dimensions, scrolls its route list, supports Escape, and returns focus to its opening control.
 
 Catalog loading commits records and their date together only after all pages validate. It rejects malformed route identities, duplicate routes, changing totals, invalid or repeated cursors, partial results, invalid calendar periods and mismatched dates. Cancellation is checked after the response even when a transport ignores abort. An open picker reloads when its requested date changes, and a stale snapshot cannot commit a selection. Timetable-period warnings distinguish out-of-period and unconfirmed records; a valid period never promises daily service or a live vehicle.

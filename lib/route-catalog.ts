@@ -10,6 +10,20 @@ export type RouteRecord = {
   validity: { serviceStart?: string | null; serviceEnd?: string | null };
 };
 export type RouteCatalogSnapshot = { records: RouteRecord[]; date: string };
+const agencyAliases: Record<string, string> = {
+  ttc: 'Toronto Transit Commission',
+  yrt: 'York Region Transit Viva',
+  drt: 'Durham Region Transit',
+  hsr: 'Hamilton Street Railway',
+  go: 'GO Transit Metrolinx',
+  up: 'UP Express Union Pearson Express',
+  miway: 'MiWay Mississauga Transit',
+  brampton: 'Brampton Transit Zum Züm',
+  burlington: 'Burlington Transit',
+  oakville: 'Oakville Transit',
+  milton: 'Milton Transit',
+};
+export const agencySearchText = (id: string, publishedName: string): string => [id, publishedName, agencyAliases[id] || ''].join(' ');
 type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
 const isObject = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const identity = (value: unknown): value is string => typeof value === 'string' && value.length > 0 && value.length <= 256 && !Array.from(value).some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127);

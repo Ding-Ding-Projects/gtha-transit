@@ -2,7 +2,7 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, Building2, LoaderCircle, Route, X } from 'lucide-react';
 import { SearchWorkbench, useSearchMatches, type SearchState } from './search-workbench';
-import { canChooseCatalogRoute, loadRouteCatalog, routePeriodState, type RouteCatalogSnapshot } from '../lib/route-catalog';
+import { agencySearchText, canChooseCatalogRoute, loadRouteCatalog, routePeriodState, type RouteCatalogSnapshot } from '../lib/route-catalog';
 
 const emptySearch = (): SearchState => ({ query: '', pattern: '', flags: 'i', mode: 'text' });
 const swatch = (value: string | null) => value && /^[a-f0-9]{6}$/i.test(value) ? '#' + value : undefined;
@@ -102,7 +102,7 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
     }
     return Array.from(groups, ([id, group]) => [id, group.name, group.count] as const);
   }, [snapshot, allowedAgencyIds]);
-  const agencySamples = useMemo(() => agencies.map(([id, name]) => id + ' ' + name), [agencies]);
+  const agencySamples = useMemo(() => agencies.map(([id, name]) => agencySearchText(id, name)), [agencies]);
   const agencyMatches = useSearchMatches(agencySamples, agencySearch);
   const availableRoutes = useMemo(() => snapshot.records.filter(record => (!allowedAgencyIds || allowedAgencyIds.includes(record.feedId)) && (chosenAgency === 'all' || record.feedId === chosenAgency)), [snapshot, chosenAgency, allowedAgencyIds]);
   const routeSamples = useMemo(() => availableRoutes.map(record => (record.shortName || record.routeId) + ' ' + (record.longName || '') + ' ' + (record.agency || record.feedId)), [availableRoutes]);
@@ -127,7 +127,7 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
       <span><small>{t('Choose agency & route', '選擇交通公司及路線')}</small><strong>{agencyName(agency)}{route ? ' · ' + (selectedRoute?.shortName || route) : ' · ' + t('All routes', '全部路線')}</strong>{selectedRoute?.longName && <small>{selectedRoute.longName}</small>}</span>
     </button>
     <dialog ref={dialog} className="route-picker-dialog guided-route-picker" aria-label={t('Choose an agency and route', '選擇交通公司及路線')} onCancel={event => { event.preventDefault(); close(); }} onKeyDown={event => {
-      if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.target instanceof HTMLInputElement && !['button', 'submit', 'reset', 'checkbox', 'radio'].includes(event.target.type)) event.preventDefault();
+      if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.target instanceof HTMLInputElement && !['button', 'submit', 'reset'].includes(event.target.type)) event.preventDefault();
     }}>
       <header><div><span className="eyebrow">{t('FIND YOUR SERVICE', '揀選服務')}</span><h2>{t('Choose your route', '選擇你嘅路線')}</h2></div><button type="button" className="icon-button" aria-label={t('Close route picker', '關閉路線選擇')} onClick={close}><X size={20} /></button></header>
       <div className="route-picker-progress" aria-label={t('Selection steps', '選擇步驟')}>

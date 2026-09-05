@@ -2,12 +2,21 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
-import { canChooseCatalogRoute, loadRouteCatalog, routePeriodState } from '../lib/route-catalog.ts';
+import { agencySearchText, canChooseCatalogRoute, loadRouteCatalog, routePeriodState } from '../lib/route-catalog.ts';
+import { plainTextMatches } from '../lib/search-workbench.ts';
 
 const date = '2026-09-05';
 const row = (routeId = '5', feedId = 'ttc') => ({ id: feedId + ':' + routeId, routeId, feedId, agency: feedId.toUpperCase(), shortName: routeId, longName: 'Published route', color: 'F58025', textColor: 'FFFFFF', validity: { serviceStart: '20260726', serviceEnd: '20260905' } });
 const page = (routes, total = routes.length, nextCursor = null) => ({ routes, total, nextCursor, coverage: { date } });
 const response = data => new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
+
+test('partial agency names find published acronyms without adding an agency', () => {
+  const labels = [agencySearchText('ttc', 'TTC'), agencySearchText('yrt', 'York Region Transit'), agencySearchText('hsr', 'HSR')];
+  assert.deepEqual(plainTextMatches(labels, 'Toron'), [true, false, false]);
+  assert.deepEqual(plainTextMatches(labels, 'Viva'), [false, true, false]);
+  assert.deepEqual(plainTextMatches(labels, 'Hamil'), [false, false, true]);
+  assert.equal(agencySearchText('custom', 'Independent service'), 'custom Independent service ');
+});
 
 test('loads a complete paginated snapshot through real HTTP and binds it to one date', async () => {
   const requests = [];
