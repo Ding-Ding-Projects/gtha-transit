@@ -88,6 +88,7 @@ test("official directional anchors enter one original via gap without mutating o
   const detour = requests.find((request) => request.via.length === via.length + 2);
   assert.ok(detour);
   assert.deepEqual(detour.via.map((place) => place.id), ["A", "board", "alight", "B", "C"]);
+  assert.deepEqual(detour.via.map((place) => place.stopId ?? null), [null, "board", "alight", null, null]);
   assert.equal(detour.arriveBy, false);
   assert.equal(detour.maxWalkDistance, 2_000);
   assert.deepEqual(anchorRequest.reference, { feedId: "ttc", routeId: "5" });

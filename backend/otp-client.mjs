@@ -124,9 +124,17 @@ async function queryOtp(otpUrl, timeoutMs, query, variables) {
   } finally { clearTimeout(timer); }
 }
 
+function qualifiedStopLocationId(value) {
+  const id = safeText(value)?.trim();
+  const separator = id?.indexOf(":") ?? -1;
+  return separator > 0 && separator < id.length - 1 ? id : null;
+}
 function visitInput(place) {
   const label = safeText(place?.name ?? place?.label)?.slice(0, 200);
-  const visit = { coordinate: { latitude: place.lat, longitude: place.lon }, minimumWaitTime: "PT0S" };
+  const stopLocationId = qualifiedStopLocationId(place?.stopId);
+  const visit = { minimumWaitTime: "PT0S" };
+  if (stopLocationId) visit.stopLocationIds = [stopLocationId];
+  else visit.coordinate = { latitude: place.lat, longitude: place.lon };
   if (label) visit.label = label;
   return { visit };
 }
@@ -146,7 +154,9 @@ function distanceMetres(left, right) {
 function matchedViaCount(legs, via) {
   let matched = 0;
   for (const visit of viaVisitEvents(legs)) {
-    if (matched < via.length && distanceMetres(visit, via[matched]) <= VIA_MATCH_DISTANCE_METRES) matched += 1;
+    if (matched >= via.length) break;
+    const requestedStopId = qualifiedStopLocationId(via[matched]?.stopId);
+    if (requestedStopId ? visit.stopId === requestedStopId : distanceMetres(visit, via[matched]) <= VIA_MATCH_DISTANCE_METRES) matched += 1;
   }
   return matched;
 }
