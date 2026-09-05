@@ -26,7 +26,7 @@ test('uses official TTC boundaries and treats CPTDB links as searches rather tha
 });
 
 test('attaches licensed representative photos without claiming the wrong exact vehicle', () => {
-  const flexity = matchCptdb('4412'); assert.equal(matchVehiclePhoto('4412', flexity).exactVehicle, true); assert.equal(matchVehiclePhoto('4400', flexity).exactVehicle, false); assert.equal(matchVehiclePhoto('3400', matchCptdb('3400')).license, 'CC0'); assert.equal(matchVehiclePhoto('9029', matchCptdb('9029')), null); assert.equal(matchVehiclePhoto('604', {}, 'go').exactVehicle, true); assert.equal(matchVehiclePhoto('2500', {}, 'go'), null);
+  const flexity = matchCptdb('4412'); assert.equal(matchVehiclePhoto('4412', flexity).exactVehicle, true); assert.equal(matchVehiclePhoto('4400', flexity).exactVehicle, false); assert.equal(matchVehiclePhoto('3400', matchCptdb('3400')).license, 'CC BY-SA 4.0'); assert.equal(matchVehiclePhoto('3539', matchCptdb('3539')).exactVehicle, true); assert.equal(matchVehiclePhoto('3640', matchCptdb('3640')).exactVehicle, false); assert.equal(matchVehiclePhoto('9029', matchCptdb('9029')), null); assert.equal(matchVehiclePhoto('604', {}, 'go').exactVehicle, true); assert.equal(matchVehiclePhoto('2500', {}, 'go'), null);
 });
 
 test('namespaces non-TTC vehicles and gives each a real agency-specific CPTDB search', () => {

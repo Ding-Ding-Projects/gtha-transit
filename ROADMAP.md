@@ -28,3 +28,5 @@
 
 - [x] Deploy shared exact/representative photo captions and licence links; verify tracker rendering at 320px and desktop widths.
 - [ ] Exercise the updated caption on a live assigned-vehicle directions flow and promote validated public gallery evidence.
+
+- [ ] Verify deployment of the attribution-corrected TTC 3539 photo and rejection of the removed URL.

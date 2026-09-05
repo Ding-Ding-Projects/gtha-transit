@@ -10,3 +10,5 @@
 This entry describes work in progress, not a verified public release. Commit references will be bound to the final integration at publication.
 
 - Clarify exact versus representative vehicle photos visibly in directions and the tracker, with separate source and licence links.
+
+- Replace the TTC LFS Hybrid representative image with a smaller, attribution-verified photo of vehicle 3539; mark it exact only for that fleet number.

@@ -42,7 +42,7 @@ const OTHER_FLEET_RANGES = Object.freeze({
 });
 
 const PHOTOS = Object.freeze({
-  'LFS Hybrid': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/81/A_Nova_Bus_LFS_Hybrid_%282018_Version%29_of_the_Toronto_Transit_Commission_AKA_%28TTC%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_Nova_Bus_LFS_Hybrid_(2018_Version)_of_the_Toronto_Transit_Commission_AKA_(TTC).jpg', credit: 'BrackishStowaway', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en' },
+  'LFS Hybrid': { url: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/Blue_Night_TTC_Bus_3539_at_Rouge_Hill_GO_Station%2C_July_11_2026.jpg/960px-Blue_Night_TTC_Bus_3539_at_Rouge_Hill_GO_Station%2C_July_11_2026.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Blue_Night_TTC_Bus_3539_at_Rouge_Hill_GO_Station,_July_11_2026.jpg', credit: 'Dillan Payne', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', depictedVehicleIds: ['3539'] },
   'FLEXITY M-1': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Flexity_Outlook_4412_TTC_Streetcar_%2827418871405%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Flexity_Outlook_4412_TTC_Streetcar_(27418871405).jpg', credit: 'Peter Broster', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/' },
   'Xcelsior XDE60': { url: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/A_New_Flyer_Industries_XDE60_from_TTC_aka_Toronto_Transit_Commission.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_New_Flyer_Industries_XDE60_from_TTC_aka_Toronto_Transit_Commission.jpg', credit: 'BrackishStowaway', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en' },
 });
