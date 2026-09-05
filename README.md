@@ -45,6 +45,7 @@ Set `ROUTING_ORIGIN` and `MAPS_ORIGIN` to the private services. Without validate
 - View official TTC subway and light rail alerts, with receipt freshness separate from publisher update time.
 - Save trips in browser storage, reverse a trip, search earlier/later, share endpoints explicitly and export the itinerary as JSON.
 - Use English, Cantonese or bilingual presentation and light/dark appearance.
+- Adjust [Appearance, Language, Narrator and Privacy](docs/interface/settings.md) through focused settings sections, with independent tone controls and search that leads directly to a setting.
 - Browse indefinitely retained disruption history with calendar filters and exports.
 - Track live TTC, GO, UP, MiWay, Burlington and HSR vehicles on a map.
 - Inspect verified manufacturer/model/build-year data, CPTDB references and attributed fleet photos.

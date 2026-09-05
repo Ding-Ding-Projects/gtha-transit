@@ -36,7 +36,7 @@ import WashroomDetourPanel, { type WashroomFollowTarget, type WashroomPosition }
 import DestinationList, { type Destination } from '../components/destination-list';
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
-import NarratorSettings from '../components/narrator-settings';
+import SettingsWorkspace from '../components/settings-workspace';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
@@ -2003,98 +2003,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && (
-            <div className="page-panel settings">
-              <span className="eyebrow">{t('MAKE IT YOURS', '按你喜好')}</span>
-              <h2>{t('Settings & privacy', '設定及私隱')}</h2>
-              <NarratorSettings narrator={narrator} t={t} />
-              <label>
-                {t('Language', '語言')}
-                <select
-                  value={lang}
-                  onChange={(e) => setLang(e.target.value as Lang)}
-                >
-                  <option value="en">English</option>
-                  <option value="zh">香港廣東話</option>
-                  <option value="both">English + 廣東話</option>
-                </select>
-              </label>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={dark}
-                  onChange={(e) => setDark(e.target.checked)}
-                />
-                {t('Dark appearance', '深色外觀')}
-              </label>
-              <label>
-                {t('English playfulness', '英文趣味程度')}{' '}
-                <output>{funEn}/5</output>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={funEn}
-                  onChange={(e) => setFunEn(+e.target.value)}
-                />
-                <small>
-                  {funEn === 1
-                    ? 'Clear directions, at your pace.'
-                    : funEn === 5
-                      ? 'Your next connection. Minus the timetable gymnastics.'
-                      : funEn === 2
-                        ? 'Plan a straightforward journey.'
-                        : funEn === 3
-                          ? 'A smoother route to your next stop.'
-                          : 'Find your route and let the region connect.'}
-                </small>
-              </label>
-              <label>
-                {t('Cantonese playfulness', '廣東話趣味程度')}{' '}
-                <output>{funZh}/5</output>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={funZh}
-                  onChange={(e) => setFunZh(+e.target.value)}
-                />
-                <small>
-                  {funZh === 1
-                    ? '按需要規劃行程。'
-                    : funZh === 5
-                      ? '轉車可以，轉到頭暈就唔使喇。'
-                      : funZh === 2
-                        ? '清晰規劃每一程。'
-                        : funZh === 3
-                          ? '下一站，輕鬆到達。'
-                          : '搵好路線，出門就放心啲。'}
-                </small>
-              </label>
-              <div className="help-block">
-                <h3>{t('Your journey stays yours', '你嘅行程，由你掌握')}</h3>
-                <p>
-                  {t(
-                    'No account. No advertising. No analytics. Saved trips and preferences stay in this browser. Journey searches are sent to our routing service to calculate a route; precise locations are not retained in request logs.',
-                    '毋須帳戶，無廣告，無追蹤分析。已儲存行程同設定只留喺呢個瀏覽器。搜尋會傳送到路線服務計算行程，請求記錄唔會保留精確位置。',
-                  )}
-                </p>
-                <p>
-                  {t(
-                    'Sharing a trip creates a link containing both locations. Only share locations you are comfortable disclosing. Clearing browser storage removes saved trips and settings.',
-                    '分享行程嘅連結包含起點同終點，只分享你願意公開嘅位置。清除瀏覽器儲存資料會移除行程同設定。',
-                  )}
-                </p>
-                <h3>{t('Data and reliability', '資料及可靠程度')}</h3>
-                <p>
-                  {t(
-                    'This is an independent planner. Always allow time for transfers and check official notices before travelling.',
-                    '呢個係獨立規劃工具。請預留轉車時間，出發前查閱官方通告。',
-                  )}
-                </p>
-              </div>
-            </div>
-          )}
+          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">

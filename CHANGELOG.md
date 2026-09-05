@@ -2,6 +2,7 @@
 
 ## 0.1.0, unreleased
 
+- Organize Settings into Appearance, Language, Narrator and Privacy with guided theme and language choices, independent tone controls and exact-setting search. Preserve existing preference storage and narrator lifetime.
 - Match agency acronyms through familiar full-name searches such as Toronto for TTC, and prevent Enter on embedded regex radio controls from accidentally submitting the journey form.
 - Guide phone route selection through agency and route steps, preserving official colors and independent search workbenches. Validate complete date-bound catalogs and prevent picker buttons or search Enter from submitting the surrounding journey form.
 - Redesign navigation and all workspaces with a desktop rail, compact mobile navigation, expanded maps and consistent control styling. Journey composition stays on Plan; other destinations use the full content width. Collapse detailed feed metadata and omit inactive single-destination reorder controls.
