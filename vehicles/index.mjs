@@ -105,8 +105,33 @@ export function combineVehicleSnapshots(snapshots) {
 
 export async function getAllVehicleSnapshots(options = {}) { return Promise.all(Object.keys(VEHICLE_FEEDS).map((agency) => getVehicleSnapshot({ ...options, agency }))); }
 
-const feedIdFromLeg = (leg) => String(leg?.agencyFeedId ?? leg?.agencyId ?? '').split(':')[0].toLowerCase();
-const bareTripId = (tripId, feedId) => { const value = String(tripId ?? ''); const prefix = `${feedId}:`; return value.startsWith(prefix) ? value.slice(prefix.length) : value; };
+const TTC_PUBLIC_FEED_ALIASES = new Set(['ttc', 'ttc-next']);
+
+function vehicleFeedId(value) {
+  const feedId = String(value ?? '').split(':')[0].trim().toLowerCase();
+  return feedId === 'ttc-next' ? 'ttc' : feedId;
+}
+
+const feedIdFromLeg = (leg) => vehicleFeedId(leg?.agencyFeedId ?? leg?.agencyId);
+
+function bareTripId(tripId, feedId) {
+  const value = String(tripId ?? '').trim();
+  const separator = value.indexOf(':');
+  if (separator <= 0) return value;
+  const prefix = value.slice(0, separator).toLowerCase();
+  const aliases = feedId === 'ttc' ? TTC_PUBLIC_FEED_ALIASES : new Set([feedId]);
+  return aliases.has(prefix) ? value.slice(separator + 1) : value;
+}
+
+function legTimeMillis(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const milliseconds = Math.abs(value) < 100_000_000_000 ? value * 1000 : value;
+    return Number.isFinite(milliseconds) && Math.abs(milliseconds) <= 8.64e15 ? milliseconds : Number.NaN;
+  }
+  const textValue = String(value ?? '').trim();
+  if (/^-?\d+(?:\.\d+)?$/.test(textValue)) return legTimeMillis(Number(textValue));
+  return Date.parse(textValue);
+}
 
 export async function enrichItineraries(itineraries, options = {}) {
   const list = Array.isArray(itineraries) ? itineraries : itineraries?.itineraries;
@@ -115,11 +140,11 @@ export async function enrichItineraries(itineraries, options = {}) {
   const snapshots = new Map((await Promise.all(agencies.map(async (agency) => [agency, await getVehicleSnapshot({ ...options, agency })]))));
   const enriched = list.map((itinerary) => ({ ...itinerary, legs: (itinerary.legs ?? []).map((leg) => {
     const agency = feedIdFromLeg(leg); const tripId = bareTripId(leg.tripId, agency); const snapshot = snapshots.get(agency);
-    const start=Date.parse(leg.startTime), end=Date.parse(leg.endTime), now=options.now??Date.now();
-    if (!Number.isFinite(start)||!Number.isFinite(end)||start>now+7200000||end<now-120000) return { ...leg, vehicleAssignment:{state:'unavailable',reason:'A current vehicle observation cannot identify a distant or completed journey.'} };
+    const start=legTimeMillis(leg.startTime), end=legTimeMillis(leg.endTime), now=options.now??Date.now();
+    if (!Number.isFinite(start)||!Number.isFinite(end)||start>end||start>now+7200000||end<now-120000) return { ...leg, vehicleAssignment:{state:'unavailable',reason:'A current vehicle observation cannot identify a distant or completed journey.'} };
     if (!agency || !tripId || !snapshot) return { ...leg, vehicleAssignment: { state: 'unavailable', reason: 'No supported agency and trip identifier were published for this leg.' } };
     if (snapshot.state !== 'live') return { ...leg, vehicleAssignment: { state: snapshot.state, reason: 'Fresh vehicle positions are unavailable for this agency.' } };
-    const matches = snapshot.vehicles.filter((vehicle) => !vehicle.stale && vehicle.tripId === tripId).sort((a, b) => Date.parse(b.timestamp ?? 0) - Date.parse(a.timestamp ?? 0));
+    const matches = snapshot.vehicles.filter((vehicle) => !vehicle.stale && bareTripId(vehicle.tripId, agency) === tripId).sort((a, b) => Date.parse(b.timestamp ?? 0) - Date.parse(a.timestamp ?? 0));
     if (!matches.length) return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier.' } };
     const vehicle = matches[0]; return { ...leg, vehicle: { id: vehicle.id, label: vehicle.label, fleetNumber: vehicle.fleetNumber, agencyId: vehicle.agencyId, timestamp: vehicle.timestamp, cptdb: vehicle.cptdb, photo: vehicle.photo }, vehicleAssignment: { state: 'matched', method: 'exact-trip-id' } };
   }) }));
