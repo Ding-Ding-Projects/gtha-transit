@@ -2,6 +2,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY backend/package.json ./package.json
 COPY backend/*.mjs backend/config.json ./
+COPY shared/washrooms.mjs /shared/washrooms.mjs
 COPY backend/start.sh ./start.sh
 COPY data/stops.json /data/stops.json
 COPY data/routes.json /data/routes.json

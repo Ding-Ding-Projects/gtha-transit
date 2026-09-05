@@ -124,12 +124,22 @@ test("graph provenance has a safe unavailable state", async () => {
   assert.ok(Array.isArray(result.feeds));
 });
 test("washroom preference only promotes confirmed transit facilities", async () => {
-  const base = { duration: 1000, walkDistance: 100, legs: [{ distance: 500, from: { name: "Origin", lat: 43.6, lon: -79.4 }, to: { name: "Finch Station", lat: 43.78, lon: -79.41 } }] };
+  const facilityRegistry = [{ agencyId: "ttc", facilityId: "ttc-finch", stationIds: ["ttc:FINCH"], facilityType: "transit-station", names: ["Finch"], source: "https://publisher.example/finch", hours: { timeZone: "America/Toronto", weekly: { mon: [{ open: "08:00", close: "20:00" }] } } }];
+  const base = { duration: 1000, walkDistance: 100, legs: [{ mode: "SUBWAY", agencyId: "ttc", startTime: "2026-09-07T12:00:00-04:00", endTime: "2026-09-07T12:15:00-04:00", distance: 500, from: { name: "Origin", lat: 43.6, lon: -79.4 }, to: { name: "Finch Station", stationId: "ttc:FINCH", lat: 43.78, lon: -79.41 } }] };
   const other = { duration: 900, walkDistance: 50, legs: [{ distance: 400, from: { name: "Origin", lat: 43.6, lon: -79.4 }, to: { name: "Generic Mall", lat: 43.7, lon: -79.4 } }] };
-  const result = await applyWashroomPreference([other, base], true);
-  assert.equal(result.itineraries[0].washrooms[0].name, "Finch Station");
+  const result = await applyWashroomPreference([other, base], true, { facilityRegistry });
+  assert.equal(result.itineraries[0].washrooms[0].name, "Finch");
+  assert.equal(result.itineraries[0].legs[0].to.washroom.facilityId, "ttc-finch");
   assert.equal(result.itineraries[0].washroomPreferenceApplied, true);
   assert.equal(result.itineraries[0].totalDistance, 500);
+});
+test("washroom metadata reaches pass-through stops without changing preference ranking", async () => {
+  const facilityRegistry = [{ agencyId: "ttc", facilityId: "ttc-pass-through", stationIds: ["ttc:PASS"], facilityType: "transit-station", names: ["Pass Through"], source: "https://publisher.example/pass-through", hours: { timeZone: "America/Toronto", weekly: { mon: [{ open: "08:00", close: "20:00" }] } } }];
+  const route = { duration: 600, walkDistance: 100, legs: [{ mode: "SUBWAY", agencyId: "ttc", startTime: "2026-09-07T12:00:00-04:00", endTime: "2026-09-07T12:10:00-04:00", distance: 300, from: { name: "Boarding", lat: 43.6, lon: -79.4 }, to: { name: "Alighting", lat: 43.61, lon: -79.39 }, intermediateStops: [{ name: "Pass Through", stationId: "ttc:PASS", lat: 43.605, lon: -79.395 }] }] };
+  const result = await applyWashroomPreference([route], true, { facilityRegistry });
+  assert.equal(result.itineraries[0].legs[0].intermediateStops[0].washroom.facilityId, "ttc-pass-through");
+  assert.deepEqual(result.itineraries[0].washrooms, []);
+  assert.equal(result.washroomPreferenceApplied, false);
 });
 test("service readiness uses a typed public code without guessing an agency", async () => {
   const source = await readFile(new URL("./server.mjs", import.meta.url), "utf8");
@@ -141,6 +151,10 @@ test("service readiness uses a typed public code without guessing an agency", as
   assert.match(source, /Buffer\.byteLength\(req\.url \?\? ""\) > max/);
   assert.match(source, /isCalendarDate\(date\)/);
   assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
+});
+test("backend container copies the shared washroom matcher", async () => {
+  const dockerfile = await readFile(new URL("./Dockerfile", import.meta.url), "utf8");
+  assert.match(dockerfile, /^COPY shared\/washrooms\.mjs \/shared\/washrooms\.mjs$/m);
 });
 test("Pearson search ranks transit airports before unrelated street stops", () => {
   const streets = Array.from({ length: 25 }, (_, index) => ({ id: `yrt:${index}`, name: `Pearson Av at Street ${index}`, agency: "YRT", feedId: "yrt" }));
