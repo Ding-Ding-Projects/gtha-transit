@@ -24,6 +24,8 @@ const number = (value, name) => { if ((typeof value !== "number" && typeof value
 const coordinates = (raw, name) => ({ lat: bounded(raw?.lat, `${name}.lat`, -90, 90), lon: bounded(raw?.lon, `${name}.lon`, -180, 180) });
 const bounded = (value, name, min, max) => { const n = number(value, name); if (n < min || n > max) throw new Error(`${name} must be between ${min} and ${max}`); return n; };
 const nonNegativeInteger = (value, name, max) => { const n = bounded(value, name, 0, max); if (!Number.isInteger(n)) throw new Error(`${name} must be an integer`); return n; };
+const MAX_VIA_PLACES = 5;
+const VERIFIED_STOP_COORDINATE_TOLERANCE_METRES = 50;
 const placeLabel = (raw, name) => {
   const value = raw?.name ?? raw?.label; if (value == null) return null;
   if (typeof value !== "string") throw new Error(`${name} must be a string`);
@@ -32,12 +34,37 @@ const placeLabel = (raw, name) => {
   if (/[\u0000-\u001f\u007f]/.test(label)) throw new Error(`${name} contains control characters`);
   return label || null;
 };
-const viaPlaces = (raw) => {
+const qualifiedStopLocationId = (value) => {
+  if (typeof value !== "string") return null;
+  const id = value.trim();
+  const separator = id.indexOf(":");
+  return id.length <= 120 && separator > 0 && separator < id.length - 1 && !/[\u0000-\u001f\u007f]/.test(id) ? id : null;
+};
+const distanceMetres = (left, right) => {
+  const latA = Number(left?.lat), lonA = Number(left?.lon), latB = Number(right?.lat), lonB = Number(right?.lon);
+  if (![latA, lonA, latB, lonB].every(Number.isFinite)) return Infinity;
+  const radians = Math.PI / 180;
+  const latitude = (latB - latA) * radians; const longitude = (lonB - lonA) * radians;
+  const haversine = Math.min(1, Math.max(0, Math.sin(latitude / 2) ** 2 + Math.cos(latA * radians) * Math.cos(latB * radians) * Math.sin(longitude / 2) ** 2));
+  return 6_371_000 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
+const candidateStopIds = (place) => [...new Set([place?.stopId, place?.id, place?.stationId].map(qualifiedStopLocationId).filter(Boolean))];
+export async function resolveViaPlaces(raw, { date = null, lookup = publishedStopForId } = {}) {
   if (raw == null) return [];
   if (!Array.isArray(raw)) throw new Error("via must be an array");
-  if (raw.length > 5) throw new Error("via may contain at most 5 places");
-  return raw.map((place, index) => ({ ...coordinates(place, `via[${index}]`), name: placeLabel(place, `via[${index}].name`) }));
-};
+  if (raw.length > MAX_VIA_PLACES) throw new Error("via may contain at most 5 places");
+  return Promise.all(raw.map(async (place, index) => {
+    const coordinate = coordinates(place, `via[${index}]`);
+    const value = { ...coordinate, name: placeLabel(place, `via[${index}].name`) };
+    for (const requestedId of candidateStopIds(place)) {
+      let published = null;
+      try { published = await lookup(requestedId, { date }); } catch { continue; }
+      const resolvedId = qualifiedStopLocationId(published?.id);
+      if (resolvedId && distanceMetres(coordinate, published) <= VERIFIED_STOP_COORDINATE_TOLERANCE_METRES) return { ...value, stopId: resolvedId };
+    }
+    return value;
+  }));
+}
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -89,14 +116,14 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/plan") {
       const input = JSON.parse(await readBody(req));
       const from = coordinates(input.from, "from"); const to = coordinates(input.to, "to");
-      const via = viaPlaces(input.via);
       const dateTime = typeof input.dateTime === "string" && Number.isFinite(Date.parse(input.dateTime)) ? input.dateTime : null;
       if (!dateTime || !/[+-]\d\d:\d\d$|Z$/i.test(dateTime)) throw new Error("dateTime must be an ISO 8601 timestamp with an offset");
+      const provenance = await graphProvenance();
+      const via = await resolveViaPlaces(input.via, { date: calendarDateInTimeZone(dateTime, provenance.timezone ?? "America/Toronto") });
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking", "waiting"].includes(preference)) throw new Error("preference must be fastest, transfers, walking, or waiting");
       const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults };
       const result = input.requiredRoute != null ? await planWithRequiredLine({ ...request, requiredRoute: input.requiredRoute }, { planWithOtp, routeStopAnchors }) : await planWithOtp(request);
-      const provenance = await graphProvenance();
       if (input.requiredRoute != null && !result.itineraries.length) return json(res, 422, { error: "No complete journey riding the selected line was found in this bounded search", code: "REQUIRED_LINE_UNRESOLVED", requiredLine: result.requiredLine, itineraries: [], data: provenance });
       if (via.length && !result.itineraries.length) return json(res, 422, { error: "No complete itinerary visits every requested stop", code: "MULTI_STOP_INCOMPLETE", itineraries: [], failedSegment: result.failedSegment ?? null, data: provenance, coverage: coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
       const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
@@ -114,4 +141,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 const port = Number(process.env.PORT ?? 8787);
-server.listen(port, process.env.HOST ?? "0.0.0.0", () => console.log(`routing backend listening on port ${port}`));
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) server.listen(port, process.env.HOST ?? "0.0.0.0", () => console.log(`routing backend listening on port ${port}`));
+export { server };
