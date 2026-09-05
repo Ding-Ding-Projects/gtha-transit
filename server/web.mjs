@@ -149,7 +149,7 @@ function placeTermStrength(queryTerms, queryIndex, candidateTerms, candidateInde
   const queryForms = placeTermForms(queryTerms, queryIndex);
   const candidateForms = placeTermForms(candidateTerms, candidateIndex);
   if ([...queryForms].some((form) => candidateForms.has(form))) return 0;
-  if (!placeNumeric(queryTerm) && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
+  if (!placeNumeric(queryTerm) && queryTerm !== 'st' && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
   return null;
 }
 function placeBestTermMatch(queryTerms, queryIndex, candidateTerms) {

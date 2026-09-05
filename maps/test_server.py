@@ -140,6 +140,7 @@ class PlaceSearchHttpTest(unittest.TestCase):
                     ("Union Station", "union station", "station", None, None, "fixture/union-station"),
                     ("Union Avenue at Queen", "union ave queen", "road", None, None, "fixture/union-avenue"),
                     ("Saint Clair Avenue", "st clair ave", "road", None, None, "fixture/saint-clair"),
+                    ("Station Clair Avenue", "station clair ave", "road", None, None, "fixture/station-clair"),
                     ("High Park", "high park", "place", None, None, "fixture/high-park"),
                     ("Route Place", "route place", "place", None, None, "fixture/route-place"),
                     ("Yonge Station", "yonge station", "station", None, None, "fixture/yonge-station"),
@@ -173,12 +174,16 @@ class PlaceSearchHttpTest(unittest.TestCase):
             self.assertEqual(self.search(query)[0]["id"], "fixture/yonge-eglinton")
         for query in ("Saint Clair", "St. Clair"):
             self.assertEqual(self.search(query)[0]["id"], "fixture/saint-clair")
+        self.assertEqual([item["id"] for item in self.search("st clair")], ["fixture/saint-clair"])
         self.assertEqual(self.search("union")[0]["id"], "fixture/union-station")
         self.assertEqual(self.search("high park")[0]["id"], "fixture/high-park")
         self.assertEqual(self.search("route place")[0]["id"], "fixture/route-place")
         short_prefix_ids = {item["id"] for item in self.search("yo")}
         self.assertIn("fixture/yonge-station", short_prefix_ids)
         self.assertIn("fixture/york-mills", short_prefix_ids)
+
+
+        self.assertEqual(self.search("ward high 70"), [])
 
 
 if __name__ == "__main__":

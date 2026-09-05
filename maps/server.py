@@ -85,7 +85,7 @@ def _term_match(query_terms, query_index, candidate_terms, candidate_index):
     candidate_forms = _term_forms(candidate_terms, candidate_index)
     if query_forms & candidate_forms:
         return 0
-    if not _numeric(query_term) and len(query_term) >= 2 and any(
+    if not _numeric(query_term) and query_term != "st" and len(query_term) >= 2 and any(
         candidate.startswith(query_term) for candidate in candidate_forms
     ):
         return 1
