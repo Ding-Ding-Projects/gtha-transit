@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, rankPlaces, searchPlaces } from "./places.mjs";
+import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, groupGraphFeeds, rankPlaces, searchPlaces } from "./places.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { graphqlDocument } from "./otp-client.mjs";
+import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
+import { filterRouteCatalog, isCalendarDate, routeCatalogPage } from "./routes.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -42,6 +43,9 @@ test("service readiness uses a typed public code without guessing an agency", as
   assert.match(source, /await otpReady\(/);
   assert.doesNotMatch(source, /inTtcArea|SCHEDULE_DATE_UNAVAILABLE/);
   assert.match(source, /"\/api\/vehicles\/metrolinx"/);
+  assert.match(source, /"\/api\/routes"/);
+  assert.match(source, /Buffer\.byteLength\(req\.url \?\? ""\) > max/);
+  assert.match(source, /isCalendarDate\(date\)/);
   assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
 });
 test("Pearson search ranks transit airports before unrelated street stops", () => {
@@ -56,6 +60,36 @@ test("place ranking collapses coordinate duplicates but preserves distinct same-
   assert.equal(ranked[0].feedId, "ttc");
   assert.equal(ranked[0].locationType, 1);
 });
+test("place suggestions support bounded prefixes, road forms, diacritics, and intersection word order", () => {
+  const stops = [
+    { id: "fixture:warden-hwy7", name: "Warden Avenue & Highway 7", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:ward-avenue", name: "Ward Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:highway7", name: "Highway 7", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:yonge-eglinton", name: "Yonge Street & Eglinton Avenue", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:union-station", name: "Union Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:union-avenue", name: "Union Avenue at Queen", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:saint-clair", name: "Saint Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:station-clair", name: "Station Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:high-park", name: "High Park", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:route-place", name: "Route Place", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:yonge-station", name: "Yonge Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:york-mills", name: "York Mills Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+  ];
+  for (const query of ["Warden Highway 7", "Warden Hwy 7", "ward high 7", "Highway 7 Warden"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:warden-hwy7");
+  assert.deepEqual(rankPlaces(stops, "ward high 7").map((place) => place.id), ["fixture:warden-hwy7"]);
+  for (const query of ["Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:yonge-eglinton");
+  for (const query of ["Saint Clair", "St. Clair"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:saint-clair");
+  assert.deepEqual(rankPlaces(stops, "st clair").map((place) => place.id), ["fixture:saint-clair"]);
+  assert.equal(rankPlaces(stops, "union")[0]?.id, "fixture:union-station");
+  assert.equal(rankPlaces(stops, "high park")[0]?.id, "fixture:high-park");
+  assert.equal(rankPlaces(stops, "route place")[0]?.id, "fixture:route-place");
+  const shortPrefixIds = rankPlaces(stops, "yo").map((place) => place.id);
+  assert.ok(shortPrefixIds.includes("fixture:yonge-station"));
+  assert.ok(shortPrefixIds.includes("fixture:york-mills"));
+  assert.equal(rankPlaces(stops, "ward ".repeat(13)).length, 0);
+  assert.deepEqual(rankPlaces(stops, "ward high 70"), []);
+  assert.equal(rankPlaces(stops, "union", 200).length <= 20, true);
+});
 test("empty-route coverage reports every unavailable feed without selecting one", () => {
   const context = coverageContextForDate({ feeds: [{ id: "ttc", activeTripsByDate: { "2026-09-04": 0, "2026-09-09": 10, "2026-09-06": 10 } }, { id: "burlington", activeTripsByDate: { "2026-09-04": 0, "2026-09-07": 5 } }, { id: "up", activeTripsByDate: { "2026-09-04": 2 } }] }, "2026-09-04");
   assert.deepEqual(context, { date: "2026-09-04", unavailableAgencies: [{ id: "ttc", nextServiceDate: "2026-09-06" }, { id: "burlington", nextServiceDate: "2026-09-07" }] });
@@ -63,6 +97,62 @@ test("empty-route coverage reports every unavailable feed without selecting one"
 test("coverage date uses the graph timezone across an offset boundary", () => {
   assert.equal(calendarDateInTimeZone("2026-09-05T02:30:00Z", "America/Toronto"), "2026-09-04");
   assert.equal(calendarDateInTimeZone("2026-09-05T04:30:00Z", "America/Toronto"), "2026-09-05");
+});
+test("adjacent TTC graph snapshots expose one truthful public calendar", () => {
+  const grouped = groupGraphFeeds([
+    { id: "ttc", publicAgencyId: "ttc", sha256: "summer", publisherDownloadUrl: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 3000, "2026-09-06": 0 } },
+    { id: "ttc-next", publicAgencyId: "ttc", sha256: "fall", publisherDownloadUrl: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 0, "2026-09-06": 3100 } }
+  ]);
+  assert.equal(grouped.length, 1);
+  assert.equal(grouped[0].serviceStart, "20260726");
+  assert.equal(grouped[0].serviceEnd, "20261031");
+  assert.deepEqual(grouped[0].activeTripsByDate, { "2026-09-05": 3000, "2026-09-06": 3100 });
+  assert.deepEqual(grouped[0].sources, ["https://archive.example/summer.zip", "https://publisher.example/fall.zip"]);
+  assert.deepEqual(grouped[0].versions, [
+    { id: "ttc", sha256: "summer", source: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", promoteAfter: null },
+    { id: "ttc-next", sha256: "fall", source: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", retireAfter: null, promoteAfter: "2026-09-05" }
+  ]);
+  assert.equal(publicAgencyFeedId("ttc-next"), "ttc");
+});
+test("journey ranking includes waiting time and respects arrival planning", () => {
+  const leavingSoon = { id: "soon", startTime: "2026-09-05T12:05:00-04:00", endTime: "2026-09-05T12:25:00-04:00", duration: 1200, transfers: 1, walkDistance: 400 };
+  const shortRideLater = { id: "later", startTime: "2026-09-05T13:00:00-04:00", endTime: "2026-09-05T13:10:00-04:00", duration: 600, transfers: 0, walkDistance: 100 };
+  assert.equal(rankItineraries([shortRideLater, leavingSoon], "fastest", false)[0].id, "soon");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "fastest", true)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "transfers", false)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "walking", false)[0].id, "later");
+});
+test("route catalog chooses the active TTC snapshot and preserves validated colors", () => {
+  const routes = [
+    { id: "ttc:1", routeId: "1", shortName: "1", longName: "Summer", agency: "TTC", feedId: "ttc", version: "ttc", color: "FF0000", textColor: "FFFFFF", validity: { serviceStart: "20260726", serviceEnd: "20260905" } },
+    { id: "ttc-next:1", routeId: "1", shortName: "1", longName: "Fall", agency: "TTC", feedId: "ttc", version: "ttc-next", color: null, textColor: null, validity: { serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05" } },
+    { id: "go:40", routeId: "40", shortName: "40", longName: "Airport", agency: "GO Transit", feedId: "go", version: "go", color: "00AA44", textColor: "000000", validity: {} }
+  ];
+  assert.deepEqual(filterRouteCatalog(routes, { agency: "ttc", date: "2026-09-05" }), [{ id: "ttc:1", routeId: "1", shortName: "1", longName: "Summer", agency: "TTC", agencyId: null, feedId: "ttc", version: "ttc", color: "FF0000", textColor: "FFFFFF", routeType: null, validity: { serviceStart: "20260726", serviceEnd: "20260905" } }]);
+  const septemberSix = filterRouteCatalog(routes, { agency: "ttc", date: "2026-09-06" });
+  assert.equal(septemberSix[0].version, "ttc-next"); assert.equal(septemberSix[0].color, null); assert.equal(septemberSix[0].textColor, null);
+  assert.equal(filterRouteCatalog(routes, { query: "airport" })[0].feedId, "go");
+});
+test("route catalog paginates canonical routes in natural route order", () => {
+  const routes = [
+    { id: "ttc:10", routeId: "10", shortName: "10", agency: "TTC", feedId: "ttc", version: "ttc", color: null, textColor: null, validity: { serviceStart: "20260101", serviceEnd: "20261231" } },
+    { id: "ttc:2", routeId: "2", shortName: "2", agency: "TTC", feedId: "ttc", version: "ttc", color: "00AA44", textColor: "FFFFFF", validity: { serviceStart: "20260101", serviceEnd: "20261231" } },
+    { id: "ttc-next:2", routeId: "2", shortName: "2", agency: "TTC", feedId: "ttc", version: "ttc-next", color: "00AA44", textColor: "FFFFFF", validity: { serviceStart: "20270101", serviceEnd: "20271231" } },
+    { id: "ttc:1", routeId: "1", shortName: "1", agency: "TTC", feedId: "ttc", version: "ttc", color: null, textColor: null, validity: { serviceStart: "20260101", serviceEnd: "20261231" } }
+  ];
+  const first = routeCatalogPage(routes, { agency: "ttc", date: "2026-09-05", limit: 2 });
+  assert.equal(first.total, 3); assert.deepEqual(first.routes.map((route) => route.routeId), ["1", "2"]); assert.equal(first.coverage.fallback, 0); assert.ok(first.nextCursor);
+  const second = routeCatalogPage(routes, { agency: "ttc", date: "2026-09-05", limit: 2, cursor: first.nextCursor });
+  assert.deepEqual(second.routes.map((route) => route.routeId), ["10"]); assert.equal(second.nextCursor, null);
+  const outside = routeCatalogPage(routes, { agency: "ttc", date: "2028-01-01", limit: 2 });
+  assert.equal(outside.coverage.exact, 0); assert.equal(outside.coverage.fallback, 2); assert.equal(outside.coverage.unknown, 0);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "invalid" }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "MDE" }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "A".repeat(17) }), /cursor is invalid/);
+  assert.throws(() => routeCatalogPage(routes, { offset: 1.5 }), /offset is invalid/);
+  const unknown = routeCatalogPage([{ id: "go:unknown", routeId: "unknown", shortName: "unknown", agency: "GO Transit", feedId: "go", version: "go", color: null, textColor: null, validity: {} }], { date: "2026-09-05" });
+  assert.deepEqual(unknown.coverage, { date: "2026-09-05", exact: 0, fallback: 0, unknown: 1 });
+  assert.equal(isCalendarDate("2026-02-28"), true); assert.equal(isCalendarDate("2026-02-29"), false); assert.equal(isCalendarDate("2026-99-99"), false);
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {

@@ -5,6 +5,7 @@ import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
+import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
@@ -19,6 +20,7 @@ const readBody = (req) => new Promise((resolve, reject) => {
 const number = (value, name) => { const n = Number(value); if (!Number.isFinite(n)) throw new Error(`${name} must be a finite number`); return n; };
 const coordinates = (raw, name) => ({ lat: number(raw?.lat, `${name}.lat`), lon: number(raw?.lon, `${name}.lon`) });
 const bounded = (value, name, min, max) => { const n = number(value, name); if (n < min || n > max) throw new Error(`${name} must be between ${min} and ${max}`); return n; };
+const nonNegativeInteger = (value, name, max) => { const n = bounded(value, name, 0, max); if (!Number.isInteger(n)) throw new Error(`${name} must be an integer`); return n; };
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -28,6 +30,14 @@ const server = http.createServer(async (req, res) => {
       catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE" }); }
     }
     if (req.method === "GET" && url.pathname === "/api/places") return json(res, 200, { places: await searchPlaces(url.searchParams.get("q"), 20) });
+    if (req.method === "GET" && url.pathname === "/api/routes") {
+      if (Buffer.byteLength(req.url ?? "") > max) throw new Error("query exceeds limit");
+      const limit = url.searchParams.get("limit") == null ? 50 : nonNegativeInteger(url.searchParams.get("limit"), "limit", 200);
+      if (limit < 1) throw new Error("limit must be between 1 and 200");
+      const offset = url.searchParams.get("offset") == null ? 0 : nonNegativeInteger(url.searchParams.get("offset"), "offset", 1_000_000);
+      const date = url.searchParams.get("date"); if (date && !isCalendarDate(date)) throw new Error("date must be a real YYYY-MM-DD calendar date");
+      return json(res, 200, await routeCatalogPageFromIndex({ agency: url.searchParams.get("agency"), query: url.searchParams.get("q"), date, limit, offset, cursor: url.searchParams.get("cursor") }));
+    }
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
       try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }

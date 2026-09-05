@@ -7,7 +7,7 @@ RUNTIME="$ROOT/backend/runtime"
 mkdir -p "$RUNTIME/staging"
 BUILD=$(mktemp -d "$RUNTIME/staging/graph.XXXXXXXX")
 case "$BUILD" in "$RUNTIME"/staging/*) ;; *) echo "unsafe graph staging path" >&2; exit 1;; esac
-cleanup() { case "$BUILD" in "$RUNTIME"/staging/*) rm -rf -- "$BUILD";; esac; }
+cleanup() { echo "Graph staging retained for diagnosis: $BUILD" >&2; }
 trap cleanup EXIT INT TERM
 cp "$ROOT/data/otp/otp-shaded-2.9.0.jar" "$BUILD/otp.jar"
 cp "$ROOT/data/ontario-latest.osm.pbf" "$BUILD/ontario-latest.osm.pbf"
@@ -19,7 +19,7 @@ done
 docker run --rm --cpus=4 --memory=13g -v "$BUILD:/var/otp" eclipse-temurin:25-jre java -Xms2g -Xmx12g -XX:+UseG1GC -jar /var/otp/otp.jar --build --save /var/otp
 test -s "$BUILD/graph.obj"
 python3 "$ROOT/scripts/data/write-graph-provenance.py" --manifest "$ROOT/data/feeds/manifest.json" --graph "$BUILD/graph.obj" --feeds-dir "$ROOT/data/feeds" --output "$BUILD/graph-provenance.json"
-"$ROOT/backend/verify-graph.sh" "$BUILD"
+sh "$ROOT/backend/verify-graph.sh" "$BUILD"
 NEXT="$RUNTIME/otp.next.$$"
 PREVIOUS="$RUNTIME/otp.previous"
 mv "$BUILD" "$NEXT"

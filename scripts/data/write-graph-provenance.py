@@ -36,7 +36,7 @@ def active_trip_counts(archive_path):
 
 feeds = []
 for feed in manifest.get("feeds", []):
-    record = {key: feed.get(key) for key in ("id", "sha256", "serviceStart", "serviceEnd")}
+    record = {key: feed.get(key) for key in ("id", "publicAgencyId", "sha256", "serviceStart", "serviceEnd", "publisherDownloadUrl", "archivedPublisherBytes", "archiveProvider", "archiveRetrievedAt", "retireAfter", "promoteAfter")}
     record["activeTripsByDate"] = active_trip_counts(args.feeds_dir / feed["file"])
     feeds.append(record)
 payload = {"source": "OpenTripPlanner", "updatedAt": manifest.get("generatedAt"), "graphBuiltAt": graph_time, "timezone": "America/Toronto", "feeds": feeds}
