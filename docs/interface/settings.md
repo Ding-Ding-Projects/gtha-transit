@@ -14,6 +14,12 @@ Selecting a result opens its section, reveals any enclosing disclosure, scrolls 
 
 ## Verification and boundaries
 
-At `e0ea605`, real browser interaction verified all four tabs by pointer and keyboard, both themes, independent English level 2 and Cantonese level 3 changes, bilingual mode, and persistence after reload. Global search for Rate opened the Narrator panel, expanded its voice options and focused the disabled voice-tuning group with an explanation. The run exposed a stale explanation after narration was enabled; the followup derives that notice from current narrator state. It also removes repeated visual headings while keeping accessible legends through a real screen-reader-only utility. The corrected notice requires separate built-browser evidence. Browser emulation does not establish physical touch or spoken-audio behavior.
+![Tabbed settings with light and dark appearance choices](../captures/settings-appearance-1e428b1.png)
+
+This unedited 1440 by 1000 Appearance capture is bound to `1e428b1`, its exact served bundle, recorded capture times and reviewed privacy/interaction receipts. It shows the current tab and both theme choices. The separate recorded interactions establish behavior beyond the still image.
+
+At `e0ea605`, real browser interaction verified all four tabs by pointer and keyboard, both themes, independent English level 2 and Cantonese level 3 changes, bilingual mode, and persistence after reload. Global search for Rate opened the Narrator panel, expanded its voice options and focused the disabled voice-tuning group with an explanation. The run exposed a stale explanation after narration was enabled and two unnamed tuning sliders.
+
+The `1e428b1` correction run verified that enabling narration immediately removes the stale notice, selecting the Rate search result focuses its actual range control, and the accessibility tree names the sliders Rate and Pitch. Repeated visual headings are removed while accessible legends remain. All five final desktop/320px light/dark and narrator captures passed the version-1 audit validator, with no unnamed interactive controls, horizontal body overflow, runtime exceptions or console errors in the recorded checks. Browser emulation does not establish physical touch or spoken-audio behavior, and the complete language/zoom matrix remains outstanding.
 
 Suggested articles: [workspace navigation](workspaces.md), [spoken narrator](../accessibility/narrator.md), [search workbench](../search/regex-builder.md), [vehicle preferences](../planning/vehicle-preferences.md).

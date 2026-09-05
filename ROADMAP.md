@@ -4,7 +4,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
-- [ ] Deploy and verify four settings sections, guided theme/language choices, independent tone sliders and exact-setting search with isolated regex workbenches.
+- [x] Deploy and verify four settings sections, guided theme/language choices, independent tone sliders and exact-setting search with isolated regex workbenches. Persistence and keyboard paths passed; the correction run at 1e428b1 passed five version-1 browser audits. Broader language/zoom coverage remains open.
 - [x] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period handling and non-submitting picker actions. The nested-form radio correction was verified separately at b7e0ae4 with zero incidental planning requests.
 - [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
 - [x] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click at 34f6fff. Both saved entries survived reload; the earlier synthetic Enter did not establish product failure.

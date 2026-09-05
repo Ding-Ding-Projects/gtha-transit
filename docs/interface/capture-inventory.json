@@ -4,6 +4,32 @@
   "requiredSurfaces": ["planning", "live-vehicle-tracker", "out-of-division", "live-ttc", "disruption-history", "saved-trips", "regional-coverage", "settings", "mobile-navigation", "route-picker", "regex-workbench", "live-follower", "washroom-detour"],
   "records": [
     {
+      "id": "settings-appearance-1e428b1",
+      "active": true,
+      "path": "docs/captures/settings-appearance-1e428b1.png",
+      "sourceCommit": "1e428b1e320f2046e9abc9b49f2d508e68aef274",
+      "artifactSha256": "25e023b41a8997eaffe2c66deaf60ebc2e5cb880351175917c38d3ce54f987ec",
+      "captureSha256": "ca4dbe60bc9363cf4066a6cb07d27f2f1a39553c6b9f6c8a5ab445f4d7d9a3b2",
+      "screen": "settings",
+      "state": "appearance-selected-light-theme-search-collapsed",
+      "theme": "light",
+      "viewportWidth": 1440,
+      "viewportHeight": 1000,
+      "scale": 1,
+      "languageMode": "en",
+      "capturedAt": "2026-09-05T19:54:50.902207Z",
+      "evidenceKind": "emulated-desktop",
+      "interactionProofId": "settings-tabs-theme-recovery-1e428b1",
+      "interactionReceiptSha256": "c89a31ae58f3d46fc992595fbb2950a9b73c8411703b516c1cfc68c06c8682fe",
+      "inspectionStatus": "inspected",
+      "limitations": [
+        "This image shows Appearance with the light theme selected and search disclosures collapsed.",
+        "Theme interaction, keyboard focus and narrator recovery have separate same-run receipts.",
+        "Earlier persistence and language interactions belong to the e0ea605 run, not this capture.",
+        "Physical touch, audible speech and the full language/zoom matrix remain unverified."
+      ]
+    },
+    {
       "id": "route-picker-keyboard-b7e0ae4",
       "active": true,
       "path": "docs/captures/route-picker-keyboard-b7e0ae4.png",

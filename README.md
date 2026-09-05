@@ -6,6 +6,14 @@ An independent journey planner for Greater Toronto and Hamilton, with cross-agen
 
 ## Run locally
 
+<details><summary>See the focused Settings workspace</summary>
+
+Appearance, Language, Narrator and Privacy have separate accessible tabs. This real built capture is from `1e428b1e320f2046e9abc9b49f2d508e68aef274`, at 1440 by 1000 pixels. Separate runtime checks cover theme choices, keyboard focus and narrator search recovery. [Settings behavior and evidence](docs/interface/settings.md).
+
+![Tabbed settings with light and dark appearance choices](docs/captures/settings-appearance-1e428b1.png)
+
+</details>
+
 <details><summary>See the redesigned tracker</summary>
 
 This is the real public tracker at source `b1829a948358c9b9b532d033f174f0b8214563c7`, captured through an isolated headless browser on September 5, 2026. The dark bilingual viewport is 320 by 844 CSS pixels with device pixel ratio 1.5. Vehicle counts reflect that capture moment. This is browser emulation, not physical-device or browser-zoom verification. [Capture inventory](docs/interface/capture-inventory.json).

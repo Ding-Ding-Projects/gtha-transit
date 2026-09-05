@@ -85,7 +85,7 @@ This is the durable scope record for the owner's transit-planner requests. It is
 
 ## Priority 7: useful interface and accessibility
 
-- [ ] Reorganize Settings into Appearance, Language, Narrator and Privacy with keyboard-operable tabs, local search and direct focus to each setting. Preserve every existing preference and narrator lifetime.
+- [x] Reorganize Settings into Appearance, Language, Narrator and Privacy with keyboard-operable tabs, local search and direct focus to each setting. Existing preferences and narrator lifetime remain intact; local persistence and bounded browser interaction were verified.
 - [x] Replace repeated Build regex labels with compact, accessible 44px star controls. Live 5482814 measured 44x44, opened the native dialog, and verified close/focus and 320px light/dark behavior. Saved-snippet persistence remains a separate verification item.
 - [ ] Deliver a full new visual design with one active workspace, desktop navigation rail, compact mobile navigation, larger maps, quieter filters and consistent modern controls. Implementation is in progress; complete runtime interaction and the design matrix before calling the redesign verified.
 - [ ] Replace generic-looking controls with cohesive modern styling, clear hierarchy and responsive layouts, especially route selection and vehicle preferences.
