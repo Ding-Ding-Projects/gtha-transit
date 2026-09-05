@@ -4,6 +4,8 @@
   "provenance": {
     "sourceArchiveCount": 0,
     "routeCount": 0,
+    "excludedTripCount": 0,
+    "tripCounts": {"declared": 0, "withStopTimes": 0, "excludedWithoutStopTimes": 0, "stopTimeRows": 0},
     "patternCount": 0
   },
   "routes": []

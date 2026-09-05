@@ -6,6 +6,8 @@
     "routeCount": 0,
     "servedStopCount": 0,
     "stopAliasCount": 0,
+    "excludedTripCount": 0,
+    "tripCounts": {"declared": 0, "withStopTimes": 0, "excludedWithoutStopTimes": 0, "stopTimeRows": 0},
     "patternCount": 0,
     "maxRepresentativePatternsPerDirection": 4
   },

@@ -61,9 +61,9 @@ Each pattern is a complete source order based on `stop_sequence`. The generator 
 
 ## Bounds and failure behaviour
 
-The generator streams `trips.txt` into a temporary SQLite lookup with bounded batched inserts and a two-mebibyte cache, then streams `stop_times.txt` by contiguous `trip_id` group. It retains only the active trip's rows plus bounded route-pattern candidates in memory. The temporary lookup is discarded after each feed. The generator rejects a file that reopens a completed trip group, because accepting it would construct a partial, invented sequence. It also bounds feed stops, routes, trips, stop times per trip, and representative patterns per direction.
+The generator streams both `trips.txt` and `stop_times.txt` into bounded temporary SQLite tables with rollback-capable `DELETE` journaling, 1,024-row trip batches, 4,096-row stop-time batches, and a configured two-mebibyte SQLite cache. It accepts at most 250,000 stops, 20,000 routes, 500,000 trips, 20,000,000 stop-time rows per feed, and 5,000 stop-time rows per trip. The configured cache target is not a total-process memory guarantee. It then reads complete trip groups in `(trip_id, stop_sequence)` order. This accepts legitimate noncontiguous source row ordering without constructing a partial pattern. A declared trip with no `stop_times.txt` rows produces no route membership or pattern, but remains in per-feed `tripCounts.excludedWithoutStopTimes`, aggregate `tripCounts`, and `excludedTripCount` provenance. The temporary database is discarded after each feed.
 
-The focused checks create temporary GTFS ZIP fixtures rather than committing feed data. They cover multiple routes, both directions, version aliases, missing colours, parent-child station unions, exact stop membership, full ordered sequences, batch provenance, a multi-batch trip lookup, and rejection of noncontiguous trip rows.
+The focused checks create temporary GTFS ZIP fixtures rather than committing feed data. They cover multiple routes, both directions, version aliases, missing colours, parent-child station unions, exact stop membership, full ordered sequences, batch provenance, a multi-batch trip lookup, noncontiguous source row ordering, and explicit exclusion counts for declared trips without stop-time rows.
 
 Run them from the project root:
 
