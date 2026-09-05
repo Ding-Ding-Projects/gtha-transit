@@ -49,15 +49,19 @@ The map follows a fresh reported vehicle position. Stale vehicle positions can r
 
 A live next stop appears only when the feed supplies explicit stop metadata whose status identifies the stop as next, upcoming, or approaching. The component does not derive a next stop from a vehicle route, headsign, schedule, or geometry.
 
-Manual Previous, Next, and Play controls operate a clearly labelled **Simulation** preview of the published stop sequence. They are saved only for the browser session. Playing a preview changes no live state, invokes no location API, and never creates a vehicle assignment or an arrival prediction.
+Manual Previous, Next, and Play controls operate a clearly labelled **Simulation** preview of the published stop sequence. They are saved only for the browser session. Changing or pausing a preview stops local location tracking before the simulation changes. Simulation never creates a vehicle assignment, a publisher-confirmed stop, or an arrival prediction.
+
+With explicit local tracking active, the panel can advance the estimated sequence only from a fresh local observation with reasonable reported accuracy that projects close to the nearby published stop geometry. It cannot move backward or skip more than two stops in one observation. The result is labelled **Estimated next stop**, never publisher-confirmed. Stale, imprecise, off-route, missing, or future observations do not advance the sequence.
 
 ## Optional browser position
 
-The browser location control is an explicit user action. It requests a one-time local browser position only after activation, stores it in component memory only, and does not send it to routing, vehicle, map, telemetry, or logging endpoints. The component never starts a geolocation watch and does not request location permission automatically.
+The browser location control is an explicit user action. It starts a browser location watch only after activation, exposes a visible **Stop location tracking** control, and stores the latest observation in component memory only. Closing or unmounting the panel, switching to vehicle mode, changing a manual preview, and pausing or starting Simulation all clear the active watch. The final local observation remains visible as stale or stopped information rather than silently becoming a current location.
+
+Coordinates are not sent to routing, vehicle, map, telemetry, or logging endpoints. A coordinate can leave the component only when the person explicitly selects the parent-provided washroom handoff action, and only while the local observation is fresh and reasonably accurate.
 
 ## Washroom handoff
 
-The follower does not find facilities or calculate a facility route. A parent may provide `washroomTarget` with a supplied name, ETA, availability state, and note. The panel displays those values as supplied. If the parent provides `onWashroomRequest`, the **I need to use the washroom** action calls it with the active leg index and a location only when the user previously opted into the local browser-position control.
+The follower does not find facilities or calculate a facility route. A parent may provide `washroomTarget` with a supplied name, ETA, availability state, and note. The panel displays those values as supplied. If the parent provides `onWashroomRequest`, the **I need to use the washroom** action calls it with the active leg index and a location only when explicit local tracking is currently fresh and reasonably accurate.
 
 ## Accessibility and styling seams
 
@@ -84,4 +88,4 @@ live-follower-map-person
 
 ## Verification
 
-`tests/trip-progress.test.mjs` covers interleaved transit and walking legs, reverse-order itineraries, transfer-stop boundaries, stale and future observations, exact identity matching instead of route-only matching, explicit next-stop metadata, and bounds for manual preview selection. `npm run typecheck` checks the client component and the pure timeline utility together.
+`tests/trip-progress.test.mjs` covers interleaved transit and walking legs, reverse-order itineraries, transfer-stop boundaries, stale and future observations, exact identity matching instead of route-only matching, explicit next-stop metadata, manual-preview bounds, fake-browser watch lifecycle, and conservative projection rejection for stale, future, imprecise, and off-route local observations. `npm run typecheck` checks the client component and the pure timeline utility together.

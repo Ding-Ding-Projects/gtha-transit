@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   buildTripStopTimeline,
+  createBrowserLocationWatch,
+  estimatePreviewStopFromPosition,
   exactReportedVehicle,
   previewTimelineStop,
   publisherNextStopId,
@@ -132,4 +134,118 @@ test('keeps preview stops separate from live claims and requires explicit next-s
   assert.equal(publisherNextStopId({ routeId: '501' }), null);
   assert.equal(publisherNextStopId({ stopId: 'B', stopStatus: 'current' }), null);
   assert.equal(publisherNextStopId({ stopId: 'B', stopStatus: 'next' }), 'B');
+});
+
+test('starts and stops browser location watches only through the explicit controller lifecycle', () => {
+  const watches = [];
+  const cleared = [];
+  const browser = {
+    watchPosition(onPosition, onError, options) {
+      watches.push({ onPosition, onError, options });
+      return 42;
+    },
+    clearWatch(id) {
+      cleared.push(id);
+    },
+  };
+  const received = [];
+  let errors = 0;
+  const watcher = createBrowserLocationWatch(browser, (position) => received.push(position), () => {
+    errors += 1;
+  });
+
+  assert.equal(watcher.active, false);
+  assert.equal(watches.length, 0);
+  assert.equal(watcher.start(), true);
+  assert.equal(watcher.start(), false);
+  assert.equal(watcher.active, true);
+  assert.deepEqual(watches[0].options, {
+    enableHighAccuracy: false,
+    maximumAge: 0,
+    timeout: 10_000,
+  });
+  watches[0].onPosition({
+    coords: { latitude: 43.65, longitude: -79.38, accuracy: 20 },
+    timestamp: 1_700_000_000_000,
+  });
+  assert.equal(received.length, 1);
+  assert.equal(watcher.stop(), true);
+  assert.equal(watcher.stop(), false);
+  assert.deepEqual(cleared, [42]);
+  watches[0].onPosition({
+    coords: { latitude: 43.66, longitude: -79.39, accuracy: 20 },
+    timestamp: 1_700_000_000_100,
+  });
+  assert.equal(received.length, 1);
+  assert.equal(watcher.start(), true);
+  watches[1].onError();
+  assert.equal(watcher.active, false);
+  assert.equal(errors, 1);
+  assert.deepEqual(cleared, [42, 42]);
+});
+
+test('advances an estimated preview only for fresh, accurate locations near published geometry', () => {
+  const timeline = buildTripStopTimeline({
+    legs: [
+      {
+        mode: 'BUS',
+        from: stop('A', 'Alpha', 43.6, -79.4),
+        intermediateStops: [stop('B', 'Bravo', 43.601, -79.4)],
+        to: stop('C', 'Charlie', 43.602, -79.4),
+      },
+    ],
+  });
+  const now = 1_700_000_000_000;
+  const closeToSegment = {
+    lat: 43.6015,
+    lon: -79.4,
+    accuracy: 20,
+    timestamp: now,
+  };
+
+  const estimate = estimatePreviewStopFromPosition(
+    timeline,
+    closeToSegment,
+    1,
+    now,
+  );
+  assert.equal(estimate?.nextIndex, 2);
+  assert.ok(Math.abs((estimate?.progress ?? 0) - 1.5) < 0.000_001);
+  assert.equal(estimate?.distanceMetres, 0);
+  assert.equal(
+    estimatePreviewStopFromPosition(
+      timeline,
+      { ...closeToSegment, lon: -79.45 },
+      1,
+      now,
+    ),
+    null,
+  );
+  assert.equal(
+    estimatePreviewStopFromPosition(
+      timeline,
+      { ...closeToSegment, accuracy: 151 },
+      1,
+      now,
+    ),
+    null,
+  );
+  assert.equal(
+    estimatePreviewStopFromPosition(
+      timeline,
+      { ...closeToSegment, timestamp: now - 30_001 },
+      1,
+      now,
+    ),
+    null,
+  );
+  assert.equal(
+    estimatePreviewStopFromPosition(
+      timeline,
+      { ...closeToSegment, timestamp: now + 30_001 },
+      1,
+      now,
+    ),
+    null,
+  );
 });

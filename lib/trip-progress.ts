@@ -36,6 +36,8 @@ export type TripStopTimeline = {
 };
 
 export const LIVE_POSITION_FRESH_MS = 120_000;
+export const LOCAL_POSITION_FRESH_MS = 30_000;
+export const MAX_LOCAL_POSITION_ACCURACY_METRES = 150;
 
 export type ReportedVehicleIdentity = {
   id?: string;
@@ -52,6 +54,47 @@ export type ReportedVehiclePosition = ReportedVehicleIdentity & {
 };
 
 export type ReportedPositionState = 'fresh' | 'stale' | 'unavailable';
+
+export type BrowserLocationPosition = {
+  coords: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+  };
+  timestamp: number;
+};
+
+export type BrowserLocationWatchBoundary = {
+  watchPosition(
+    onPosition: (position: BrowserLocationPosition) => void,
+    onError: () => void,
+    options: {
+      enableHighAccuracy: boolean;
+      maximumAge: number;
+      timeout: number;
+    },
+  ): number;
+  clearWatch(watchId: number): void;
+};
+
+export type BrowserLocationWatchController = {
+  readonly active: boolean;
+  start(): boolean;
+  stop(): boolean;
+};
+
+export type LocalPositionObservation = {
+  lat: number;
+  lon: number;
+  accuracy: number;
+  timestamp: number;
+};
+
+export type EstimatedStopProgress = {
+  nextIndex: number;
+  progress: number;
+  distanceMetres: number;
+};
 
 type ItineraryLike = Pick<Itinerary, 'legs'> | { legs?: readonly unknown[] } | null | undefined;
 
@@ -110,6 +153,59 @@ export function publisherNextStopId(
   const status = text(position?.stopStatus)?.toLocaleLowerCase();
   if (!status || !/(next|upcoming|approach)/.test(status)) return null;
   return text(position?.nextStopId) || text(position?.stopId) || null;
+}
+
+/** Creates an explicit, idempotent browser watch that callers start only from user input. */
+export function createBrowserLocationWatch(
+  browser: BrowserLocationWatchBoundary,
+  onPosition: (position: BrowserLocationPosition) => void,
+  onError: () => void,
+): BrowserLocationWatchController {
+  let watchId: number | null = null;
+  let active = false;
+  let generation = 0;
+  const stop = () => {
+    if (!active) return false;
+    active = false;
+    generation++;
+    if (watchId !== null) browser.clearWatch(watchId);
+    watchId = null;
+    return true;
+  };
+  return {
+    get active() {
+      return active;
+    },
+    start() {
+      if (active) return false;
+      active = true;
+      const currentGeneration = ++generation;
+      try {
+        const requestedWatchId = browser.watchPosition(
+          (position) => {
+            if (active && generation === currentGeneration) onPosition(position);
+          },
+          () => {
+            if (active && generation === currentGeneration) {
+              stop();
+              onError();
+            }
+          },
+          { enableHighAccuracy: false, maximumAge: 0, timeout: 10_000 },
+        );
+        if (active && generation === currentGeneration) watchId = requestedWatchId;
+        else browser.clearWatch(requestedWatchId);
+        return active && generation === currentGeneration;
+      } catch (error) {
+        active = false;
+        generation++;
+        throw error;
+      }
+    },
+    stop() {
+      return stop();
+    },
+  };
 }
 
 const normalizedName = (name: string | undefined): string | null => {
@@ -249,4 +345,101 @@ export function previewTimelineStop(
   return Number.isInteger(index) && index >= 0 && index < timeline.stops.length
     ? timeline.stops[index]
     : null;
+}
+
+const validCoordinates = (lat: unknown, lon: unknown) => {
+  const validLat = finiteNumber(lat);
+  const validLon = finiteNumber(lon);
+  return (
+    validLat !== undefined &&
+    validLon !== undefined &&
+    Math.abs(validLat) <= 90 &&
+    Math.abs(validLon) <= 180
+  );
+};
+
+const projectedSegmentDistance = (
+  point: LocalPositionObservation,
+  from: TripProgressPlace,
+  to: TripProgressPlace,
+) => {
+  if (!validCoordinates(point.lat, point.lon)) return null;
+  if (!validCoordinates(from.lat, from.lon) || !validCoordinates(to.lat, to.lon))
+    return null;
+  const originLatitude = (Number(from.lat) + Number(to.lat) + point.lat) / 3;
+  const metresPerLatitude = 111_132;
+  const metresPerLongitude = 111_320 * Math.cos((originLatitude * Math.PI) / 180);
+  const fromX = Number(from.lon) * metresPerLongitude;
+  const fromY = Number(from.lat) * metresPerLatitude;
+  const toX = Number(to.lon) * metresPerLongitude;
+  const toY = Number(to.lat) * metresPerLatitude;
+  const pointX = point.lon * metresPerLongitude;
+  const pointY = point.lat * metresPerLatitude;
+  const deltaX = toX - fromX;
+  const deltaY = toY - fromY;
+  const lengthSquared = deltaX * deltaX + deltaY * deltaY;
+  if (lengthSquared <= 0) return null;
+  const rawProgress =
+    ((pointX - fromX) * deltaX + (pointY - fromY) * deltaY) / lengthSquared;
+  const progress = Math.min(1, Math.max(0, rawProgress));
+  const nearestX = fromX + deltaX * progress;
+  const nearestY = fromY + deltaY * progress;
+  return {
+    progress,
+    distanceMetres: Math.hypot(pointX - nearestX, pointY - nearestY),
+  };
+};
+
+/**
+ * Conservatively advances a preview from a fresh, accurate local position and
+ * nearby published stop geometry. It cannot move backwards or skip more than
+ * two stops in one observation.
+ */
+export function estimatePreviewStopFromPosition(
+  timeline: TripStopTimeline,
+  position: LocalPositionObservation | null | undefined,
+  currentIndex: number,
+  now: number,
+): EstimatedStopProgress | null {
+  if (!position || !Number.isInteger(currentIndex)) return null;
+  if (
+    !Number.isFinite(position.accuracy) ||
+    position.accuracy < 0 ||
+    position.accuracy > MAX_LOCAL_POSITION_ACCURACY_METRES ||
+    now - position.timestamp > LOCAL_POSITION_FRESH_MS ||
+    position.timestamp > now + 30_000 ||
+    !validCoordinates(position.lat, position.lon)
+  )
+    return null;
+  if (timeline.stops.length < 2 || currentIndex < 0 || currentIndex >= timeline.stops.length)
+    return null;
+
+  const firstSegment = Math.max(0, currentIndex - 1);
+  const lastSegment = Math.min(timeline.stops.length - 2, currentIndex + 2);
+  let best: { progress: number; distanceMetres: number } | null = null;
+  let bestSegment = -1;
+  for (let index = firstSegment; index <= lastSegment; index++) {
+    const projected = projectedSegmentDistance(
+      position,
+      timeline.stops[index].place,
+      timeline.stops[index + 1].place,
+    );
+    if (!projected || (best && projected.distanceMetres >= best.distanceMetres)) continue;
+    best = projected;
+    bestSegment = index;
+  }
+  if (!best || bestSegment < 0) return null;
+
+  const maximumDistance = Math.min(250, Math.max(50, position.accuracy * 1.5));
+  if (best.distanceMetres > maximumDistance) return null;
+  const nextIndex = Math.min(
+    timeline.stops.length - 1,
+    currentIndex + 2,
+    Math.floor(bestSegment + best.progress) + 1,
+  );
+  return {
+    nextIndex,
+    progress: bestSegment + best.progress,
+    distanceMetres: best.distanceMetres,
+  };
 }

@@ -16,11 +16,18 @@ import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import type { Itinerary } from '../lib/types';
 import {
   buildTripStopTimeline,
+  createBrowserLocationWatch,
+  estimatePreviewStopFromPosition,
   exactReportedVehicle,
+  LOCAL_POSITION_FRESH_MS,
+  MAX_LOCAL_POSITION_ACCURACY_METRES,
   positionTimestampMilliseconds,
   previewTimelineStop,
   publisherNextStopId,
   reportedPositionState,
+  type BrowserLocationWatchBoundary,
+  type BrowserLocationWatchController,
+  type LocalPositionObservation,
   type TripProgressPlace,
   type TripProgressStop,
 } from '../lib/trip-progress';
@@ -76,7 +83,8 @@ type LiveSnapshot = {
   fetchedAt: string | null;
   vehicle: LiveFollowerVehicle | null;
 };
-type LocalPosition = { lat: number; lon: number; timestamp: number };
+type LocalPosition = LocalPositionObservation;
+type LocationTrackingState = 'idle' | 'tracking' | 'stopped' | 'unavailable';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -194,6 +202,7 @@ export default function LiveFollower({
   const [previewReady, setPreviewReady] = useState(false);
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [localPosition, setLocalPosition] = useState<LocalPosition | null>(null);
+  const [locationTracking, setLocationTracking] = useState<LocationTrackingState>('idle');
   const [locationStatus, setLocationStatus] = useState('');
   const [tileError, setTileError] = useState(false);
   const [mapEpoch, setMapEpoch] = useState(0);
@@ -204,6 +213,7 @@ export default function LiveFollower({
   const liveInFlight = useRef(false);
   const liveInterval = useRef<number | null>(null);
   const liveRetry = useRef<number | null>(null);
+  const locationWatch = useRef<BrowserLocationWatchController | null>(null);
   const mapOriginRef = useRef<{ lat?: unknown; lon?: unknown } | null>(null);
   const closed = useRef(false);
   const translated = useRef(t);
@@ -219,6 +229,7 @@ export default function LiveFollower({
     return () => {
       closed.current = true;
       liveAbort.current?.abort();
+      locationWatch.current?.stop();
       if (liveInterval.current) window.clearInterval(liveInterval.current);
       if (liveRetry.current) window.clearTimeout(liveRetry.current);
     };
@@ -360,6 +371,19 @@ export default function LiveFollower({
     t('Observation time not supplied', '未有提供觀察時間'),
   );
   const previewStop = previewTimelineStop(timeline, previewIndex);
+  const locationEstimate = useMemo(() => {
+    if (locationTracking !== 'tracking' || !localPosition) return null;
+    return estimatePreviewStopFromPosition(
+      timeline,
+      localPosition,
+      previewIndex,
+      now,
+    );
+  }, [localPosition, locationTracking, now, previewIndex, timeline]);
+  useEffect(() => {
+    if (locationEstimate && locationEstimate.nextIndex > previewIndex)
+      setPreviewIndex(locationEstimate.nextIndex);
+  }, [locationEstimate, previewIndex]);
   const publisherNext = useMemo(() => {
     if (liveState !== 'fresh') return null;
     const stopId = publisherNextStopId(currentVehicle);
@@ -368,17 +392,28 @@ export default function LiveFollower({
     return { stopId, stop };
   }, [currentVehicle, liveState, timeline.stops]);
 
-  const nextStop: TripProgressStop | null = publisherNext?.stop || previewStop;
+  const estimatedStop = locationEstimate
+    ? previewTimelineStop(timeline, locationEstimate.nextIndex)
+    : null;
+  const nextStop: TripProgressStop | null =
+    publisherNext?.stop || estimatedStop || previewStop;
   const nextStopTitle = publisherNext
     ? stopName(
         publisherNext.stop?.place,
         `${t('Publisher stop', '來源站點')} ${publisherNext.stopId}`,
       )
+    : estimatedStop
+      ? stopName(
+          estimatedStop.place,
+          t('Unnamed scheduled stop', '未命名嘅預定站點'),
+        )
     : mode === 'trip' && nextStop
       ? stopName(nextStop.place, t('Unnamed scheduled stop', '未命名嘅預定站點'))
       : t('Not supplied', '未有提供');
   const nextStopLabel = publisherNext
     ? t('Publisher-reported next stop', '來源通報嘅下一站')
+    : estimatedStop
+      ? t('Estimated next stop', '預計下一站')
     : mode === 'trip' && nextStop
       ? t('Estimated sequence preview', '預計行程序列預覽')
       : t('Next stop', '下一站');
@@ -387,6 +422,11 @@ export default function LiveFollower({
         'The feed labels this stop as upcoming. It is not inferred from a route.',
         '資料來源將此站標示為即將到達，並非由路線推測。',
       )
+    : estimatedStop
+      ? t(
+          'Estimated from fresh local browser tracking and nearby published stop geometry. This is not publisher-confirmed.',
+          '根據最新本機瀏覽器追蹤同附近已發布站點幾何資料作出預計，並非來源確認。',
+        )
     : mode === 'trip' && nextStop
       ? t(
         'Simulation only. Use the preview controls to change this scheduled sequence view.',
@@ -463,7 +503,9 @@ export default function LiveFollower({
         marker.addTo(markers.current);
       }
 
-      const targetPoint = mapPoint(publisherNext?.stop?.place || previewStop?.place || null);
+      const targetPoint = mapPoint(
+        publisherNext?.stop?.place || estimatedStop?.place || previewStop?.place || null,
+      );
       if (targetPoint) {
         leaflet
           .marker(targetPoint, {
@@ -509,13 +551,22 @@ export default function LiveFollower({
         leaflet
           .marker(personalPoint, {
             icon: leaflet.divIcon({
-              className: 'live-follower-map-person',
+              className:
+                locationTracking === 'tracking' &&
+                now - localPosition!.timestamp <= LOCAL_POSITION_FRESH_MS
+                  ? 'live-follower-map-person'
+                  : 'live-follower-map-person is-stale',
               html: '',
               iconSize: [22, 22],
               iconAnchor: [11, 11],
             }),
           })
-          .bindTooltip(t('Your local browser position', '你嘅本機瀏覽器位置'))
+          .bindTooltip(
+            locationTracking === 'tracking' &&
+              now - localPosition!.timestamp <= LOCAL_POSITION_FRESH_MS
+              ? t('Fresh local browser position', '最新本機瀏覽器位置')
+              : t('Stale local browser position', '過時本機瀏覽器位置'),
+          )
           .addTo(markers.current);
       }
     };
@@ -523,7 +574,20 @@ export default function LiveFollower({
     return () => {
       cancelled = true;
     };
-  }, [currentVehicle, liveState, localPosition, mapEpoch, nextStopTitle, previewStop, publisherNext, t, timeline.stops]);
+  }, [
+    currentVehicle,
+    estimatedStop,
+    liveState,
+    localPosition,
+    locationTracking,
+    mapEpoch,
+    nextStopTitle,
+    now,
+    previewStop,
+    publisherNext,
+    t,
+    timeline.stops,
+  ]);
 
   const announcePreview = useCallback(
     (index: number) => {
@@ -537,63 +601,125 @@ export default function LiveFollower({
     [timeline.stops],
   );
 
+  const stopLocationTracking = (message?: string) => {
+    if (!locationWatch.current?.stop()) return;
+    setLocationTracking('stopped');
+    setLocationStatus(
+      message ||
+        t(
+          'Location tracking stopped. The last local observation remains local and may become stale.',
+          '位置追蹤已停止。最後本機觀察仍留在本機，並可能變得過時。',
+        ),
+    );
+  };
+
   const choosePreview = (next: number) => {
     if (!timeline.stops.length) return;
     const normalized = Math.min(timeline.stops.length - 1, Math.max(0, next));
+    stopLocationTracking(
+      t(
+        'Location tracking stopped before the manual preview changed.',
+        '手動預覽更改前已停止位置追蹤。',
+      ),
+    );
     setPreviewPlaying(false);
     setPreviewIndex(normalized);
     announcePreview(normalized);
   };
 
-  const requestBrowserPosition = () => {
+  const togglePreviewPlayback = () => {
+    stopLocationTracking(
+      t(
+        'Location tracking stopped before Simulation preview changed.',
+        '模擬預覽更改前已停止位置追蹤。',
+      ),
+    );
+    setPreviewPlaying((playing) => !playing);
+  };
+
+  const startLocationTracking = () => {
     if (!navigator.geolocation) {
+      setLocationTracking('unavailable');
       setLocationStatus(
         t(
-          'This browser cannot provide a local position.',
-          '此瀏覽器未能提供本機位置。',
+          'This browser cannot provide location tracking.',
+          '此瀏覽器未能提供位置追蹤。',
         ),
       );
       return;
     }
+    setPreviewPlaying(false);
     setLocationStatus(
       t(
-        'Requesting a local browser position. It is not sent to the service.',
-        '正在要求本機瀏覽器位置，位置不會傳送到服務。',
+        'Requesting local browser location tracking. Coordinates remain local unless you later request a washroom handoff.',
+        '正在要求本機瀏覽器位置追蹤。除非你稍後要求洗手間交接，座標會留在本機。',
       ),
     );
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (closed.current) return;
-        const point = {
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-          timestamp: Date.now(),
-        };
-        if (!validCoordinates(point)) {
-          setLocationStatus(t('The browser returned no usable position.', '瀏覽器未有回傳可用位置。'));
-          return;
-        }
-        setLocalPosition(point);
-        setLocationStatus(
-          t(
-            'Local browser position is shown only in this follower session.',
-            '本機瀏覽器位置只會在此追蹤工作階段顯示。',
-          ),
-        );
-      },
-      () => {
-        if (!closed.current)
+    if (!locationWatch.current) {
+      locationWatch.current = createBrowserLocationWatch(
+        navigator.geolocation as unknown as BrowserLocationWatchBoundary,
+        (position) => {
+          if (closed.current) return;
+          const point: LocalPosition = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+            accuracy: Number.isFinite(position.coords.accuracy)
+              ? position.coords.accuracy
+              : Infinity,
+            timestamp: Number.isFinite(position.timestamp)
+              ? position.timestamp
+              : Date.now(),
+          };
+          if (!validCoordinates(point)) {
+            setLocationStatus(
+              translated.current(
+                'The browser returned no usable local position.',
+                '瀏覽器未有回傳可用本機位置。',
+              ),
+            );
+            return;
+          }
+          setLocalPosition(point);
+          setLocationTracking('tracking');
+          setNow(Date.now());
           setLocationStatus(
-            t('Local position was not shared with this browser.', '本機位置未有與此瀏覽器分享。'),
+            translated.current(
+              'Location tracking is active locally. It can estimate the published stop sequence but does not confirm a publisher stop.',
+              '位置追蹤正在本機運作。它可以預計已發布站點序列，但不會確認來源站點。',
+            ),
           );
-      },
-      { enableHighAccuracy: false, maximumAge: 0, timeout: 10_000 },
-    );
+        },
+        () => {
+          if (closed.current) return;
+          locationWatch.current?.stop();
+          setLocationTracking('stopped');
+          setLocationStatus(
+            translated.current(
+              'Location tracking stopped because the browser did not provide an update.',
+              '由於瀏覽器未有提供更新，位置追蹤已停止。',
+            ),
+          );
+        },
+      );
+    }
+    try {
+      const started = locationWatch.current.start();
+      if (started || locationWatch.current.active) setLocationTracking('tracking');
+    } catch {
+      setLocationTracking('unavailable');
+      setLocationStatus(
+        t(
+          'Location tracking could not start in this browser.',
+          '此瀏覽器未能開始位置追蹤。',
+        ),
+      );
+    }
   };
 
   const closeFollower = () => {
     closed.current = true;
     liveAbort.current?.abort();
+    locationWatch.current?.stop();
     if (liveInterval.current) window.clearInterval(liveInterval.current);
     if (liveRetry.current) window.clearTimeout(liveRetry.current);
     onClose();
@@ -622,7 +748,7 @@ export default function LiveFollower({
               'No exact vehicle has been verified for this trip.',
               '未有為此行程核實完全相同嘅車輛。',
             );
-  const followedStop = publisherNext?.stop || previewStop;
+  const followedStop = publisherNext?.stop || estimatedStop || previewStop;
   const followedLegIndex = followedStop?.references[0]?.legIndex ?? 0;
   const washroomEta =
     washroomTarget &&
@@ -630,10 +756,16 @@ export default function LiveFollower({
     washroomTarget.etaSeconds >= 0
       ? Math.ceil(washroomTarget.etaSeconds / 60)
       : null;
+  const localPositionFresh = Boolean(
+    localPosition &&
+      locationTracking === 'tracking' &&
+      now - localPosition.timestamp <= LOCAL_POSITION_FRESH_MS &&
+      localPosition.accuracy <= MAX_LOCAL_POSITION_ACCURACY_METRES,
+  );
   const requestWashroom = () => {
     if (!onWashroomRequest) return;
     onWashroomRequest({
-      ...(localPosition
+      ...(localPositionFresh && localPosition
         ? {
             position: {
               lat: localPosition.lat,
@@ -677,7 +809,15 @@ export default function LiveFollower({
             type="button"
             className="pill"
             aria-pressed={mode === 'vehicle'}
-            onClick={() => setMode('vehicle')}
+            onClick={() => {
+              stopLocationTracking(
+                t(
+                  'Location tracking stopped because vehicle mode was selected.',
+                  '已選取車輛模式，因此位置追蹤已停止。',
+                ),
+              );
+              setMode('vehicle');
+            }}
           >
             {t('Vehicle position', '車輛位置')}
           </button>
@@ -736,7 +876,7 @@ export default function LiveFollower({
               type="button"
               className="pill"
               disabled={timeline.stops.length < 2}
-              onClick={() => setPreviewPlaying((playing) => !playing)}
+              onClick={togglePreviewPlayback}
               aria-pressed={previewPlaying}
             >
               {previewPlaying ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
@@ -818,18 +958,46 @@ export default function LiveFollower({
 
       <section className="live-follower__privacy" aria-labelledby="live-follower-privacy-heading">
         <div>
-          <h3 id="live-follower-privacy-heading">{t('Optional local position', '可選本機位置')}</h3>
+          <h3 id="live-follower-privacy-heading">{t('Optional local position tracking', '可選本機位置追蹤')}</h3>
           <p>
             {t(
-              'Only choose this if you want this browser to show its local position on this map. It is not persisted or sent to the planning service.',
-              '只有你想讓此瀏覽器在地圖上顯示本機位置時先選擇。位置不會被儲存或傳送至規劃服務。',
+              'Start tracking only if you want this browser to follow local progress against the published stop sequence. Coordinates remain local unless you request the parent washroom handoff.',
+              '只有你想讓此瀏覽器依照已發布站點序列跟隨本機進度時先開始追蹤。除非你要求父層洗手間交接，座標會留在本機。',
             )}
           </p>
+          {localPosition && (
+            <small>
+              {localPositionFresh
+                ? t(
+                    `Fresh local tracking with approximately ${Math.round(localPosition.accuracy)} m accuracy.`,
+                    `本機追蹤最新，約 ${Math.round(localPosition.accuracy)} 米準確度。`,
+                  )
+                : t(
+                    'The last local observation is stale, imprecise, or tracking has stopped.',
+                    '最後本機觀察已過時、準確度不足或追蹤已停止。',
+                  )}
+            </small>
+          )}
         </div>
-        <button type="button" className="pill" onClick={requestBrowserPosition}>
-          <MapPin size={17} aria-hidden="true" />
-          {t('Show my local position', '顯示我嘅本機位置')}
-        </button>
+        {locationTracking === 'tracking' ? (
+          <button
+            type="button"
+            className="pill"
+            onClick={() =>
+              stopLocationTracking(
+                t('Location tracking stopped by you.', '你已停止位置追蹤。'),
+              )
+            }
+          >
+            <Pause size={17} aria-hidden="true" />
+            {t('Stop location tracking', '停止位置追蹤')}
+          </button>
+        ) : (
+          <button type="button" className="pill" onClick={startLocationTracking}>
+            <MapPin size={17} aria-hidden="true" />
+            {t('Start location tracking', '開始位置追蹤')}
+          </button>
+        )}
       </section>
       {locationStatus && <p className="data-note" role="status">{locationStatus}</p>}
 
