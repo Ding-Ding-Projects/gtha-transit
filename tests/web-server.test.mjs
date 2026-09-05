@@ -26,12 +26,12 @@ test('Real tile proxy preserves revision paths and never caches mutable or rejec
  }finally{child.kill();await once(child,'exit');await new Promise(resolve=>maps.close(resolve));}
 });
 
-test('Place proxy ranks local intersections before a capped stop list and retains a healthy source', {timeout: 10000}, async () => {
+test('Place proxy ranks a compact-query local intersection before a capped stop list and retains a healthy source', {timeout: 10000}, async () => {
  let routingAvailable = true;
  const routing = http.createServer((req, res) => {
   if (!req.url.startsWith('/api/places')) return res.writeHead(404).end();
   if (!routingAvailable) return res.writeHead(503).end();
-  const places = Array.from({ length: 20 }, (_, index) => ({ id: `routing:${index}`, name: `Yonge Eglinton Stop ${index}`, kind: 'stop' }));
+  const places = Array.from({ length: 20 }, (_, index) => ({ id: `routing:${index}`, name: `Union Station ${index}`, kind: 'stop' }));
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ places }));
  });
@@ -39,8 +39,8 @@ test('Place proxy ranks local intersections before a capped stop list and retain
   if (!req.url.startsWith('/search')) return res.writeHead(404).end();
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ results: [
-   { id: 'map:yonge-eglinton', name: 'Yonge Street & Eglinton Avenue', kind: 'intersection', lat: null, lon: null },
-   { id: 'routing:0', name: 'Yonge Eglinton Stop 0', kind: 'stop', lat: null, lon: null },
+   { id: 'map:warden-hwy7', name: 'Warden Avenue & Highway 7', kind: 'intersection', lat: null, lon: null },
+   { id: 'routing:0', name: 'Union Station 0', kind: 'stop', lat: null, lon: null },
   ] }));
  });
  await new Promise((resolve) => routing.listen(0, '127.0.0.1', resolve));
@@ -56,21 +56,21 @@ test('Place proxy ranks local intersections before a capped stop list and retain
  try {
   for (let attempt = 0; attempt < 50 && !log.includes('ready'); attempt += 1) await pause(50);
   assert.match(log, /ready/);
-  const full = await fetch(`http://127.0.0.1:${port}/api/places?q=Yonge%20Eglinton`);
+  const full = await fetch(`http://127.0.0.1:${port}/api/places?q=Highway7Warden`);
   assert.equal(full.status, 200);
   const fullPayload = await full.json();
   assert.equal(fullPayload.partial, false);
   assert.deepEqual(fullPayload.sources, { routing: 'available', maps: 'available' });
-  assert.equal(fullPayload.places[0].id, 'map:yonge-eglinton');
+  assert.equal(fullPayload.places[0].id, 'map:warden-hwy7');
   assert.equal(fullPayload.places.filter((place) => place.id === 'routing:0').length, 1);
   assert.equal(fullPayload.places.length, 21);
   routingAvailable = false;
-  const partial = await fetch(`http://127.0.0.1:${port}/api/places?q=Yonge%20Eglinton`);
+  const partial = await fetch(`http://127.0.0.1:${port}/api/places?q=Highway7Warden`);
   assert.equal(partial.status, 200);
   const partialPayload = await partial.json();
   assert.equal(partialPayload.partial, true);
   assert.deepEqual(partialPayload.sources, { routing: 'unavailable', maps: 'available' });
-  assert.deepEqual(partialPayload.places.map((place) => place.id), ['map:yonge-eglinton', 'routing:0']);
+  assert.deepEqual(partialPayload.places.map((place) => place.id), ['map:warden-hwy7', 'routing:0']);
  } finally {
   child.kill();
   await once(child, 'exit');
