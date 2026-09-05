@@ -5,7 +5,12 @@ export const MAX_WASHROOM_CANDIDATES = 6;
 export const MAX_WASHROOM_CONCURRENCY = 2;
 export const MAX_WASHROOM_DETOUR_DEADLINE_MS = 24_000;
 
-const numeric = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const numeric = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 const text = (value) => typeof value === "string" && value.trim() ? value.trim() : null;
 const agencyKey = (value) => canonicalAgencyId(value);
 
@@ -179,10 +184,11 @@ async function runPool(candidates, concurrency, worker) {
 }
 
 function normalizedVia(value) {
-  if (value == null) return [];
-  if (!Array.isArray(value)) return null;
+  if (value == null) return { via: [] };
+  if (!Array.isArray(value)) return { error: 'invalid' };
+  if (value.length > 5) return { error: 'limit' };
   const via = value.map(point);
-  return via.some((item) => !item) ? null : via;
+  return via.some((item) => !item) ? { error: 'invalid' } : { via };
 }
 
 /**
@@ -197,8 +203,9 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
   if (!current) return scopedNoResult(facilityOnly, "CURRENT_POSITION_UNRESOLVED", "An explicit current coordinate or uniquely verified agency-qualified stop is required before a washroom detour can be planned.");
   const destination = point(input?.to);
   if (!facilityOnly && !destination) return noResult("DESTINATION_UNRESOLVED", "The remaining destination needs valid coordinates before a washroom detour can be planned.");
-  const via = facilityOnly ? [] : normalizedVia(input?.via);
-  if (!facilityOnly && !via) return noResult("VIA_UNRESOLVED", "Each remaining stop must have valid coordinates before a washroom detour can be planned.");
+  const viaResult = facilityOnly ? { via: [] } : normalizedVia(input?.via);
+  if (!facilityOnly && viaResult.error) return noResult(viaResult.error === 'limit' ? "VIA_LIMIT_EXCEEDED" : "VIA_UNRESOLVED", viaResult.error === 'limit' ? "At most five remaining stops can be included in one washroom detour." : "Each remaining stop must have valid coordinates before a washroom detour can be planned.");
+  const via = viaResult.via;
   const dateTime = validDateTime(input?.dateTime);
   if (!dateTime) return scopedNoResult(facilityOnly, "DATETIME_UNRESOLVED", "A timestamp with an explicit offset is required before availability can be checked at facility arrival.");
 

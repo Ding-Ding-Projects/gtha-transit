@@ -35,6 +35,18 @@ test("missing current coordinates never fall back to a name or original origin",
   assert.equal(result.unresolved.code, "CURRENT_POSITION_UNRESOLVED");
 });
 
+test("coordinate coercion and oversized via input are rejected before routing", async () => {
+  let calls = 0;
+  const planner = async () => { calls += 1; return itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "unused" }); };
+  const nullCoordinate = await planWashroomDetour(input({ currentPosition: { lat: null, lon: null } }), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(nullCoordinate.unresolved.code, "CURRENT_POSITION_UNRESOLVED");
+  const falseCoordinate = await planWashroomDetour(input({ to: { lat: false, lon: [] } }), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(falseCoordinate.unresolved.code, "DESTINATION_UNRESOLVED");
+  const tooManyVia = await planWashroomDetour(input({ via: Array.from({ length: 6 }, (_, index) => ({ lat: 43.6 + index / 100, lon: -79.4 })) }), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(tooManyVia.unresolved.code, "VIA_LIMIT_EXCEEDED");
+  assert.equal(calls, 0);
+});
+
 test("facility-only mode routes to a known-open library without inventing an onward journey", async () => {
   const calls = [];
   const result = await planWashroomDetour({ facilityOnly: true, currentPosition: { lat: 43.671, lon: -79.387 }, dateTime: "2026-09-08T12:00:00-04:00" }, {
