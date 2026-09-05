@@ -14,6 +14,6 @@ Selecting a result opens its section, reveals any enclosing disclosure, scrolls 
 
 ## Verification and boundaries
 
-Type checking and focused lint pass for the new component. Runtime tab navigation, exact search focus, independent playfulness settings, narrator retention, local persistence and desktop/phone light/dark layout require built-browser evidence before the roadmap item is complete. Browser emulation does not establish physical touch or spoken-audio behavior.
+At `e0ea605`, real browser interaction verified all four tabs by pointer and keyboard, both themes, independent English level 2 and Cantonese level 3 changes, bilingual mode, and persistence after reload. Global search for Rate opened the Narrator panel, expanded its voice options and focused the disabled voice-tuning group with an explanation. The run exposed a stale explanation after narration was enabled; the followup derives that notice from current narrator state. It also removes repeated visual headings while keeping accessible legends through a real screen-reader-only utility. The corrected notice requires separate built-browser evidence. Browser emulation does not establish physical touch or spoken-audio behavior.
 
 Suggested articles: [workspace navigation](workspaces.md), [spoken narrator](../accessibility/narrator.md), [search workbench](../search/regex-builder.md), [vehicle preferences](../planning/vehicle-preferences.md).

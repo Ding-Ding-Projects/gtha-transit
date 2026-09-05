@@ -64,7 +64,9 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
     { id: 'shared-links', section: 'privacy', label: t('Sharing a trip', '分享行程'), description: t('Shared links contain the journey locations', '分享連結包含行程地點'), selector: '#settings-sharing' },
     { id: 'reliability', section: 'privacy', label: t('Data and reliability', '資料及可靠程度'), description: t('Independent planner and official service notices', '獨立規劃工具及官方服務通告'), selector: '#settings-reliability' },
   ];
-  const [navigationNotice, setNavigationNotice] = useState('');
+  const [navigationTarget, setNavigationTarget] = useState<SearchEntry | null>(null);
+  const previewVoiceAvailable = narrator.settings.language === 'en' ? !!narrator.englishVoice.voice : narrator.settings.language === 'zh' ? !!narrator.cantoneseVoice.voice : !!(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
+  const navigationNotice = !navigationTarget ? '' : !narrator.speechAvailable ? t('This browser does not provide speech synthesis. Voice controls are unavailable here.', '此瀏覽器未提供語音合成，未能使用語音控制。') : !narrator.settings.enabled ? t('Enable narration first to change this voice setting.', '請先開啟旁白，再更改此語音設定。') : navigationTarget.id === 'preview' && narrator.settings.quiet ? t('Turn off quiet narration to hear a preview.', '請關閉靜音旁白以試聽。') : navigationTarget.id === 'preview' && !previewVoiceAvailable ? t('No compatible voice is available for the chosen narration language.', '所選旁白語言未有可用語音。') : '';
   const navigate = (entry: SearchEntry) => {
     storedTab.setValue(entry.section);
     requestAnimationFrame(() => {
@@ -75,16 +77,16 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
       const disabled = target.matches(':disabled');
       const focusTarget = disabled ? target.closest<HTMLElement>('fieldset') || target.closest<HTMLElement>('.narrator-card') : target;
       if (focusTarget) { if (!focusTarget.hasAttribute('tabindex') && disabled) focusTarget.tabIndex = -1; focusTarget.scrollIntoView({ block: 'center', behavior: 'instant' }); focusTarget.focus({ preventScroll: true }); }
-      setNavigationNotice(!disabled ? '' : !narrator.speechAvailable ? t('This browser does not provide speech synthesis. Voice controls are unavailable here.', '此瀏覽器未提供語音合成，未能使用語音控制。') : !narrator.settings.enabled ? t('Enable narration first to change this voice setting.', '請先開啟旁白，再更改此語音設定。') : narrator.settings.quiet ? t('Turn off quiet narration to hear a preview.', '請關閉靜音旁白以試聽。') : t('No compatible voice is available for the chosen narration language.', '所選旁白語言未有可用語音。'));
+      setNavigationTarget(disabled ? entry : null);
     });
   };
   const findIn = (section: Section) => <SettingsSearch entries={entries.filter(entry => entry.section === section)} storageId={'settings-' + section + '-search'} title={t('Find in this section', '搜尋此部分')} t={t} navigate={navigate} />;
   return <div className="page-panel settings settings-workspace" ref={root}>
-    <div className="settings-introduction"><div><span className="eyebrow">{t('YOUR PREFERENCES', '你嘅偏好')}</span><h2>{t('A comfortable way to travel', '用舒服嘅方式出發')}</h2></div><span className="settings-local-badge"><ShieldCheck size={15} aria-hidden="true" />{t('Device preferences', '裝置偏好')}</span></div>
+    <h2 className="sr-only">{t('Settings & privacy', '設定及私隱')}</h2>
     <SettingsSearch entries={entries} storageId="settings-all-search" title={t('Find any setting', '搜尋所有設定')} t={t} navigate={navigate} />
     {storedTab.unavailable && <output className="settings-notice">{t('Your selected section could not be saved. The controls still work in this session.', '未能儲存所選部分，此次使用仍可操作。')}</output>}
     {navigationNotice && <output className="settings-notice">{navigationNotice}</output>}
-    <Tabs value={active} onValueChange={value => { storedTab.setValue(String(value)); setNavigationNotice(''); }} className="settings-tabs">
+    <Tabs value={active} onValueChange={value => { storedTab.setValue(String(value)); setNavigationTarget(null); }} className="settings-tabs">
       <TabsList aria-label={t('Settings sections', '設定部分')} className="settings-tab-strip">
         {sections.map(({ id, label, icon: Icon }) => <TabsTrigger key={id} value={id}><Icon size={18} aria-hidden="true" /><span>{label}</span></TabsTrigger>)}
       </TabsList>
