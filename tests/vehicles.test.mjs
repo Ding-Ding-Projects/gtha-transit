@@ -45,6 +45,39 @@ test('enriches directions only from an exact fresh agency and trip identifier ma
   const result = await enrichItineraries(input, { fetchImpl, routingOrigin: 'https://routing.example', now: 1700000000000 }); assert.equal(result[0].legs[0].vehicle.id, '604'); assert.equal(result[0].legs[0].vehicleAssignment.method, 'exact-trip-id'); assert.equal(result[0].legs[1].vehicle, undefined); assert.equal(result[0].legs[1].vehicleAssignment.state, 'no-match');
 });
 
+test('normalizes TTC schedule-version aliases before an exact trip join', async () => {
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: '50677154' }));
+  const result = await enrichItineraries([{ legs: [{ agencyFeedId: 'ttc-next', tripId: 'ttc-next:50677154', routeId: 'ttc-next:324', startTime: '2023-11-14T22:13:20Z', endTime: '2023-11-14T22:14:20Z' }] }], { fetchImpl: async () => new Response(payload), now: 1700000000000 });
+  assert.equal(result[0].legs[0].vehicle.id, '3112'); assert.equal(result[0].legs[0].vehicleAssignment.method, 'exact-trip-id');
+});
+
+test('normalizes ISO, Unix-second, and Unix-millisecond journey times before exact matching', async () => {
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: '50677154' }));
+  const legs = [
+    { startTime: '2023-11-14T22:13:20Z', endTime: '2023-11-14T22:14:20Z' },
+    { startTime: 1700000000, endTime: 1700000060 },
+    { startTime: 1700000000000, endTime: 1700000060000 },
+    { startTime: '1700000000', endTime: '1700000060' },
+  ].map((time) => ({ ...time, agencyFeedId: 'ttc', tripId: 'ttc:50677154', routeId: 'ttc:324' }));
+  const result = await enrichItineraries([{ legs }], { fetchImpl: async () => new Response(payload), now: 1700000000000 });
+  assert.deepEqual(result[0].legs.map((leg) => leg.vehicle?.id), ['3112', '3112', '3112', '3112']);
+});
+
+test('does not identify a TTC vehicle from a route when static and live trip identifiers differ', async () => {
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: '32056020' }), vehicle({ id: '8485', route: '324', trip: '112450020' }));
+  const result = await enrichItineraries([{ legs: [{ agencyFeedId: 'ttc', tripId: 'ttc:50677154', routeId: 'ttc:324', startTime: '2023-11-14T22:13:20Z', endTime: '2023-11-14T22:37:54Z' }] }], { fetchImpl: async () => new Response(payload), now: 1700000000000 });
+  assert.equal(result[0].legs[0].vehicle, undefined); assert.equal(result[0].legs[0].vehicleAssignment.state, 'no-match');
+});
+
+test('numeric future and completed legs cannot claim a current exact-trip vehicle', async () => {
+  clearVehicleCache(); const now = 1700000000000; const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: 'repeat-trip' }));
+  const result = await enrichItineraries([{ legs: [
+    { agencyFeedId: 'ttc', tripId: 'ttc:repeat-trip', startTime: now + 7200001, endTime: now + 7260001 },
+    { agencyFeedId: 'ttc', tripId: 'ttc:repeat-trip', startTime: now - 180000, endTime: now - 120001 },
+  ] }], { fetchImpl: async () => new Response(payload), now });
+  assert.deepEqual(result[0].legs.map((leg) => leg.vehicle), [undefined, undefined]); assert.deepEqual(result[0].legs.map((leg) => leg.vehicleAssignment.state), ['unavailable', 'unavailable']);
+});
+
 test('queries a cached snapshot with exact route filtering and bounded pagination', async () => {
   clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3400', route: '29' }), vehicle({ id: '9029', route: '29' }), vehicle({ id: '4400', route: '501' })); let calls = 0; const fetchImpl = async () => { calls += 1; return new Response(payload, { status: 200 }); };
   const first = await getVehicles({ q: 'Nova', route: '29', limit: 1, fetchImpl, now: 1700000000000 }); assert.equal(first.total, 2); assert.equal(first.vehicles[0].id, '3400'); assert.equal(first.nextCursor, '1');
