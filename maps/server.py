@@ -9,6 +9,7 @@ import os
 import re
 import sqlite3
 import threading
+import unicodedata
 import urllib.parse
 from contextlib import closing
 from http import HTTPStatus
@@ -27,12 +28,131 @@ HASH_LOCK_TIMEOUT_SECONDS = 5
 ALIASES = {
     "avenue": "ave", "av": "ave", "road": "rd", "street": "st",
     "boulevard": "blvd", "drive": "dr", "lane": "ln", "court": "ct",
-    "parkway": "pkwy", "highway": "hwy", "route": "hwy",
+    "parkway": "pkwy", "highway": "hwy", "saint": "st",
 }
 
+HIGHWAY_FORMS = {"hwy", "highway"}
+SAINT_FORMS = {"st", "saint"}
+STREET_FORMS = {"st", "street"}
+HUB_TERMS = {"station", "terminal", "airport", "centre", "center"}
+IGNORED_TERMS = {"and", "at", "the"}
+MAX_SEARCH_TERMS = 12
+MAX_FTS_CANDIDATES = 80
+
+
+def _fold(value):
+    return "".join(
+        character
+        for character in unicodedata.normalize("NFKD", str(value or "")).casefold()
+        if not unicodedata.combining(character)
+    )
+
+
+def _raw_terms(value):
+    return re.sub(r"[^0-9a-z]+", " ", _fold(value)).split()
+
+
 def _search_terms(query):
-    words = re.sub(r"[^0-9a-z]+", " ", query.casefold()).split()
-    return [ALIASES.get(word, word) for word in words if word not in {"and", "at", "the"}]
+    return [ALIASES.get(word, word) for word in _raw_terms(query) if word not in IGNORED_TERMS]
+
+def _numeric(term):
+    return term.isdigit()
+
+
+def _highway_context(terms, index):
+    return (
+        (index > 0 and _numeric(terms[index - 1]))
+        or (index + 1 < len(terms) and _numeric(terms[index + 1]))
+    )
+
+
+def _term_forms(terms, index):
+    term = terms[index]
+    forms = {term}
+    if term in HIGHWAY_FORMS:
+        forms.update(HIGHWAY_FORMS)
+    if term in SAINT_FORMS:
+        forms.update(SAINT_FORMS)
+        forms.update(STREET_FORMS)
+    if term in {"high", "route"} and _highway_context(terms, index):
+        forms.add("hwy")
+    return forms
+
+
+def _term_match(query_terms, query_index, candidate_terms, candidate_index):
+    query_term = query_terms[query_index]
+    query_forms = _term_forms(query_terms, query_index)
+    candidate_forms = _term_forms(candidate_terms, candidate_index)
+    if query_forms & candidate_forms:
+        return 0
+    if not _numeric(query_term) and len(query_term) >= 2 and any(
+        candidate.startswith(query_term) for candidate in candidate_forms
+    ):
+        return 1
+    return None
+
+
+def _best_term_match(query_terms, query_index, candidate_terms):
+    best = None
+    for candidate_index in range(len(candidate_terms)):
+        quality = _term_match(query_terms, query_index, candidate_terms, candidate_index)
+        if quality is not None and (
+            best is None or (quality, candidate_index) < (best[0], best[1])
+        ):
+            best = (quality, candidate_index)
+    return best
+
+
+def _exact_phrase_index(query_terms, candidate_terms):
+    for start in range(len(candidate_terms) - len(query_terms) + 1):
+        if all(
+            _term_match(query_terms, index, candidate_terms, start + index) == 0
+            for index in range(len(query_terms))
+        ):
+            return start
+    return -1
+
+
+def _fts_term(term):
+    return f'"{term}"' if _numeric(term) or term == "st" else f'"{term}"*'
+
+
+def _fts_match(terms):
+    return " AND ".join(
+        "(" + " OR ".join(_fts_term(form) for form in sorted(_term_forms(terms, index))) + ")"
+        for index in range(len(terms))
+    )
+
+
+def _place_rank(row, query_terms):
+    name, kind, _lat, _lon, source_id = row
+    name_terms = _search_terms(name)
+    matches = [_best_term_match(query_terms, index, name_terms) for index in range(len(query_terms))]
+    all_name_terms_match = all(match is not None for match in matches)
+    all_name_terms_exact = all_name_terms_match and all(match[0] == 0 for match in matches)
+    exact = all_name_terms_exact and len(name_terms) == len(query_terms)
+    forward_phrase = _exact_phrase_index(query_terms, name_terms) if all_name_terms_exact else -1
+    reverse_phrase = _exact_phrase_index(list(reversed(query_terms)), name_terms) if all_name_terms_exact else -1
+    phrase_positions = [index for index in (forward_phrase, reverse_phrase) if index >= 0]
+    phrase_index = min(phrase_positions) if phrase_positions else 999
+    hub = any(term in HUB_TERMS for term in name_terms)
+    if exact:
+        tier = 0
+    elif all_name_terms_exact and hub:
+        tier = 1
+    elif all_name_terms_exact and kind == "intersection":
+        tier = 2
+    elif all_name_terms_exact and phrase_positions:
+        tier = 3
+    elif all_name_terms_exact:
+        tier = 4
+    elif all_name_terms_match and kind == "intersection":
+        tier = 5
+    else:
+        tier = 6
+    prefix_count = sum(match[0] == 1 for match in matches if match is not None)
+    return (tier, prefix_count, phrase_index, len(name_terms), _fold(name), str(source_id))
+
 
 def _json(handler, status, body):
     data = json.dumps(body, ensure_ascii=False).encode("utf-8")
@@ -128,22 +248,26 @@ class Handler(BaseHTTPRequestHandler):
         if not os.path.exists(INDEX):
             _json(self, HTTPStatus.SERVICE_UNAVAILABLE, {"error": "place index is not installed"})
             return
-        # FTS5 MATCH is local and bounded. Quote terms so punctuation cannot alter the query.
+        # FTS5 MATCH is local and bounded. Terms are folded before its quoted prefix syntax.
         terms = _search_terms(query)
         if not terms:
             _json(self, HTTPStatus.BAD_REQUEST, {"error": "q must contain searchable characters"})
             return
-        match = " AND ".join('"' + t.replace('"', '""') + '"' for t in terms)
+        if len(terms) > MAX_SEARCH_TERMS:
+            _json(self, HTTPStatus.BAD_REQUEST, {"error": f"q must contain at most {MAX_SEARCH_TERMS} searchable terms"})
+            return
+        match = _fts_match(terms)
         try:
             with closing(sqlite3.connect(INDEX)) as db:
                 rows = db.execute(
-                    "SELECT name, kind, lat, lon, source_id FROM places WHERE search_text MATCH ? ORDER BY rank LIMIT 20",
-                    (match,),
+                    "SELECT name, kind, lat, lon, source_id FROM places WHERE places MATCH ? ORDER BY rank LIMIT ?",
+                    (match, MAX_FTS_CANDIDATES),
                 ).fetchall()
         except sqlite3.Error:
             rows = []
+        rows.sort(key=lambda row: _place_rank(row, terms))
         _json(self, HTTPStatus.OK, {"query": query, "results": [
-            {"id": sid, "name": n, "kind": k, "lat": lat, "lon": lon} for n, k, lat, lon, sid in rows
+            {"id": sid, "name": n, "kind": k, "lat": lat, "lon": lon} for n, k, lat, lon, sid in rows[:20]
         ], "offline": True})
 
     def map_info(self):

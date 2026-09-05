@@ -60,6 +60,33 @@ test("place ranking collapses coordinate duplicates but preserves distinct same-
   assert.equal(ranked[0].feedId, "ttc");
   assert.equal(ranked[0].locationType, 1);
 });
+test("place suggestions support bounded prefixes, road forms, diacritics, and intersection word order", () => {
+  const stops = [
+    { id: "fixture:warden-hwy7", name: "Warden Avenue & Highway 7", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:ward-avenue", name: "Ward Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:highway7", name: "Highway 7", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:yonge-eglinton", name: "Yonge Street & Eglinton Avenue", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:union-station", name: "Union Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:union-avenue", name: "Union Avenue at Queen", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:saint-clair", name: "Saint Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:high-park", name: "High Park", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:route-place", name: "Route Place", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:yonge-station", name: "Yonge Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+    { id: "fixture:york-mills", name: "York Mills Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
+  ];
+  for (const query of ["Warden Highway 7", "Warden Hwy 7", "ward high 7", "Highway 7 Warden"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:warden-hwy7");
+  assert.deepEqual(rankPlaces(stops, "ward high 7").map((place) => place.id), ["fixture:warden-hwy7"]);
+  for (const query of ["Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:yonge-eglinton");
+  for (const query of ["Saint Clair", "St. Clair"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:saint-clair");
+  assert.equal(rankPlaces(stops, "union")[0]?.id, "fixture:union-station");
+  assert.equal(rankPlaces(stops, "high park")[0]?.id, "fixture:high-park");
+  assert.equal(rankPlaces(stops, "route place")[0]?.id, "fixture:route-place");
+  const shortPrefixIds = rankPlaces(stops, "yo").map((place) => place.id);
+  assert.ok(shortPrefixIds.includes("fixture:yonge-station"));
+  assert.ok(shortPrefixIds.includes("fixture:york-mills"));
+  assert.equal(rankPlaces(stops, "ward ".repeat(13)).length, 0);
+  assert.equal(rankPlaces(stops, "union", 200).length <= 20, true);
+});
 test("empty-route coverage reports every unavailable feed without selecting one", () => {
   const context = coverageContextForDate({ feeds: [{ id: "ttc", activeTripsByDate: { "2026-09-04": 0, "2026-09-09": 10, "2026-09-06": 10 } }, { id: "burlington", activeTripsByDate: { "2026-09-04": 0, "2026-09-07": 5 } }, { id: "up", activeTripsByDate: { "2026-09-04": 2 } }] }, "2026-09-04");
   assert.deepEqual(context, { date: "2026-09-04", unavailableAgencies: [{ id: "ttc", nextServiceDate: "2026-09-06" }, { id: "burlington", nextServiceDate: "2026-09-07" }] });
