@@ -17,7 +17,17 @@ export function attachMapTiles(
   let disposed = false;
   let active = false;
   let current = '';
-  let tileFailed = false;
+  let metadataFailed = false;
+  const activeTiles = new Set<HTMLElement>();
+  const failedTiles = new Set<HTMLElement>();
+  const report = () => {
+    if (!disposed) onError(metadataFailed || failedTiles.size > 0);
+  };
+  const forgetTile = (event: { tile: HTMLElement }) => {
+    activeTiles.delete(event.tile);
+    failedTiles.delete(event.tile);
+    report();
+  };
   let layer: TileLayer | undefined;
   let request: AbortController | undefined;
   const refresh = async () => {
@@ -33,6 +43,7 @@ export function attachMapTiles(
       if (!response.ok) throw new Error('Map revision unavailable.');
       const template = tileTemplate(await response.json());
       if (disposed) return;
+      metadataFailed = false;
       if (!layer) {
         layer = leaflet
           .tileLayer(template, {
@@ -41,20 +52,31 @@ export function attachMapTiles(
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors',
           })
-          .on('tileerror', () => {
-            if (disposed) return;
-            tileFailed = true;
-            onError(true);
+          .on('tileloadstart', (event) => {
+            if (!disposed) activeTiles.add(event.tile);
           })
+          .on('tileerror', (event) => {
+            if (disposed || !activeTiles.has(event.tile)) return;
+            failedTiles.add(event.tile);
+            report();
+          })
+          .on('tileload', (event) => {
+            failedTiles.delete(event.tile);
+            report();
+          })
+          .on('tileunload', forgetTile)
+          .on('tileabort', forgetTile)
           .addTo(map);
       } else if (template !== current) {
-        tileFailed = false;
         layer.setUrl(template);
+      } else if (failedTiles.size) {
+        layer.redraw();
       }
       current = template;
-      onError(tileFailed);
+      report();
     } catch {
-      if (!disposed) onError(true);
+      metadataFailed = true;
+      report();
     } finally {
       clearTimeout(timeout);
       active = false;
@@ -67,5 +89,7 @@ export function attachMapTiles(
     clearInterval(interval);
     request?.abort();
     layer?.remove();
+    activeTiles.clear();
+    failedTiles.clear();
   };
 }

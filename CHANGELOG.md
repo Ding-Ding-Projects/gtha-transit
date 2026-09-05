@@ -18,3 +18,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Surface airport transit hubs in place search while preserving distinct stop coordinates. Empty journey results now retain neutral graph coverage context without guessing an agency from coordinates.
 
 - Use actual map-database revisions in tile URLs, refresh both map surfaces every minute, and revalidate legacy tile paths rather than caching mutable content as immutable.
+
+- Clear stale map-unavailable warnings after tile recovery or navigation, while preserving genuine current tile and metadata failures.

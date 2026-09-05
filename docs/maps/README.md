@@ -62,3 +62,5 @@ The renderer process must be able to create its candidate and temporary files in
 ## Verification
 
 Before connecting the planner, verify that `/health` reports both data files, `/map-info` returns the actual file digest, a revision-bound known tile returns a decodable nonempty `image/png`, an unknown tile returns 404, and a valid query returns `offline: true`. Atomically replace a temporary test database, confirm its revision changes, and confirm the old revision returns 409 with `no-store` rather than current tile bytes. Verify at least one known intersection using `and`, `at`, `&`, or `/`, and inspect its shared-node source identifier and coordinates. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
+
+Map warnings track failed tiles that are still active, separately from metadata-request failures. Successful tile loads and unloaded tiles clear their own failure state; a late error from an unloaded tile is ignored. A healthy metadata refresh retries currently failed tiles without changing the dataset revision. Metadata recovery does not conceal other failed tiles.
