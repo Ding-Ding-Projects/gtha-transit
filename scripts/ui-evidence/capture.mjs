@@ -7,7 +7,8 @@ import { pathToFileURL } from 'node:url';
 
 const MAX_PNG = 32 * 1024 * 1024;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const requireThat = (condition, code) => { if (!condition) throw new Error(code); };
+class EvidenceError extends Error {}
+const requireThat = (condition, code) => { if (!condition) throw new EvidenceError(code); };
 const timestamp = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value));
 const boundedText = value => typeof value === 'string' && value.length > 0 && value.length <= 512;
 
@@ -80,8 +81,24 @@ export function inspectPng(bytes) {
   return { width, height, sha256: hash(bytes), bytes: bytes.length };
 }
 
+function validateUrls(plan) {
+  for (const value of [plan.expectedUrl, plan.endpoint]) {
+    requireThat(typeof value === 'string' && value.length > 0 && value.length <= 4096 && !/[\u0000-\u0020\u007f]/.test(value), 'url-shape');
+  }
+  let expected, endpoint;
+  try { expected = new URL(plan.expectedUrl); endpoint = new URL(plan.endpoint); }
+  catch { throw new EvidenceError('url-invalid'); }
+  requireThat(['http:', 'https:'].includes(expected.protocol) && !expected.username && !expected.password, 'expected-url');
+  // No query or fragment is needed for current public capture routes. Refuse all
+  // such material before invoking another process or constructing any record.
+  requireThat(!expected.search && !expected.hash && !plan.expectedUrl.includes('?') && !plan.expectedUrl.includes('#'), 'expected-url-query-or-fragment');
+  requireThat(endpoint.protocol === 'http:' && endpoint.hostname === '127.0.0.1' && endpoint.port && endpoint.pathname === '/json/list' && !endpoint.search && !endpoint.hash && !endpoint.username && !endpoint.password && !plan.endpoint.includes('?') && !plan.endpoint.includes('#'), 'target-endpoint');
+  return { expected, endpoint };
+}
+
 function validatePlan(plan) {
   requireThat(plan?.version === 1 && plan.route === 'cheap-lowlevel-headless', 'plan-route');
+  validateUrls(plan);
   requireThat(/^[a-f0-9]{40}$/.test(plan.sourceCommit) && /^[a-f0-9]{64}$/.test(plan.buildSha256), 'source-binding');
   const viewport = plan.viewport;
   requireThat(Number.isSafeInteger(viewport?.width) && viewport.width > 0 && Number.isSafeInteger(viewport.height) && viewport.height > 0 && [1, 1.25, 1.5, 2].includes(viewport.scale), 'viewport');
@@ -96,9 +113,8 @@ function validatePlan(plan) {
 function targetMatches(receipt, plan, now) {
   requireThat(receipt?.version === 1 && receipt.valid === true && receipt.phase === 'capture' && receipt.targetCount === 1 && receipt.type === 'page', 'target-receipt');
   requireThat(timestamp(receipt.verifiedAt) && now - Date.parse(receipt.verifiedAt) >= 0 && now - Date.parse(receipt.verifiedAt) <= 30000, 'target-receipt-stale');
-  const expected = new URL(plan.expectedUrl), endpoint = new URL(plan.endpoint), socket = new URL(receipt.webSocketDebuggerUrl);
-  requireThat(['http:', 'https:'].includes(expected.protocol) && !expected.username && !expected.password, 'expected-url');
-  for (const key of expected.searchParams.keys()) requireThat(!/token|secret|password|passwd|auth|api[-_]?key|code/i.test(key), 'sensitive-url');
+  const { expected, endpoint } = validateUrls(plan);
+  const socket = new URL(receipt.webSocketDebuggerUrl);
   requireThat(receipt.expectedUrl === expected.href && receipt.targetUrl === expected.href && receipt.endpoint === endpoint.href, 'target-url-mismatch');
   requireThat(endpoint.protocol === 'http:' && endpoint.hostname === '127.0.0.1' && endpoint.port && endpoint.pathname === '/json/list' && !endpoint.search && !endpoint.hash && !endpoint.username && !endpoint.password, 'target-endpoint');
   requireThat(socket.protocol === 'ws:' && socket.hostname === endpoint.hostname && socket.port === endpoint.port && socket.pathname.startsWith('/devtools/page/') && !socket.username && !socket.password && !socket.search && !socket.hash, 'target-socket');
@@ -169,7 +185,7 @@ export async function capture(plan, adapters = {}) {
     record.capture = { ...record.capture, ...info, path: plan.png };
     record.capture.retainedRaw = true;
   } catch (error) {
-    record.failure = /^[a-z0-9-]+$/.test(error.message) ? error.message : 'capture-operation-failed';
+    record.failure = error instanceof EvidenceError ? error.message : 'capture-operation-failed';
   } finally {
     try { client?.close(); } catch { record.failure ??= 'cdp-close-failed'; }
     writeFileSync(ownedPath(plan.runRoot, plan.record), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
@@ -198,7 +214,7 @@ export function validateRecord(record, runRoot, cleanup) {
     }
     return { validated: true, scope: 'capture-record-consistency-only', uiVerified: false };
   } catch (error) {
-    return { validated: false, scope: 'capture-record-consistency-only', uiVerified: false, reason: /^[a-z0-9-]+$/.test(error.message) ? error.message : 'invalid-record' };
+    return { validated: false, scope: 'capture-record-consistency-only', uiVerified: false, reason: error instanceof EvidenceError ? error.message : 'invalid-record' };
   }
 }
 

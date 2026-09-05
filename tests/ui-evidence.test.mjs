@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync, realpathSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -122,4 +122,35 @@ test('missing source, incomplete resource inventory and reversed times fail clos
 test('evidence paths cannot escape the run root', async t => {
   const f = await fixture(t); f.syntheticRecord.capture.path = '../outside.png';
   assert.equal(validateRecord(f.syntheticRecord, f.root, f.cleanup).reason, 'path-outside-run-root');
+});
+
+for (const [name, field, value] of [
+  ['embedded page credentials', 'expectedUrl', 'https://visitor:neutralfixturemarker@example.test/'],
+  ['sensitive page query', 'expectedUrl', 'https://example.test/?token=neutralfixturemarker'],
+  ['encoded sensitive query', 'expectedUrl', 'https://example.test/?%74oken=neutralfixturemarker'],
+  ['unreviewed page query', 'expectedUrl', 'https://example.test/?q=neutralfixturemarker'],
+  ['page fragment', 'expectedUrl', 'https://example.test/#neutralfixturemarker'],
+  ['non-HTTP page', 'expectedUrl', 'file:///neutralfixturemarker'],
+  ['embedded endpoint credentials', 'endpoint', 'http://visitor:neutralfixturemarker@127.0.0.1:9222/json/list'],
+  ['endpoint query', 'endpoint', 'http://127.0.0.1:9222/json/list?token=neutralfixturemarker'],
+  ['non-loopback endpoint', 'endpoint', 'http://neutralfixturemarker.test:9222/json/list'],
+  ['oversized page URL', 'expectedUrl', 'https://example.test/' + 'neutralfixturemarker'.repeat(300)]
+]) test(`invalid plan never persists ${name}`, async t => {
+  const f = await fixture(t), before = readdirSync(f.root).sort();
+  const plan = { ...f.plan, [field]: value, record: 'rejected.json', targetReceipt: 'rejected-target.json', png: 'rejected.png' };
+  let verifierCalled = false;
+  await assert.rejects(capture(plan, { verifyTarget() { verifierCalled = true; throw new Error('test-verifier-rejected'); } }), error => {
+    assert.equal(error.message.includes('neutralfixturemarker'), false); return true;
+  });
+  assert.equal(verifierCalled, false);
+  assert.deepEqual(readdirSync(f.root).sort(), before);
+  for (const file of readdirSync(f.root)) assert.equal(readFileSync(join(f.root, file)).includes(Buffer.from('neutralfixturemarker')), false);
+});
+
+test('external rejection text never becomes a persisted failure code', async t => {
+  const f = await fixture(t);
+  const plan = { ...f.plan, record: 'rejected.json' };
+  const result = await capture(plan, { verifyTarget() { throw new Error('neutralfixturemarker'); } });
+  assert.equal(result.failure, 'capture-operation-failed');
+  assert.equal(readFileSync(join(f.root, plan.record)).includes(Buffer.from('neutralfixturemarker')), false);
 });
