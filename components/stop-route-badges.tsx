@@ -42,7 +42,9 @@ export default function SelectedStopInfo({ place, when, t }: { place: Place; whe
   const data = result?.scope === scope ? result : null;
   const routes = data ? data.routes : place.servingRoutesDate === when?.slice(0, 10) ? place.servingRoutes || [] : [];
   const washroom = data ? data.washroom : place.washroom ? { ...place.washroom, availability: 'unknown' as const } : null;
+  if (!routes.length && !washroom && !data) return null;
   return <div className="selected-stop-info">
+    {data && !routes.length && <small>{t('No timetable routes are indexed for this selected stop.', '此所選車站未有已編入索引嘅時間表路線。')}</small>}
     {routes.length > 0 && <><small>{t('Timetable routes, not live arrivals', '時間表路線，並非即時到站')}</small><RouteBadges routes={routes} limit={expanded ? routes.length : 8} t={t} />{routes.length > 8 && <button type="button" className="text-button" onClick={() => setExpanded(value => !value)}>{expanded ? t('Show fewer routes', '顯示較少路線') : t(`Show all ${routes.length} routes`, `顯示全部 ${routes.length} 條路線`)}</button>}</>}
     <WashroomBadge washroom={washroom} t={t} />
   </div>;
