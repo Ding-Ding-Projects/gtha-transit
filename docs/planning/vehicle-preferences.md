@@ -20,8 +20,8 @@ An avoid policy removes an itinerary with a known matching assigned vehicle leg.
 
 ## Preference panel integration
 
-`components/journey-vehicle-preferences.tsx` is an accessible controlled panel for criteria and policy state. Its parent supplies `verifiedFleetFacts` from already verified fleet/CPTDB data, owns the state callbacks, calls `applyJourneyPreferences` independently, and returns the resulting excluded count to the panel. The component never fetches data and does not attempt routing integration.
+`components/journey-vehicle-preferences.tsx` is an accessible controlled panel for criteria and policy state. Its parent supplies `verifiedFleetFacts` from already verified fleet facts, including CPTDB or official agency sources, owns the state callbacks, calls `applyJourneyPreferences` independently, and returns the resulting excluded count to the panel. The component never fetches data and does not attempt routing integration.
 
 Manufacturer and model choices are independent button-chip groups, populated only from the supplied facts. The panel uses ordinary number inputs for an inclusive year interval and button chips for `all` or `any` matching. It has no fake select control.
 
-Avoid mode explains that unknown non-walking assignments are excluded by default and exposes the explicit `includeUnconfirmed` recovery option. No search field is included yet: every future field requires its own adjacent full regular-expression builder, so this panel will connect to the shared builder only once that real component exists.
+Avoid mode explains that unknown non-walking assignments are excluded by default and exposes the explicit `includeUnconfirmed` recovery option. The panel validates entered years locally before it calls the parent: each must be a whole year from 1800 through 3000, and the start year cannot be after the end year. Invalid intervals are reported inline and never silently reordered. No search field is included yet: every future field requires its own adjacent full regular-expression builder, so this panel will connect to the shared builder only once that real component exists.
