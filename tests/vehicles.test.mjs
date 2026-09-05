@@ -9,12 +9,38 @@ const scalar = (field, value) => cat(varint(field << 3), varint(value));
 const bytes = (field, value) => cat(varint((field << 3) | 2), varint(value.length), value);
 const string = (field, value) => bytes(field, new TextEncoder().encode(value));
 const f32 = (field, value) => { const out = new Uint8Array(4); new DataView(out.buffer).setFloat32(0, value, true); return cat(varint((field << 3) | 5), out); };
-const vehicle = ({ id = '9029', label = id, route = '29', trip = 'trip-29', lat = 43.6501, lon = -79.4402, bearing = 180, speed = 10, timestamp = 1700000000 } = {}) => bytes(2, cat(string(1, `entity-${id}`), bytes(4, cat(bytes(1, cat(string(1, trip), string(5, route))), bytes(2, cat(f32(1, lat), f32(2, lon), f32(3, bearing), f32(5, speed))), scalar(5, timestamp), bytes(8, cat(string(1, id), string(2, label), string(3, 'TEST')))))));
+const optionalScalar = (field, value) => value === undefined || value === null ? new Uint8Array() : scalar(field, value);
+const optionalString = (field, value) => value === undefined || value === null || value === '' ? new Uint8Array() : string(field, value);
+const vehicle = ({ id = '9029', label = id, route = '29', trip = 'trip-29', startTime, startDate, directionId, lat = 43.6501, lon = -79.4402, bearing = 180, speed = 10, currentStopSequence, currentStatus, stopId, timestamp = 1700000000 } = {}) => {
+  const tripDescriptor = cat(string(1, trip), string(5, route), optionalString(2, startTime), optionalString(3, startDate), optionalScalar(6, directionId));
+  const position = cat(bytes(1, tripDescriptor), bytes(2, cat(f32(1, lat), f32(2, lon), f32(3, bearing), f32(5, speed))), optionalScalar(3, currentStopSequence), optionalScalar(4, currentStatus), scalar(5, timestamp), optionalString(7, stopId), bytes(8, cat(string(1, id), string(2, label), string(3, 'TEST'))));
+  return bytes(2, cat(string(1, `entity-${id}`), bytes(4, position)));
+};
 const feed = (timestamp, ...entities) => cat(bytes(1, cat(string(1, '2.0'), scalar(3, timestamp))), ...entities);
 
 test('decodes the real GTFS Realtime vehicle schema including floats and descriptors', () => {
   const now = 1700000000000; const result = parseTtcVehicles(feed(1700000000, vehicle()), { now, fetchedAt: '2023-11-14T22:13:20.000Z' }); const item = result.vehicles[0];
   assert.equal(result.state, 'live'); assert.equal(result.sourceUrl, TTC_VEHICLES_URL); assert.equal(item.id, '9029'); assert.equal(item.label, '9029'); assert.equal(item.routeId, '29'); assert.equal(item.tripId, 'trip-29'); assert.ok(Math.abs(item.lat - 43.6501) < 0.0001); assert.ok(Math.abs(item.lon + 79.4402) < 0.0001); assert.equal(item.bearing, 180); assert.equal(item.speedKph, 36); assert.equal(item.timestamp, '2023-11-14T22:13:20.000Z'); assert.equal(item.licensePlate, 'TEST'); assert.equal(item.stale, false);
+});
+
+test('exposes publisher VehiclePosition stop metadata without inventing a stop', () => {
+  const result = parseTtcVehicles(feed(1700000000,
+    vehicle({ id: 'incoming', startTime: '25:10:00', startDate: '20260905', directionId: 0, currentStopSequence: 55, currentStatus: 0, stopId: '4041' }),
+    vehicle({ id: 'stopped', currentStopSequence: 56, currentStatus: 1, stopId: '4042' }),
+    vehicle({ id: 'in-transit', currentStopSequence: 57, currentStatus: 2, stopId: '4043' }),
+    vehicle({ id: 'default-status', currentStopSequence: 58, stopId: '4044' }),
+    vehicle({ id: 'missing-stop', currentStopSequence: 59, currentStatus: 2 }),
+    vehicle({ id: 'missing-sequence', currentStatus: 0, stopId: '4046' }),
+    vehicle({ id: 'unknown-status', currentStopSequence: 60, currentStatus: 9, stopId: '4047' }),
+  ), { now: 1700000000000 });
+  const byId = Object.fromEntries(result.vehicles.map((item) => [item.id, item]));
+  assert.deepEqual({ startTime: byId.incoming.startTime, startDate: byId.incoming.startDate, directionId: byId.incoming.directionId, currentStopSequence: byId.incoming.currentStopSequence, currentStatus: byId.incoming.currentStatus, stopId: byId.incoming.stopId, stopStatus: byId.incoming.stopStatus, nextStopId: byId.incoming.nextStopId }, { startTime: '25:10:00', startDate: '20260905', directionId: 0, currentStopSequence: 55, currentStatus: 0, stopId: '4041', stopStatus: 'approaching', nextStopId: '4041' });
+  assert.deepEqual({ stopStatus: byId.stopped.stopStatus, nextStopId: byId.stopped.nextStopId }, { stopStatus: 'stopped-at', nextStopId: null });
+  assert.deepEqual({ stopStatus: byId['in-transit'].stopStatus, nextStopId: byId['in-transit'].nextStopId }, { stopStatus: 'next', nextStopId: '4043' });
+  assert.deepEqual({ currentStatus: byId['default-status'].currentStatus, stopStatus: byId['default-status'].stopStatus, nextStopId: byId['default-status'].nextStopId }, { currentStatus: 2, stopStatus: 'next', nextStopId: '4044' });
+  assert.deepEqual({ stopId: byId['missing-stop'].stopId, stopStatus: byId['missing-stop'].stopStatus, nextStopId: byId['missing-stop'].nextStopId }, { stopId: null, stopStatus: 'unavailable', nextStopId: null });
+  assert.deepEqual({ currentStopSequence: byId['missing-sequence'].currentStopSequence, currentStatus: byId['missing-sequence'].currentStatus, stopStatus: byId['missing-sequence'].stopStatus, nextStopId: byId['missing-sequence'].nextStopId }, { currentStopSequence: null, currentStatus: 0, stopStatus: 'unavailable', nextStopId: null });
+  assert.deepEqual({ currentStatus: byId['unknown-status'].currentStatus, stopStatus: byId['unknown-status'].stopStatus, nextStopId: byId['unknown-status'].nextStopId }, { currentStatus: 9, stopStatus: 'unavailable', nextStopId: null });
 });
 
 test('marks old feed and vehicle timestamps stale', () => { const result = parseTtcVehicles(feed(1699999000, vehicle({ timestamp: 1699999000 })), { now: 1700000000000 }); assert.equal(result.state, 'stale'); assert.equal(result.vehicles[0].stale, true); });
@@ -64,7 +90,7 @@ test('normalizes ISO, Unix-second, and Unix-millisecond journey times before exa
 });
 
 test('does not identify a TTC vehicle from a route when static and live trip identifiers differ', async () => {
-  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: '32056020' }), vehicle({ id: '8485', route: '324', trip: '112450020' }));
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3112', route: '324', trip: '32056020', currentStopSequence: 55, currentStatus: 0, stopId: '4041' }), vehicle({ id: '8485', route: '324', trip: '112450020', currentStopSequence: 37, currentStatus: 0, stopId: '6962' }));
   const result = await enrichItineraries([{ legs: [{ agencyFeedId: 'ttc', tripId: 'ttc:50677154', routeId: 'ttc:324', startTime: '2023-11-14T22:13:20Z', endTime: '2023-11-14T22:37:54Z' }] }], { fetchImpl: async () => new Response(payload), now: 1700000000000 });
   assert.equal(result[0].legs[0].vehicle, undefined); assert.equal(result[0].legs[0].vehicleAssignment.state, 'no-match');
 });
