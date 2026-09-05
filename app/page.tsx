@@ -461,7 +461,7 @@ export default function Home() {
       .then((r) => r.json())
       .then(setVersion)
       .catch(() => {});
-  }, []);
+  }, [setWhen]);
   useEffect(() => {
     let controller: AbortController | undefined;
     const refresh = async () => {

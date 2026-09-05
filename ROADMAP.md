@@ -4,8 +4,8 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
-- [ ] Deploy and verify separate travel date/time fields, explicit departure/arrival choices, calendar-correct presets and exact elapsed-time stepping through daylight-saving changes. Local helpers have 12 passing tests; browser verification is pending.
-- [ ] Verify the reverse-trip control no longer overlaps long selected stop names. The original 390px overlap was measured on 1e428b1; the replacement uses its own labelled row.
+- [ ] Finish the journey-time public evidence record. At 9391cba, native field clearing, blocked invalid submissions, both presets and a real 30-minute request shift passed. Twelve clock/calendar helper tests and the full 178-test local suite passed. The stable effect dependency is corrected; capture promotion is blocked by an absent actual capture timestamp and incomplete owned browser teardown.
+- [ ] Complete evidence promotion for the reverse-trip control. Actual 390/320px light/dark and 320px bilingual checks at 9391cba found no overlap with Union's full selected name. The raw images remain private because their required timestamp and cleanup proof are incomplete. Physical touch and the broader matrix remain unverified.
 
 - [x] Deploy and verify four settings sections, guided theme/language choices, independent tone sliders and exact-setting search with isolated regex workbenches. Persistence and keyboard paths passed; the correction run at 1e428b1 passed five version-1 browser audits. Broader language/zoom coverage remains open.
 - [x] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period handling and non-submitting picker actions. The nested-form radio correction was verified separately at b7e0ae4 with zero incidental planning requests.
