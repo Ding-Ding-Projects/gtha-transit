@@ -18,6 +18,9 @@
 .journey-division-choice span { display:grid; gap:8px; }
 .journey-division-choice small { color:var(--muted); line-height:1.6; }
 .journey-division-evidence { display:grid; gap:6px; padding:12px; background:var(--surface2); border-left:4px solid var(--primary); border-radius:0 14px 14px 0; }
+.journey-division-modes { display:flex; flex-wrap:wrap; gap:8px; border:1px solid var(--border); border-radius:16px; min-width:0; padding:12px; }
+.journey-division-modes legend { font-size:13px; padding:0 6px; }
+.journey-division-modes button[aria-pressed='true'] { background:var(--primary); color:var(--bg); }
 @media(max-width:600px) { .fleet-filter-panel__columns { grid-template-columns:1fr; } .fleet-filter-years { grid-template-columns:1fr; } }
 .stop-route-badges { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .stop-route-badge { display:inline-flex; align-items:center; justify-content:center; min-width:32px; padding:3px 8px; border-radius:8px; background:var(--surface2); color:var(--text); font-size:12px; font-weight:800; border:1px solid var(--border); }

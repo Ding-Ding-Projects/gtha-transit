@@ -9,6 +9,7 @@ const day = (value) => {
 const timestampMs = (value) => {
   if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value < 10_000_000_000 ? value * 1000 : value;
   if (typeof value === 'string' && value.trim()) {
+    if (/^\d+(?:\.\d+)?$/.test(value.trim())) return timestampMs(Number(value));
     const parsed = Date.parse(value);
     return Number.isFinite(parsed) ? parsed : null;
   }

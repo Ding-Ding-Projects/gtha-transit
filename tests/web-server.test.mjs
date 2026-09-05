@@ -41,6 +41,9 @@ test('Journey proxy attaches division evidence only after real exact-trip enrich
   assert.deepEqual(leg.vehicleAssignment,{state:'matched',method:'exact-trip-id'});assert.equal(leg.vehicle.id,'7001');
   assert.ok(['out-of-division','in-division','unknown'].includes(leg.vehicleDivision.state));assert.equal(leg.vehicleDivision.vehicleId,'7001');
   assert.equal(leg.vehicleDivision.routeId,'29');assert.ok(Number.isFinite(leg.vehicleDivision.checkedAt));assert.ok(Number.isFinite(leg.vehicleDivision.validUntil));assert.ok(payload.divisionEvidence);
+  assert.equal(leg.routeDivisionOpportunity.routeId,'29');
+  assert.ok(['observed','unknown'].includes(leg.routeDivisionOpportunity.state));
+  assert.equal(leg.routeDivisionOpportunity.lat,undefined);
  }finally{child.kill();await once(child,'exit');await new Promise(resolve=>routing.close(resolve));rmSync(root,{recursive:true,force:true});}
 });
 test('Washroom detour POST reaches the routing origin with its exact body', {timeout:10000}, async()=>{

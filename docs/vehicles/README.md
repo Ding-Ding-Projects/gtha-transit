@@ -51,3 +51,5 @@ Selecting a list row or map marker brings its detail panel into view and focuses
 All agencies is the default tracker view. Connected feed snapshots are combined with agency-qualified vehicle identities, preventing equal fleet numbers from colliding. Agency-coloured markers and rows retain readable agency labels and feed-status information. Map markers open an embedded summary; More details reveals and focuses the matching list detail panel.
 
 Use [fleet filters](fleet-filters.md) to select a manufacturer, one of its models and a published build-year range. The map shows every loaded match while the list remains paginated. [Journey division preferences](journey-divisions.md) rank only current exact-trip evidence and preserve unconfirmed options. The [search surface inventory](../search/tracker-surfaces.md) records the independent fields and workbenches.
+
+The separate [current route-opportunity mode](journey-route-opportunities.md) can prefer a route reporting an out-of-division vehicle even when the specific departure has no verified assignment. Its observations expire and never populate the assigned-vehicle field.

@@ -10,3 +10,25 @@ test('adds aggregate route evidence without creating a vehicle assignment or cop
 test('does not boost a different route and expires aggregate evidence',()=>{const annotated=annotateJourneyRouteOpportunities([{id:'other',legs:[leg({routeId:'7'})]},{id:'match',legs:[leg()]}],snapshot,registry,{now:NOW});assert.equal(annotated.itineraries[0].legs[0].routeDivisionOpportunity.state,'unknown');const ranked=applyJourneyRouteOpportunityPreference(annotated.itineraries,{enabled:true,now:NOW});assert.deepEqual(ranked.itineraries.map(x=>x.id),['match','other']);const expired=applyJourneyRouteOpportunityPreference(annotated.itineraries,{enabled:true,now:NOW+120001});assert.equal(expired.itineraries[0].id,'other');});
 test('returns unknown for stale snapshots and ignores walking legs',()=>{const stale=annotateJourneyRouteOpportunities([{legs:[leg()]}],{...snapshot,state:'stale'},registry,{now:NOW});assert.equal(stale.itineraries[0].legs[0].routeDivisionOpportunity.reason,'snapshot-not-live-ttc');const walk=annotateJourneyRouteOpportunities([{legs:[leg({mode:'WALK'})]}],snapshot,registry,{now:NOW});assert.equal(walk.itineraries[0].legs[0].routeDivisionOpportunity.state,'ignored');});
 test('rechecks Toronto source expiry and retains only fresh observations from a bounded freshest-first list',()=>{const many={...snapshot,vehicles:Array.from({length:21},(_,i)=>({id:String(7000+i),fleetNumber:String(7000+i),agencyId:'ttc',routeId:'29',timestamp:NOW-(i*1000),stale:false}))};const evidence=annotateJourneyRouteOpportunities([{legs:[leg()]}],many,registry,{now:NOW}).itineraries[0].legs[0].routeDivisionOpportunity;assert.equal(evidence.truncated,true);assert.equal(evidence.observations.length,20);assert.equal(evidence.observations[0].id,'7000');assert.equal(JSON.stringify(evidence).match(/lat|lon|bearing|speed/),null);assert.ok(currentRouteOpportunity(evidence,{now:NOW+119001}));assert.equal(currentRouteOpportunity(evidence,{now:Date.parse('2026-09-06T04:00:00Z')}),null);});
+
+
+test('source midnight and missing provenance reject otherwise fresh observations', () => {
+  const midnight = Date.parse('2026-09-06T04:00:00Z'), before = midnight - 30000;
+  const observed = { ...snapshot, vehicles: [{ ...snapshot.vehicles[0], timestamp: String(before) }] };
+  const evidence = annotateJourneyRouteOpportunities([{ legs: [leg({ startTime: before, endTime: midnight + 600000 })] }], observed, registry, { now: before }).itineraries[0].legs[0].routeDivisionOpportunity;
+  assert.equal(currentRouteOpportunity(evidence, { now: before }).vehicleCount, 1);
+  assert.equal(currentRouteOpportunity(evidence, { now: midnight }), null);
+  assert.equal(currentRouteOpportunity({ ...evidence, source: {} }, { now: before }), null);
+  assert.equal(currentRouteOpportunity({ ...evidence, observations: {} }, { now: before }), null);
+});
+
+
+test('duplicate units use their newest unambiguous route observation', () => {
+  const vehicle = snapshot.vehicles[0];
+  const duplicate = annotateJourneyRouteOpportunities([{ legs: [leg()] }], { ...snapshot, vehicles: [vehicle, { ...vehicle }] }, registry, { now: NOW });
+  assert.equal(duplicate.itineraries[0].legs[0].routeDivisionOpportunity.vehicleCount, 1);
+  const moved = annotateJourneyRouteOpportunities([{ legs: [leg()] }], { ...snapshot, vehicles: [vehicle, { ...vehicle, routeId: '7', timestamp: NOW - 1000 }] }, registry, { now: NOW });
+  assert.equal(moved.itineraries[0].legs[0].routeDivisionOpportunity.state, 'unknown');
+  const conflict = annotateJourneyRouteOpportunities([{ legs: [leg()] }], { ...snapshot, vehicles: [vehicle, { ...vehicle, routeId: '7' }] }, registry, { now: NOW });
+  assert.equal(conflict.itineraries[0].legs[0].routeDivisionOpportunity.state, 'unknown');
+});

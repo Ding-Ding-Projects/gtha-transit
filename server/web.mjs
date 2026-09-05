@@ -7,9 +7,10 @@ import { getTtcStatus } from '../status/ttc.mjs';
 import { createHistoryStore } from '../history/store.mjs';
 import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
 import { loadRegistry, RealtimeAggregator } from '../realtime/aggregator.mjs';
-import { getVehicles, enrichItineraries } from '../vehicles/index.mjs';
+import { getVehicles, getVehicleSnapshot, enrichItineraries } from '../vehicles/index.mjs';
 import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divisions.mjs';
 import { annotateJourneyDivisions } from '../vehicles/journey-divisions.mjs';
+import { annotateJourneyRouteOpportunities } from '../vehicles/journey-route-opportunities.mjs';
 import { VERIFIED_PHOTO_URLS } from '../vehicles/fleet-registry.mjs';
 const photoCache = new Map();
 const realtime = new RealtimeAggregator({ registry: await loadRegistry() });
@@ -541,9 +542,12 @@ const server = http.createServer(async (req, res) => {
           const plan = JSON.parse(payload);
           const enriched = await enrichItineraries(plan, { routingOrigin: routing, timeoutMs: 4000, fixturePath: process.env.VEHICLE_FIXTURE_PATH || undefined });
           const divisions = annotateJourneyDivisions(enriched.itineraries, divisionRegistry, { now: Date.now() });
+          const hasTtc = divisions.itineraries.some(journey => journey.legs.some(leg => ['ttc', 'ttc-next'].includes(leg.agencyFeedId)));
+          const snapshot = hasTtc ? await getVehicleSnapshot({ agency: 'ttc', timeoutMs: 1000, fixturePath: process.env.VEHICLE_FIXTURE_PATH || undefined }) : { state: 'unavailable', agencyId: 'ttc', vehicles: [] };
+          const opportunities = annotateJourneyRouteOpportunities(divisions.itineraries, snapshot, divisionRegistry, { now: Date.now() });
           payload = Buffer.from(
             JSON.stringify(
-              { ...enriched, itineraries: divisions.itineraries, divisionEvidence: { matched: divisions.matched, unknown: divisions.unknown, reasons: divisions.reasons } },
+              { ...enriched, itineraries: opportunities.itineraries, divisionEvidence: { matched: divisions.matched, unknown: divisions.unknown, reasons: divisions.reasons } },
             ),
           );
         } catch {

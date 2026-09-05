@@ -2,6 +2,7 @@ const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto'
 const torontoDate = (now) => { const parts = Object.fromEntries(formatter.formatToParts(new Date(now)).map((part) => [part.type, part.value])); return `${parts.year}-${parts.month}-${parts.day}`; };
 export function currentRouteOpportunity(evidence, { now = Date.now() } = {}) {
   if (!evidence || evidence.state !== 'observed' || !Number.isFinite(evidence.checkedAt) || now < evidence.checkedAt) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(evidence.source?.validFrom ?? '') || !/^\d{4}-\d{2}-\d{2}$/.test(evidence.source?.validThrough ?? '') || !Array.isArray(evidence.observations) || evidence.observations.length > 20) return null;
   const date = torontoDate(now); if (date < evidence.source?.validFrom || date > evidence.source?.validThrough) return null;
   const observations = (evidence.observations ?? []).filter((item) => Number.isFinite(item.validUntil) && now <= item.validUntil);
   return observations.length ? { ...evidence, observations, vehicleIds: observations.map((item) => item.id), fleetNumbers: observations.map((item) => item.fleetNumber).filter(Boolean), vehicleCount: observations.length, validUntil: Math.max(...observations.map((item) => item.validUntil)) } : null;

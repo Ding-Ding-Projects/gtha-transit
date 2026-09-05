@@ -1,7 +1,7 @@
 import { classifyOutOfDivision } from './divisions.mjs';
 
 const WINDOW_MS = 7_200_000;
-const timestampMs = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0 ? (value < 10_000_000_000 ? value * 1000 : value) : typeof value === 'string' && value.trim() ? Date.parse(value) : null;
+const timestampMs = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0 ? (value < 10_000_000_000 ? value * 1000 : value) : typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value.trim()) ? timestampMs(Number(value)) : typeof value === 'string' && value.trim() ? Date.parse(value) : null;
 const routeId = (value) => String(value ?? '').trim().replace(/^(?:ttc|ttc-next):/i, '');
 const isTtcFeed = (value) => ['ttc', 'ttc-next'].includes(String(value ?? '').trim().toLocaleLowerCase());
 const disclosure = 'Observed current route-level vehicles do not identify a departure vehicle or guarantee future availability.';
@@ -18,7 +18,16 @@ function eligibleLeg(leg, now) {
 
 export function annotateJourneyRouteOpportunities(itineraries, snapshot, registry, { now = Date.now() } = {}) {
   const byRoute = new Map();
+  const distinct = new Map();
   if (snapshot?.state === 'live' && snapshot?.agencyId === 'ttc') for (const vehicle of snapshot.vehicles ?? []) {
+    const id = String(vehicle?.id ?? '').trim(), observed = timestampMs(vehicle?.timestamp);
+    if (!id || vehicle.agencyId !== 'ttc' || !Number.isFinite(observed)) continue;
+    const previous = distinct.get(id);
+    if (!previous || observed > previous.observed) distinct.set(id, { vehicle, observed, ambiguous: false });
+    else if (observed === previous.observed && routeId(vehicle.routeId) !== routeId(previous.vehicle.routeId)) previous.ambiguous = true;
+  }
+  for (const { vehicle, ambiguous } of distinct.values()) {
+    if (ambiguous) continue;
     const route = routeId(vehicle?.routeId); if (!route) continue;
     const classification = classifyOutOfDivision(vehicle, route, registry, { now });
     const group = byRoute.get(route) ?? { out: [], reasons: [] };
