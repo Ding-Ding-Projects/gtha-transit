@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { matchWashroom } from "../shared/washrooms.mjs";
 import { resolveFacilityStopIdentities } from "../shared/washroom-identities.mjs";
-import { washroomIdentityMap } from "./washrooms.mjs";
+import { resolveWashroomRegistry, resolvedWashroomRegistry, washroomForPublishedPlaceFromRegistry, washroomIdentityMap } from "./washrooms.mjs";
 
 const registry = JSON.parse(await readFile(new URL("../data/transit-washrooms.json", import.meta.url), "utf8"));
 
@@ -51,6 +51,8 @@ test("production-shaped facilities gain only source-backed qualified station ide
   assert.equal(matchWashroom({ agencyFeedId: "go", stopId: "go:UN" }, resolved.facilities)?.facilityId, "go-union-station");
   assert.equal(matchWashroom({ agencyFeedId: "ttc", stopId: "ttc:UN" }, resolved.facilities), null);
   assert.equal(matchWashroom({ agencyFeedId: "ttc", stopId: "ttc:road-alias-fixture", name: "Yonge St at Eglinton Ave - Eglinton Station" }, resolved.facilities), null);
+  const publicMetadata = washroomForPublishedPlaceFromRegistry({ agencyFeedId: "ttc-next", stopId: "ttc-next:13795", name: "Eglinton Station" }, resolveWashroomRegistry(registry, officialStopIndex), { at: "2026-09-08T12:00:00-04:00" });
+  assert.deepEqual(publicMetadata, { facilityId: "ttc-eglinton", agencyId: "ttc", facilityType: "transit-station", name: "Eglinton", source: "https://www.ttc.ca/riding-the-ttc/Washrooms-at-TTC-subway-stations", availability: "unknown", location: { name: "Eglinton Station", lat: null, lon: null } });
 });
 
 test("unvalidated stop indexes cannot create facility identities", () => {
@@ -62,6 +64,9 @@ test("unvalidated stop indexes cannot create facility identities", () => {
 });
 
 test("the backend exposes the cached identity map for a selected-places API adapter", async () => {
+  const resolved = await resolvedWashroomRegistry();
+  assert.ok(Array.isArray(resolved.facilities));
+  assert.equal(resolved.washroomIdentityMap.schemaVersion, 1);
   const map = await washroomIdentityMap();
   assert.equal(map.schemaVersion, 1);
   assert.match(map.source, /validated official GTFS/i);

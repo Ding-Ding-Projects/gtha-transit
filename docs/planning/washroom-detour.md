@@ -63,6 +63,10 @@ The operation sorts verified-coordinate candidates by straight-line distance, co
 
 `internalWalkingUnknown` means the transit result reaches the facility coordinate but does not claim a distance, route, accessibility condition, or access time inside the building.
 
+When a caller has no onward destination, it may set `facilityOnly: true`. That mode requires the same explicit current position and confirmed-open arrival rule, but it does not require `to` or `via`. Its successful response has `status: "facility-only"`, `scope: "facility-only"`, `completeJourney: false`, a `facilityLeg`, and `continuation: null`. It never claims that an original onward journey was completed. Without this flag, normal detour planning still requires a valid destination and verifies the full continuation.
+
+Backend adapters can call `resolvedWashroomRegistry()` for the cached augmented records and `washroomForPublishedPlace(place, { at })` for strict public selected-stop metadata. The latter returns `null` unless the supplied agency-qualified place identity matches one mapped facility.
+
 Municipal facilities without official routing coordinates remain explicit `FACILITY_COORDINATES_UNAVAILABLE` results. They are never assigned guessed coordinates. A station can also use a uniquely matched, agency-qualified GTFS stop from the local stop index when its facility record carries official identity source evidence. Facilities with unknown hours are not automatic urgent-detour candidates.
 
 ## Verification
