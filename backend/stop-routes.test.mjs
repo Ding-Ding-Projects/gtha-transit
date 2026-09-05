@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { withServingRoutes } from "./places.mjs";
-import { routeStopAnchorsFromIndexes, servingRoutesFromIndexes } from "./stop-routes.mjs";
+import { publishedStopForIdFromIndexes, routeStopAnchorsFromIndexes, servingRoutesFromIndexes } from "./stop-routes.mjs";
 
 const routeIndex = {
   routes: [
@@ -16,7 +16,14 @@ const patternIndex = {
   stopRoutes: {
     "ttc:PARENT": ["ttc-next:1", "ttc:1", "ttc:2"],
     "ttc:CHILD-A": ["ttc-next:1", "ttc:1", "ttc:2"],
+    "ttc-next:CHILD-A": ["ttc-next:1", "ttc:1", "ttc:2"],
     "ttc:CHILD-B": ["ttc-next:1", "ttc:1"],
+  },
+  stopAliases: {
+    "ttc:PARENT": ["ttc-next:PARENT", "ttc:PARENT"],
+    "ttc:CHILD-A": ["ttc-next:CHILD-A", "ttc:CHILD-A"],
+    "ttc-next:CHILD-A": ["ttc-next:CHILD-A", "ttc:CHILD-A"],
+    "ttc:ALIAS-ONLY": ["ttc-next:ALIAS-ONLY"],
   },
   routePatterns: {
     "ttc:1": [
@@ -27,6 +34,17 @@ const patternIndex = {
       { id: "ttc-next:1:outbound", directionId: "0", stops: [{ id: "ttc-next:CHILD-A", sequence: 10, name: "Child A", lat: 43.7, lon: -79.4 }, { id: "ttc-next:CHILD-C", sequence: 30, name: "Child C", lat: 43.72, lon: -79.42 }] },
     ],
   },
+};
+
+const stopIndex = {
+  stops: [
+    { id: "ttc:PARENT", name: "Summer Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 1, parentStation: null, code: "P", agency: "TTC" },
+    { id: "ttc-next:PARENT", name: "Fall Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 1, parentStation: null, code: "P", agency: "TTC" },
+    { id: "ttc:CHILD-A", name: "Summer Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC" },
+    { id: "ttc-next:CHILD-A", name: "Fall Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC" },
+    { id: "ttc-next:ALIAS-ONLY", name: "Alias Only", lat: 43.71, lon: -79.41, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC" },
+    { id: "ttc:NEARBY", name: "Nearby but unserved", lat: 43.7001, lon: -79.4001, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: "N", agency: "TTC" },
+  ],
 };
 
 test("a parent station receives the scheduled union of its direct children with official colors only", () => {
@@ -55,6 +73,20 @@ test("place suggestions attach the date-aware scheduled badge list without chang
   assert.deepEqual(calls, [{ stopId: "ttc:PARENT", options: { date: "2026-09-06" } }]);
   assert.equal(result[0].name, "Parent Station");
   assert.deepEqual(result[0].servingRoutes.map((route) => route.id), ["ttc-next:1"]);
+});
+
+test("published stops resolve exact source IDs and explicit stable aliases without route or proximity guesses", () => {
+  const summer = publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:CHILD-A", { date: "2026-09-05" });
+  assert.equal(summer.id, "ttc:CHILD-A");
+  assert.equal(summer.name, "Summer Platform A");
+  assert.deepEqual(summer.servingRoutes.map((route) => route.id), ["ttc:1", "ttc:2"]);
+  const fall = publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:CHILD-A", { date: "2026-09-06" });
+  assert.equal(fall.id, "ttc-next:CHILD-A");
+  assert.equal(fall.name, "Fall Platform A");
+  assert.deepEqual(fall.servingRoutes.map((route) => route.id), ["ttc-next:1"]);
+  assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:ALIAS-ONLY", { date: "2026-09-06" })?.id, "ttc-next:ALIAS-ONLY");
+  assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NOT-A-STOP", { date: "2026-09-06" }), null);
+  assert.deepEqual(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NEARBY", { date: "2026-09-05" })?.servingRoutes, []);
 });
 
 test("route stop anchors choose a dated version alias and retain official direction-specific full sequences", () => {

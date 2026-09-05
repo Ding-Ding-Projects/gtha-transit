@@ -111,6 +111,7 @@ class StopRouteIndexTests(unittest.TestCase):
             self.assertIsNone(summer_routes["ttc:2"]["color"])
             self.assertIsNone(summer_routes["ttc-next:1"]["textColor"])
             self.assertEqual(patterns["stopRoutes"]["ttc:PARENT"], ["ttc-next:1", "ttc:1", "ttc:2"])
+            self.assertEqual(patterns["stopAliases"]["ttc:PARENT"], ["ttc-next:PARENT", "ttc:PARENT"])
             self.assertEqual(patterns["stopRoutes"]["ttc:A"], ["ttc-next:1", "ttc:1", "ttc:2"])
             self.assertNotIn("ttc:NEAR", patterns["stopRoutes"])
             directions = {pattern["directionId"]: pattern for pattern in patterns["routePatterns"]["ttc:1"]}

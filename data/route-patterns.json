@@ -5,9 +5,11 @@
     "sourceArchiveCount": 0,
     "routeCount": 0,
     "servedStopCount": 0,
+    "stopAliasCount": 0,
     "patternCount": 0,
     "maxRepresentativePatternsPerDirection": 4
   },
   "stopRoutes": {},
+  "stopAliases": {},
   "routePatterns": {}
 }
