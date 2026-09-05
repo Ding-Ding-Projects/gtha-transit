@@ -8,3 +8,6 @@
 - [Vehicle tracking and fleet sources](vehicles/README.md)
 - [Regional feeds and API](data/README.md)
 - [Maps and local geocoding](maps/README.md)
+- [Accessibility and narration](accessibility/README.md)
+- [Journey vehicle preferences](planning/vehicle-preferences.md)
+- [Place and intersection search](search/README.md)

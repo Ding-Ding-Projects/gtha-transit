@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDownUp,
   ArrowRight,
@@ -31,6 +31,11 @@ import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
+import NarratorSettings from '../components/narrator-settings';
+import { useNarrator } from '../lib/narrator';
+import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
+import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
+import { TTC_FLEET_RANGES, OTHER_FLEET_RANGES } from '../vehicles/fleet-registry.mjs';
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import { journeyWaits } from '../lib/journey-waits';
@@ -113,9 +118,10 @@ function PlaceField({
           signal: controller.signal,
         });
         if (!r.ok) throw Error();
-        const data = (await r.json()) as { places?: Place[] };
+        const data = (await r.json()) as { places?: Place[]; partial?: boolean };
         if (controller.signal.aborted) return;
         setItems(data.places || []);
+        if (data.partial && !data.places?.length) setError(t('Some place sources are unavailable. Try again or choose a point on the map.', '部分地點來源暫時未能使用，請再試或喺地圖揀選。'));
         setActive(-1);
       } catch (e) {
         if (!controller.signal.aborted)
@@ -245,6 +251,9 @@ function PlaceField({
 }
 
 export default function Home() {
+  const narrator = useNarrator();
+  const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
+  const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
   const [lang, setLang] = useState<Lang>('en'),
     [dark, setDark] = useState(false),
     [funEn, setFunEn] = useState(5),
@@ -258,7 +267,7 @@ export default function Home() {
     [wheelchair, setWheelchair] = useState(false),
     [preferWashrooms, setPreferWashrooms] = useState(false),
     [maxWalk, setMaxWalk] = useState(1500);
-  const [journeys, setJourneys] = useState<Itinerary[]>([]),
+  const [allJourneys, setJourneys] = useState<Itinerary[]>([]),
     [plannedDeparture, setPlannedDeparture] = useState<string | null>(null),
     [selected, setSelected] = useState(0),
     [loading, setLoading] = useState(false),
@@ -274,6 +283,9 @@ export default function Home() {
     [coverage, setCoverage] = useState<any>(null),
     [version, setVersion] = useState<any>(null),
     [provenance, setProvenance] = useState<any>(null);
+  const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
+  const journeys: Itinerary[] = vehicleResult.itineraries;
+  useEffect(() => setSelected(0), [vehicleCriteria, vehicleOptions]);
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
     hydrated = useRef(false);
@@ -286,6 +298,8 @@ export default function Home() {
     [lang, funEn, funZh],
   );
   const translate = t;
+  const narrate = (category: string, en: string, zh: string, critical = false) =>
+    narrator.announce({ category, en: copyAt(en, 'en', funEn), zh: copyAt(zh, 'zh', funZh), critical });
   const statusRequest = useRef<AbortController | null>(null),
     statusGeneration = useRef(0);
   const activeInputs = useRef('');
@@ -329,6 +343,17 @@ export default function Home() {
       setDark(prefs.dark === true);
       if (prefs.funEn >= 1 && prefs.funEn <= 5) setFunEn(prefs.funEn);
       if (prefs.funZh >= 1 && prefs.funZh <= 5) setFunZh(prefs.funZh);
+      const criteria = prefs.vehicleCriteria;
+      if (criteria && typeof criteria === 'object') {
+        setVehicleCriteria({
+          manufacturer: typeof criteria.manufacturer === 'string' ? criteria.manufacturer.slice(0, 120) : undefined,
+          model: typeof criteria.model === 'string' ? criteria.model.slice(0, 120) : undefined,
+          yearFrom: Number.isInteger(criteria.yearFrom) && criteria.yearFrom >= 1800 && criteria.yearFrom <= 3000 ? criteria.yearFrom : undefined,
+          yearTo: Number.isInteger(criteria.yearTo) && criteria.yearTo >= 1800 && criteria.yearTo <= 3000 ? criteria.yearTo : undefined,
+          match: criteria.match === 'any' ? 'any' : 'all',
+        });
+      }
+      if (prefs.vehicleOptions && typeof prefs.vehicleOptions === 'object') setVehicleOptions({ prefer: prefs.vehicleOptions.prefer === true, avoid: prefs.vehicleOptions.avoid === true, includeUnconfirmed: prefs.vehicleOptions.includeUnconfirmed === true });
       const list = readStored<unknown[]>('gtha-saved', []);
       if (Array.isArray(list))
         setSaved(
@@ -401,7 +426,7 @@ export default function Home() {
       try {
         localStorage.setItem(
           'gtha-preferences',
-          JSON.stringify({ lang, dark, funEn, funZh }),
+          JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions }),
         );
       } catch {
         setNotice(
@@ -411,7 +436,7 @@ export default function Home() {
           ),
         );
       }
-  }, [lang, dark, funEn, funZh]);
+  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions]);
   useEffect(() => {
     if (hydrated.current)
       try {
@@ -459,6 +484,7 @@ export default function Home() {
   }, []);
   async function plan(override?: string) {
     if (!from || !to) {
+      narrate('journey-error', 'Choose both places from the suggestions or map.', '請喺建議清單或地圖選擇起點同終點。', true);
       setError(
         t(
           'Choose both places from the suggestions or map.',
@@ -524,13 +550,17 @@ export default function Home() {
       setSelected(0);
       setProvenance(data.data);
       setTab('plan');
+      const count = applyJourneyPreferences(data.itineraries || [], vehicleCriteria, vehicleOptions).itineraries.length;
+      narrate('journey-ready', count ? `${count} journey options are ready.` : 'No journey options were found for these choices.', count ? `已準備好 ${count} 個行程選項。` : '呢組選擇搵唔到行程選項。');
     } catch (e: any) {
-      if (id === generation.current)
+      if (id === generation.current) {
+        narrate('journey-error', e.name === 'AbortError' ? 'The search timed out. Please try again.' : 'Journey planning could not complete. The planner shows the details.', e.name === 'AbortError' ? '搜尋逾時，請再試。' : '未能完成行程規劃，請查看畫面詳情。', true);
         setError(
           e.name === 'AbortError'
             ? t('The search timed out. Please try again.', '搜尋逾時，請再試。')
             : e.message,
         );
+      }
     } finally {
       clearTimeout(timer);
       if (id === generation.current) setLoading(false);
@@ -545,10 +575,17 @@ export default function Home() {
   function save() {
     if (!from || !to) return;
     const id = `${from.lat},${from.lon}:${to.lat},${to.lon}`;
-    setSaved((prev) =>
-      [{ id, from, to }, ...prev.filter((x) => x.id !== id)].slice(0, 100),
-    );
+    const next = [{ id, from, to }, ...saved.filter((x) => x.id !== id)].slice(0, 100);
+    try {
+      localStorage.setItem('gtha-saved', JSON.stringify(next));
+    } catch {
+      setNotice(t('This browser could not save the trip. Your current journey remains open.', '呢個瀏覽器未能儲存行程，目前行程仍然開啟。'));
+      narrate('save-error', 'This browser could not save the trip. Your current journey remains open.', '呢個瀏覽器未能儲存行程，目前行程仍然開啟。', true);
+      return;
+    }
+    setSaved(next);
     setNotice(t('Trip saved on this device.', '行程已儲存喺呢部裝置。'));
+    narrate('trip-saved', 'Trip saved on this device.', '行程已儲存喺呢部裝置。');
   }
   async function share() {
     if (!from || !to) return;
@@ -860,6 +897,10 @@ export default function Home() {
                   '無障礙資料視乎供應來源，未必包括升降機狀況或未通報障礙。',
                 )}
               </small>
+            </details>
+            <details className="vehicle-journey-options">
+              <summary>{t('Vehicle preferences', '車輛偏好')}{vehicleOptions.prefer || vehicleOptions.avoid ? t(' · Active', ' · 已啟用') : ''}</summary>
+              <JourneyVehiclePreferencesPanel criteria={vehicleCriteria} options={vehicleOptions} verifiedFleetFacts={[...TTC_FLEET_RANGES, ...Object.values(OTHER_FLEET_RANGES).flat()]} excludedCount={vehicleResult.excluded.length} onCriteriaChange={setVehicleCriteria} onOptionsChange={setVehicleOptions} t={t} />
             </details>
             <button className="primary" disabled={loading} type="submit">
               {loading ? (
@@ -1851,6 +1892,7 @@ export default function Home() {
             <div className="page-panel settings">
               <span className="eyebrow">{t('MAKE IT YOURS', '按你喜好')}</span>
               <h2>{t('Settings & privacy', '設定及私隱')}</h2>
+              <NarratorSettings narrator={narrator} t={t} />
               <label>
                 {t('Language', '語言')}
                 <select

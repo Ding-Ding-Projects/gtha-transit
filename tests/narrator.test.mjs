@@ -317,3 +317,12 @@ test('Narrator settings remain off by default and validate persisted bounds', ()
     { ...DEFAULT_NARRATOR_SETTINGS },
   );
 });
+
+test('Automatic voice choice prefers a local voice while honoring an explicit network voice', () => {
+  const local = voice('Local English', 'en-US', { voiceURI: 'local', localService: true });
+  const network = voice('Canadian English', 'en-CA', { voiceURI: 'network', localService: false, default: true });
+  assert.equal(resolveNarratorVoice([network, local], 'en', '').voice.voiceURI, 'local');
+  const selected = resolveNarratorVoice([network, local], 'en', 'network');
+  assert.equal(selected.voice.voiceURI, 'network');
+  assert.equal(selected.networkBacked, true);
+});

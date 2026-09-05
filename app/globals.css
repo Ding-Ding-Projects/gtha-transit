@@ -1449,3 +1449,78 @@ select {
     display: none;
   }
 }
+.route-picker-trigger { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); text-align: left; }
+.vehicle-journey-options { margin: 16px 0; }
+.vehicle-journey-options > summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 650; }
+.vehicle-journey-options section { padding: 14px !important; }
+.narrator-card { border: 1px solid var(--border); border-radius: 24px; background: var(--surface2); padding: 22px; margin: 22px 0; min-width: 0; }
+.narrator-heading { display: flex; align-items: center; gap: 14px; }
+.narrator-heading h3 { margin: 2px 0; }
+.narrator-advanced > summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 650; }
+.narrator-heading-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 16px; background: var(--primary); color: var(--bg); }
+.narrator-intro, .narrator-status, .narrator-privacy-note { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.narrator-card fieldset { border: 0; border-top: 1px solid var(--border); min-width: 0; padding: 18px 0; margin: 18px 0 0; }
+.narrator-card legend { font-weight: 650; padding-right: 10px; }
+.narrator-card fieldset:disabled { opacity: .65; }
+.narrator-card .narrator-switch-row { display: flex; align-items: center; position: relative; gap: 14px; cursor: pointer; min-height: 60px; padding: 10px 0; }
+.narrator-switch-row > span:last-child, .narrator-choice span { display: grid; gap: 3px; min-width: 0; }
+.narrator-card small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.narrator-switch-input { position: absolute; width: 48px; height: 32px; opacity: 0; margin: 0; }
+.narrator-switch-visual { flex-shrink: 0; width: 48px; height: 30px; border: 2px solid var(--muted); border-radius: 20px; background: var(--surface); padding: 3px; }
+.narrator-switch-visual:before { content: ''; display: block; height: 20px; width: 20px; border-radius: 50%; background: var(--muted); }
+.narrator-switch-input:checked + .narrator-switch-visual { background: var(--primary); border-color: var(--primary); }
+.narrator-switch-input:checked + .narrator-switch-visual:before { transform: translateX(18px); background: var(--bg); }
+.narrator-switch-input:focus-visible + .narrator-switch-visual { outline: 3px solid var(--primary); outline-offset: 4px; }
+.narrator-language-options, .narrator-voice-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.narrator-voice-options { max-height: 250px; overflow: auto; }
+.narrator-card .narrator-choice { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 13px; margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
+.narrator-choice:has(input:checked) { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.narrator-choice input { accent-color: var(--primary); flex-shrink: 0; width: 18px; height: 18px; }
+.narrator-alert { display: flex; align-items: start; gap: 10px; padding: 14px; background: var(--alert-bg); color: var(--alert); border-radius: 14px; }
+.narrator-status { display: block; }
+.narrator-tuning label { display: grid; gap: 10px; }
+.narrator-tuning input { width: 100%; min-height: 44px; accent-color: var(--primary); }
+.narrator-privacy-note svg { vertical-align: middle; margin-right: 6px; }
+.regex-workbench { min-width: 0; position: relative; }
+.regex-workbench__input-line { display: flex; align-items: center; gap: 8px; min-height: 48px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); padding: 5px 10px; }
+.regex-workbench__input-line input { border: 0; background: transparent; min-width: 0; width: 100%; color: var(--text); min-height: 40px; }
+.regex-workbench__trigger { min-width: 44px; min-height: 44px; border-radius: 12px; color: var(--primary); background: var(--surface2); }
+.regex-workbench__popover { position: relative; z-index: 5; width: 100%; min-width: 0; overflow: auto; margin-top: 10px; padding: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 12px 32px #0002; overflow-wrap: anywhere; }
+.regex-workbench__header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.regex-workbench__header h3 { margin: 5px 0; }
+.regex-workbench__mode-picker, .regex-workbench__flag-chips, .regex-workbench__guides, .regex-workbench__snippet-transfer { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.regex-workbench__popover button, .regex-workbench__mode-picker button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; }
+.regex-workbench__popover button[aria-pressed='true'], .regex-workbench__mode-picker button[aria-pressed='true'] { background: var(--primary); color: var(--bg); }
+.regex-workbench__popover label, .regex-workbench__field { display: grid; gap: 6px; margin: 12px 0; }
+.regex-workbench__popover input, .regex-workbench__popover textarea, .regex-workbench__popover select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface2); color: var(--text); padding: 10px; font: inherit; }
+.regex-workbench__popover input[type='checkbox'], .regex-workbench__popover input[type='radio'] { width: 22px; min-height: 22px; accent-color: var(--primary); }
+.regex-workbench__popover textarea { min-height: 100px; resize: vertical; }
+.regex-workbench__popover details { border-top: 1px solid var(--border); padding: 10px 0; }
+.regex-workbench__popover summary { min-height: 44px; cursor: pointer; padding: 10px 0; font-weight: 600; }
+.regex-workbench__popover pre, .regex-workbench__captures { overflow: auto; max-width: 100%; }
+.regex-workbench__popover table { border-collapse: collapse; font-size: 12px; }
+.regex-workbench__popover td, .regex-workbench__popover th { padding: 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.regex-workbench__state { color: var(--muted); font-size: 12px; }
+.regex-workbench__risk { color: var(--alert); background: var(--alert-bg); padding: 10px; border-radius: 12px; }
+.route-picker-trigger span, .route-picker-result span { display: grid; min-width: 0; gap: 3px; }
+.route-picker-trigger small, .route-picker-result small { color: var(--muted); }
+.route-picker-dialog { color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 24px; width: min(900px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; box-shadow: 0 24px 90px #0005; }
+.route-picker-dialog::backdrop { background: #071a12aa; }
+.route-picker-dialog > header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.route-picker-dialog h2 { margin: 4px 0; }
+.route-picker-columns { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr); gap: 24px; }
+.route-picker-columns section { min-width: 0; }
+.route-picker-agencies { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; }
+.route-picker-agencies button { text-align: left; min-height: 46px; border-radius: 14px; padding: 10px 14px; overflow-wrap: anywhere; }
+.route-picker-agencies button.selected { background: var(--primary); color: var(--bg); }
+.route-picker-agencies button:hover, .route-picker-result:hover { box-shadow: inset 0 0 0 2px var(--primary); }
+.route-picker-results { max-height: 52dvh; overflow: auto; margin-top: 12px; }
+.route-picker-result { display: flex; gap: 14px; align-items: center; width: 100%; min-height: 70px; padding: 12px; border-bottom: 1px solid var(--border); border-radius: 14px; text-align: left; overflow-wrap: anywhere; }
+.route-picker-badge { flex-shrink: 0; display: grid; place-content: center; min-width: 46px; max-width: 90px; min-height: 36px; padding: 5px 9px; border-radius: 9px; background: var(--surface2); color: var(--text); }
+@media (max-width: 600px) {
+  .route-picker-dialog { padding: 16px; border-radius: 20px; }
+  .route-picker-columns { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .route-picker-agencies { flex-direction: row; flex-wrap: wrap; max-height: 160px; overflow: auto; }
+  .route-picker-agencies button { border: 1px solid var(--border); }
+  .route-picker-results { max-height: 42dvh; }
+}

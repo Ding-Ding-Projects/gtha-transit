@@ -218,7 +218,7 @@ async function placeSource(origin, requestPath, field) {
     if (!response.ok) return { available: false, places: [] };
     const payload = JSON.parse((await bounded(response, 256 * 1024)).toString('utf8'));
     const places = field === 'map' ? payload.results ?? payload.places : payload.places;
-    return { available: true, places: Array.isArray(places) ? places.slice(0, 20) : [] };
+    return { available: Array.isArray(places), places: Array.isArray(places) ? places.slice(0, 20) : [] };
   } catch {
     return { available: false, places: [] };
   }

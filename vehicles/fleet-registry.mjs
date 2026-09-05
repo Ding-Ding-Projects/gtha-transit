@@ -27,7 +27,7 @@ export const TTC_FLEET_RANGES = Object.freeze([
   facts(4604, 4663, 'Alstom', 'FLEXITY M-1', '2023-2024', 'Electric', '30 m', '70 seats'),
 ]);
 
-const OTHER_FLEET_RANGES = Object.freeze({
+export const OTHER_FLEET_RANGES = Object.freeze({
   go: [
     { first: 600, last: 646, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2007-2010', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
     { first: 647, last: 647, manufacturer: 'MotivePower', model: 'MP54AC prototype', year: '2015', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },

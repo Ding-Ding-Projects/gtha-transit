@@ -214,6 +214,7 @@ export function NarratorSettings({
 }) {
   const { settings } = narrator;
   const disabled = !narrator.speechAvailable || !settings.enabled;
+  const voiceAvailable = settings.language === 'en' ? Boolean(narrator.englishVoice.voice) : settings.language === 'zh' ? Boolean(narrator.cantoneseVoice.voice) : Boolean(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
   return (
     <section
       className="narrator-card"
@@ -232,8 +233,8 @@ export function NarratorSettings({
       </div>
       <p className="narrator-intro">
         {t(
-          'Hear brief journey and service updates. Narration is off by default and stays in this browser.',
-          '可聽取簡短嘅行程同服務提示。旁白預設關閉，設定只會留喺此瀏覽器。',
+          'Hear brief journey and saved-trip updates. Narration is off by default; its settings stay in this browser.',
+          '可聽取簡短嘅行程同儲存提示。旁白預設關閉，設定只會留喺此瀏覽器。',
         )}
       </p>
 
@@ -287,6 +288,8 @@ export function NarratorSettings({
         </output>
       )}
 
+      <details className="narrator-advanced">
+      <summary>{t('Voice options & preview', '語音選項及試聽')}</summary>
       <fieldset className="narrator-language-picker" disabled={disabled}>
         <legend>{t('Narration language', '旁白語言')}</legend>
         <div
@@ -405,6 +408,10 @@ export function NarratorSettings({
         </span>
       </label>
 
+      <button type="button" className="pill" disabled={disabled || settings.quiet || !voiceAvailable} onClick={() => narrator.announce({ category: 'voice-preview', en: 'Your narrator is ready. Journey updates will be spoken in this voice.', zh: '旁白準備好喇，行程提示會用呢把聲讀出。', critical: true })}>
+        {t('Preview narration', '試聽旁白')}
+      </button>
+      </details>
       <p className="narrator-privacy-note">
         <Volume2 aria-hidden="true" size={16} />
         {t(

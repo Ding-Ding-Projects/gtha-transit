@@ -2,7 +2,7 @@
 
 ## What it does
 
-The transit planner can announce short journey and service updates through the browser speech-synthesis API. It is off by default. Turning it on is an opt-in local preference and does not affect other visitors.
+The transit planner can announce journey results, planning errors and confirmed saved trips through the browser speech-synthesis API. It is off by default. Turning it on is an opt-in local preference and does not affect other visitors. Preview narration reads a generic sample without speaking trip locations.
 
 The narrator offers three language choices:
 

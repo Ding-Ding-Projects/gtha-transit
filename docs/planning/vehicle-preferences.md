@@ -20,6 +20,8 @@ An avoid policy removes an itinerary with a known matching assigned vehicle leg.
 
 ## Preference panel integration
 
+The planner exposes this panel below Journey preferences. Its choices persist in the browser and re-evaluate the returned options immediately, without claiming that every possible later departure was searched. The original returned options remain in memory, so clearing an avoidance choice restores them. Available choice labels come from the verified fleet registry; actual matching uses only fresh vehicles attached to journey legs.
+
 `components/journey-vehicle-preferences.tsx` is an accessible controlled panel for criteria and policy state. Its parent supplies `verifiedFleetFacts` from already verified fleet facts, including CPTDB or official agency sources, owns the state callbacks, calls `applyJourneyPreferences` independently, and returns the resulting excluded count to the panel. The component never fetches data and does not attempt routing integration.
 
 Manufacturer and model choices are independent button-chip groups, populated only from the supplied facts. The panel uses ordinary number inputs for an inclusive year interval and button chips for `all` or `any` matching. It has no fake select control.

@@ -192,7 +192,7 @@ function voiceRank(voice: NarratorVoice, language: NarratorSpokenLanguage) {
   if (language === 'zh' && tag.startsWith('yue')) score += 16;
   if (language === 'zh' && tag.startsWith('zh-hk')) score += 12;
   if (voice.default) score += 4;
-  if (voice.localService) score += 2;
+  if (voice.localService) score += 100;
   return score;
 }
 
