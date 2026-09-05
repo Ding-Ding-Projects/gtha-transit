@@ -9,6 +9,8 @@ const MAX_STOP_ROUTE_BADGES = 1000;
 let cachedPatterns = null;
 let cachedStops = null;
 
+const geographicCoordinate = (value, min, max) => typeof value === "number" && Number.isFinite(value) && value >= min && value <= max ? value : null;
+
 const boundedLimit = (value, fallback = MAX_STOP_ROUTE_BADGES) => {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
@@ -68,8 +70,8 @@ const copyPattern = (pattern) => ({
     id: String(stop.id),
     sequence: Number(stop.sequence),
     name: String(stop.name ?? ""),
-    lat: stop.lat === null ? null : Number(stop.lat),
-    lon: stop.lon === null ? null : Number(stop.lon),
+    lat: geographicCoordinate(stop.lat, -90, 90),
+    lon: geographicCoordinate(stop.lon, -180, 180),
   })) : [],
 });
 
@@ -87,14 +89,16 @@ const sourceStopMap = (stops) => new Map((Array.isArray(stops?.stops) ? stops.st
 const stableStopForDate = (stops, index, patterns, requestedId, date) => {
   const direct = stops.get(requestedId) ?? null;
   const aliases = patterns?.stopAliases?.[requestedId];
-  if (!Array.isArray(aliases) || !aliases.length) return direct;
-  const candidates = aliases.map((id) => stops.get(id)).filter(Boolean);
-  if (!candidates.length) return direct;
   const effectiveDate = date ?? currentTorontoDate();
+  const exact = (stop) => validityState(effectiveDate, stop?.validity) === "exact";
+  if (!Array.isArray(aliases) || !aliases.length) return exact(direct) ? direct : null;
+  const candidates = [...new Map([direct, ...aliases.map((id) => stops.get(id))].filter(Boolean).map((stop) => [stop.id, stop])).values()].filter(exact);
+  if (!candidates.length) return null;
   const activeVersions = new Set((index?.routes ?? []).filter((route) => validityState(effectiveDate, route.validity) === "exact").map((route) => route.version));
   const exactCandidates = candidates.filter((stop) => activeVersions.has(stop.graphFeedId));
   if (exactCandidates.length === 1) return exactCandidates[0];
-  return direct ?? null;
+  if (exactCandidates.length > 1) return null;
+  return candidates.length === 1 && candidates[0].id === requestedId ? candidates[0] : null;
 };
 
 export function publishedStopForIdFromIndexes(stops, index, patterns, qualifiedStopId, { date = null } = {}) {
@@ -102,9 +106,9 @@ export function publishedStopForIdFromIndexes(stops, index, patterns, qualifiedS
   const byId = sourceStopMap(stops);
   const source = stableStopForDate(byId, index, patterns, qualifiedStopId, date);
   if (!source) return null;
-  const lat = Number(source.lat);
-  const lon = Number(source.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const lat = geographicCoordinate(source.lat, -90, 90);
+  const lon = geographicCoordinate(source.lon, -180, 180);
+  if (lat === null || lon === null) return null;
   return {
     id: String(source.id),
     name: String(source.name ?? ""),
