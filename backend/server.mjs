@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { coverage, graphProvenance, searchPlaces } from "./places.mjs";
-import { departuresWithOtp, planWithOtp } from "./otp-client.mjs";
+import { departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -22,9 +22,16 @@ const bounded = (value, name, min, max) => { const n = number(value, name); if (
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://localhost");
-    if (req.method === "GET" && url.pathname === "/health") return json(res, 200, { ok: true, service: "gtha-transit-routing" });
+    if (req.method === "GET" && url.pathname === "/health") {
+      try { const ready = await otpReady({ otpUrl: config.otpUrl }); return json(res, ready ? 200 : 503, { ok: ready, service: "gtha-transit-routing", router: ready ? "ready" : "unavailable" }); }
+      catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE" }); }
+    }
     if (req.method === "GET" && url.pathname === "/api/places") return json(res, 200, { places: await searchPlaces(url.searchParams.get("q"), 20) });
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
+    if (req.method === "GET" && url.pathname === "/api/integrations/status") {
+      try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }
+      catch { return json(res, 200, { metrolinx: { configured: false, agencies: [{ id: "go", state: "unavailable", capabilities: ["trip_updates", "service_alerts"] }, { id: "up", state: "unavailable", capabilities: ["trip_updates", "service_alerts"] }] } }); }
+    }
     if (req.method === "GET" && url.pathname === "/api/departures") {
       const stopId = url.searchParams.get("stopId"); if (!stopId) throw new Error("stopId is required");
       return json(res, 200, await departuresWithOtp({ otpUrl: config.otpUrl, timeoutMs: config.requestTimeoutMs, stopId, startTime: url.searchParams.get("startTime"), timeRange: url.searchParams.get("timeRange"), maxResults: config.maxResults }));
@@ -37,6 +44,15 @@ const server = http.createServer(async (req, res) => {
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking"].includes(preference)) throw new Error("preference must be fastest, transfers, or walking");
       const result = await planWithOtp({ otpUrl: config.otpUrl, timeoutMs: config.requestTimeoutMs, from, to, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults });
+      if (!result.itineraries.length) {
+        const provenance = await graphProvenance(); const date = dateTime.slice(0, 10);
+        const inTtcArea = [from, to].some((point) => point.lat >= 43.55 && point.lat <= 43.9 && point.lon >= -79.75 && point.lon <= -79.0);
+        const ttc = provenance.feeds?.find((feed) => feed.id === "ttc");
+        if (inTtcArea && ttc?.activeTripsByDate?.[date] === 0) {
+          const nextServiceDate = Object.entries(ttc.activeTripsByDate).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null;
+          return json(res, 409, { error: "No TTC schedule is available for the selected date in the active routing data.", code: "SCHEDULE_DATE_UNAVAILABLE", agency: "ttc", date, nextServiceDate });
+        }
+      }
       const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
       return json(res, 200, { ...preferred, data: await graphProvenance() });
     }

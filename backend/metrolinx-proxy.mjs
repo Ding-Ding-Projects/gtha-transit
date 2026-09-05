@@ -9,6 +9,21 @@ const sources = new Map([
   ["/internal/metrolinx/up/alerts", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/Alerts"]
 ]);
 const cache = new Map();
+const status = new Map();
+function entityCount(body) {
+  let offset = 0; let count = 0;
+  const varint = () => { let value = 0; let shift = 0; while (offset < body.length) { const byte = body[offset++]; value += (byte & 127) * 2 ** shift; if (!(byte & 128)) return value; shift += 7; if (shift > 49) throw new Error("protobuf varint invalid"); } throw new Error("protobuf truncated"); };
+  while (offset < body.length) {
+    const tag = varint(); const field = Math.floor(tag / 8); const wire = tag & 7;
+    if (wire === 0) varint();
+    else if (wire === 1) offset += 8;
+    else if (wire === 2) { const length = varint(); if (field === 2) count += 1; offset += length; }
+    else if (wire === 5) offset += 4;
+    else throw new Error("protobuf wire type unsupported");
+    if (offset > body.length) throw new Error("protobuf truncated");
+  }
+  return count;
+}
 async function apiKey() {
   const value = (await readFile(keyFile, "utf8")).trim();
   if (!value) throw new Error("credential unavailable");
@@ -24,10 +39,20 @@ async function load(pathname) {
   const body = Buffer.from(await response.arrayBuffer());
   if (!body.length || body.length > 64 * 1024 * 1024) throw new Error("upstream payload invalid");
   cache.set(pathname, { time: Date.now(), body });
+  status.set(pathname, { lastSuccessfulFetch: new Date().toISOString(), entityCount: entityCount(body) });
   return body;
 }
 http.createServer(async (req, res) => {
   try {
+    if (req.method === "GET" && req.url === "/internal/metrolinx/status") {
+      let configured = false; try { configured = Boolean(await apiKey()); } catch {}
+      const agencies = ["go", "up"].map((id) => {
+        const trips = status.get(`/internal/metrolinx/${id}/trips`); const alerts = status.get(`/internal/metrolinx/${id}/alerts`);
+        return { id, state: trips ? "live" : configured ? "waiting" : "not_configured", capabilities: ["trip_updates", "service_alerts"], lastSuccessfulFetch: trips?.lastSuccessfulFetch ?? null, entityCount: trips?.entityCount ?? null, alertsLastSuccessfulFetch: alerts?.lastSuccessfulFetch ?? null, alertsEntityCount: alerts?.entityCount ?? null };
+      });
+      const body = Buffer.from(JSON.stringify({ configured, agencies }));
+      res.writeHead(200, { "content-type": "application/json", "content-length": body.length, "cache-control": "no-store" }).end(body); return;
+    }
     if (req.method !== "GET" || !sources.has(req.url)) { res.writeHead(404).end(); return; }
     const body = await load(req.url);
     res.writeHead(200, { "content-type": "application/x-google-protobuf", "content-length": body.length, "cache-control": "private, max-age=10" });
