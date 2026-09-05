@@ -2,29 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const data = JSON.parse(readFileSync(new URL('../data/regional-fleet-additions.json', import.meta.url), 'utf8'));
+const rawData = readFileSync(new URL('../data/regional-fleet-additions.json', import.meta.url), 'utf8');
+const data = JSON.parse(rawData);
 const agencies = new Map(data.agencies.map((agency) => [agency.agencyId, agency]));
 
 test('regional fleet additions retain each supported agency and explicit capacity semantics', () => {
   assert.equal(data.schemaVersion, 1);
+  assert.equal(data.retrievedAt, null);
   for (const id of ['miway', 'hsr', 'burlington', 'go', 'up']) assert.ok(agencies.has(id), `missing ${id}`);
   for (const agency of data.agencies) for (const entry of agency.entries) {
     assert.deepEqual(Object.keys(entry.capacity).sort(), ['basis', 'reason', 'seated', 'standing', 'total']);
     assert.ok(entry.sources.every((url) => /^https:\/\//.test(url)));
     if (entry.capacity.total !== null) {
-      assert.equal(entry.capacity.seated, null);
       assert.equal(entry.capacity.standing, null);
-      assert.match(entry.capacity.reason, /does not publish/i);
+      assert.match(entry.capacity.reason, /does not publish|not an individual/i);
     }
   }
   assert.equal(agencies.get('go').entries[0].model, 'D4500');
-  assert.equal(agencies.get('go').entries[0].capacity.total, 55);
+  assert.equal(agencies.get('go').entries[0].capacity.seated, 55);
   assert.equal(agencies.get('go').entries[1].model, 'Enviro500');
-  assert.equal(agencies.get('go').entries[1].capacity.total, 81);
+  assert.equal(agencies.get('go').entries[1].capacity.seated, 81);
   assert.equal(agencies.get('up').entries[0].manufacturer, 'Nippon Sharyo');
-  assert.equal(agencies.get('up').entries[0].capacity.total, 180);
-  assert.equal(agencies.get('hsr').entries[0].unitLabel, '2283');
-  assert.equal(agencies.get('hsr').entries[0].photo.exactUnit, true);
+  assert.equal(agencies.get('up').entries[0].capacity.total, null);
+  assert.match(agencies.get('up').entries[0].capacity.reason, /train trip/i);
+  assert.equal(agencies.get('hsr').entries[0].photo, null);
+  assert.doesNotMatch(rawData, /BrackishStowaway|unit_2283|2283/);
 });
 
 test('photo records preserve licence, creator, digest, and exact-unit boundaries', () => {

@@ -4,20 +4,19 @@ This source record is deliberately separate from the live vehicle matcher. It co
 
 ## Capacity meanings
 
-The record keeps `seated`, `standing`, and `total` separate. A null value means the cited source does not state that field. GO’s 55-passenger D4500 and 81-passenger Enviro500 figures are operator-published totals, not inferred seated or standing counts. UP Express’s 180-passenger figure is an operator-published per-trip total, not a vehicle-level seated or standing specification. The 2013 UP Express accessibility planning report describes approximately 120 passengers for two cars and 180 for three cars, and says dedicated standing space was not planned. It is retained as planning context only, not current fleet capacity.
+The record keeps `seated`, `standing`, and `total` separate. A null value means the cited source does not state that field. GO’s 55-seat D4500 and 81-seat Enviro500 figures are stored as seated counts only. The source does not establish standing space or a total-capacity definition. UP Express’s 180-passenger statement applies to a train trip, not one DMU vehicle, so all individual-vehicle capacity fields remain null. The 2013 UP Express accessibility planning report describes approximately 120 passengers for two cars and 180 for three cars, and says dedicated standing space was not planned. It is retained as planning context only, not current fleet capacity.
 
 Hamilton’s 2020 release refers to temporary 30-customer, 40-foot and 50-customer, 60-foot operating levels. Those are service restrictions and are not reported as manufacturer capacity.
 
 ## Vehicle and photograph provenance
 
-The HSR record is an exact photograph of Nova Bus LFS CNG unit 2283. The MiWay record is representative only because its Commons description does not name a fleet unit. Burlington’s Commons record identifies Nova Bus LFS unit 71901 as a 2019 bus, but no image is registered in the JSON until a fresh file SHA-256 receipt can be retained. GO and UP photographs are intentionally not used to assign manufacturer, year, or capacity to a live vehicle.
+The HSR record has no registered photograph because the previously considered Commons asset has an unresolved creator-attribution conflict. The MiWay record is representative only because its Commons description does not name a fleet unit. Burlington’s Commons record identifies Nova Bus LFS unit 71901 as a 2019 bus, but no image is registered in the JSON until a fresh file SHA-256 receipt can be retained. GO and UP photographs are intentionally not used to assign manufacturer, year, or capacity to a live vehicle.
 
 Photo records carry the Commons file page, direct image URL, creator, licence URL, and SHA-256 of the retrieved image bytes. No image file is stored in this repository. A photo is exact only when the documented depicted unit label equals the record’s unit label.
 
 ## Sources
 
 - [MiWay bus at UTM IMG 6836](https://commons.wikimedia.org/wiki/File:MiWay_bus_at_UTM_IMG_6836.jpg), creator Robert T Bell, CC BY 2.0.
-- [NovaBus LFS CNG Hamilton Street Railway unit 2283](https://commons.wikimedia.org/wiki/File:NovaBus_LFS_CNG_Hamilton_Street_Railway_(HSR)_unit_2283.jpg), creator BrackishStowaway, CC BY 4.0.
 - [Burlington Transit 2019 NovaBus LFS 71901](https://commons.wikimedia.org/wiki/File:Burlington_Transit_2019_NovaBus_LFS_71901.jpg), creator DiltonPlayzYT, CC BY-SA 4.0.
 - [Metrolinx, What’s in the GO bus fleet](https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet), D4500, Enviro500, and D45 CRT information.
 - [GO Transit, Our Vehicles](https://www.gotransit.com/en/about-go/our-vehicles), current D45 CRT fleet statement.

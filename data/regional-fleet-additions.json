@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "retrievedAt": "2026-09-05T00:00:00-04:00",
+  "retrievedAt": null,
+  "retrievalReceipt": "Exact source-retrieval timestamps were not retained for this local research pass.",
   "purpose": "Verified regional fleet facts for later integration. Null values state that the cited source does not support the field.",
   "agencies": [
     {
@@ -33,26 +34,15 @@
       "agencyName": "Hamilton Street Railway",
       "entries": [
         {
-          "scope": "exact photographed unit",
-          "unitLabel": "2283",
-          "manufacturer": "Nova Bus",
-          "model": "LFS CNG",
+          "scope": "operator-published capacity boundary",
+          "unitLabel": null,
+          "manufacturer": null,
+          "model": null,
           "vehicleYear": null,
           "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "Hamilton’s published COVID-era 30 and 50 customer figures are an operating restriction, not vehicle specifications." },
-          "photo": {
-            "exactUnit": true,
-            "depictedUnitLabel": "2283",
-            "sourceUrl": "https://commons.wikimedia.org/wiki/File:NovaBus_LFS_CNG_Hamilton_Street_Railway_(HSR)_unit_2283.jpg",
-            "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/69/NovaBus_LFS_CNG_Hamilton_Street_Railway_%28HSR%29_unit_2283.jpg",
-            "creator": "BrackishStowaway",
-            "license": "CC BY 4.0",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "sha256": "eb56fbff0e9556443a33b92771b3619e3db787b5501779fe92cd4e4d84690551"
-          },
-          "sources": [
-            "https://commons.wikimedia.org/wiki/File:NovaBus_LFS_CNG_Hamilton_Street_Railway_(HSR)_unit_2283.jpg",
-            "https://www.hamilton.ca/city-council/news-notices/news-releases/service-changes-hsr"
-          ]
+          "photo": null,
+          "photoReason": "No HSR photograph is registered because the previously proposed Commons asset has an unresolved creator-attribution conflict.",
+          "sources": ["https://www.hamilton.ca/city-council/news-notices/news-releases/service-changes-hsr"]
         }
       ]
     },
@@ -83,7 +73,7 @@
           "manufacturer": "Motor Coach Industries",
           "model": "D4500",
           "vehicleYear": null,
-          "capacity": { "seated": null, "standing": null, "total": 55, "basis": "operator-published total passengers", "reason": "Metrolinx does not publish a seated and standing split." },
+          "capacity": { "seated": 55, "standing": null, "total": null, "basis": "operator-published seating count", "reason": "Metrolinx does not publish a standing count or a total-capacity definition on this source." },
           "photo": null,
           "photoReason": "A Commons image depicts unit 5006, but no fleet-series or capacity claim is inferred from that image.",
           "sources": ["https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet"]
@@ -94,7 +84,7 @@
           "manufacturer": "Alexander Dennis Limited",
           "model": "Enviro500",
           "vehicleYear": null,
-          "capacity": { "seated": null, "standing": null, "total": 81, "basis": "operator-published total passengers", "reason": "Metrolinx does not publish a seated and standing split." },
+          "capacity": { "seated": 81, "standing": null, "total": null, "basis": "operator-published seating count", "reason": "Metrolinx does not publish a standing count or a total-capacity definition on this source." },
           "photo": null,
           "photoReason": "No image is registered without an independently validated file SHA-256 receipt.",
           "sources": ["https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet"]
@@ -123,7 +113,7 @@
           "model": "Diesel multiple unit",
           "vehicleYear": null,
           "serviceStartYear": 2015,
-          "capacity": { "seated": null, "standing": null, "total": 180, "basis": "operator-published per-trip total", "reason": "Metrolinx does not publish a seated and standing split." },
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "The cited 180-passenger figure applies to a UP Express train trip, not an individual DMU vehicle." },
           "photo": null,
           "photoReason": "Existing image metadata depicts unit 1012, but the per-trip capacity source does not identify that exact unit.",
           "sources": [
