@@ -8,7 +8,8 @@ const msg = (field, bytes) => Uint8Array.from([...(v((field << 3) | 2)), ...v(by
 const str = (field, value) => msg(field, new TextEncoder().encode(value));
 const cat = (...parts) => Uint8Array.from(parts.flatMap((p) => [...p]));
 const translation = (value) => msg(1, str(1, value));
-const alert = ({ routeId, title, description, url }) => cat(msg(5, str(2, routeId)), msg(10, translation(title)), msg(11, translation(description)), msg(8, translation(url)));
+const selector = ({ agencyId, routeId, routeType, stopId }) => cat(agencyId ? str(1, agencyId) : new Uint8Array(), routeId ? str(2, routeId) : new Uint8Array(), Number.isInteger(routeType) ? scalar(3, routeType) : new Uint8Array(), stopId ? str(5, stopId) : new Uint8Array());
+const alert = ({ agencyId, routeId, routeType, stopId, title, description, url }) => cat(msg(5, selector({ agencyId, routeId, routeType, stopId })), msg(10, translation(title)), msg(11, translation(description)), msg(8, translation(url)));
 const entity = (id, a) => cat(str(1, id), msg(5, alert(a)));
 const feed = (timestamp = Math.floor(Date.now() / 1000), ...entities) => cat(msg(1, cat(str(1, '2.0'), scalar(3, timestamp))), ...entities.map((e) => msg(2, e)));
 
@@ -30,6 +31,32 @@ test('maps TTC website route alerts to subway and LRT lines', () => {
   assert.equal(result.lines.find((line) => line.id === '5').state, 'disrupted');
   assert.equal(result.lines.find((line) => line.id === '1').state, 'good');
   assert.equal(result.alerts.length, 2);
+  assert.deepEqual(result.alerts.find((alert) => alert.id === 'streetcar-alert').routeIds, ['505']);
+  assert.deepEqual(result.alerts.find((alert) => alert.id === 'streetcar-alert').routeRefs, [{ routeId: '505', routeType: 'Streetcar' }]);
+});
+
+test('retains GTFS-Realtime route types and every comma- or pipe-separated TTC route identifier', () => {
+  const now = 1700000000000;
+  const realtime = parseTtcAlerts(feed(Math.floor(now / 1000), entity('typed', { routeId: '324', routeType: 3, title: 'Bus diversion', description: 'Detour.', url: 'https://www.ttc.ca/service-alerts' })), { now });
+  assert.deepEqual(realtime.alerts[0].routeIds, ['324']);
+  assert.deepEqual(realtime.alerts[0].routeRefs, [{ routeId: '324', routeType: 3 }]);
+  const web = parseTtcWebAlerts({ lastUpdated: '2026-09-04T18:00:00Z', routeAlerts: [{ id: 'many', route: '324, 501|301|324', routeType: 'Bus', activePeriod: {}, title: 'Several routes' }] }, { fetchedAt: '2026-09-04T18:00:01.000Z', now: Date.parse('2026-09-04T18:00:01Z') });
+  assert.deepEqual(web.alerts[0].routeIds, ['324', '501', '301']);
+  assert.deepEqual(web.alerts[0].routeRefs, [{ routeId: '324', routeType: 'Bus' }, { routeId: '501', routeType: 'Bus' }, { routeId: '301', routeType: 'Bus' }]);
+});
+
+test('fails closed for a GTFS-Realtime selector restricted only to a stop', () => {
+  const now = 1700000000000;
+  const result = parseTtcAlerts(feed(Math.floor(now / 1000), entity('stop-only', { stopId: '1234', title: 'Stop notice', description: 'Details.', url: 'https://www.ttc.ca/service-alerts' })), { now });
+  assert.equal(result.alerts[0].routeScope, 'unknown');
+  assert.ok(result.lines.every((line) => line.state === 'unknown'));
+});
+
+test('treats an agency-only GTFS-Realtime selector as an explicit network scope', () => {
+  const now = 1700000000000;
+  const result = parseTtcAlerts(feed(Math.floor(now / 1000), entity('agency-wide', { agencyId: 'ttc', title: 'Network notice', description: 'Details.', url: 'https://www.ttc.ca/service-alerts' })), { now });
+  assert.equal(result.alerts[0].routeScope, 'network');
+  assert.ok(result.lines.every((line) => line.state === 'disrupted'));
 });
 
 test('preserves a timezone-naive publisher update as text without inventing an instant', () => {
