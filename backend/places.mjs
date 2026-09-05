@@ -19,27 +19,90 @@ export async function searchPlaces(query, limit = 20) {
   return rankPlaces(await loadStops(), query, limit);
 }
 
-const normalize = (value) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const ignoredTerms = new Set(["and", "at", "the"]);
+const roadAliases = new Map([
+  ["avenue", "ave"], ["av", "ave"], ["road", "rd"], ["street", "st"],
+  ["boulevard", "blvd"], ["drive", "dr"], ["lane", "ln"], ["court", "ct"],
+  ["parkway", "pkwy"], ["highway", "hwy"], ["saint", "st"],
+]);
+const highwayForms = new Set(["hwy", "highway"]);
+const saintForms = new Set(["st", "saint"]);
+const hubTerms = new Set(["station", "terminal", "airport", "centre", "center"]);
+
+const fold = (value) => String(value ?? "")
+  .normalize("NFKD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLocaleLowerCase();
+const tokenize = (value) => fold(value)
+  .replace(/[^a-z0-9]+/g, " ")
+  .trim()
+  .split(" ")
+  .filter((term) => term && !ignoredTerms.has(term))
+  .map((term) => roadAliases.get(term) ?? term);
+const numeric = (term) => /^\d+$/.test(term);
+const highwayContext = (terms, index) => numeric(terms[index - 1] ?? "") || numeric(terms[index + 1] ?? "");
+
+function termForms(terms, index) {
+  const term = terms[index];
+  const forms = new Set([term]);
+  if (highwayForms.has(term)) for (const form of highwayForms) forms.add(form);
+  if (saintForms.has(term)) for (const form of saintForms) forms.add(form);
+  if ((term === "high" || term === "route") && highwayContext(terms, index)) forms.add("hwy");
+  return forms;
+}
+
+function termMatch(queryTerms, queryIndex, candidateTerms, candidateIndex) {
+  const queryTerm = queryTerms[queryIndex];
+  const queryForms = termForms(queryTerms, queryIndex);
+  const candidateForms = termForms(candidateTerms, candidateIndex);
+  if ([...queryForms].some((form) => candidateForms.has(form))) return 0;
+  if (!numeric(queryTerm) && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
+  return null;
+}
+
+function bestTermMatch(queryTerms, queryIndex, candidateTerms) {
+  let best = null;
+  for (let candidateIndex = 0; candidateIndex < candidateTerms.length; candidateIndex += 1) {
+    const quality = termMatch(queryTerms, queryIndex, candidateTerms, candidateIndex);
+    if (quality !== null && (!best || quality < best.quality || (quality === best.quality && candidateIndex < best.index))) best = { quality, index: candidateIndex };
+  }
+  return best;
+}
+
+function exactPhraseIndex(queryTerms, candidateTerms) {
+  for (let start = 0; start <= candidateTerms.length - queryTerms.length; start += 1) {
+    if (queryTerms.every((_, queryIndex) => termMatch(queryTerms, queryIndex, candidateTerms, start + queryIndex) === 0)) return start;
+  }
+  return -1;
+}
 
 export function rankPlaces(stops, query, limit = 20) {
-  const q = normalize(query);
-  if (!q) return [];
-  const tokens = q.split(" ");
+  const rawQuery = String(query ?? "");
+  const tokens = tokenize(rawQuery);
+  const boundedLimit = Math.max(0, Math.min(20, Number.isFinite(Number(limit)) ? Math.floor(Number(limit)) : 20));
+  if (!Array.isArray(stops) || !tokens.length || tokens.length > 12 || rawQuery.length > 120 || !boundedLimit) return [];
   const score = (stop) => {
-    const name = normalize(stop.name); const agency = normalize(stop.agency); const code = normalize(stop.code);
-    const words = new Set(name.split(" "));
-    if (!tokens.every((token) => words.has(token) || agency.split(" ").includes(token) || code.split(" ").includes(token))) return null;
-    const exact = name === q;
-    const hub = /\b(station|terminal|airport|centre|center)\b/.test(name);
-    const prefix = name.startsWith(`${q} `);
-    const phraseIndex = name.split(" ").findIndex((_, index, all) => all.slice(index, index + tokens.length).join(" ") === q);
-    const tier = exact ? 0 : hub ? 1 : prefix ? 2 : phraseIndex >= 0 ? 3 : agency === q ? 4 : 5;
-    return [tier, Number(stop.locationType) === 1 ? 0 : 1, phraseIndex < 0 ? 999 : phraseIndex, name.length, name, agency, String(stop.id)];
+    const nameTerms = tokenize(stop.name); const agencyTerms = tokenize(stop.agency); const codeTerms = tokenize(stop.code);
+    const fields = [nameTerms, agencyTerms, codeTerms];
+    if (!tokens.every((_, index) => fields.some((terms) => bestTermMatch(tokens, index, terms) !== null))) return null;
+    const nameMatches = tokens.map((_, index) => bestTermMatch(tokens, index, nameTerms));
+    const allNameTermsMatch = nameMatches.every(Boolean);
+    const allNameTermsExact = allNameTermsMatch && nameMatches.every((match) => match.quality === 0);
+    const exact = allNameTermsExact && nameTerms.length === tokens.length;
+    const forwardPhraseIndex = allNameTermsExact ? exactPhraseIndex(tokens, nameTerms) : -1;
+    const reversePhraseIndex = allNameTermsExact ? exactPhraseIndex([...tokens].reverse(), nameTerms) : -1;
+    const phraseIndex = [forwardPhraseIndex, reversePhraseIndex].filter((index) => index >= 0).sort((left, right) => left - right)[0] ?? -1;
+    const hub = nameTerms.some((term) => hubTerms.has(term));
+    const exactAgency = agencyTerms.length === tokens.length && tokens.every((_, index) => termMatch(tokens, index, agencyTerms, index) === 0);
+    const tier = exact ? 0 : allNameTermsExact && hub ? 1 : allNameTermsExact && phraseIndex >= 0 ? 2 : allNameTermsExact ? 3 : allNameTermsMatch ? 4 : exactAgency ? 5 : 6;
+    const prefixCount = nameMatches.filter((match) => match?.quality === 1).length;
+    const name = nameTerms.join(" "); const agency = agencyTerms.join(" ");
+    return [tier, prefixCount, Number(stop.locationType) === 1 ? 0 : 1, phraseIndex < 0 ? 999 : phraseIndex, name.length, name, agency, String(stop.id)];
   };
   const compare = (a, b) => { for (let index = 0; index < a.length; index += 1) { const value = typeof a[index] === "number" ? a[index] - b[index] : String(a[index]).localeCompare(String(b[index])); if (value) return value; } return 0; };
   const ranked = stops.map((stop) => ({ stop, score: score(stop) })).filter((item) => item.score !== null).sort((a, b) => compare(a.score, b.score));
   const seen = new Set();
-  return ranked.filter(({ stop }) => { const lat = Number(stop.lat); const lon = Number(stop.lon); const location = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat}|${lon}` : `id:${stop.id}`; const key = `${normalize(stop.name)}|${normalize(stop.agency)}|${location}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, limit).map(({ stop }) => ({
+  return ranked.filter(({ stop }) => { const lat = Number(stop.lat); const lon = Number(stop.lon); const location = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat}|${lon}` : `id:${stop.id}`; const key = `${tokenize(stop.name).join(" ")}|${tokenize(stop.agency).join(" ")}|${location}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, boundedLimit).map(({ stop }) => ({
     id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", feedId: stop.feedId ?? null, locationType: Number(stop.locationType ?? 0), parentStation: stop.parentStation ?? null, ...(stop.agency ? { agency: String(stop.agency) } : {})
   }));
 }

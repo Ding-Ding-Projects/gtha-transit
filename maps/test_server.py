@@ -119,5 +119,67 @@ class MapRevisionHttpTest(unittest.TestCase):
         self.assertEqual(server.REVISION_CACHE._entry, (results[0][1], results[0][0]))
 
 
+class PlaceSearchHttpTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.index = os.path.join(self.temporary.name, "places.sqlite3")
+        self.previous_index = server.INDEX
+        with closing(sqlite3.connect(self.index)) as db:
+            db.execute(
+                "CREATE VIRTUAL TABLE places USING fts5(name, search_text, kind UNINDEXED, "
+                "lat UNINDEXED, lon UNINDEXED, source_id UNINDEXED, "
+                "tokenize='unicode61 remove_diacritics 2')"
+            )
+            db.executemany(
+                "INSERT INTO places VALUES (?,?,?,?,?,?)",
+                [
+                    ("Warden Avenue & Highway 7", "warden ave hwy 7 intersection", "intersection", None, None, "fixture/warden-hwy7"),
+                    ("Ward Avenue", "ward ave", "road", None, None, "fixture/ward-avenue"),
+                    ("Highway 7", "hwy 7", "road", None, None, "fixture/highway7"),
+                    ("Yonge Street & Eglinton Avenue", "yonge st eglinton ave intersection", "intersection", None, None, "fixture/yonge-eglinton"),
+                    ("Union Station", "union station", "station", None, None, "fixture/union-station"),
+                    ("Union Avenue at Queen", "union ave queen", "road", None, None, "fixture/union-avenue"),
+                    ("Saint Clair Avenue", "st clair ave", "road", None, None, "fixture/saint-clair"),
+                    ("High Park", "high park", "place", None, None, "fixture/high-park"),
+                    ("Route Place", "route place", "place", None, None, "fixture/route-place"),
+                    ("Yonge Station", "yonge station", "station", None, None, "fixture/yonge-station"),
+                    ("York Mills Station", "york mills station", "station", None, None, "fixture/york-mills"),
+                ],
+            )
+            db.commit()
+        server.INDEX = self.index
+        self.httpd = server.ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+        self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+        self.thread.start()
+        self.base = f"http://127.0.0.1:{self.httpd.server_port}"
+
+    def tearDown(self):
+        self.httpd.shutdown()
+        self.httpd.server_close()
+        self.thread.join(timeout=5)
+        server.INDEX = self.previous_index
+        self.temporary.cleanup()
+
+    def search(self, query):
+        with urllib.request.urlopen(f"{self.base}/search?{urllib.parse.urlencode({'q': query})}", timeout=5) as response:
+            self.assertEqual(response.status, 200)
+            return json.loads(response.read())["results"]
+
+    def test_search_matches_partial_aliases_word_order_diacritics_and_ambiguity(self):
+        for query in ("Warden Highway 7", "Warden Hwy 7", "ward high 7", "Highway 7 Warden"):
+            self.assertEqual(self.search(query)[0]["id"], "fixture/warden-hwy7")
+        self.assertEqual([item["id"] for item in self.search("ward high 7")], ["fixture/warden-hwy7"])
+        for query in ("Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"):
+            self.assertEqual(self.search(query)[0]["id"], "fixture/yonge-eglinton")
+        for query in ("Saint Clair", "St. Clair"):
+            self.assertEqual(self.search(query)[0]["id"], "fixture/saint-clair")
+        self.assertEqual(self.search("union")[0]["id"], "fixture/union-station")
+        self.assertEqual(self.search("high park")[0]["id"], "fixture/high-park")
+        self.assertEqual(self.search("route place")[0]["id"], "fixture/route-place")
+        short_prefix_ids = {item["id"] for item in self.search("yo")}
+        self.assertIn("fixture/yonge-station", short_prefix_ids)
+        self.assertIn("fixture/york-mills", short_prefix_ids)
+
+
 if __name__ == "__main__":
     unittest.main()

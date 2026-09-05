@@ -111,6 +111,119 @@ function allowed(key) {
   }
   return ++b.n <= 120;
 }
+const placeIgnoredTerms = new Set(['and', 'at', 'the']);
+const placeAliases = new Map([
+  ['avenue', 'ave'], ['av', 'ave'], ['road', 'rd'], ['street', 'st'],
+  ['boulevard', 'blvd'], ['drive', 'dr'], ['lane', 'ln'], ['court', 'ct'],
+  ['parkway', 'pkwy'], ['highway', 'hwy'], ['saint', 'st'],
+]);
+const placeHighwayForms = new Set(['hwy', 'highway']);
+const placeSaintForms = new Set(['st', 'saint', 'street']);
+const placeHubTerms = new Set(['station', 'terminal', 'airport', 'centre', 'center']);
+
+function placeTerms(value) {
+  return String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter((term) => term && !placeIgnoredTerms.has(term))
+    .map((term) => placeAliases.get(term) ?? term);
+}
+function placeNumeric(term) { return /^\d+$/.test(term); }
+function placeHighwayContext(terms, index) {
+  return placeNumeric(terms[index - 1] ?? '') || placeNumeric(terms[index + 1] ?? '');
+}
+function placeTermForms(terms, index) {
+  const term = terms[index];
+  const forms = new Set([term]);
+  if (placeHighwayForms.has(term)) for (const form of placeHighwayForms) forms.add(form);
+  if (placeSaintForms.has(term)) for (const form of placeSaintForms) forms.add(form);
+  if ((term === 'high' || term === 'route') && placeHighwayContext(terms, index)) forms.add('hwy');
+  return forms;
+}
+function placeTermStrength(queryTerms, queryIndex, candidateTerms, candidateIndex) {
+  const queryTerm = queryTerms[queryIndex];
+  const queryForms = placeTermForms(queryTerms, queryIndex);
+  const candidateForms = placeTermForms(candidateTerms, candidateIndex);
+  if ([...queryForms].some((form) => candidateForms.has(form))) return 0;
+  if (!placeNumeric(queryTerm) && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
+  return null;
+}
+function placeBestTermMatch(queryTerms, queryIndex, candidateTerms) {
+  let best = null;
+  for (let candidateIndex = 0; candidateIndex < candidateTerms.length; candidateIndex += 1) {
+    const quality = placeTermStrength(queryTerms, queryIndex, candidateTerms, candidateIndex);
+    if (quality !== null && (!best || quality < best.quality || (quality === best.quality && candidateIndex < best.index))) best = { quality, index: candidateIndex };
+  }
+  return best;
+}
+function placeExactPhraseIndex(queryTerms, candidateTerms) {
+  for (let start = 0; start <= candidateTerms.length - queryTerms.length; start += 1) {
+    if (queryTerms.every((_, index) => placeTermStrength(queryTerms, index, candidateTerms, start + index) === 0)) return start;
+  }
+  return -1;
+}
+function placeRank(place, queryTerms) {
+  const nameTerms = placeTerms(place.name);
+  const matches = queryTerms.map((_, index) => placeBestTermMatch(queryTerms, index, nameTerms));
+  const allNameTermsMatch = matches.every(Boolean);
+  const allNameTermsExact = allNameTermsMatch && matches.every((match) => match.quality === 0);
+  const exact = allNameTermsExact && nameTerms.length === queryTerms.length;
+  const forwardPhrase = allNameTermsExact ? placeExactPhraseIndex(queryTerms, nameTerms) : -1;
+  const reversePhrase = allNameTermsExact ? placeExactPhraseIndex([...queryTerms].reverse(), nameTerms) : -1;
+  const phrasePositions = [forwardPhrase, reversePhrase].filter((index) => index >= 0);
+  const phraseIndex = phrasePositions.length ? Math.min(...phrasePositions) : 999;
+  const hub = nameTerms.some((term) => placeHubTerms.has(term));
+  const kind = String(place.kind ?? '').toLocaleLowerCase();
+  const tier = exact ? 0 : allNameTermsExact && hub ? 1 : allNameTermsExact && kind === 'intersection' ? 2 : allNameTermsExact && phrasePositions.length ? 3 : allNameTermsExact ? 4 : allNameTermsMatch && kind === 'intersection' ? 5 : 6;
+  const prefixCount = matches.filter((match) => match?.quality === 1).length;
+  return [tier, prefixCount, phraseIndex, nameTerms.length, nameTerms.join(' '), String(place.id ?? '')];
+}
+function comparePlaceRanks(left, right) {
+  for (let index = 0; index < left.length; index += 1) {
+    const value = typeof left[index] === 'number' ? left[index] - right[index] : String(left[index]).localeCompare(String(right[index]));
+    if (value) return value;
+  }
+  return 0;
+}
+function mergedPlaces(stops, mapPlaces, query) {
+  const queryTerms = placeTerms(query);
+  const ranked = [...stops, ...mapPlaces]
+    .filter((place) => place && typeof place === 'object')
+    .map((place) => ({ place, rank: placeRank(place, queryTerms) }))
+    .sort((left, right) => comparePlaceRanks(left.rank, right.rank));
+  const ids = new Set();
+  const locations = new Set();
+  return ranked.filter(({ place }) => {
+    const id = place.id == null ? '' : String(place.id);
+    if (id && ids.has(id)) return false;
+    const lat = Number(place.lat); const lon = Number(place.lon);
+    const hasLocation = place.lat != null && place.lon != null && Number.isFinite(lat) && Number.isFinite(lon);
+    const location = hasLocation ? `${placeTerms(place.name).join(' ')}|${placeTerms(place.agency).join(' ')}|${lat}|${lon}` : null;
+    if (location && locations.has(location)) return false;
+    if (id) ids.add(id);
+    if (location) locations.add(location);
+    return true;
+  }).slice(0, 25).map(({ place }) => place);
+}
+async function placeSource(origin, requestPath, field) {
+  try {
+    const response = await fetch(origin + requestPath, {
+      signal: AbortSignal.timeout(2500),
+      redirect: 'error',
+    });
+    if (!response.ok) return { available: false, places: [] };
+    const payload = JSON.parse((await bounded(response, 256 * 1024)).toString('utf8'));
+    const places = field === 'map' ? payload.results ?? payload.places : payload.places;
+    return { available: true, places: Array.isArray(places) ? places.slice(0, 20) : [] };
+  } catch {
+    return { available: false, places: [] };
+  }
+}
+
 let activeRequests = 0;
 const server = http.createServer(async (req, res) => {
   if (activeRequests >= 16)
@@ -261,6 +374,22 @@ const server = http.createServer(async (req, res) => {
         (url.pathname !== '/api/plan' && req.method !== 'GET')
       )
         return send(res, 405, { error: 'Method not allowed.' });
+      if (url.pathname === '/api/places') {
+        const [routingPlaces, mapPlaces] = await Promise.all([
+          placeSource(routing, '/api/places' + url.search, 'routing'),
+          placeSource(maps, '/search' + url.search, 'map'),
+        ]);
+        if (!routingPlaces.available && !mapPlaces.available)
+          return send(res, 503, { error: 'Place search is temporarily unavailable.', sources: { routing: 'unavailable', maps: 'unavailable' } });
+        return send(res, 200, {
+          places: mergedPlaces(routingPlaces.places, mapPlaces.places, url.searchParams.get('q')),
+          partial: !routingPlaces.available || !mapPlaces.available,
+          sources: {
+            routing: routingPlaces.available ? 'available' : 'unavailable',
+            maps: mapPlaces.available ? 'available' : 'unavailable',
+          },
+        });
+      }
       const input = req.method === 'POST' ? await body(req) : undefined;
       const upstream = await fetch(routing + url.pathname + url.search, {
         method: req.method,
@@ -292,23 +421,6 @@ const server = http.createServer(async (req, res) => {
               ? 'Regional routing is temporarily unavailable. Please try again shortly.'
               : 'The journey request could not be completed. Check the locations, date and preferences.',
         });
-      }
-      if (url.pathname === '/api/places') {
-        try {
-          const stops = JSON.parse(payload);
-          const r = await fetch(maps + '/search' + url.search, {
-            signal: AbortSignal.timeout(2500),
-            redirect: 'error',
-          });
-          if (r.ok) {
-            const places = JSON.parse(await bounded(r, 256 * 1024));
-            stops.places = [
-              ...(stops.places || []),
-              ...(places.places || places.results || []),
-            ].slice(0, 25);
-            payload = Buffer.from(JSON.stringify(stops));
-          }
-        } catch {}
       }
       if (url.pathname === '/api/plan') {
         try {
