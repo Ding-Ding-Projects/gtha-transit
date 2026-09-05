@@ -16,28 +16,43 @@ async function loadStops() {
 }
 
 export async function searchPlaces(query, limit = 20) {
-  const normalize = (value) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return rankPlaces(await loadStops(), query, limit);
+}
+
+const normalize = (value) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+export function rankPlaces(stops, query, limit = 20) {
   const q = normalize(query);
   if (!q) return [];
-  const stops = await loadStops();
   const tokens = q.split(" ");
   const score = (stop) => {
     const name = normalize(stop.name); const agency = normalize(stop.agency); const code = normalize(stop.code);
     const words = new Set(name.split(" "));
     if (!tokens.every((token) => words.has(token) || agency.split(" ").includes(token) || code.split(" ").includes(token))) return null;
-    let value = 1000;
-    if (name === q) value -= 700;
-    else if (name.startsWith(`${q} `)) value -= 500;
-    else if (name.split(" ").some((_, index, words) => words.slice(index, index + tokens.length).join(" ") === q)) value -= 350;
-    else if (agency === q) value -= 250;
-    if (Number(stop.locationType) === 1) value -= 180;
-    if (/\b(station|terminal|centre|center)\b/.test(name) || /\bgo\b/.test(name)) value -= 220;
-    if (!stop.parentStation) value -= 20;
-    return value + Math.min(name.length, 200);
+    const exact = name === q;
+    const hub = /\b(station|terminal|airport|centre|center)\b/.test(name);
+    const prefix = name.startsWith(`${q} `);
+    const phraseIndex = name.split(" ").findIndex((_, index, all) => all.slice(index, index + tokens.length).join(" ") === q);
+    const tier = exact ? 0 : hub ? 1 : prefix ? 2 : phraseIndex >= 0 ? 3 : agency === q ? 4 : 5;
+    return [tier, Number(stop.locationType) === 1 ? 0 : 1, phraseIndex < 0 ? 999 : phraseIndex, name.length, name, agency, String(stop.id)];
   };
-  return stops.map((stop) => ({ stop, score: score(stop) })).filter((item) => item.score !== null).sort((a, b) => a.score - b.score || a.stop.name.localeCompare(b.stop.name)).slice(0, limit).map(({ stop }) => ({
-    id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", ...(stop.agency ? { agency: String(stop.agency) } : {})
+  const compare = (a, b) => { for (let index = 0; index < a.length; index += 1) { const value = typeof a[index] === "number" ? a[index] - b[index] : String(a[index]).localeCompare(String(b[index])); if (value) return value; } return 0; };
+  const ranked = stops.map((stop) => ({ stop, score: score(stop) })).filter((item) => item.score !== null).sort((a, b) => compare(a.score, b.score));
+  const seen = new Set();
+  return ranked.filter(({ stop }) => { const key = `${normalize(stop.name)}|${normalize(stop.agency)}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, limit).map(({ stop }) => ({
+    id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", feedId: stop.feedId ?? null, locationType: Number(stop.locationType ?? 0), parentStation: stop.parentStation ?? null, ...(stop.agency ? { agency: String(stop.agency) } : {})
   }));
+}
+
+export function coverageContextForDate(provenance, date) {
+  const unavailableAgencies = (provenance.feeds ?? []).filter((feed) => feed.activeTripsByDate?.[date] === 0).map((feed) => ({ id: feed.id, nextServiceDate: Object.entries(feed.activeTripsByDate).find(([candidate, count]) => candidate > date && count > 0)?.[0] ?? null }));
+  return { date, unavailableAgencies };
+}
+
+export function calendarDateInTimeZone(dateTime, timeZone = "America/Toronto") {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(dateTime));
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export async function graphProvenance() {

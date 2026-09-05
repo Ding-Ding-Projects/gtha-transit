@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { searchPlaces, coverage, graphProvenance } from "./places.mjs";
+import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, rankPlaces, searchPlaces } from "./places.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
 import { readFile } from "node:fs/promises";
+import http from "node:http";
+import { spawn } from "node:child_process";
 import { graphqlDocument } from "./otp-client.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
@@ -34,11 +36,54 @@ test("washroom preference only promotes confirmed transit facilities", async () 
   assert.equal(result.itineraries[0].washroomPreferenceApplied, true);
   assert.equal(result.itineraries[0].totalDistance, 500);
 });
-test("service readiness and unavailable-date responses use typed public codes", async () => {
+test("service readiness uses a typed public code without guessing an agency", async () => {
   const source = await readFile(new URL("./server.mjs", import.meta.url), "utf8");
   assert.match(source, /code: "ROUTER_UNAVAILABLE"/);
-  assert.match(source, /code: "SCHEDULE_DATE_UNAVAILABLE"/);
   assert.match(source, /await otpReady\(/);
+  assert.doesNotMatch(source, /inTtcArea|SCHEDULE_DATE_UNAVAILABLE/);
   assert.match(source, /"\/api\/vehicles\/metrolinx"/);
   assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
+});
+test("Pearson search ranks transit airports before unrelated street stops", () => {
+  const streets = Array.from({ length: 25 }, (_, index) => ({ id: `yrt:${index}`, name: `Pearson Av at Street ${index}`, agency: "YRT", feedId: "yrt" }));
+  const ranked = rankPlaces([...streets, { id: "up:PA", name: "UP Express Pearson Airport", agency: "UP Express", feedId: "up" }, { id: "go:PA", name: "Pearson Airport Terminal 1", agency: "GO Transit", feedId: "go" }], "Pearson", 20);
+  assert.equal(ranked[0].id, "go:PA");
+  assert.equal(ranked[1].id, "up:PA");
+});
+test("place ranking deduplicates deterministically and preserves identity metadata", () => {
+  const ranked = rankPlaces([{ id: "ttc:2", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 0 }, { id: "ttc:1", name: "Finch Station", agency: "TTC", feedId: "ttc", locationType: 1 }], "Finch", 20);
+  assert.equal(ranked.length, 1);
+  assert.equal(ranked[0].id, "ttc:1");
+  assert.equal(ranked[0].feedId, "ttc");
+  assert.equal(ranked[0].locationType, 1);
+});
+test("empty-route coverage reports every unavailable feed without selecting one", () => {
+  const context = coverageContextForDate({ feeds: [{ id: "ttc", activeTripsByDate: { "2026-09-04": 0, "2026-09-06": 10 } }, { id: "burlington", activeTripsByDate: { "2026-09-04": 0, "2026-09-07": 5 } }, { id: "up", activeTripsByDate: { "2026-09-04": 2 } }] }, "2026-09-04");
+  assert.deepEqual(context, { date: "2026-09-04", unavailableAgencies: [{ id: "ttc", nextServiceDate: "2026-09-06" }, { id: "burlington", nextServiceDate: "2026-09-07" }] });
+});
+test("coverage date uses the graph timezone across an offset boundary", () => {
+  assert.equal(calendarDateInTimeZone("2026-09-05T02:30:00Z", "America/Toronto"), "2026-09-04");
+  assert.equal(calendarDateInTimeZone("2026-09-05T04:30:00Z", "America/Toronto"), "2026-09-05");
+});
+test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
+  const mock = http.createServer(async (request, response) => {
+    let body = ""; for await (const chunk of request) body += chunk;
+    const query = JSON.parse(body).query;
+    const data = query.includes("planConnection") ? { planConnection: { edges: [] } } : { stop: { name: "Union Station GO" } };
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const probe = http.createServer(); await new Promise((resolve) => probe.listen(0, "127.0.0.1", resolve)); const port = probe.address().port; await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["server.mjs"], { cwd: new URL(".", import.meta.url), env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", OTP_URL: `http://127.0.0.1:${mock.address().port}` }, stdio: "ignore" });
+  context.after(() => child.kill());
+  let healthy = false; for (let attempt = 0; attempt < 40; attempt += 1) { try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { healthy = true; break; } } catch {} await new Promise((resolve) => setTimeout(resolve, 50)); }
+  assert.equal(healthy, true);
+  const response = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00", maxWalkDistance: 1500, preference: "fastest" }) });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.deepEqual(payload.itineraries, []);
+  assert.deepEqual(payload.coverage, { date: "2026-09-04", unavailableAgencies: [] });
+  assert.equal(payload.agency, undefined);
+  assert.equal(payload.error, undefined);
 });
