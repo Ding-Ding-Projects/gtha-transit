@@ -36,6 +36,22 @@ test("facility coordinates need official source evidence before routing", async 
   assert.equal(result.unresolved.code, "FACILITY_COORDINATES_UNAVAILABLE");
 });
 
+test("a verified agency-qualified station identity can provide a facility coordinate", async () => {
+  const identityFacility = {
+    ...opened,
+    facilityId: "station-index-facility",
+    coordinates: null,
+    stationIdentity: { agencyId: "go", stationId: "go:FIX", sourceUrl: "https://publisher.example/gtfs", sourceReceiptId: "official-gtfs", reference: "GO GTFS stop_id=FIX" }
+  };
+  const stopIndex = [{ id: "go:FIX", agencyId: "go", name: "Not Used For Matching", lat: 43.65, lon: -79.38 }];
+  const planner = async (request) => request.to.lat === 43.65 ? itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "facility" }) : itinerary({ duration: 300, endTime: "2026-09-07T12:06:00-04:00", id: "continuation" });
+  const result = await planWashroomDetour(input(), { planWithOtp: planner, facilityRegistry: [identityFacility], stopIndex });
+  assert.equal(result.status, "complete");
+  assert.equal(result.facilityLeg.locationSource.kind, "verified-stop-index");
+  assert.equal(result.facilityLeg.locationSource.stopId, "go:FIX");
+  assert.equal(result.facilityLeg.locationSource.sourceReceiptId, "official-gtfs");
+});
+
 test("unknown and closed-at-arrival facilities never become automatic detours", async () => {
   const unknown = { ...opened, facilityId: "unknown-hours", hours: { status: "unknown", timezone: "America/Toronto", weekly: null } };
   const unknownResult = await planWashroomDetour(input(), { planWithOtp: async () => { throw new Error("must not route"); }, facilityRegistry: [unknown] });

@@ -13,7 +13,7 @@ Display names are not identities. This prevents a street or intersection called 
 
 `facilityAvailability(facility, at)` returns one of `confirmed-open`, `closed`, or `unknown`. It evaluates official weekly intervals, cross-midnight intervals, named time zones, and dated exceptions. A missing, malformed, unsupported, or unavailable schedule is `unknown`, never an open claim.
 
-Each leg endpoint and intermediate stop can carry `washroom` metadata. Preference ranking only considers a confirmed-open facility at a transit boarding or alighting point. Metadata for an intermediate pass-through stop is preserved for display but cannot improve an itinerary's ranking.
+Each leg endpoint and intermediate stop can carry `washroom` metadata. Preference ranking treats a source-confirmed transit station or terminal as useful unless published hours say it is closed. An unknown transit schedule remains explicitly `unknown` and is never presented as open. Municipal facilities such as libraries require `confirmed-open` hours before they can improve an itinerary. Metadata for an intermediate pass-through stop is preserved for display but cannot improve an itinerary's ranking.
 
 The official source receipts, facility identifiers, and conservative hours records are documented in [washroom sources](washroom-sources.md).
 
@@ -61,7 +61,7 @@ The operation sorts verified-coordinate candidates by straight-line distance, co
 
 `internalWalkingUnknown` means the transit result reaches the facility coordinate but does not claim a distance, route, accessibility condition, or access time inside the building.
 
-Municipal facilities without official routing coordinates remain explicit `FACILITY_COORDINATES_UNAVAILABLE` results. They are never assigned guessed coordinates. Facilities with unknown hours are not automatic urgent-detour candidates.
+Municipal facilities without official routing coordinates remain explicit `FACILITY_COORDINATES_UNAVAILABLE` results. They are never assigned guessed coordinates. A station can also use a uniquely matched, agency-qualified GTFS stop from the local stop index when its facility record carries official identity source evidence. Facilities with unknown hours are not automatic urgent-detour candidates.
 
 ## Verification
 

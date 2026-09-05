@@ -141,6 +141,25 @@ test("washroom metadata reaches pass-through stops without changing preference r
   assert.deepEqual(result.itineraries[0].washrooms, []);
   assert.equal(result.washroomPreferenceApplied, false);
 });
+test("unknown transit presence can be preferred without presenting it as open", async () => {
+  const at = "2026-09-07T12:00:00-04:00";
+  const facilityRegistry = [
+    { agencyId: "ttc", facilityId: "ttc-unknown", stationIds: ["ttc:UNKNOWN"], facilityType: "transit-station", names: ["Unknown Transit"], source: "https://publisher.example/transit", hours: { status: "unknown", timezone: "America/Toronto", weekly: null } },
+    { agencyId: "toronto", facilityId: "municipal-unknown", stationIds: ["toronto:UNKNOWN"], facilityType: "library", names: ["Unknown Library"], source: "https://publisher.example/library", hours: { status: "unknown", timezone: "America/Toronto", weekly: null } },
+    { agencyId: "ttc", facilityId: "ttc-closed", stationIds: ["ttc:CLOSED"], facilityType: "transit-station", names: ["Closed Transit"], source: "https://publisher.example/closed", hours: { timeZone: "America/Toronto", weekly: { mon: [{ open: "08:00", close: "09:00" }] } } }
+  ];
+  const leg = (agencyId, stationId, name) => ({ mode: "SUBWAY", agencyId, startTime: at, endTime: "2026-09-07T12:10:00-04:00", distance: 200, from: { name: "Origin", lat: 43.6, lon: -79.4 }, to: { name, stationId, lat: 43.61, lon: -79.39 } });
+  const transitUnknown = { id: "transit-unknown", duration: 1000, walkDistance: 100, legs: [leg("ttc", "ttc:UNKNOWN", "Unknown Transit")] };
+  const municipalUnknown = { id: "municipal-unknown", duration: 900, walkDistance: 100, legs: [leg("toronto", "toronto:UNKNOWN", "Unknown Library")] };
+  const transitClosed = { id: "transit-closed", duration: 800, walkDistance: 100, legs: [leg("ttc", "ttc:CLOSED", "Closed Transit")] };
+  const result = await applyWashroomPreference([municipalUnknown, transitClosed, transitUnknown], true, { facilityRegistry });
+  assert.equal(result.itineraries[0].id, "transit-unknown");
+  assert.equal(result.itineraries[0].washrooms[0].availability, "unknown");
+  assert.equal(result.washroomPreferenceApplied, true);
+  assert.deepEqual(result.itineraries.find((item) => item.id === "municipal-unknown").washrooms, []);
+  assert.deepEqual(result.itineraries.find((item) => item.id === "transit-closed").washrooms, []);
+  assert.match(result.note, /not an open claim/);
+});
 test("service readiness uses a typed public code without guessing an agency", async () => {
   const source = await readFile(new URL("./server.mjs", import.meta.url), "utf8");
   assert.match(source, /code: "ROUTER_UNAVAILABLE"/);

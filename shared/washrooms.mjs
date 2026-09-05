@@ -111,12 +111,12 @@ function coordinateIdentity(value) {
 
 /** Matches only an agency-qualified, verified stop or station identifier. Names are never identities. */
 export function matchWashroom(place, facilities, { agencyId = null, at = new Date() } = {}) {
-  const placeAgency = agencyKey(agencyId ?? place?.agencyId ?? place?.feedId ?? place?.agency?.id);
+  const placeAgency = agencyKey(agencyId ?? place?.agencyId ?? place?.agencyFeedId ?? place?.feedId ?? place?.agency?.id);
   const placeIds = identifiers(place);
   const placeCoordinate = coordinateIdentity(place);
   if (!placeAgency || (!placeIds.size && !placeCoordinate) || !Array.isArray(facilities)) return null;
   const matches = facilities.filter((facility) => {
-    const facilityAgency = agencyKey(facility?.agencyId ?? facility?.agency?.id ?? facility?.stationIdentity?.agencyId);
+    const facilityAgency = agencyKey(facility?.agencyId ?? facility?.agencyFeedId ?? facility?.agency?.id ?? facility?.stationIdentity?.agencyId);
     const sameId = [...placeIds].some((id) => identifiers(facility).has(id));
     return facilityAgency === placeAgency && (sameId || (placeCoordinate && placeCoordinate === coordinateIdentity(facility)));
   });

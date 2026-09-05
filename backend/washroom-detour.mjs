@@ -29,7 +29,7 @@ function identities(value) {
 }
 
 function agencyOf(value) {
-  return agencyKey(value?.agencyId ?? value?.feedId ?? value?.agency?.id ?? (text(value?.id)?.includes(":") ? value.id.slice(0, value.id.indexOf(":")) : null));
+  return agencyKey(value?.agencyId ?? value?.agencyFeedId ?? value?.feedId ?? value?.agency?.id ?? value?.stationIdentity?.agencyId ?? value?.identity?.agencyId ?? (text(value?.id)?.includes(":") ? value.id.slice(0, value.id.indexOf(":")) : null));
 }
 
 export function haversineMetres(left, right) {
@@ -51,6 +51,16 @@ function sourceEvidence(coordinates, fallbackSource = null) {
   };
 }
 
+function identityEvidence(facility) {
+  const identity = facility?.stationIdentity ?? facility?.identity ?? facility?.station ?? {};
+  return {
+    sourceUrl: text(identity?.sourceUrl) ?? text(facility?.source),
+    sourceReceiptId: text(identity?.sourceReceiptId) ?? text(facility?.sourceReceiptId),
+    retrievedAt: text(identity?.sourceRetrievedAt) ?? text(facility?.sourceRetrievedAt),
+    reference: text(identity?.reference)
+  };
+}
+
 /**
  * Resolves a facility only from its published coordinates or from an explicit,
  * agency-qualified GTFS identity. Display names are deliberately never used.
@@ -63,7 +73,8 @@ export function resolveFacilityLocation(facility, stopIndex = null) {
 
   const agencyId = agencyOf(facility);
   const facilityIds = identities(facility);
-  if (!agencyId || !facilityIds.size) return null;
+  const identitySource = identityEvidence(facility);
+  if (!agencyId || !facilityIds.size || !identitySource.sourceUrl || !identitySource.sourceReceiptId) return null;
   const matches = list(stopIndex).filter((stop) => agencyOf(stop) === agencyId && [...facilityIds].some((id) => identities(stop).has(id))).map((stop) => ({ stop, point: point(stop) })).filter((item) => item.point);
   if (matches.length !== 1) return null;
   const match = matches[0];
@@ -73,7 +84,10 @@ export function resolveFacilityLocation(facility, stopIndex = null) {
       kind: "verified-stop-index",
       stopId: text(match.stop.id) ?? text(match.stop.stopId) ?? null,
       agencyId,
-      reference: text(facility?.stationIdentity?.reference) ?? text(facility?.identity?.reference) ?? null
+      sourceUrl: identitySource.sourceUrl,
+      sourceReceiptId: identitySource.sourceReceiptId,
+      retrievedAt: identitySource.retrievedAt,
+      reference: identitySource.reference
     }
   };
 }
@@ -83,7 +97,7 @@ export function resolveCurrentPosition(currentPosition, stopIndex = null) {
   const direct = point(currentPosition);
   if (direct) return { point: direct, source: { kind: "request-coordinate" } };
   const requestedId = text(currentPosition?.stopId ?? currentPosition?.stationId ?? currentPosition?.id);
-  const requestedAgency = agencyKey(currentPosition?.agencyId ?? currentPosition?.feedId);
+  const requestedAgency = agencyKey(currentPosition?.agencyId ?? currentPosition?.agencyFeedId ?? currentPosition?.feedId);
   if (!requestedId || !requestedAgency) return null;
   const matches = list(stopIndex).filter((stop) => agencyOf(stop) === requestedAgency && identities(stop).has(requestedId)).map((stop) => ({ stop, point: point(stop) })).filter((item) => item.point);
   if (matches.length !== 1) return null;
