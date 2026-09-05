@@ -5,8 +5,10 @@ const keyFile = process.env.METROLINX_KEY_FILE ?? "/run/secrets/metrolinx-api-ke
 const sources = new Map([
   ["/internal/metrolinx/go/trips", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/TripUpdates"],
   ["/internal/metrolinx/go/alerts", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/Alerts"],
+  ["/internal/metrolinx/go/vehicles", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/VehiclePosition"],
   ["/internal/metrolinx/up/trips", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/TripUpdates"],
-  ["/internal/metrolinx/up/alerts", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/Alerts"]
+  ["/internal/metrolinx/up/alerts", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/Alerts"],
+  ["/internal/metrolinx/up/vehicles", "https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/VehiclePosition"]
 ]);
 const cache = new Map();
 const status = new Map();
@@ -48,7 +50,8 @@ http.createServer(async (req, res) => {
       let configured = false; try { configured = Boolean(await apiKey()); } catch {}
       const agencies = ["go", "up"].map((id) => {
         const trips = status.get(`/internal/metrolinx/${id}/trips`); const alerts = status.get(`/internal/metrolinx/${id}/alerts`);
-        return { id, state: trips ? "live" : configured ? "waiting" : "not_configured", capabilities: ["trip_updates", "service_alerts"], lastSuccessfulFetch: trips?.lastSuccessfulFetch ?? null, entityCount: trips?.entityCount ?? null, alertsLastSuccessfulFetch: alerts?.lastSuccessfulFetch ?? null, alertsEntityCount: alerts?.entityCount ?? null };
+        const vehicles = status.get(`/internal/metrolinx/${id}/vehicles`);
+        return { id, state: trips ? "live" : configured ? "waiting" : "not_configured", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"], lastSuccessfulFetch: trips?.lastSuccessfulFetch ?? null, entityCount: trips?.entityCount ?? null, vehiclesLastSuccessfulFetch: vehicles?.lastSuccessfulFetch ?? null, vehiclesEntityCount: vehicles?.entityCount ?? null, alertsLastSuccessfulFetch: alerts?.lastSuccessfulFetch ?? null, alertsEntityCount: alerts?.entityCount ?? null };
       });
       const body = Buffer.from(JSON.stringify({ configured, agencies }));
       res.writeHead(200, { "content-type": "application/json", "content-length": body.length, "cache-control": "no-store" }).end(body); return;

@@ -18,6 +18,8 @@ test("coverage reflects only validated feeds", async () => {
 test("OTP query uses the real planConnection GraphQL operation", () => {
   assert.match(graphqlDocument, /planConnection/);
   assert.match(graphqlDocument, /legGeometry/);
+  assert.match(graphqlDocument, /trip \{ gtfsId \}/);
+  assert.match(graphqlDocument, /agency \{ gtfsId name \}/);
 });
 test("graph provenance has a safe unavailable state", async () => {
   const result = await graphProvenance();
@@ -37,4 +39,6 @@ test("service readiness and unavailable-date responses use typed public codes", 
   assert.match(source, /code: "ROUTER_UNAVAILABLE"/);
   assert.match(source, /code: "SCHEDULE_DATE_UNAVAILABLE"/);
   assert.match(source, /await otpReady\(/);
+  assert.match(source, /"\/api\/vehicles\/metrolinx"/);
+  assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
 });

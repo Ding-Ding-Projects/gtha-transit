@@ -4,6 +4,7 @@ const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanL
       mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon } to { name lat lon }
       intermediatePlaces { name lat lon }
       route { gtfsId shortName longName mode agency { gtfsId name } }
+      trip { gtfsId }
       legGeometry { points }
     } } }
   }
@@ -29,8 +30,10 @@ function durationSeconds(value) {
 function normalizeLeg(leg, index) {
   const from = point(leg.from); const to = point(leg.to);
   if (!from || !to) return null;
+  const tripId = safeText(leg.trip?.gtfsId); const routeId = safeText(leg.route?.gtfsId); const agencyId = safeText(leg.route?.agency?.gtfsId);
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
+    tripId, routeId, agencyId, agencyFeedId: tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeId?.includes(":") ? routeId.slice(0, routeId.indexOf(":")) : null,
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
     agency: leg.route?.agency ? safeText(leg.route.agency.name ?? "") : null,

@@ -30,7 +30,17 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
       try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }
-      catch { return json(res, 200, { metrolinx: { configured: false, agencies: [{ id: "go", state: "unavailable", capabilities: ["trip_updates", "service_alerts"] }, { id: "up", state: "unavailable", capabilities: ["trip_updates", "service_alerts"] }] } }); }
+      catch { return json(res, 200, { metrolinx: { configured: false, agencies: [{ id: "go", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }, { id: "up", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }] } }); }
+    }
+    if (req.method === "GET" && url.pathname === "/api/vehicles/metrolinx") {
+      const agency = url.searchParams.get("agency");
+      if (!new Set(["go", "up"]).has(agency)) return json(res, 400, { error: "agency must be go or up", code: "INVALID_AGENCY" });
+      try {
+        const response = await fetch(`http://127.0.0.1:8788/internal/metrolinx/${agency}/vehicles`, { signal: AbortSignal.timeout(20000) });
+        if (!response.ok) throw new Error();
+        const body = Buffer.from(await response.arrayBuffer());
+        res.writeHead(200, { "content-type": "application/x-google-protobuf", "content-length": body.length, "cache-control": "private, max-age=10" }); res.end(body); return;
+      } catch { return json(res, 503, { error: "Live vehicle data is temporarily unavailable.", code: "VEHICLE_DATA_UNAVAILABLE" }); }
     }
     if (req.method === "GET" && url.pathname === "/api/departures") {
       const stopId = url.searchParams.get("stopId"); if (!stopId) throw new Error("stopId is required");
