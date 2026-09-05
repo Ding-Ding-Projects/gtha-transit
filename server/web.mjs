@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import {createHistoryStore} from '../history/store.mjs';
 import {loadRegistry,RealtimeAggregator} from '../realtime/aggregator.mjs';
+import {getVehicles} from '../vehicles/index.mjs';
 const realtime=new RealtimeAggregator({registry:await loadRegistry()});
 const history=process.env.HISTORY_DIR?createHistoryStore({directory:process.env.HISTORY_DIR}):null;
 let collecting=false;
@@ -18,12 +19,12 @@ const root = path.resolve(
 );
 const routing = process.env.ROUTING_ORIGIN || 'http://127.0.0.1:8787';
 const maps = process.env.MAPS_ORIGIN || 'http://127.0.0.1:8789';
-const intake=process.env.INTAKE_ORIGIN;
 const routes = new Set([
   '/api/places',
   '/api/coverage',
   '/api/plan',
   '/api/departures',
+  '/api/integrations/status',
 ]);
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -89,11 +90,11 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const url = new URL(req.url, 'http://localhost');
-    if(url.pathname==='/setup/metrolinx'&&intake&&['GET','POST'].includes(req.method)){
-      const upstream=await fetch(intake+url.pathname+url.search,{method:req.method,headers:{'content-type':req.headers['content-type']||'application/x-www-form-urlencoded'},body:req.method==='POST'?await body(req):undefined,redirect:'error',signal:AbortSignal.timeout(5000)});
-      const content=await bounded(upstream,65536);res.writeHead(upstream.status,{'content-type':upstream.headers.get('content-type')||'text/html; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"});return res.end(content);
+    if(url.pathname==='/setup/metrolinx')return send(res,410,{message:'The one-time integration setup is closed.'});
+    if(url.pathname==='/api/vehicles'&&req.method==='GET')return send(res,200,await getVehicles(Object.fromEntries(url.searchParams)));
+    if(url.pathname==='/api/realtime'&&req.method==='GET'){
+      const summary=await realtime.refresh();try{const r=await fetch(routing+'/api/integrations/status',{signal:AbortSignal.timeout(3000),redirect:'error'});if(r.ok){const d=JSON.parse(await bounded(r,65536));for(const live of d.metrolinx?.agencies||[]){const a=summary.agencies.find(x=>x.id===live.id);if(a){a.state=live.state;if(live.lastSuccessfulFetch)a.lastSuccessfulFetch=live.lastSuccessfulFetch;for(const field of ['tripUpdates','serviceAlerts'])if(live.state==='live'||live.state==='partial')a.capabilities[field]='configured';a.integration=live;}}}}catch{}return send(res,200,summary);
     }
-    if(url.pathname==='/api/realtime'&&req.method==='GET')return send(res,200,await realtime.refresh());
     if(url.pathname.startsWith('/api/history')&&req.method==='GET'){
       if(!history)return send(res,503,{error:'History storage is unavailable.'});
       if(url.pathname==='/api/history/export'){
@@ -129,6 +130,8 @@ const server = http.createServer(async (req, res) => {
       });
       let payload = await bounded(upstream);
       if (!upstream.ok) {
+        let detail;try{detail=JSON.parse(payload);}catch{}
+        if(detail?.code==='SCHEDULE_DATE_UNAVAILABLE')return send(res,409,{code:detail.code,error:'The loaded TTC schedule has no trips for your selected date. This is a schedule-data gap, not a closure notice.',nextServiceDate:/^\d{4}-\d{2}-\d{2}$/.test(detail.nextServiceDate||'')?detail.nextServiceDate:null});
         return send(res, upstream.status >= 500 ? 503 : upstream.status, {
           error:
             upstream.status >= 500

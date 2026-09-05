@@ -29,6 +29,7 @@ import {
 import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
+import VehicleTracker from '../components/vehicle-tracker';
 import {copyAt} from '../lib/copy';
 import {rideMetrics,kilometres} from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
@@ -46,7 +47,7 @@ const time = (v: number | string) =>
     'en-CA',
     { timeZone: 'America/Toronto', hour: 'numeric', minute: '2-digit' },
   );
-const mins = (seconds: number) => Math.round(seconds / 60);
+const mins = (seconds: number) => seconds>0&&seconds<60?'<1':Math.round(seconds / 60);
 const distance = (m: number) =>
   m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
 const localInput = () =>
@@ -186,6 +187,7 @@ function PlaceField({
           <MapIcon size={17} />
         </button>
       </div>
+      {value&&<div className="selected-place-name">{value.name}</div>}
       {open && query.length >= 2 && query !== value?.name && (
         <div
           className="suggestions"
@@ -252,7 +254,7 @@ export default function Home() {
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
     [picking, setPicking] = useState<'from' | 'to' | null>(null),
-    [mapVisible, setMapVisible] = useState(false);
+    [mapVisible, setMapVisible] = useState(true);
   const [status, setStatus] = useState<TransitStatus | null>(null),
     [statusBusy, setStatusBusy] = useState(false),
     [expandedLine, setExpandedLine] = useState<string | null>(null),
@@ -571,6 +573,7 @@ export default function Home() {
   const agencies = coverage?.agencies || [];
   const serviceDate=(when||localInput()).slice(0,10).replaceAll('-','');
   const dateGaps=agencies.filter((a:any)=>a.activeTripsByDate?.[(when||localInput()).slice(0,10)]===0||(a.serviceStart&&String(a.serviceStart)>serviceDate)||(a.serviceEnd&&String(a.serviceEnd)<serviceDate));
+  const nextCoveredDate=[...new Set<string>(agencies.flatMap((a:any)=>Object.keys(a.activeTripsByDate||{})))].sort().find(d=>d>(when||localInput()).slice(0,10)&&dateGaps.every((a:any)=>(a.activeTripsByDate?.[d]||0)>0));
   const lineState = (line: Line) =>
     line.state === 'good'
       ? t('No reported disruption', '未有通報事故')
@@ -595,6 +598,7 @@ export default function Home() {
             ['plan', t('Plan a trip', '規劃行程')],
             ['status', t('Live TTC', '即時 TTC')],
             ['history',t('History','歷史')],
+            ['vehicles',t('Vehicles','車輛')],
             ['saved', t('Saved trips', '已儲存行程')],
             ['coverage', t('Our region', '服務範圍')],
           ].map(([id, label]) => (
@@ -771,7 +775,7 @@ export default function Home() {
               <ArrowRight size={19} />
             </button>
           </form>
-          {!!dateGaps.length&&<div className="error" role="status"><TriangleAlert size={18}/><span>{t('The selected date is outside the published calendar range for:','所選日期超出以下公司已發佈嘅時間表範圍：')} {dateGaps.map((a:any)=>a.name).join(', ')}. {t('Results may omit these services. Check coverage before travelling.','結果可能缺少呢啲服務，出發前請查閱服務範圍。')}</span></div>}
+          {!!dateGaps.length&&<div className="error" role="status"><TriangleAlert size={18}/><span>{t('No scheduled trips are loaded for this date for:','所選日期未有載入以下公司嘅有效班次：')} {dateGaps.map((a:any)=>a.name).join(', ')}. {t('This is a data-coverage gap, not a report that transit is closed.','呢個係資料覆蓋缺口，唔係交通停駛通報。')}{nextCoveredDate&&<button className="pill" onClick={()=>setWhen(nextCoveredDate+'T'+(when.slice(11)||'09:00'))}>{t('Use next covered date','使用下一個有資料嘅日期')}: {nextCoveredDate}</button>}</span></div>}
           {error && (
             <div className="error" role="alert">
               <TriangleAlert size={19} />
@@ -801,6 +805,7 @@ export default function Home() {
         </aside>
         <section className="content">
           {tab==='history'&&<DisruptionHistory t={t}/>}
+          {tab==='vehicles'&&<VehicleTracker t={t}/>}
           {tab==='coverage'&&<RealtimeCoverage t={t}/>}
           {tab === 'plan' && (
             <>
@@ -1051,6 +1056,7 @@ export default function Home() {
                                   </small>
                                   <div className="leg-metrics"><strong>{mins(leg.duration)} min</strong><span>{kilometres(leg.distance)}</span></div>
                                   {leg.realtime&&<p className="schedule-badge">{t('Live prediction','即時預測')}{leg.scheduledStartTime?' · '+t('scheduled','原定')+' '+time(leg.scheduledStartTime):''}</p>}
+                                  {leg.mode!=='WALK'&&(leg.vehicle?<div className="assigned-vehicle"><strong>{t('Currently assigned vehicle','目前編配車輛')} {leg.vehicle.label||leg.vehicle.id}</strong><p>{[leg.vehicle.cptdb?.manufacturer,leg.vehicle.cptdb?.model,leg.vehicle.cptdb?.year].filter(Boolean).join(' · ')||t('Fleet details not verified','車隊資料未核實')}</p><small>{t('Live assignments can change before boarding.','上車前車輛編配可能改變。')}</small>{safeUrl(leg.vehicle.cptdb?.url)&&<a href={safeUrl(leg.vehicle.cptdb?.url)} target="_blank" rel="noreferrer">{t('Fleet source','車隊資料來源')}</a>}{leg.vehicle.photo&&safeUrl(leg.vehicle.photo.url)&&<figure><img loading="lazy" src={safeUrl(leg.vehicle.photo.url)} alt={leg.vehicle.photo.exactVehicle?t('Assigned vehicle photo','已編配車輛照片'):t('Representative fleet photo','代表車隊照片')}/><figcaption><a href={safeUrl(leg.vehicle.photo.sourceUrl)} target="_blank" rel="noreferrer">{leg.vehicle.photo.credit} · {leg.vehicle.photo.license}</a></figcaption></figure>}</div>:<p className="data-note">{t('A vehicle has not been verified for this exact trip.','未能核實呢個指定班次嘅車輛。')}</p>)}
                                   {leg.mode !== 'WALK' && (
                                     <>
                                       <p className="alight">

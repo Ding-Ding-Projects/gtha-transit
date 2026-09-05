@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './map-controls.css';
+import './transit-interface.css';
 export const metadata: Metadata = {
   title: 'GTHA Transit | Your next connection',
   description:

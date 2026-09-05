@@ -15,6 +15,7 @@ COPY --chown=node:node server ./server
 COPY --chown=node:node status ./status
 COPY --chown=node:node history ./history
 COPY --chown=node:node realtime ./realtime
+COPY --chown=node:node vehicles ./vehicles
 RUN mkdir -p /data/history && chown node:node /data/history
 USER node
 EXPOSE 8080
