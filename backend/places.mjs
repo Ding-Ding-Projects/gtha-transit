@@ -48,8 +48,11 @@ export async function coverage() {
   const stops = await loadStops();
   let manifest = { generatedAt: null, feeds: [] };
   try { manifest = JSON.parse(await readFile(manifestPath, "utf8")); } catch {}
+  const provenance = await graphProvenance();
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: provenance.timezone ?? "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const provenanceFeeds = new Map((provenance.feeds ?? []).map((feed) => [feed.id, feed]));
   const counts = new Map();
   for (const stop of stops) counts.set(stop.feedId, (counts.get(stop.feedId) ?? 0) + 1);
-  const feeds = (manifest.feeds ?? []).map((feed) => ({ id: feed.id, name: feed.name, loaded: counts.has(feed.id), indexedStops: counts.get(feed.id) ?? 0, serviceStart: feed.serviceStart ?? null, serviceEnd: feed.serviceEnd ?? null, source: feed.source, sha256: feed.sha256, bytes: feed.bytes }));
-  return { generatedAt: manifest.generatedAt, indexedStops: stops.length, agencies: feeds, feeds, source: "validated official GTFS feeds" };
+  const feeds = (manifest.feeds ?? []).map((feed) => { const graphFeed = provenanceFeeds.get(feed.id); const activeTripsToday = graphFeed?.activeTripsByDate?.[today] ?? null; return { id: feed.id, name: feed.name, loaded: Boolean(graphFeed), availableToday: activeTripsToday === null ? null : activeTripsToday > 0, activeTripsToday, activeTripsByDate: graphFeed?.activeTripsByDate ?? {}, indexedStops: counts.get(feed.id) ?? 0, serviceStart: graphFeed?.serviceStart ?? null, serviceEnd: graphFeed?.serviceEnd ?? null, source: feed.source, sha256: graphFeed?.sha256 ?? null, bytes: feed.bytes, warning: activeTripsToday === 0 ? `No scheduled trips are available for ${today} in the active graph.` : null }; });
+  return { generatedAt: provenance.updatedAt, graphBuiltAt: provenance.graphBuiltAt, timezone: provenance.timezone, indexedStops: stops.length, agencies: feeds, feeds, warnings: feeds.filter((feed) => feed.warning).map((feed) => ({ id: feed.id, message: feed.warning })), source: "active OpenTripPlanner graph and validated official GTFS feeds" };
 }

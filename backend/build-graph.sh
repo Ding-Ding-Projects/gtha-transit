@@ -18,7 +18,7 @@ for FEED in "$ROOT"/data/feeds/*.zip; do
 done
 docker run --rm --cpus=4 --memory=13g -v "$BUILD:/var/otp" eclipse-temurin:25-jre java -Xms2g -Xmx12g -XX:+UseG1GC -jar /var/otp/otp.jar --build --save /var/otp
 test -s "$BUILD/graph.obj"
-python3 "$ROOT/scripts/data/write-graph-provenance.py" --manifest "$ROOT/data/feeds/manifest.json" --graph "$BUILD/graph.obj" --output "$BUILD/graph-provenance.json"
+python3 "$ROOT/scripts/data/write-graph-provenance.py" --manifest "$ROOT/data/feeds/manifest.json" --graph "$BUILD/graph.obj" --feeds-dir "$ROOT/data/feeds" --output "$BUILD/graph-provenance.json"
 "$ROOT/backend/verify-graph.sh" "$BUILD"
 NEXT="$RUNTIME/otp.next.$$"
 PREVIOUS="$RUNTIME/otp.previous"
