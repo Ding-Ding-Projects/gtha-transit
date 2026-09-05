@@ -1,8 +1,36 @@
 {
   "version": 1,
   "scope": "Promoted evidence for the September 5 workspace redesign. Other captures remain private pending complete receipts.",
-  "requiredSurfaces": ["planning", "live-vehicle-tracker", "out-of-division", "live-ttc", "disruption-history", "saved-trips", "regional-coverage", "settings", "mobile-navigation", "regex-workbench", "live-follower", "washroom-detour"],
+  "requiredSurfaces": ["planning", "live-vehicle-tracker", "out-of-division", "live-ttc", "disruption-history", "saved-trips", "regional-coverage", "settings", "mobile-navigation", "route-picker", "regex-workbench", "live-follower", "washroom-detour"],
   "records": [
+    {
+      "id": "route-picker-keyboard-b7e0ae4",
+      "active": true,
+      "path": "docs/captures/route-picker-keyboard-b7e0ae4.png",
+      "sourceCommit": "b7e0ae4215433ffee376891cbcad25404cbb64ac",
+      "artifactSha256": "5f0814075f36a960389546d63ef8f04e4b955d3104bfdce94a277b4667bb325c",
+      "captureSha256": "47699c581d35a5f7ca9c62e30ed89d2f16edecc87a35198cf0beb6903f149479",
+      "screen": "planning",
+      "state": "guided-ttc-route-picker-independent-workbench-open",
+      "theme": "light",
+      "viewportWidth": 1440,
+      "viewportHeight": 1000,
+      "scale": 1,
+      "languageMode": "en",
+      "capturedAt": "2026-09-05T15:32:12.827145-04:00",
+      "evidenceKind": "emulated-desktop",
+      "interactionProofId": "route-picker-keyboard-b7e0ae4",
+      "interactionReceiptSha256": "e6058b8d67466171ffe27071aaa48a21bb3ad38ce727ac930045f483cd3dbea5",
+      "inspectionStatus": "inspected",
+      "limitations": [
+        "Viewport-only image: nested workbench continues below the captured viewport.",
+        "Keyboard behavior is established by the separate interaction receipt, not by this still image.",
+        "Browser emulation, not physical touch-device verification.",
+        "Two helper-only focus exceptions and one rejected pointer probe are retained separately from zero application exceptions and console errors.",
+        "The archive contains the recovered served bundle with embedded build provenance.",
+        "The full language, zoom and layout matrix is not claimed complete."
+      ]
+    },
     {
       "id": "tracker-bilingual-b1829a9",
       "active": true,

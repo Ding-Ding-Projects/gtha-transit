@@ -14,6 +14,14 @@ This is the real public tracker at source `b1829a948358c9b9b532d033f174f0b821456
 
 </details>
 
+<details><summary>See the guided route picker</summary>
+
+The agency and route picker keeps its own advanced search workbenches. The actual built surface below comes from `b7e0ae4215433ffee376891cbcad25404cbb64ac` at 1440 by 1000 CSS pixels. Separate live keyboard evidence verified that search and radio Enter did not submit the surrounding journey form, while route-button Enter still selected TTC route 1. [Picker behavior and evidence limits](docs/search/route-picker.md).
+
+![Guided route picker with its independent search workbench](docs/captures/route-picker-keyboard-b7e0ae4.png)
+
+</details>
+
 ```powershell
 .\build.bat --run
 ```

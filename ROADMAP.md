@@ -4,7 +4,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
-- [ ] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period warnings and non-submitting picker actions.
+- [x] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period handling and non-submitting picker actions. The nested-form radio correction was verified separately at b7e0ae4 with zero incidental planning requests.
 - [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
 - [x] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click at 34f6fff. Both saved entries survived reload; the earlier synthetic Enter did not establish product failure.
 - [ ] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation.
@@ -15,7 +15,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
 - [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.
 - [ ] Modernize the route picker, vehicle preference controls and overall visual hierarchy, then verify phone-width light/dark layouts.
-- [ ] Deploy and interact with the agency/route dialog, official colors and isolated regex workbenches.
+- [x] Deploy and interact with the agency/route dialog, official colors and isolated regex workbenches. Phone steps and desktop columns were exercised; the broader language/zoom matrix remains open.
 - [ ] Verify compact location queries against deployed services and show served routes/colors on stop suggestions.
 - [ ] Add location clear buttons and ordered multi-destination planning, drag reordering, keyboard reordering and saved/shared order.
 - [ ] Add Less transfer waiting, explicitly allowing longer rides in exchange for shorter platform waits.
