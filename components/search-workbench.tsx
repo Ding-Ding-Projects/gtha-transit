@@ -30,6 +30,7 @@ import {
 export type Translate = (en: string, zh: string) => string;
 
 export type SearchWorkbenchProps = {
+  storageId: string;
   label: string;
   value: SearchState;
   onChange: (next: SearchState) => void;
@@ -155,6 +156,7 @@ function downloadJson(filename: string, content: string) {
 }
 
 export function SearchWorkbench({
+  storageId,
   label,
   value,
   onChange,
@@ -171,7 +173,8 @@ export function SearchWorkbench({
   const [cases, setCases] = useState<RegexCase[]>([]);
   const [snippetName, setSnippetName] = useState('');
   const [snippets, setSnippets] = useState<RegexSnippet[]>([]);
-  const [snippetsLoaded, setSnippetsLoaded] = useState(false);
+  const [snippetsLoadedKey, setSnippetsLoadedKey] = useState<string | null>(null);
+  const snippetStorageKey = `${SNIPPET_STORAGE_KEY}:${storageId}`;
   const [importText, setImportText] = useState('');
   const [snippetNotice, setSnippetNotice] = useState<string | null>(null);
   const tokens = useMemo(() => describeRegexTokens(value.pattern), [value.pattern]);
@@ -183,23 +186,24 @@ export function SearchWorkbench({
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SNIPPET_STORAGE_KEY);
-      if (raw) setSnippets(parseRegexSnippets(raw));
+      const raw = window.localStorage.getItem(snippetStorageKey);
+      setSnippets(raw ? parseRegexSnippets(raw) : []);
     } catch {
+      setSnippets([]);
       setSnippetNotice('invalid-snippet-json');
     } finally {
-      setSnippetsLoaded(true);
+      setSnippetsLoadedKey(snippetStorageKey);
     }
-  }, []);
+  }, [snippetStorageKey]);
 
   useEffect(() => {
-    if (!snippetsLoaded) return;
+    if (snippetsLoadedKey !== snippetStorageKey) return;
     try {
-      window.localStorage.setItem(SNIPPET_STORAGE_KEY, serializeRegexSnippets(snippets));
+      window.localStorage.setItem(snippetStorageKey, serializeRegexSnippets(snippets));
     } catch {
       setSnippetNotice('snippet-storage-failed');
     }
-  }, [snippets, snippetsLoaded, t]);
+  }, [snippets, snippetsLoadedKey, snippetStorageKey, t]);
 
   useEffect(() => {
     if (!open) return;

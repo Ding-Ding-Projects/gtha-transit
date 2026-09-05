@@ -1453,6 +1453,23 @@ select {
 .vehicle-journey-options { margin: 16px 0; }
 .vehicle-journey-options > summary { min-height: 48px; padding: 12px 0; cursor: pointer; font-weight: 650; }
 .vehicle-journey-options section { padding: 14px !important; }
+.vehicle-pref-panel { border: 1px solid var(--border); border-radius: 24px; background: var(--surface); color: var(--text); padding: 18px; }
+.vehicle-pref-panel h2 { font-size: 21px; letter-spacing: -.025em; margin: 0 0 10px; }
+.vehicle-pref-panel p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.vehicle-pref-step, .vehicle-pref-policy { border: 0; min-width: 0; background: var(--surface2); border-radius: 18px; margin: 14px 0; padding: 14px; }
+.vehicle-pref-panel legend { font-size: 13px; font-weight: 750; padding: 6px 0; }
+.vehicle-pref-panel [role='group'] { display: flex; flex-wrap: wrap; gap: 8px; }
+.vehicle-pref-chip { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); font-size: 13px; line-height: 1.4; text-align: left; max-width: 100%; overflow-wrap: anywhere; }
+.vehicle-pref-chip[aria-pressed='true'] { background: var(--primary); color: var(--bg); border-color: var(--primary); box-shadow: 0 3px 10px #143a2418; }
+.vehicle-pref-chip:hover:not(:disabled) { outline: 2px solid var(--primary); outline-offset: 2px; }
+.vehicle-pref-step:disabled { opacity: .65; }
+.vehicle-pref-year-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.vehicle-pref-year-grid label { display: grid; gap: 6px; font-size: 13px; }
+.vehicle-pref-year-grid input { width: 100%; min-width: 0; min-height: 48px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: var(--surface); color: var(--text); }
+.vehicle-pref-clear { min-height: 44px; border-radius: 12px; padding: 10px; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.vehicle-pref-panel > details { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 8px; }
+.vehicle-pref-panel > details > summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 650; }
+.clear-place { flex-shrink: 0; }
 .narrator-card { border: 1px solid var(--border); border-radius: 24px; background: var(--surface2); padding: 22px; margin: 22px 0; min-width: 0; }
 .narrator-heading { display: flex; align-items: center; gap: 14px; }
 .narrator-heading h3 { margin: 2px 0; }

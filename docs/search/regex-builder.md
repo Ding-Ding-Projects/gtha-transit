@@ -1,5 +1,7 @@
 # Regular expression search workbench
 
+Every mounted field supplies a unique stable `storageId`. Saved snippets are stored under that field's own key; changing field identity cannot write the previous field's snippets into the new key. The route picker uses distinct identities for agency and route search.
+
 The transit planner's reusable search workbench pairs every eligible search field with an adjacent, anchored regular expression builder. It uses the browser's JavaScript `RegExp` dialect. Plain text is the default mode.
 
 ## Public integration contract

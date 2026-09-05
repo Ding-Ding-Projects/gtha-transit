@@ -194,6 +194,10 @@ function PlaceField({
             }
           }}
         />
+        {query && <button type="button" className="icon-button clear-place" aria-label={t('Clear', '清除') + ' ' + label} onMouseDown={(event) => event.preventDefault()} onClick={() => {
+          onChange(null); setQuery(''); setItems([]); setActive(-1); setError(''); setBusy(false); setOpen(false);
+          box.current?.querySelector('input')?.focus();
+        }}><X size={17} aria-hidden="true" /></button>}
         <button
           type="button"
           className="icon-button"
