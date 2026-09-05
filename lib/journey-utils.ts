@@ -10,9 +10,32 @@ const localFormatter = new Intl.DateTimeFormat('sv-SE', {
 export function torontoLocalInput(value: Date = new Date()): string {
   return localFormatter.format(value).replace(' ', 'T');
 }
+/** Keep independently cleared native fields incomplete until both are supplied. */
+export function updateTorontoInputPart(
+  value: string,
+  part: 'date' | 'time',
+  next: string,
+): string {
+  const [date = '', time = ''] = value.split('T');
+  return part === 'date' ? `${next}T${time}` : `${date}T${next}`;
+}
+
+/** Advance a Toronto calendar date, not a 24-hour interval across a clock change. */
+export function torontoTomorrowAtNine(now: Date = new Date()): string {
+  const calendar = new Date(torontoLocalInput(now).slice(0, 10) + 'T00:00:00Z');
+  calendar.setUTCDate(calendar.getUTCDate() + 1);
+  return calendar.toISOString().slice(0, 10) + 'T09:00';
+}
+
+function validWallTime(value: string): boolean {
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/.test(value)) return false;
+  const wall = new Date(value + ':00Z');
+  return Number.isFinite(wall.getTime()) && wall.toISOString().slice(0, 16) === value;
+}
+
 /** Reject skipped local times. Repeated local times choose the earlier occurrence. */
 export function torontoIso(value: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))
+  if (!validWallTime(value))
     throw new Error('Choose a valid Toronto date and time.');
   const wall = Date.parse(value + 'Z');
   if (!Number.isFinite(wall))
@@ -40,6 +63,33 @@ export function torontoIso(value: string): string {
       'This Toronto time does not exist because clocks move forward. Choose another time.',
     );
   return matches[0].toISOString();
+}
+
+/** Retain a shared or stepped instant only while it still describes the visible fields. */
+export function resolveTorontoTime(value: string, instant?: string): string {
+  const fallback = torontoIso(value);
+  if (!instant) return fallback;
+  const parts = /^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2})(?::([0-9]{2})(?:[.][0-9]{1,9})?)?(Z|[+-][0-9]{2}:[0-9]{2})$/.exec(instant);
+  if (!parts || !validWallTime(parts[1]) || Number(parts[2] || 0) > 59) return fallback;
+  const parsed = new Date(instant);
+  return Number.isFinite(parsed.getTime()) && torontoLocalInput(parsed) === value
+    ? parsed.toISOString()
+    : fallback;
+}
+
+/** Move by elapsed minutes and retain the instant through the repeated local hour. */
+export function shiftTorontoTime(
+  value: string,
+  minutes: number,
+  instant?: string,
+): { local: string; instant: string } {
+  if (!Number.isFinite(minutes) || !Number.isInteger(minutes))
+    throw new Error('Choose a whole number of minutes.');
+  const shifted = new Date(Date.parse(resolveTorontoTime(value, instant)) + minutes * 60000);
+  const local = torontoLocalInput(shifted);
+  const result = shifted.toISOString();
+  if (!validWallTime(local)) throw new Error('Choose a valid Toronto date and time.');
+  return { local, instant: result };
 }
 export function isPlace(value: unknown): value is Place {
   if (!value || typeof value !== 'object') return false;
