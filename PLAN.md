@@ -31,6 +31,7 @@ This is the durable scope record for the owner's transit-planner requests. It is
 - [x] Show an embedded marker summary and let More details reveal and focus the corresponding full vehicle record.
 - [x] Automatically reveal details after a list selection at phone width.
 - [ ] Replace the difficult route field with a clear agency-first, route-second dialog, official colors, partial search and independent advanced regex tools.
+- [ ] Verify the new two-step phone route picker, catalog-date binding, cancellation and prevention of implicit journey-form submission. Implemented with eight behavioral loader/selection tests; built interaction is pending.
 - [ ] Finish modern, readable, agency-colored vehicle rows and explicit manufacturer/model/build-year filters. The shared map/list filters and independent search workbenches are implemented; current built-browser proof is pending.
 - [ ] Complete broad vehicle-preference coverage. Prefer/avoid manufacturer, model and build-year controls are deployed; unknown assignment and all-agency fleet coverage remain explicit limitations.
 - [x] Require company selection before model selection, show only that company's verified models, and clear incompatible selections on a company change. The Nova Bus/New Flyer change was exercised in the built browser.
