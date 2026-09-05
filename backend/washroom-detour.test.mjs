@@ -164,6 +164,7 @@ test("continuation starts after the planned visit duration and reports departure
   assert.equal(result.facilityLeg.departAfterVisit, "2026-09-07T16:16:00.000Z");
   assert.equal(result.continuation.departAfterVisit, "2026-09-07T16:16:00.000Z");
   assert.equal(calls[1].dateTime, "2026-09-07T16:16:00.000Z");
+  assert.equal(calls.every((call) => call.allowDirectWalking === true), true);
   assert.match(result.note, /not an observed dwell time/);
 });
 
