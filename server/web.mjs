@@ -53,6 +53,7 @@ const root = path.resolve(
 const routing = process.env.ROUTING_ORIGIN || 'http://127.0.0.1:8787';
 const maps = process.env.MAPS_ORIGIN || 'http://127.0.0.1:8789';
 const routes = new Set([
+  '/api/routes',
   '/api/places',
   '/api/coverage',
   '/api/plan',
