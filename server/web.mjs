@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import {createHistoryStore} from '../history/store.mjs';
 import {loadRegistry,RealtimeAggregator} from '../realtime/aggregator.mjs';
-import {getVehicles} from '../vehicles/index.mjs';
+import {getVehicles,enrichItineraries} from '../vehicles/index.mjs';
+import {VERIFIED_PHOTO_URLS} from '../vehicles/fleet-registry.mjs';
+const photoCache=new Map();
 const realtime=new RealtimeAggregator({registry:await loadRegistry()});
 const history=process.env.HISTORY_DIR?createHistoryStore({directory:process.env.HISTORY_DIR}):null;
 let collecting=false;
@@ -90,6 +92,11 @@ const server = http.createServer(async (req, res) => {
   );
   try {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname==='/api/vehicle-photo'&&req.method==='GET'){
+      const source=url.searchParams.get('source');if(!VERIFIED_PHOTO_URLS.includes(source))return send(res,404,{error:'Photo not registered.'});let photo=photoCache.get(source);
+      if(!photo){const upstream=await fetch(source,{signal:AbortSignal.timeout(12000),redirect:'error',headers:{'user-agent':'GTHATransit/0.1 (https://toronto-transit.org)'}});if(!upstream.ok)return send(res,502,{error:'Photo source unavailable.'});const bytes=await bounded(upstream,10*1024*1024);if(!(bytes[0]===255&&bytes[1]===216&&bytes[2]===255))return send(res,502,{error:'Photo format could not be verified.'});photo={bytes,type:'image/jpeg'};if(bytes.length<=2*1024*1024){if(photoCache.size>=8)photoCache.delete(photoCache.keys().next().value);photoCache.set(source,photo);}}
+      res.writeHead(200,{'content-type':photo.type,'cache-control':'public,max-age=86400'});return res.end(photo.bytes);
+    }
     if(url.pathname==='/setup/metrolinx')return send(res,410,{message:'The one-time integration setup is closed.'});
     if(url.pathname==='/api/vehicles'&&req.method==='GET')return send(res,200,await getVehicles(Object.fromEntries(url.searchParams)));
     if(url.pathname==='/api/realtime'&&req.method==='GET'){
@@ -155,6 +162,9 @@ const server = http.createServer(async (req, res) => {
             payload = Buffer.from(JSON.stringify(stops));
           }
         } catch {}
+      }
+      if(url.pathname==='/api/plan'){
+        try{const plan=JSON.parse(payload);payload=Buffer.from(JSON.stringify(await enrichItineraries(plan,{routingOrigin:routing,timeoutMs:4000})));}catch{ /* A missing vehicle assignment must not discard an otherwise valid journey. */ }
       }
       res.writeHead(200, {
         'content-type': 'application/json; charset=utf-8',

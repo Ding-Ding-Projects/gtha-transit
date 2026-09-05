@@ -40,6 +40,7 @@ export const AGENCY_PHOTOS = Object.freeze({
   go: { url: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Milton_GO_Train_Eastbound.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Milton_GO_Train_Eastbound.jpg', credit: 'GTDAquitaine', license: 'Public domain', licenseUrl: 'https://commons.wikimedia.org/wiki/File:Milton_GO_Train_Eastbound.jpg', exactVehicle: false, depictedVehicleIds: ['604'] },
   up: { url: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Toronto_ON_UP-1012_Nippon-Sharyo-DMU_2019-04-01.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Toronto_ON_UP-1012_Nippon-Sharyo-DMU_2019-04-01.jpg', credit: 'Milan Suvajac', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', exactVehicle: false, depictedVehicleIds: ['1012'] },
 });
+export const VERIFIED_PHOTO_URLS=Object.freeze([...Object.values(PHOTOS),...Object.values(AGENCY_PHOTOS)].map(photo=>photo.url));
 
 const clean = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 128);
 const searchUrl = (agencyName, identity) => `https://cptdb.ca/wiki/index.php?search=${encodeURIComponent(`${agencyName} ${identity || 'vehicle'}`)}`;
