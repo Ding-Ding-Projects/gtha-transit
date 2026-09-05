@@ -1,6 +1,10 @@
 # Offline regional map service
 
-This service supplies the transit planner with regional raster tiles and local place search on port 8789. It makes no network request at runtime. The map client can keep using `/tiles/{z}/{x}/{y}.png`; address and place lookup uses `/search?q=...`.
+This service supplies the transit planner with regional raster tiles and local place search on port 8789. It makes no network request at runtime. Address and place lookup uses `/search?q=...`.
+
+Clients should request `/map-info` before creating a tile layer. The response contains the SHA-256 revision of the actual MBTiles file plus `minZoom` and `maxZoom`, and is always served with `Cache-Control: no-store`. Use that revision in `/tiles/{revision}/{z}/{x}/{y}.png`. A matching versioned tile is immutable; a stale revision receives HTTP 409 and never receives bytes from the replacement dataset.
+
+The service streams the MBTiles hash in bounded chunks and caches it by device, inode, size, and nanosecond modification time. Hash calculation is serialized with a bounded wait. The file identity is verified before and after hashing and before and after a versioned SQLite tile read, so an atomic file replacement cannot publish new bytes under an old revision. The legacy `/tiles/{z}/{x}/{y}.png` route remains available with `Cache-Control: public, no-cache` for older clients.
 
 ## Data choice
 
@@ -41,4 +45,4 @@ The service listens on port 8789. Check `/health`, request a tile inside the doc
 
 ## Verification
 
-Before connecting the planner, verify that `/health` reports both data files, a known tile returns a decodable nonempty `image/png`, an unknown tile returns 404, a valid query returns `offline: true`, and an empty or oversized query returns 400. Verify at least one known intersection using `and`, `at`, `&`, or `/`, and inspect its shared-node source identifier and coordinates. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
+Before connecting the planner, verify that `/health` reports both data files, `/map-info` returns the actual file digest, a revision-bound known tile returns a decodable nonempty `image/png`, an unknown tile returns 404, and a valid query returns `offline: true`. Atomically replace a temporary test database, confirm its revision changes, and confirm the old revision returns 409 with `no-store` rather than current tile bytes. Verify at least one known intersection using `and`, `at`, `&`, or `/`, and inspect its shared-node source identifier and coordinates. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
