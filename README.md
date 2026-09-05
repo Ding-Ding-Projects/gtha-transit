@@ -6,6 +6,14 @@ An independent journey planner for Greater Toronto and Hamilton, with cross-agen
 
 ## Run locally
 
+<details><summary>See the redesigned tracker</summary>
+
+This is the real public tracker at source `b1829a948358c9b9b532d033f174f0b8214563c7`, captured through an isolated headless browser on September 5, 2026. The dark bilingual viewport is 320 by 844 CSS pixels with device pixel ratio 1.5. Vehicle counts reflect that capture moment. This is browser emulation, not physical-device or browser-zoom verification. [Capture inventory](docs/interface/capture-inventory.json).
+
+![Live vehicle tracker in bilingual mode at 320 pixels](docs/captures/tracker-bilingual-b1829a9.png)
+
+</details>
+
 ```powershell
 .\build.bat --run
 ```

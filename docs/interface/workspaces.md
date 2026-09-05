@@ -12,6 +12,10 @@ Light and dark modes share component shapes, spacing and state roles. The runnin
 
 ## Verification and limits
 
+The timestamped bilingual tracker capture at `b1829a948358c9b9b532d033f174f0b8214563c7` passed the version-1 evidence validator against the exact recovered served bundle, raw PNG bytes, recorded interactions, isolation and privacy review. Its [inventory record](capture-inventory.json) lists the hashes and evidence limits. The PNG is 480 by 1266 for a 320 by 844 CSS-pixel viewport at DPR 1.5, not a browser-zoom test.
+
+![Live vehicle tracker in bilingual mode at 320 pixels](../captures/tracker-bilingual-b1829a9.png)
+
 At `34f6ffff4c54a50cc5501b7c7d7cd70bae74cafe`, live browser evidence verified desktop navigation, four-action mobile navigation, More opening/closing, origin retention across navigation and the full-width tracker. Ordinary pointer and complete keyboard activation both saved regex snippets, which survived reload. Desktop and 320px light/dark captures are retained in the private verification record. These are real browser captures, not design mockups, but public gallery promotion and the complete language/scale matrix remain pending.
 
 The same public revision returned 33 complete itineraries for Union to Finch, St George to Kennedy, Union to Richmond Hill Centre and Union to Pearson Terminal 1. This is a bounded routing smoke result, not a claim that every journey or agency feed is available. Physical-device operation, GPS accuracy and spoken audio require separate evidence.

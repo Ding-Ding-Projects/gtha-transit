@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "scope": "Promoted evidence for the September 5 workspace redesign. Other captures remain private pending complete receipts.",
+  "requiredSurfaces": ["planning", "live-vehicle-tracker", "out-of-division", "live-ttc", "disruption-history", "saved-trips", "regional-coverage", "settings", "mobile-navigation", "regex-workbench", "live-follower", "washroom-detour"],
+  "records": [
+    {
+      "id": "tracker-bilingual-b1829a9",
+      "active": true,
+      "path": "docs/captures/tracker-bilingual-b1829a9.png",
+      "sourceCommit": "b1829a948358c9b9b532d033f174f0b8214563c7",
+      "artifactSha256": "90e0d34db96d7168dff4ea59aba73341ee6dfd0cd2ecee566698cc200d29dbcd",
+      "captureSha256": "ee397ca95b83395d9898e83969d96195116053283b3875fc7197a60a22f2ce3d",
+      "screen": "live-vehicle-tracker",
+      "state": "bilingual-all-agencies-workbench-closed",
+      "theme": "dark",
+      "viewportWidth": 320,
+      "viewportHeight": 844,
+      "scale": 1.5,
+      "languageMode": "bilingual",
+      "capturedAt": "2026-09-05T12:21:55.944981-04:00",
+      "evidenceKind": "emulated-mobile",
+      "interactionProofId": "tracker-star-refresh-b1829a9",
+      "interactionReceiptSha256": "b820a1f91e158bc591b6724a84e08be87ece9527d33f00c3bfb23cbc64e60a32",
+      "inspectionStatus": "inspected",
+      "limitations": [
+        "Viewport-only image; map and lower content continue below the captured viewport.",
+        "Browser emulation, not physical touch-device verification or browser-zoom evidence.",
+        "The document language attribute is en while visible copy is bilingual.",
+        "Counts and positions reflect the live capture moment.",
+        "The served static bundle was recovered after capture; original embedded build provenance identifies its source."
+      ]
+    }
+  ]
+}
