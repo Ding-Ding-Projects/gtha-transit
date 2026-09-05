@@ -12,6 +12,8 @@ This is the durable scope record for the owner's transit-planner requests. It is
 
 ## Priority 1: dependable and understandable planning
 
+- [ ] Verify the dedicated vehicle chooser on desktop and narrow screens, including draft cancellation, exclusive modes, company/model stars, year recovery and unconfirmed-journey handling.
+
 - [ ] Separate Date and Time, keep Toronto timezone explicit, preserve incomplete edits, and verify presets, shared instants and elapsed shifts across clock changes.
 
 - [x] Restore current-date Toronto routing with validated adjacent TTC timetable versions.

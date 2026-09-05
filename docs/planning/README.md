@@ -2,6 +2,8 @@
 
 Use the separate [travel date and time controls](travel-time.md) to select departure or arrival time in Toronto's timezone.
 
+The [vehicle chooser](vehicle-preferences.md) offers manufacturer/model preferences and avoidance with explicit [build-year matching](year-matching.md).
+
 Choose an origin and destination from search results, or select a map position. Enter a date and time in Toronto local time and choose departure or arrival planning. The journey result shows each boarding stop, direction, transfer and walking leg.
 
 The repeated local hour when daylight saving ends selects its earlier occurrence. A nonexistent local time during the spring clock change is rejected. Times are never interpreted in the visitor's device timezone.

@@ -1,5 +1,11 @@
 # Implementation handoff
 
+## Vehicle chooser implementation awaiting runtime verification
+
+The vehicle chooser now opens a dedicated wide dialog instead of a nested narrow panel. It stages edits until Apply, normalizes Off/Prefer/Avoid to exclusive modes, exposes unconfirmed-journey consequences immediately, and gives manufacturer and model searches isolated star workbenches. Narrow layouts show Company, Model and Years sections with focus/scroll navigation; invalid years block Apply and provide an exact-field recovery action. The existing parent preference writer remains authoritative. TTC garage preferences have a separate visible disclosure.
+
+The prior live inspection at `e3e70ab` measured the old panel at 300px wide on desktop and 1412px tall when expanded at 320px, with 204px useful inner width. Changing company cleared the old model and year validation worked. New chooser runtime verification remains pending. Local integration before the capture-helper merge passed 185 behavioral tests, type checking and focused component/helper lint. The capture helper separately passed 29 tests, including unsafe URL rejection before persistence, actual capture-call timestamps and rejection of retained resources. It proves record consistency only, never visual correctness. Open-ended year repair `a48f1be` passed 13 evaluator tests; invalid ranges do not boost or hide journeys.
+
 ## Journey time deployment and verification
 
 Latest frontend: `e3e70abfbbf6aceb6f52b232dcaa89085ad4038d`, built `2026-09-05T20:24:41.837Z`. Public and LAN provenance match and the container is healthy. Workflow `33990014656` succeeded and published `v0.1.0-65.1` for that exact commit; its web archive and line-count asset returned HTTP 200. This followup changes only the stable hydration effect dependency and handoff records, with type checking, focused lint and the production build passing. The remaining whole-page lint count is 33, including zero `setWhen` findings. Browser interaction evidence below belongs to `9391cba`, not a new run against the followup.

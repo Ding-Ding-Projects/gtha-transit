@@ -1,5 +1,7 @@
 # Transit interface handoff
 
+Vehicle preferences now uses a compact entry and a dedicated maximum-900px dialog. Desktop displays manufacturer and model side by side; narrow screens use explicit Company/Model/Years navigation. Policy choices are exclusive, unknown-assignment consequences are adjacent, and the footer retains staged Apply/Cancel actions. This follows the previously recorded design-tool availability boundary and remains subject to built-layout verification.
+
 The September 5 full redesign replaces the three-column shell with one active workspace. A deep-ink desktop navigation rail, pale blue-neutral surfaces, teal primary actions and the existing lime brand mark establish the new direction. Transit route colours remain factual data encodings and do not imply service health. Mobile navigation has Plan, Vehicles, Live TTC and a labelled More sheet.
 
 Planning alone shows the journey composer beside its map and options. Other destinations use the full workspace width. The single-destination form omits inactive reorder controls; they appear when more destinations exist. Detailed agency-feed rows start inside a disclosure. The shared star remains a compact 44px control; opening the tracker workbench expands its row, and its mode selection uses a deliberate segmented treatment. Current build provenance appears above the active workspace before navigation.

@@ -1,0 +1,82 @@
+.vehicle-preference-entry { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 76px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface2); color: var(--text); padding: 14px; margin: 12px 0; text-align: left; }
+.vehicle-preference-entry-icon { display: grid; place-items: center; flex: none; width: 36px; height: 40px; color: var(--primary); }
+.vehicle-preference-entry-copy { display: grid; gap: 5px; min-width: 0; flex: 1; }
+.vehicle-preference-entry-copy strong { font-size: 13px; }
+.vehicle-preference-entry-copy small { font-size: 11px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+.vehicle-preference-entry-mode { color: var(--primary); font-size: 11px; font-weight: 750; }
+.vehicle-preference-entry > svg { flex: none; }
+.vehicle-preference-result-note { display: block; font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
+.vehicle-preference-dialog { position: fixed; inset: 0; margin: auto; width: min(900px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--border); border-radius: 28px; background: var(--surface); color: var(--text); box-shadow: 0 24px 80px #07182255; overflow: hidden; }
+.vehicle-preference-dialog[open] { display: flex; flex-direction: column; }
+.vehicle-preference-dialog::backdrop { background: #081c2877; }
+.vehicle-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 28px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.vehicle-editor-kicker { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 750; letter-spacing: 1.5px; color: var(--primary); }
+.vehicle-editor-header h2 { font-size: 26px; letter-spacing: -.8px; line-height: 1.2; margin: 8px 0 0; }
+.vehicle-editor-header .icon-button { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--surface2); }
+.vehicle-editor-body { min-height: 0; overflow-y: auto; padding: 22px 28px; overscroll-behavior: contain; }
+.vehicle-policy-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.vehicle-policy-choices legend { margin-bottom: 12px; padding: 0; font-size: 13px; font-weight: 650; }
+.vehicle-policy-choice { position: relative; display: flex; min-width: 0; cursor: pointer; }
+.vehicle-policy-choice input, .vehicle-choice-row input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.vehicle-policy-choice > span { flex: 1; min-width: 0; display: grid; gap: 5px; min-height: 70px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface2); }
+.vehicle-policy-choice strong { font-size: 15px; }.vehicle-policy-choice small { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.vehicle-policy-choice:has(input:checked) > span { background: var(--primary); border-color: var(--primary); color: var(--surface); }
+.vehicle-policy-choice:has(input:checked) small { color: inherit; }
+html[data-theme='dark'] .vehicle-policy-choice:has(input:checked) > span { color: var(--bg); }
+.vehicle-policy-choice:has(input:focus-visible) > span, .vehicle-choice-row:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
+.vehicle-preference-dialog .vehicle-editor-note { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 12px 0; overflow-wrap: anywhere; }
+.vehicle-unknown-choice { margin: 18px 0; padding: 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface2); }
+.vehicle-unknown-choice h3 { font-size: 14px; margin: 0; }
+.vehicle-unknown-choice label, .vehicle-match-choices label { display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: 13px; cursor: pointer; }
+.vehicle-unknown-choice input, .vehicle-match-choices input { width: 20px; height: 20px; flex: none; accent-color: var(--primary); }
+.vehicle-unknown-choice p { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 0; }
+.vehicle-editor-steps { display: none; }
+.vehicle-choice-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 22px; }
+.vehicle-editor-section { min-width: 0; }
+.vehicle-editor-section h3 { font-size: 14px; margin: 0 0 12px; }
+.vehicle-years-section { grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid var(--border); }
+.vehicle-choice-list { display: grid; gap: 5px; min-width: 0; max-height: 260px; overflow-y: auto; padding: 3px; margin: 8px -3px 0; border: 0; overscroll-behavior: contain; }
+.vehicle-choice-row { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 12px; min-height: 48px; border: 1px solid transparent; border-radius: 12px; cursor: pointer; font-size: 13px; }
+.vehicle-choice-row > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.vehicle-choice-row > svg { flex: none; visibility: hidden; color: var(--primary); }
+.vehicle-choice-row:has(input:checked) { background: var(--surface2); border-color: var(--primary); font-weight: 750; }
+.vehicle-choice-row:has(input:checked) > svg { visibility: visible; }
+.vehicle-choice-row:hover { background: var(--surface2); }
+.vehicle-choice-count { display: block; font-size: 11px; color: var(--muted); margin-top: 8px; }
+.vehicle-model-empty { display: grid; justify-items: start; gap: 12px; padding: 22px; border-radius: 18px; background: var(--surface2); color: var(--muted); }
+.vehicle-model-empty p { font-size: 13px; line-height: 1.6; margin: 0; }
+.vehicle-model-empty button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--primary); font-size: 12px; font-weight: 650; }
+.vehicle-editor-years { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 420px; }
+.vehicle-editor-years label { display: grid; gap: 7px; font-size: 12px; color: var(--muted); min-width: 0; }
+.vehicle-editor-years input { width: 100%; min-width: 0; min-height: 50px; padding: 10px 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: var(--surface); }
+.vehicle-match-choices { display: flex; flex-wrap: wrap; gap: 8px 24px; border: 0; padding: 0; margin: 18px 0 0; min-width: 0; }
+.vehicle-match-choices legend { padding: 0; font-size: 12px; font-weight: 650; }
+.vehicle-editor-error { padding: 12px; border-inline-start: 3px solid var(--primary); background: var(--surface2); font-size: 13px; border-radius: 4px 12px 12px 4px; }
+.vehicle-editor-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 28px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--surface); }
+.vehicle-editor-footer > div { display: flex; gap: 10px; min-width: 0; }
+.vehicle-editor-footer .primary { min-height: 46px; margin: 0; padding: 10px 20px; font-size: 13px; }
+.vehicle-editor-reset { min-height: 44px; color: var(--primary); padding: 8px 4px; font-size: 12px; }
+.vehicle-editor-apply-note { flex-basis: 100%; font-size: 12px; line-height: 1.5; }
+.vehicle-editor-apply-note button { min-height: 44px; padding: 8px 12px; color: var(--primary); text-decoration: underline; }
+.vehicle-fact-choices .regex-workbench__field > label { font-size: 12px; }
+.vehicle-choice-columns:has(.regex-workbench__popover) { grid-template-columns: 1fr; }
+.vehicle-preference-dialog .regex-workbench__popover { max-height: 60dvh; }
+.journey-division-options { border-top: 1px solid var(--border); margin-top: 12px; }
+.journey-division-options > summary { display: flex; align-items: center; gap: 8px; min-height: 50px; font-size: 12px; font-weight: 650; cursor: pointer; }
+@media (max-width: 640px) {
+  .vehicle-preference-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 22px; }
+  .vehicle-editor-header { padding: 18px 16px 14px; }.vehicle-editor-header h2 { font-size: 22px; }
+  .vehicle-editor-body { padding: 16px; }
+  .vehicle-policy-choice > span { padding: 10px 8px; min-height: 76px; }.vehicle-policy-choice strong { font-size: 13px; }
+  .vehicle-editor-steps { display: flex; gap: 4px; border-radius: 14px; background: var(--surface2); padding: 4px; margin-top: 18px; }
+  .vehicle-editor-steps button { flex: 1; min-width: 0; min-height: 48px; padding: 6px 4px; border-radius: 11px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .vehicle-editor-steps button span { display: block; font-size: 10px; margin-bottom: 4px; }
+  .vehicle-editor-steps button[aria-pressed='true'] { background: var(--surface); color: var(--primary); font-weight: 750; }
+  .vehicle-choice-columns { display: block; margin-top: 18px; }
+  .vehicle-choice-columns[data-step='company'] > :not(.vehicle-company-section), .vehicle-choice-columns[data-step='model'] > :not(.vehicle-model-section), .vehicle-choice-columns[data-step='years'] > :not(.vehicle-years-section) { display: none; }
+  .vehicle-years-section { padding-top: 0; border-top: 0; }
+  .vehicle-editor-footer { padding: 12px 16px; gap: 6px; }
+  .vehicle-editor-footer > div { flex: 1 1 100%; }
+  .vehicle-editor-footer > div > button { flex: 1; min-width: 0; white-space: normal; }
+  .vehicle-editor-footer .primary { padding: 10px 12px; }
+}

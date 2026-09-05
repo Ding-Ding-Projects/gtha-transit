@@ -2,6 +2,9 @@
 
 ## 0.1.0, unreleased
 
+- Replace the tall nested vehicle-preference panel with a dedicated responsive dialog, staged changes, exclusive preference modes, searchable manufacturer/model choices and immediate unknown-assignment explanations. Give TTC garage preferences a separate visible entry.
+- Correct open-ended vehicle build-year matching and retain invalid criteria without excluding journeys. Add timestamped capture records that reject unsafe URLs and incomplete resource cleanup.
+
 - Separate travel date and time, show the selected Toronto offset, and make departure/arrival choices explicit. Preserve incomplete edits, calculate tomorrow by calendar day, and retain exact shared/stepped instants through clock changes. Leave now selects departure mode.
 - Move Reverse trip into its own labelled row so it cannot cover long selected stop names. Suppress schedule-coverage verdicts when the travel time is incomplete.
 
