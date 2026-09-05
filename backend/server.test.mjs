@@ -5,7 +5,7 @@ import { applyWashroomPreference } from "./washrooms.mjs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
+import { graphqlDocument, planWithOtp, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
 import { filterRouteCatalog, isCalendarDate, routeCatalogPage } from "./routes.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
@@ -20,9 +20,93 @@ test("coverage reflects only validated feeds", async () => {
 });
 test("OTP query uses the real planConnection GraphQL operation", () => {
   assert.match(graphqlDocument, /planConnection/);
+  assert.match(graphqlDocument, /\$via:\[PlanViaLocationInput!\]/);
+  assert.match(graphqlDocument, /via:\$via/);
+  assert.match(graphqlDocument, /viaLocationType/);
   assert.match(graphqlDocument, /legGeometry/);
   assert.match(graphqlDocument, /trip \{ gtfsId \}/);
   assert.match(graphqlDocument, /agency \{ gtfsId name \}/);
+});
+
+test("native OTP planning submits ordered visit points in one request", async (context) => {
+  const requests = [];
+  const mock = http.createServer(async (request, response) => {
+    let body = ""; for await (const chunk of request) body += chunk;
+    requests.push(JSON.parse(body));
+    const data = {
+      planConnection: {
+        edges: [{ node: {
+          start: "2026-09-05T09:00:00-04:00", end: "2026-09-05T09:35:00-04:00", duration: "PT35M", walkDistance: 80, numberOfTransfers: 1,
+          legs: [
+            { mode: "BUS", start: { scheduledTime: "2026-09-05T09:00:00-04:00" }, end: { scheduledTime: "2026-09-05T09:15:00-04:00" }, duration: "PT15M", distance: 1200, from: { name: "Origin", lat: 43.7, lon: -79.4 }, to: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" } },
+            { mode: "RAIL", start: { scheduledTime: "2026-09-05T09:20:00-04:00" }, end: { scheduledTime: "2026-09-05T09:35:00-04:00" }, duration: "PT15M", distance: 1400, from: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" }, to: { name: "Second", lat: 43.66, lon: -79.38, viaLocationType: "VISIT" } }
+          ]
+        } }]
+      }
+    };
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const input = { otpUrl: `http://127.0.0.1:${mock.address().port}`, timeoutMs: 1000, from: { lat: 43.7, lon: -79.4, name: "Origin" }, to: { lat: 43.65, lon: -79.37, name: "Destination" }, via: [{ lat: 43.68, lon: -79.39, name: "First" }, { lat: 43.66, lon: -79.38, name: "Second" }], dateTime: "2026-09-05T09:00:00-04:00", arriveBy: false, wheelchair: false, maxWalkDistance: 2000, preference: "fastest", maxResults: 10 };
+  const result = await planWithOtp(input);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].variables.first, 1);
+  assert.deepEqual(requests[0].variables.dateTime, { earliestDeparture: input.dateTime });
+  assert.deepEqual(requests[0].variables.via, [
+    { visit: { coordinate: { latitude: 43.68, longitude: -79.39 }, label: "First", minimumWaitTime: "PT0S" } },
+    { visit: { coordinate: { latitude: 43.66, longitude: -79.38 }, label: "Second", minimumWaitTime: "PT0S" } }
+  ]);
+  assert.equal(result.itineraries.length, 1);
+  assert.equal(result.itineraries[0].viaComplete, true);
+  assert.equal(result.itineraries[0].viaVisitCount, 2);
+  assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.to.viaLocationType), ["VISIT", "VISIT"]);
+  await planWithOtp({ ...input, arriveBy: true });
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[1].variables.dateTime, { latestArrival: input.dateTime });
+  await planWithOtp({ ...input, via: [] });
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].variables.first, input.maxResults);
+  assert.equal(requests[2].variables.via, null);
+});
+
+test("native OTP planning drops an incomplete ordered route instead of returning a partial journey", async (context) => {
+  const mock = http.createServer(async (request, response) => {
+    for await (const _chunk of request) {}
+    const data = { planConnection: { edges: [{ node: {
+      start: "2026-09-05T09:00:00-04:00", end: "2026-09-05T09:15:00-04:00", duration: "PT15M", walkDistance: 0, numberOfTransfers: 0,
+      legs: [
+        { mode: "BUS", start: { scheduledTime: "2026-09-05T09:00:00-04:00" }, end: { scheduledTime: "2026-09-05T09:15:00-04:00" }, duration: "PT15M", distance: 1200, from: { name: "Origin", lat: 43.7, lon: -79.4 }, to: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" } },
+        { mode: "RAIL", start: { scheduledTime: "2026-09-05T09:20:00-04:00" }, end: { scheduledTime: "2026-09-05T09:30:00-04:00" }, duration: "PT10M", distance: 1000, from: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" }, to: { name: "Destination", lat: 43.65, lon: -79.37 } }
+      ]
+    } }] } };
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const result = await planWithOtp({ otpUrl: `http://127.0.0.1:${mock.address().port}`, timeoutMs: 1000, from: { lat: 43.7, lon: -79.4, name: "Origin" }, to: { lat: 43.65, lon: -79.37, name: "Destination" }, via: [{ lat: 43.68, lon: -79.39, name: "First" }, { lat: 43.66, lon: -79.38, name: "Second" }], dateTime: "2026-09-05T09:00:00-04:00", arriveBy: false, wheelchair: false, maxWalkDistance: 2000, preference: "fastest", maxResults: 10 });
+  assert.deepEqual(result.itineraries, []);
+  assert.equal(result.failedSegment.from.name, "First");
+  assert.deepEqual(result.failedSegment, { from: { name: "First", lat: 43.68, lon: -79.39 }, to: { name: "Second", lat: 43.66, lon: -79.38 }, state: "unverified" });
+});
+
+test("native OTP planning rejects visit markers that are not in the requested order", async (context) => {
+  const mock = http.createServer(async (request, response) => {
+    for await (const _chunk of request) {}
+    const data = { planConnection: { edges: [{ node: {
+      start: "2026-09-05T09:00:00-04:00", end: "2026-09-05T09:20:00-04:00", duration: "PT20M", walkDistance: 0, numberOfTransfers: 1,
+      legs: [
+        { mode: "BUS", start: { scheduledTime: "2026-09-05T09:00:00-04:00" }, end: { scheduledTime: "2026-09-05T09:10:00-04:00" }, duration: "PT10M", distance: 1000, from: { name: "Origin", lat: 43.7, lon: -79.4 }, to: { name: "Second", lat: 43.66, lon: -79.38, viaLocationType: "VISIT" } },
+        { mode: "RAIL", start: { scheduledTime: "2026-09-05T09:10:00-04:00" }, end: { scheduledTime: "2026-09-05T09:20:00-04:00" }, duration: "PT10M", distance: 1000, from: { name: "Second", lat: 43.66, lon: -79.38, viaLocationType: "VISIT" }, to: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" } }
+      ]
+    } }] } };
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const result = await planWithOtp({ otpUrl: `http://127.0.0.1:${mock.address().port}`, timeoutMs: 1000, from: { lat: 43.7, lon: -79.4, name: "Origin" }, to: { lat: 43.65, lon: -79.37, name: "Destination" }, via: [{ lat: 43.68, lon: -79.39, name: "First" }, { lat: 43.66, lon: -79.38, name: "Second" }], dateTime: "2026-09-05T09:00:00-04:00", arriveBy: false, wheelchair: false, maxWalkDistance: 2000, preference: "fastest", maxResults: 10 });
+  assert.deepEqual(result.itineraries, []);
+  assert.deepEqual(result.failedSegment, { from: { name: "First", lat: 43.68, lon: -79.39 }, to: { name: "Second", lat: 43.66, lon: -79.38 }, state: "unverified" });
 });
 test("graph provenance has a safe unavailable state", async () => {
   const result = await graphProvenance();
@@ -127,6 +211,22 @@ test("journey ranking includes waiting time and respects arrival planning", () =
   assert.equal(rankItineraries([leavingSoon, shortRideLater], "transfers", false)[0].id, "later");
   assert.equal(rankItineraries([leavingSoon, shortRideLater], "walking", false)[0].id, "later");
 });
+
+test("waiting preference chooses valid shorter platform waits before duration and walk-only options", () => {
+  const at = (time) => `2026-09-05T${time}:00-04:00`;
+  const transit = (mode, startTime, endTime) => ({ mode, startTime: at(startTime), endTime: at(endTime) });
+  const walk = (startTime, endTime) => ({ mode: "WALK", startTime: at(startTime), endTime: at(endTime) });
+  const shorterTransferWait = { id: "less-wait", startTime: at("08:00"), endTime: at("09:00"), duration: 3600, legs: [transit("BUS", "08:00", "08:15"), walk("08:15", "08:25"), transit("RAIL", "08:30", "09:00")] };
+  const shorterJourney = { id: "more-wait", startTime: at("08:00"), endTime: at("08:45"), duration: 2700, legs: [transit("BUS", "08:00", "08:15"), transit("RAIL", "08:30", "08:45")] };
+  const invalidTiming = { id: "unknown-wait", startTime: at("08:00"), endTime: at("08:40"), duration: 2400, legs: [transit("BUS", "08:00", "08:20"), transit("RAIL", "08:15", "08:40")] };
+  const walkOnly = { id: "walk-only", startTime: at("08:00"), endTime: at("08:10"), duration: 600, legs: [walk("08:00", "08:10")] };
+  const ranked = rankItineraries([shorterJourney, walkOnly, invalidTiming, shorterTransferWait], "waiting", false);
+  assert.deepEqual(ranked.map((item) => item.id), ["less-wait", "more-wait", "unknown-wait", "walk-only"]);
+  assert.equal(shorterTransferWait.transferWaitSeconds, 300);
+  assert.equal(shorterJourney.transferWaitSeconds, 900);
+  assert.equal(invalidTiming.transferWaitSeconds, null);
+  assert.equal(invalidTiming.transferWaitKnown, false);
+});
 test("route catalog chooses the active TTC snapshot and preserves validated colors", () => {
   const routes = [
     { id: "ttc:1", routeId: "1", shortName: "1", longName: "Summer", agency: "TTC", feedId: "ttc", version: "ttc", color: "FF0000", textColor: "FFFFFF", validity: { serviceStart: "20260726", serviceEnd: "20260905" } },
@@ -180,4 +280,23 @@ test("HTTP planning returns a neutral empty result when OTP finds no itinerary",
   assert.deepEqual(payload.coverage, { date: "2026-09-04", unavailableAgencies: [] });
   assert.equal(payload.agency, undefined);
   assert.equal(payload.error, undefined);
+
+  const incomplete = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 43.66, lon: -79.5, name: "Required stop" }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00", maxWalkDistance: 1500, preference: "waiting" }) });
+  const incompletePayload = await incomplete.json();
+  assert.equal(incomplete.status, 422);
+  assert.equal(incompletePayload.code, "MULTI_STOP_INCOMPLETE");
+  assert.deepEqual(incompletePayload.itineraries, []);
+  assert.deepEqual(incompletePayload.failedSegment, { from: { name: null, lat: 43.68, lon: -79.61 }, to: { name: "Required stop", lat: 43.66, lon: -79.5 }, state: "unverified" });
+
+  const tooMany = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: Array.from({ length: 6 }, () => ({ lat: 43.66, lon: -79.5 })), to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
+  assert.equal(tooMany.status, 400);
+  assert.match((await tooMany.json()).error, /at most 5 places/);
+
+  const invalidCoordinate = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 91, lon: -79.5 }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
+  assert.equal(invalidCoordinate.status, 400);
+  assert.match((await invalidCoordinate.json()).error, /via\[0\]\.lat must be between -90 and 90/);
+
+  const oversizedLabel = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 43.66, lon: -79.5, name: "a".repeat(201) }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
+  assert.equal(oversizedLabel.status, 400);
+  assert.match((await oversizedLabel.json()).error, /via\[0\]\.name must be at most 200 bytes/);
 });

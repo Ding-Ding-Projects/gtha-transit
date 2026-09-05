@@ -18,9 +18,23 @@ const readBody = (req) => new Promise((resolve, reject) => {
   req.on("end", () => resolve(data)); req.on("error", reject);
 });
 const number = (value, name) => { const n = Number(value); if (!Number.isFinite(n)) throw new Error(`${name} must be a finite number`); return n; };
-const coordinates = (raw, name) => ({ lat: number(raw?.lat, `${name}.lat`), lon: number(raw?.lon, `${name}.lon`) });
+const coordinates = (raw, name) => ({ lat: bounded(raw?.lat, `${name}.lat`, -90, 90), lon: bounded(raw?.lon, `${name}.lon`, -180, 180) });
 const bounded = (value, name, min, max) => { const n = number(value, name); if (n < min || n > max) throw new Error(`${name} must be between ${min} and ${max}`); return n; };
 const nonNegativeInteger = (value, name, max) => { const n = bounded(value, name, 0, max); if (!Number.isInteger(n)) throw new Error(`${name} must be an integer`); return n; };
+const placeLabel = (raw, name) => {
+  const value = raw?.name ?? raw?.label; if (value == null) return null;
+  if (typeof value !== "string") throw new Error(`${name} must be a string`);
+  const label = value.trim();
+  if (Buffer.byteLength(label, "utf8") > 200) throw new Error(`${name} must be at most 200 bytes`);
+  if (/[\u0000-\u001f\u007f]/.test(label)) throw new Error(`${name} contains control characters`);
+  return label || null;
+};
+const viaPlaces = (raw) => {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) throw new Error("via must be an array");
+  if (raw.length > 5) throw new Error("via may contain at most 5 places");
+  return raw.map((place, index) => ({ ...coordinates(place, `via[${index}]`), name: placeLabel(place, `via[${index}].name`) }));
+};
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -60,13 +74,15 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/plan") {
       const input = JSON.parse(await readBody(req));
       const from = coordinates(input.from, "from"); const to = coordinates(input.to, "to");
+      const via = viaPlaces(input.via);
       const dateTime = typeof input.dateTime === "string" && Number.isFinite(Date.parse(input.dateTime)) ? input.dateTime : null;
       if (!dateTime || !/[+-]\d\d:\d\d$|Z$/i.test(dateTime)) throw new Error("dateTime must be an ISO 8601 timestamp with an offset");
       const preference = input.preference ?? "fastest";
-      if (!["fastest", "transfers", "walking"].includes(preference)) throw new Error("preference must be fastest, transfers, or walking");
-      const result = await planWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, from, to, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults });
-      const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
+      if (!["fastest", "transfers", "walking", "waiting"].includes(preference)) throw new Error("preference must be fastest, transfers, walking, or waiting");
+      const result = await planWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults });
       const provenance = await graphProvenance();
+      if (via.length && !result.itineraries.length) return json(res, 422, { error: "No complete itinerary visits every requested stop", code: "MULTI_STOP_INCOMPLETE", itineraries: [], failedSegment: result.failedSegment ?? null, data: provenance, coverage: coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
+      const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
       return json(res, 200, { ...preferred, data: provenance, coverage: result.itineraries.length ? null : coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
     }
     return json(res, 404, { error: "route not found" });
