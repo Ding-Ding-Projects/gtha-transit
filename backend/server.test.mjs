@@ -5,7 +5,7 @@ import { applyWashroomPreference } from "./washrooms.mjs";
 import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { graphqlDocument, publicAgencyFeedId } from "./otp-client.mjs";
+import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -74,6 +74,14 @@ test("adjacent TTC graph snapshots expose one truthful public calendar", () => {
   assert.equal(grouped[0].serviceEnd, "20261031");
   assert.deepEqual(grouped[0].activeTripsByDate, { "2026-09-05": 3000, "2026-09-06": 3100 });
   assert.equal(publicAgencyFeedId("ttc-next"), "ttc");
+});
+test("journey ranking includes waiting time and respects arrival planning", () => {
+  const leavingSoon = { id: "soon", startTime: "2026-09-05T12:05:00-04:00", endTime: "2026-09-05T12:25:00-04:00", duration: 1200, transfers: 1, walkDistance: 400 };
+  const shortRideLater = { id: "later", startTime: "2026-09-05T13:00:00-04:00", endTime: "2026-09-05T13:10:00-04:00", duration: 600, transfers: 0, walkDistance: 100 };
+  assert.equal(rankItineraries([shortRideLater, leavingSoon], "fastest", false)[0].id, "soon");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "fastest", true)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "transfers", false)[0].id, "later");
+  assert.equal(rankItineraries([leavingSoon, shortRideLater], "walking", false)[0].id, "later");
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {

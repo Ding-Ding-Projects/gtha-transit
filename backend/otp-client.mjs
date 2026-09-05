@@ -19,6 +19,12 @@ const DEPARTURES = `query Departures($id:String!,$start:Long!,$timeRange:Int!,$c
 function finiteNumber(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
 function safeText(value) { if (value == null) return null; const text = String(value); return /[\u0000-\u001f\u007f]/.test(text) ? null : text; }
 export function publicAgencyFeedId(value) { return value === "ttc-next" ? "ttc" : value; }
+function timestamp(value, fallback) { const parsed = Date.parse(value ?? ""); return Number.isFinite(parsed) ? parsed : fallback; }
+export function rankItineraries(itineraries, preference, arriveBy) {
+  const timing = (item) => arriveBy ? -timestamp(item.startTime, -Infinity) : timestamp(item.endTime, Infinity);
+  const key = (item) => preference === "transfers" ? [item.transfers, timing(item), item.duration] : preference === "walking" ? [item.walkDistance, timing(item), item.duration] : [timing(item), item.duration];
+  return itineraries.sort((left, right) => { const a = key(left); const b = key(right); for (let index = 0; index < a.length; index += 1) { if (a[index] !== b[index]) return a[index] - b[index]; } return String(left.id).localeCompare(String(right.id)); });
+}
 function point(raw) {
   if (!raw || finiteNumber(raw.lat) === null || finiteNumber(raw.lon) === null) return null;
   return { name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon) };
@@ -72,8 +78,7 @@ export async function planWithOtp({ otpUrl, timeoutMs, from, to, dateTime, arriv
     duration: durationSeconds(item.duration), walkDistance: Math.max(0, finiteNumber(item.walkDistance, 0)), transfers: Math.max(0, finiteNumber(item.numberOfTransfers, 0)),
     legs: Array.isArray(item.legs) ? item.legs.map(normalizeLeg).filter(Boolean) : []
   })).filter((item) => item.legs.length && item.walkDistance <= maxWalkDistance);
-  const score = preference === "transfers" ? (x) => x.transfers * 86400 + x.duration : preference === "walking" ? (x) => x.walkDistance * 100 + x.duration : (x) => x.duration;
-  itineraries.sort((a, b) => score(a) - score(b));
+  rankItineraries(itineraries, preference, arriveBy);
   return { itineraries };
 }
 
