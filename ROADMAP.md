@@ -4,7 +4,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
-- [ ] Verify the current integration in the built browser: multi-destination ordering, dated route badges, follower entry points and the wider phone date/time field. Local checks pass (134 root tests, 50 backend tests and type checking); deployment remains pending backend index generation.
+- [ ] Finish the remaining built-browser checks: actual stop-badge selection, drag reordering and live vehicle switching. Ordered planning, follower simulation and six width/theme captures passed at b92de7c; frontend f45bf93 and backend b92de7c are deployed.
 
 - [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
 - [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.
@@ -13,10 +13,11 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Verify compact location queries against deployed services and show served routes/colors on stop suggestions.
 - [ ] Add location clear buttons and ordered multi-destination planning, drag reordering, keyboard reordering and saved/shared order.
 - [ ] Add Less transfer waiting, explicitly allowing longer rides in exchange for shorter platform waits.
-- [ ] Add live trip and vehicle followers with next-stop screens and clearly separated simulation modes.
+- [ ] Finish full live follower verification. Trip simulation, next-stop advancement, washroom review and close-focus behavior are deployed and browser-verified; physical GPS and live vehicle switching remain unverified.
 - [ ] Research missing transit and official municipal washrooms, including published hours and exceptions.
 - [ ] Show washrooms throughout planning and add urgent washroom diversion with ETA and retained remaining destinations.
-- [ ] Add a required-line detour mode for Line 5 and other lines, verifying an actual ride on the selected line.
+- [x] Deploy required-line selection and verify an actual Line 5 detour in the public API and built browser, preserving the extra Bloor-Yonge destination. Other selectable routes use the same exact-identity contract; availability remains bounded by published data.
+- [ ] Expand live route-by-route checks beyond Line 5 and promote validated public captures of the new flows.
 - [ ] Separate bus, streetcar, rapid-transit, network-wide and unclassified disruption groups.
 - [ ] Repair evidenced assignment joins and document the route-324 static/live identifier mismatch without inventing a vehicle.
 - [x] Deploy narrator enable/voice/rate/quiet controls and verify persistence through real browser interaction. Physical audio was not tested.
