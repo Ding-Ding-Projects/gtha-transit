@@ -1,4 +1,5 @@
 import { facilityAvailability } from "../shared/washrooms.mjs";
+import { canonicalAgencyId } from "../shared/washroom-identities.mjs";
 
 export const MAX_WASHROOM_CANDIDATES = 6;
 export const MAX_WASHROOM_CONCURRENCY = 2;
@@ -6,7 +7,7 @@ export const MAX_WASHROOM_DETOUR_DEADLINE_MS = 24_000;
 
 const numeric = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const text = (value) => typeof value === "string" && value.trim() ? value.trim() : null;
-const agencyKey = (value) => text(value)?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? null;
+const agencyKey = (value) => canonicalAgencyId(value);
 
 function point(raw) {
   const lat = numeric(raw?.lat); const lon = numeric(raw?.lon);
