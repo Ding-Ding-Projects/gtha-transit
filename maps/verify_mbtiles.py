@@ -66,6 +66,11 @@ def inspect_database(path, decode_tiles):
                     "SELECT tile_column,tile_row,LENGTH(tile_data) FROM tiles WHERE zoom_level=?",
                     (zoom,),
                 ).fetchall()
+                if not rows:
+                    raise VerificationError(f"zoom {zoom} contains no tiles")
+                limit = 1 << zoom
+                if any(x < 0 or x >= limit or tms_y < 0 or tms_y >= limit for x, tms_y, _ in rows):
+                    raise VerificationError(f"zoom {zoom} contains out-of-range tile coordinates")
                 keys[zoom] = {(x, (1 << zoom) - 1 - tms_y) for x, tms_y, _ in rows}
                 if len(keys[zoom]) != len(rows):
                     raise VerificationError(f"zoom {zoom} contains duplicate XYZ tile coordinates")
@@ -81,6 +86,8 @@ def inspect_database(path, decode_tiles):
                             image_format = image.format
                             image_size = image.size
                             image.verify()
+                        with Image.open(io.BytesIO(body)) as image:
+                            image.load()
                     except Exception as error:
                         raise VerificationError(
                             f"tile {zoom}/{x}/{xyz_y} is not a decodable PNG: {error}"

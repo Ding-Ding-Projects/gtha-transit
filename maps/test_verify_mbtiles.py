@@ -6,10 +6,12 @@ import io
 import json
 import os
 import sqlite3
+import struct
 import subprocess
 import sys
 import tempfile
 import unittest
+import zlib
 from contextlib import closing
 
 from PIL import Image
@@ -35,7 +37,7 @@ class VerifyMbtilesCliTest(unittest.TestCase):
 
     def test_missing_or_corrupt_candidate_is_rejected(self):
         for missing_zoom, corrupt_zoom, expected in (
-            (11, None, "coverage differs"),
+            (11, None, "contains no tiles"),
             (None, 12, "not a decodable PNG"),
         ):
             with self.subTest(missing_zoom=missing_zoom, corrupt_zoom=corrupt_zoom):
@@ -51,6 +53,16 @@ class VerifyMbtilesCliTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse(report["ok"])
                 self.assertIn(expected, report["error"])
+
+    def test_out_of_range_candidate_coordinate_is_rejected(self):
+        self._write_database(self.candidate, missing_zoom=None, corrupt_zoom=None, color=(230, 238, 246))
+        with closing(sqlite3.connect(self.candidate)) as database:
+            database.execute("UPDATE tiles SET tile_column=? WHERE zoom_level=10", (1 << 10,))
+            database.commit()
+        result, report = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(report["ok"])
+        self.assertIn("out-of-range tile coordinates", report["error"])
 
     def _run(self):
         result = subprocess.run(
@@ -76,7 +88,7 @@ class VerifyMbtilesCliTest(unittest.TestCase):
             for zoom in range(8, 14):
                 if zoom == missing_zoom:
                     continue
-                body = b"not a png" if zoom == corrupt_zoom else VerifyMbtilesCliTest._png(color)
+                body = VerifyMbtilesCliTest._broken_compressed_png() if zoom == corrupt_zoom else VerifyMbtilesCliTest._png(color)
                 database.execute("INSERT INTO tiles VALUES (?,?,?,?)", (zoom, 1, (1 << zoom) - 3, body))
             database.commit()
 
@@ -85,6 +97,14 @@ class VerifyMbtilesCliTest(unittest.TestCase):
         output = io.BytesIO()
         Image.new("RGB", (256, 256), color).save(output, format="PNG")
         return output.getvalue()
+
+    @staticmethod
+    def _broken_compressed_png():
+        def chunk(name, body):
+            return struct.pack(">I", len(body)) + name + body + struct.pack(">I", zlib.crc32(name + body))
+
+        header = struct.pack(">IIBBBBB", 256, 256, 8, 2, 0, 0, 0)
+        return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", b"not-zlib") + chunk(b"IEND", b"")
 
 
 if __name__ == "__main__":
