@@ -30,6 +30,8 @@ The matcher uses a fleet-shaped public label first and otherwise falls back to a
 
 `enrichItineraries()` joins a direction leg to a vehicle only when its agency namespace and normalized GTFS trip identifier both match a fresh vehicle-position entity exactly. It never assigns a vehicle from a route match alone. A leg without the required identifiers, a stale or unavailable feed, or no exact fresh match receives an explicit assignment state and reason instead of a guessed vehicle.
 
+[Journey out-of-division evidence](journey-divisions.md) adds dated TTC garage evidence only after that exact assignment boundary has been met. A soft preference can stably move verified out-of-division journey options ahead of other options, but never boosts a route-only or unknown record.
+
 ## Failure and privacy boundaries
 
 The parser accepts at most 10 MiB and 10,000 entities, refuses redirects, applies a deadline of at most 10 seconds, validates protobuf boundaries, rejects invalid coordinates, and never logs the feed body. This feature uses public operational data and stores only the short-lived in-memory snapshot.

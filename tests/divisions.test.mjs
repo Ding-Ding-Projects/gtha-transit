@@ -17,6 +17,7 @@ test('classifies only fresh vehicles from single-garage fleet allocations', asyn
   const registry = await loadTtcDivisionRegistry();
   const out = classifyOutOfDivision(vehicle(), '29', registry, { now: NOW }); assert.equal(out.state, 'out-of-division'); assert.equal(out.homeGarage, 'Wil'); assert.deepEqual(out.assignedGarages, ['MtD']);
   const seconds = classifyOutOfDivision(vehicle({ timestamp: Math.floor((NOW - 30_000) / 1000) }), '29', registry, { now: NOW }); assert.equal(seconds.state, 'out-of-division');
+  const milliseconds = classifyOutOfDivision(vehicle({ timestamp: NOW - 30_000 }), '29', registry, { now: NOW }); assert.equal(milliseconds.state, 'out-of-division');
   const inside = classifyOutOfDivision(vehicle({ routeId: '7' }), '7', registry, { now: NOW }); assert.equal(inside.state, 'in-division');
   const ambiguous = classifyOutOfDivision(vehicle({ id: '9001', fleetNumber: '9001' }), '29', registry, { now: NOW }); assert.equal(ambiguous.state, 'unknown'); assert.equal(ambiguous.reason, 'multi-garage-fleet-allocation');
 });

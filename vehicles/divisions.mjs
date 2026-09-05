@@ -1,9 +1,13 @@
 import { readFile } from 'node:fs/promises';
 
 const TORONTO_ZONE = 'America/Toronto';
-const day = (value) => new Intl.DateTimeFormat('en-CA', { timeZone: TORONTO_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
+const dayFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: TORONTO_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+const day = (value) => {
+  const parts = Object.fromEntries(dayFormatter.formatToParts(new Date(value)).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+};
 const timestampMs = (value) => {
-  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value * 1000;
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value < 10_000_000_000 ? value * 1000 : value;
   if (typeof value === 'string' && value.trim()) {
     const parsed = Date.parse(value);
     return Number.isFinite(parsed) ? parsed : null;
