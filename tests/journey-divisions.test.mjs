@@ -44,6 +44,19 @@ test('ignores walking and rejects feed aliases outside ttc and ttc-next plus exp
 
 test('soft preference is stable, preserves options, and never boosts route-only facts', () => {
   const annotated = annotateJourneyDivisions([{ id: 'ordinary', legs: [assigned({ routeId: '7', vehicle: { ...assigned().vehicle, fleetNumber: '7001' } })] }, { id: 'out', legs: [assigned()] }, { id: 'route-only', legs: [assigned({ vehicleAssignment: { state: 'no-match', method: 'route' } })] }], registry, { now: NOW });
-  const disabled = applyJourneyDivisionPreference(annotated.itineraries, { enabled: false, retained: 'value' }); assert.deepEqual(disabled.itineraries.map((item) => item.id), ['ordinary', 'out', 'route-only']); assert.deepEqual(disabled.options, { enabled: false, retained: 'value' });
-  const preferred = applyJourneyDivisionPreference(annotated.itineraries, { enabled: true, retained: 'value' }); assert.deepEqual(preferred.itineraries.map((item) => item.id), ['out', 'ordinary', 'route-only']); assert.equal(preferred.matched, 1); assert.equal(preferred.unknown, 1); assert.equal(preferred.reasons['no-exact-vehicle-assignment'], 1);
+  const disabled = applyJourneyDivisionPreference(annotated.itineraries, { enabled: false, retained: 'value', now: NOW }); assert.deepEqual(disabled.itineraries.map((item) => item.id), ['ordinary', 'out', 'route-only']); assert.deepEqual(disabled.options, { enabled: false, retained: 'value', now: NOW });
+  const preferred = applyJourneyDivisionPreference(annotated.itineraries, { enabled: true, retained: 'value', now: NOW }); assert.deepEqual(preferred.itineraries.map((item) => item.id), ['out', 'ordinary', 'route-only']); assert.equal(preferred.matched, 1); assert.equal(preferred.unknown, 1); assert.equal(preferred.reasons['no-exact-vehicle-assignment'], 1);
+});
+
+
+test('cached division evidence loses its boost after the observation or source expires', () => {
+  const annotated = annotateJourneyDivisions([{ id: 'normal', legs: [] }, { id: 'out', legs: [assigned({ endTime: NOW + 600000 })] }], registry, { now: NOW });
+  assert.equal(applyJourneyDivisionPreference(annotated.itineraries, { enabled: true, now: NOW }).itineraries[0].id, 'out');
+  const expired = applyJourneyDivisionPreference(annotated.itineraries, { enabled: true, now: NOW + 120001 });
+  assert.equal(expired.itineraries[0].id, 'normal');
+  assert.equal(expired.matched, 0);
+  assert.equal(expired.reasons['division-evidence-expired'], 1);
+  const midnight = Date.parse('2026-09-06T04:00:00Z');
+  const before = annotateJourneyDivisions([{ id: 'out', legs: [assigned({ startTime: midnight - 60000, endTime: midnight + 60000, vehicle: { ...assigned().vehicle, timestamp: midnight - 1000 } })] }], registry, { now: midnight - 500 });
+  assert.equal(applyJourneyDivisionPreference(before.itineraries, { enabled: true, now: midnight }).matched, 0);
 });

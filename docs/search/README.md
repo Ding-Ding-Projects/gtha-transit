@@ -41,3 +41,5 @@ node --test tests/web-server.test.mjs
 ```
 
 The regressions cover partial road input, abbreviations, `Saint` and `St`, diacritics, punctuation, reversed word order, two-letter ambiguity, exact Union ranking, misleading near matches, source merging before the cap, deduplication, and one-source partial responses.
+
+The tracker uses local search over loaded vehicle facts, with independent manufacturer and model searches. See the explicit [tracker search surface inventory](tracker-surfaces.md).

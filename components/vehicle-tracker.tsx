@@ -1,17 +1,21 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   BusFront,
   ChevronRight,
   Clock,
   ExternalLink,
   RefreshCw,
-  Search,
   X,
 } from 'lucide-react';
 import type { Map as LeafletMap, LayerGroup } from 'leaflet';
 import VehiclePhotoCaption from './vehicle-photo-caption';
 import RoutePicker from './route-picker';
+import FleetFilterPanel from './fleet-filter-panel';
+import { useLocalSetting } from '../lib/use-local-setting';
+import { emptyFleetFilter, filterFleetVehicles } from '../lib/fleet-filter';
+import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import { attachMapTiles } from '../lib/map-tiles';
 import { vehiclePage } from '../lib/vehicle-page';
 type Vehicle = {
@@ -70,6 +74,13 @@ const agencyColors: Record<string, string> = {
   burlington: '#7858a1',
 };
 const TTC_ONLY = ['ttc'];
+const EMPTY_VEHICLES: Vehicle[] = [];
+const factText = (value: unknown, fallback: string) => {
+  if (value == null) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return value.toString();
+  return JSON.stringify(value) ?? fallback;
+};
 const safe = (url?: string) => {
   try {
     const u = new URL(url || '');
@@ -91,18 +102,40 @@ export default function VehicleTracker({
       null,
     ),
     [pageSelection, setPageSelection] = useState({ scope: '', page: 0 }),
-    [q, setQ] = useState(''),
+    [search, setSearch] = useState(emptySearchState),
     [route, setRoute] = useState(''),
     [agency, setAgency] = useState(divisionMode ? 'ttc' : 'all'),
     [classification, setClassification] = useState('out-of-division'),
     [detailRequest, setDetailRequest] = useState(0),
-    [selected, setSelected] = useState<Vehicle | null>(null),
+    [selectedRecord, setSelected] = useState<Vehicle | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [refresh, setRefresh] = useState(0),
     [tileError, setTileError] = useState(false);
-  const scope = JSON.stringify([agency, q, route, divisionMode, classification]);
-  const data = snapshot?.scope === scope ? snapshot : null;
+  const sourceScope = JSON.stringify([agency, route, divisionMode, classification]);
+  const filterStorageKey = divisionMode ? 'gtha-division-fleet-filters' : 'gtha-tracker-fleet-filters';
+  const savedFilter = useLocalSetting(filterStorageKey);
+  const restoredFilter = useMemo(() => {
+    if (!savedFilter.value) return { value: emptyFleetFilter(), invalid: false };
+    try {
+      const saved = JSON.parse(savedFilter.value), value = saved?.schemaVersion === 1 ? saved.filter : null;
+      if (value && ['manufacturer', 'model', 'yearFrom', 'yearTo'].every(key => typeof value[key] === 'string' && value[key].length <= 100) && typeof value.includeUnknown === 'boolean') {
+        return { value: { manufacturer: value.manufacturer.trim(), model: value.model.trim(), yearFrom: value.yearFrom.trim(), yearTo: value.yearTo.trim(), includeUnknown: value.includeUnknown }, invalid: false };
+      }
+    } catch {}
+    return { value: emptyFleetFilter(), invalid: true };
+  }, [savedFilter.value]);
+  const fleetFilter = restoredFilter.value;
+  const setFleetFilter = (filter: typeof fleetFilter) => savedFilter.setValue(JSON.stringify({ schemaVersion: 1, filter }));
+  const filterStorageUnavailable = savedFilter.unavailable || restoredFilter.invalid;
+  const scope = JSON.stringify([sourceScope, search, fleetFilter]);
+  const sourceData = snapshot?.scope === sourceScope ? snapshot : null;
+  const fleetResult = useMemo(() => filterFleetVehicles(sourceData?.vehicles ?? EMPTY_VEHICLES, fleetFilter), [sourceData, fleetFilter]);
+  const samples = useMemo(() => fleetResult.vehicles.map(vehicle => [vehicle.id, vehicle.fleetNumber, vehicle.label, vehicle.agencyId, vehicle.agencyName, vehicle.routeId, vehicle.cptdb?.manufacturer, vehicle.cptdb?.model, vehicle.cptdb?.year].filter(Boolean).join(' ').slice(0, 512)), [fleetResult.vehicles]);
+  const matching = useSearchMatches(samples, search);
+  const filterError = fleetResult.error === 'Select a manufacturer before filtering by model.' ? t(fleetResult.error, '請先選擇製造商，再篩選型號。') : fleetResult.error === 'Enter a whole year from 1800 through 3000.' ? t(fleetResult.error, '請輸入 1800 至 3000 之間嘅完整年份。') : fleetResult.error === 'The start year must be the same as or earlier than the end year.' ? t(fleetResult.error, '開始年份必須早於或等於結束年份。') : fleetResult.error;
+  const data = useMemo(() => sourceData ? { ...sourceData, vehicles: matching.busy || matching.error || fleetResult.error ? [] : fleetResult.vehicles.filter((_, index) => matching.matches[index]) } : null, [sourceData, fleetResult, matching.busy, matching.error, matching.matches]);
+  const selected = selectedRecord ? data?.vehicles.find(vehicle => identity(vehicle) === identity(selectedRecord)) ?? null : null;
   const page = vehiclePage(
     data?.vehicles ?? [],
     pageSelection.scope === scope ? pageSelection.page : 0,
@@ -165,7 +198,6 @@ export default function VehicleTracker({
       setBusy(true);
       try {
         const p = new URLSearchParams({ limit: '2500', agency });
-        if (q) p.set('q', q);
         if (route) p.set('route', route);
         if (divisionMode) p.set('classification', classification);
         const endpoint = divisionMode ? '/api/vehicles/divisions?' : '/api/vehicles?';
@@ -214,7 +246,7 @@ export default function VehicleTracker({
             }) || a.id.localeCompare(b.id),
         );
         if (!c.signal.aborted) {
-          setData({ ...next, scope });
+          setData({ ...next, scope: sourceScope });
           setError('');
           setSelected((prev) =>
             prev
@@ -242,7 +274,7 @@ export default function VehicleTracker({
       clearInterval(timer);
       c.abort();
     };
-  }, [q, route, refresh, t, agency, scope]);
+  }, [route, refresh, t, agency, sourceScope, divisionMode, classification]);
   useEffect(() => {
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
@@ -353,31 +385,23 @@ export default function VehicleTracker({
         <RoutePicker agency={agency} route={route} t={t} storageId={divisionMode ? 'division-route-picker' : 'tracker-route-picker'} allowedAgencyIds={divisionMode ? TTC_ONLY : undefined} onChange={(nextAgency, nextRoute) => {
           setAgency(nextAgency); setRoute(nextRoute); setSelected(null);
         }} />
-        <label>
-          <Search size={16} />
-          {t('Vehicle or fleet details', '車輛或車隊資料')}
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            maxLength={100}
-            placeholder={t(
-              'Fleet number, manufacturer, model',
-              '車隊編號、製造商、型號',
-            )}
-          />
-        </label>
+        <SearchWorkbench storageId={divisionMode ? 'division-vehicle-search' : 'tracker-vehicle-search'} label={t('Vehicle, route or fleet details', '車輛、路線或車隊資料')} value={search} onChange={setSearch} samples={samples} t={t} />
       </div>
+      <FleetFilterPanel vehicles={sourceData?.vehicles ?? EMPTY_VEHICLES} value={fleetFilter} onChange={setFleetFilter} error={filterError} storageId={divisionMode ? 'division-fleet-filter' : 'tracker-fleet-filter'} t={t} />
+      {filterStorageUnavailable && <p className="data-note">{t('This browser could not restore or save fleet filters. Current filtering still works.', '此瀏覽器未能還原或儲存車隊篩選，目前篩選仍然可用。')}</p>}
+      {matching.error && <p className="error" role="alert">{matching.error}</p>}
+      {matching.busy && <output className="data-note">{t('Matching loaded vehicles…', '配對已載入車輛中…')}</output>}
+      {fleetResult.active && !fleetResult.error && <p className="data-note">{t('Fleet filters apply to both the map and list.', '車隊篩選同時套用到地圖同清單。')} {fleetResult.excludedUnknownCount > 0 && t(`${fleetResult.excludedUnknownCount} vehicles lack details needed for this filter. Enable the unconfirmed option to include them.`, `${fleetResult.excludedUnknownCount} 架車未有所需資料。啟用未確認選項可包括佢哋。`)}</p>}
       {divisionMode && <section className="division-overview" aria-label={t('Garage assignment filters', '車廠分配篩選')}>
         <p>{t('Compare a verified vehicle home garage with the garages assigned to its route. Ambiguous and expired evidence stays unconfirmed.', '比較已核實車輛所屬車廠同路線分配車廠。模糊或過期資料保持未確認。')}</p>
-        <div className="division-filter-chips" role="group" aria-label={t('Assignment classification', '配車分類')}>
+        <fieldset className="division-filter-chips" aria-label={t('Assignment classification', '配車分類')}>
           {[
             ['out-of-division', t('Out of division', '跨車廠'), data?.counts?.outOfDivision],
             ['in-division', t('Assigned garage', '原定車廠'), data?.counts?.inDivision],
             ['unknown', t('Unconfirmed', '未確認'), data?.counts?.unknown],
             ['all', t('All TTC vehicles', '所有 TTC 車輛'), data?.counts?.all],
           ].map(([id, label, count]) => <button key={String(id)} className="pill" aria-pressed={classification === id} onClick={() => { setClassification(String(id)); setSelected(null); }}>{label}{typeof count === 'number' && <strong>{count}</strong>}</button>)}
-        </div>
+        </fieldset>
         <p className="data-note">{t('Allocation source valid through', '配車來源有效至')} {data?.source?.validThrough || t('Unconfirmed', '未確認')}. {t('Counts describe all loaded TTC vehicles before route and text filters. Rarity needs at least seven observed days and is not a prediction.', '數量係路線同文字篩選前已載入嘅全部 TTC 車輛。稀有度需要最少七日觀察，唔係預測。')}</p>
       </section>}
       <div className="source-state">
@@ -520,14 +544,14 @@ export default function VehicleTracker({
               {Object.entries(selected.cptdb.details).map(([k, v]) => (
                 <div key={k}>
                   <dt>{k}</dt>
-                  <dd>{String(v ?? t('Unknown', '未知'))}</dd>
+                    <dd>{factText(v, t('Unknown', '未知'))}</dd>
                 </div>
               ))}
             </dl>
           )}
           {selected.photo && safe(selected.photo.url) ? (
             <figure>
-              <img
+              <Image unoptimized width={960} height={720}
                 src={
                   '/api/vehicle-photo?source=' +
                   encodeURIComponent(selected.photo.url)
@@ -562,6 +586,7 @@ export default function VehicleTracker({
         className="vehicle-list"
         aria-label={t('Reported vehicles', '已通報車輛')}
       >
+        {data && !busy && !matching.busy && !matching.error && !fleetResult.error && !data.vehicles.length && <output>{t('No vehicles match these filters. Clear a filter or refresh the feed.', '未有車輛符合篩選。清除篩選或重新整理資料。')}</output>}
         {page.items.map((v) => (
           <button
             key={identity(v)}

@@ -9,6 +9,7 @@ import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
 import { loadRegistry, RealtimeAggregator } from '../realtime/aggregator.mjs';
 import { getVehicles, enrichItineraries } from '../vehicles/index.mjs';
 import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divisions.mjs';
+import { annotateJourneyDivisions } from '../vehicles/journey-divisions.mjs';
 import { VERIFIED_PHOTO_URLS } from '../vehicles/fleet-registry.mjs';
 const photoCache = new Map();
 const realtime = new RealtimeAggregator({ registry: await loadRegistry() });
@@ -373,12 +374,15 @@ const server = http.createServer(async (req, res) => {
       return send(res, 410, {
         message: 'The one-time integration setup is closed.',
       });
-    if (url.pathname === '/api/vehicles' && req.method === 'GET')
+    if (url.pathname === '/api/vehicles' && req.method === 'GET') {
+      const allowed = new Set(['agency', 'q', 'route', 'limit', 'cursor']);
+      if ([...url.searchParams.keys()].some(key => !allowed.has(key))) return send(res, 400, { error: 'Unsupported vehicle query parameter.', code: 'INVALID_VEHICLE_QUERY' });
       return send(
         res,
         200,
         await getVehicles(Object.fromEntries(url.searchParams)),
       );
+    }
     if (url.pathname === '/api/vehicles/divisions' && req.method === 'GET') {
       try {
         return send(res, 200, await divisionPage(url.searchParams));
@@ -535,12 +539,11 @@ const server = http.createServer(async (req, res) => {
       if (url.pathname === '/api/plan') {
         try {
           const plan = JSON.parse(payload);
+          const enriched = await enrichItineraries(plan, { routingOrigin: routing, timeoutMs: 4000, fixturePath: process.env.VEHICLE_FIXTURE_PATH || undefined });
+          const divisions = annotateJourneyDivisions(enriched.itineraries, divisionRegistry, { now: Date.now() });
           payload = Buffer.from(
             JSON.stringify(
-              await enrichItineraries(plan, {
-                routingOrigin: routing,
-                timeoutMs: 4000,
-              }),
+              { ...enriched, itineraries: divisions.itineraries, divisionEvidence: { matched: divisions.matched, unknown: divisions.unknown, reasons: divisions.reasons } },
             ),
           );
         } catch {

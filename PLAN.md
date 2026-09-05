@@ -31,9 +31,9 @@ This is the durable scope record for the owner's transit-planner requests. It is
 - [x] Show an embedded marker summary and let More details reveal and focus the corresponding full vehicle record.
 - [x] Automatically reveal details after a list selection at phone width.
 - [ ] Replace the difficult route field with a clear agency-first, route-second dialog, official colors, partial search and independent advanced regex tools.
-- [ ] Finish modern, readable, agency-colored vehicle rows and explicit manufacturer/model/build-year filters.
-- [ ] Prefer or avoid vehicle manufacturer, model and build-year ranges in planning. The initial controls are deployed; the company-first model cascade is implemented and awaiting deployment/interaction proof.
-- [ ] Require company selection before model selection, show only that company's verified models, and clear incompatible selections on a company change.
+- [ ] Finish modern, readable, agency-colored vehicle rows and explicit manufacturer/model/build-year filters. The shared map/list filters and independent search workbenches are implemented; current built-browser proof is pending.
+- [ ] Complete broad vehicle-preference coverage. Prefer/avoid manufacturer, model and build-year controls are deployed; unknown assignment and all-agency fleet coverage remain explicit limitations.
+- [x] Require company selection before model selection, show only that company's verified models, and clear incompatible selections on a company change. The Nova Bus/New Flyer change was exercised in the built browser.
 - [ ] Make unknown vehicle assignments and their effect on avoidance filters explicit and recoverable.
 - [ ] Repair every evidenced exact-trip vehicle-assignment join defect. In particular investigate TTC route 324 from Warden/Steeles toward Victoria Park/Eglinton. Current static and live trip identifiers differ; never substitute a bus solely because it shares the route.
 - [ ] Show verified assigned vehicle details in directions: manufacturer, model, build year or date when published, unit and attributed photo.
@@ -49,7 +49,7 @@ This is the durable scope record for the owner's transit-planner requests. It is
 - [ ] Refresh dated official allocation sources. The prepared TTC source expires after September 5, 2026.
 - [ ] Retain vehicle/route/day observations indefinitely without retaining GPS coordinates.
 - [ ] Display observed-frequency percentage and Omega, Legendary, Epic, Rare, Uncommon or Common labels only after sufficient evidence. The seven-day minimum means rarity is initially unavailable.
-- [ ] Add the planning preference to ride routes with a verified out-of-division vehicle. Do not infer future vehicle assignments.
+- [ ] Add the planning preference to ride routes with a verified out-of-division vehicle. Exact-trip annotation, bounded freshness, stable ranking and the control are implemented; deployment and built interaction are pending.
 
 ## Priority 4: washrooms throughout the journey
 
@@ -91,7 +91,7 @@ This is the durable scope record for the owner's transit-planner requests. It is
 - [ ] Add planner-relevant shared UX features: command palette, searchable settings, appearance controls, notification history, saved-trip undo/history, exports, help and changelog.
 - [ ] Provide an independent adjacent advanced regex builder for every added search field, keeping plain text the default and evaluation bounded away from the interface thread.
 - [ ] Keep saved snippets isolated by search field and preserve focus when an editor closes.
-- [ ] Investigate and prevent edge-injected analytics requests found during browser verification. Do not claim no analytics until the delivered page is verified.
+- [x] Prevent the observed edge-injected analytics through HTML no-transform and restrictive CSP. Public HTML and the b92 built-browser session show no injected beacon, successful third-party download or related console error.
 
 ## Explicit exclusions and evidence boundaries
 

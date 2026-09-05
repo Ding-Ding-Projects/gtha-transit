@@ -12,3 +12,7 @@ const preferred = applyJourneyDivisionPreference(evidence.itineraries, { enabled
 ```
 
 The soft preference is a stable partition: it moves only itineraries containing a verified `out-of-division` leg ahead of the others. It preserves relative order within both groups and never boosts unknown or route-only evidence. Its result includes the original options, verified-match count, unknown-itinerary count, and reason counts.
+
+The web proxy annotates only after exact-trip vehicle enrichment. The browser imports the standalone `vehicles/journey-division-preference.mjs` module, which contains no filesystem dependency. Every usable result carries its check time and an expiry bounded by the vehicle observation's 120-second freshness and the leg end. The browser rechecks that deadline and the Toronto allocation date; expired cached evidence loses its boost. Selection follows itinerary identity so an automatic reranking does not silently select another trip.
+
+Open Vehicle preferences in the planner to enable Prefer out-of-division vehicles. It is off by default, persists locally and travels with saved trips, share links and JSON exports. Existing avoidance filters apply before this soft ranking. Options with unconfirmed evidence remain visible, and the interface reports when no verified match exists. A current assignment can change before boarding.

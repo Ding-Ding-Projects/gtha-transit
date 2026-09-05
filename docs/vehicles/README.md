@@ -49,3 +49,5 @@ The map retains every loaded vehicle while the list uses 100-row pages. Up to fo
 Selecting a list row or map marker brings its detail panel into view and focuses it below the measured sticky header. Re-selecting the same vehicle repeats that action. Background position refreshes do not move focus or scroll the page.
 
 All agencies is the default tracker view. Connected feed snapshots are combined with agency-qualified vehicle identities, preventing equal fleet numbers from colliding. Agency-coloured markers and rows retain readable agency labels and feed-status information. Map markers open an embedded summary; More details reveals and focuses the matching list detail panel.
+
+Use [fleet filters](fleet-filters.md) to select a manufacturer, one of its models and a published build-year range. The map shows every loaded match while the list remains paginated. [Journey division preferences](journey-divisions.md) rank only current exact-trip evidence and preserve unconfirmed options. The [search surface inventory](../search/tracker-surfaces.md) records the independent fields and workbenches.

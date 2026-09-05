@@ -1,5 +1,24 @@
 @import 'leaflet/dist/leaflet.css';
 @import url('/fonts/manrope/manrope.css');
+.fleet-filter-panel { border:1px solid var(--border); border-radius:20px; margin:16px 0; background:var(--surface); }
+.fleet-filter-panel > summary { display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:16px; min-height:52px; cursor:pointer; }
+.fleet-filter-panel > summary span { font-size:13px; color:var(--muted); }
+.fleet-filter-panel__content { padding:0 16px 16px; }
+.fleet-filter-panel__columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.fleet-filter-panel h3 { font-size:16px; margin:12px 0; }
+.fleet-filter-choices { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; padding:0; border:0; min-width:0; }
+.tracker fieldset.division-filter-chips { border:0; padding:0; margin:0; min-width:0; }
+.fleet-filter-choices button { min-height:44px; border:1px solid var(--border); border-radius:24px; background:var(--surface2); color:var(--text); padding:8px 14px; }
+.fleet-filter-choices button[aria-pressed='true'] { background:var(--primary); color:var(--bg); border-color:var(--primary); font-weight:800; }
+.fleet-filter-years { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.fleet-filter-years label { display:grid; gap:6px; font-size:13px; }
+.fleet-filter-years input { min-width:0; width:100%; min-height:48px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); }
+.fleet-filter-unknown,.journey-division-choice { display:flex; align-items:flex-start; gap:12px; padding:14px 0; }
+.fleet-filter-unknown input,.journey-division-choice input { width:22px; height:22px; flex:none; margin:2px; accent-color:var(--primary); }
+.journey-division-choice span { display:grid; gap:8px; }
+.journey-division-choice small { color:var(--muted); line-height:1.6; }
+.journey-division-evidence { display:grid; gap:6px; padding:12px; background:var(--surface2); border-left:4px solid var(--primary); border-radius:0 14px 14px 0; }
+@media(max-width:600px) { .fleet-filter-panel__columns { grid-template-columns:1fr; } .fleet-filter-years { grid-template-columns:1fr; } }
 .stop-route-badges { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .stop-route-badge { display:inline-flex; align-items:center; justify-content:center; min-width:32px; padding:3px 8px; border-radius:8px; background:var(--surface2); color:var(--text); font-size:12px; font-weight:800; border:1px solid var(--border); }
 .stop-route-more { font-size:12px; color:var(--muted); }

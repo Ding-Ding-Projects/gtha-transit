@@ -40,6 +40,7 @@ import NarratorSettings from '../components/narrator-settings';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
 import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
+import { applyJourneyDivisionPreference, isCurrentDivisionEvidence } from '../vehicles/journey-division-preference.mjs';
 import { TTC_FLEET_RANGES, OTHER_FLEET_RANGES } from '../vehicles/fleet-registry.mjs';
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
@@ -56,7 +57,7 @@ import {
 type Lang = 'en' | 'zh' | 'both';
 type RequiredRoute = { feedId: string; routeId: string };
 const validRequiredRoute = (value: unknown): value is RequiredRoute => !!value && typeof value === 'object' && ['feedId', 'routeId'].every(key => typeof (value as Record<string, unknown>)[key] === 'string' && /^[a-zA-Z0-9_.-]{1,100}$/.test((value as Record<string, string>)[key]));
-type Saved = { id: string; from: Place; to: Place; via?: Place[]; requiredRoute?: RequiredRoute | null };
+type Saved = { id: string; from: Place; to: Place; via?: Place[]; requiredRoute?: RequiredRoute | null; preferDivision?: boolean };
 const planPoint = (place: Place): Place => ({ id: place.id, name: place.name, lat: place.lat, lon: place.lon, ...(place.kind ? { kind: place.kind } : {}), ...(place.agency ? { agency: place.agency } : {}) });
 const time = (v: number | string) =>
   new Date(typeof v === 'number' && v < 1e12 ? v * 1000 : v).toLocaleTimeString(
@@ -274,6 +275,9 @@ export default function Home() {
   const [ttcRoutes, setTtcRoutes] = useState<OfficialTtcRoute[]>([]);
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
+  const [preferDivision, setPreferDivision] = useState(false);
+  const [divisionNow, setDivisionNow] = useState(() => Date.now());
+  useEffect(() => { const timer = setInterval(() => setDivisionNow(Date.now()), 15000); return () => clearInterval(timer); }, []);
   const [destinations, setDestinations] = useState<Destination[]>([{ id: 'destination-1', place: null }]);
   const [requiredRoute, setRequiredRoute] = useState<{ feedId: string; routeId: string } | null>(null);
   const [follower, setFollower] = useState<{ journey?: Itinerary; vehicle?: LiveFollowerVehicle } | null>(null);
@@ -312,7 +316,7 @@ export default function Home() {
     [maxWalk, setMaxWalk] = useState(1500);
   const [allJourneys, setJourneys] = useState<Itinerary[]>([]),
     [plannedDeparture, setPlannedDeparture] = useState<string | null>(null),
-    [selected, setSelected] = useState(0),
+    [selectedId, setSelectedId] = useState<string | null>(null),
     [loading, setLoading] = useState(false),
     [planned, setPlanned] = useState(false),
     [error, setError] = useState(''),
@@ -327,8 +331,11 @@ export default function Home() {
     [version, setVersion] = useState<any>(null),
     [provenance, setProvenance] = useState<any>(null);
   const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
-  const journeys: Itinerary[] = vehicleResult.itineraries;
-  useEffect(() => setSelected(0), [vehicleCriteria, vehicleOptions]);
+  const divisionResult = useMemo(() => applyJourneyDivisionPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }), [vehicleResult.itineraries, preferDivision, divisionNow]);
+  const journeys: Itinerary[] = divisionResult.itineraries;
+  const selected = Math.max(0, journeys.findIndex(journey => journey.id === selectedId));
+  useEffect(() => { if (!journeys.some(journey => journey.id === selectedId)) setSelectedId(journeys[0]?.id ?? null); }, [journeys, selectedId]);
+  useEffect(() => setSelectedId(null), [vehicleCriteria, vehicleOptions]);
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
     hydrated = useRef(false);
@@ -401,6 +408,7 @@ export default function Home() {
         });
       }
       if (prefs.vehicleOptions && typeof prefs.vehicleOptions === 'object') setVehicleOptions({ prefer: prefs.vehicleOptions.prefer === true, avoid: prefs.vehicleOptions.avoid === true, includeUnconfirmed: prefs.vehicleOptions.includeUnconfirmed === true });
+      setPreferDivision(prefs.preferDivision === true);
       const list = readStored<unknown[]>('gtha-saved', []);
       if (Array.isArray(list))
         setSaved(
@@ -417,6 +425,7 @@ export default function Home() {
             .slice(0, 100),
         );
       const params = new URLSearchParams(location.search);
+      if (params.has('preferDivision')) setPreferDivision(params.get('preferDivision') === '1');
       const sharedRoute = { feedId: params.get('requiredAgency'), routeId: params.get('requiredRoute') };
       if (validRequiredRoute(sharedRoute)) setRequiredRoute(sharedRoute);
       const sharedTime = params.get('dateTime');
@@ -485,7 +494,7 @@ export default function Home() {
       try {
         localStorage.setItem(
           'gtha-preferences',
-          JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions }),
+          JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision }),
         );
       } catch {
         setNotice(
@@ -495,7 +504,7 @@ export default function Home() {
           ),
         );
       }
-  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions]);
+  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision]);
   useEffect(() => {
     if (hydrated.current)
       try {
@@ -616,7 +625,8 @@ export default function Home() {
       if (id !== generation.current) return;
       setJourneys(data.itineraries || []);
       setPlannedDeparture(arriveBy ? null : requestedTime);
-      setSelected(0);
+      setSelectedId(null);
+      setDivisionNow(Date.now());
       setProvenance(data.data);
       setTab('plan');
       const count = applyJourneyPreferences(data.itineraries || [], vehicleCriteria, vehicleOptions).itineraries.length;
@@ -649,7 +659,7 @@ export default function Home() {
     if (viaPlaces.some(place => !place)) return;
     const via = viaPlaces.filter((place): place is Place => !!place).map(planPoint);
     const savedId = id + (via.length ? ':' + via.map(place => `${place.lat},${place.lon}`).join(';') : '') + (requiredRoute ? `:${requiredRoute.feedId}:${requiredRoute.routeId}` : '');
-    const next = [{ id: savedId, from: planPoint(from), to: planPoint(to), via, requiredRoute }, ...saved.filter((x) => x.id !== savedId)].slice(0, 100);
+    const next = [{ id: savedId, from: planPoint(from), to: planPoint(to), via, requiredRoute, preferDivision }, ...saved.filter((x) => x.id !== savedId)].slice(0, 100);
     try {
       localStorage.setItem('gtha-saved', JSON.stringify(next));
     } catch {
@@ -672,6 +682,7 @@ export default function Home() {
     }
     if (arriveBy) url.searchParams.set('arriveBy', '1');
     url.searchParams.set('preference', preference);
+    url.searchParams.set('preferDivision', preferDivision ? '1' : '0');
     if (requiredRoute) { url.searchParams.set('requiredAgency', requiredRoute.feedId); url.searchParams.set('requiredRoute', requiredRoute.routeId); }
     try {
       await navigator.clipboard.writeText(url.href);
@@ -698,6 +709,7 @@ export default function Home() {
       arriveBy,
       preference,
       vehiclePreferences: { criteria: vehicleCriteria, options: vehicleOptions },
+      preferDivision,
       requiredRoute,
       itinerary: j,
       data: provenance,
@@ -1013,6 +1025,8 @@ export default function Home() {
             <details className="vehicle-journey-options">
               <summary>{t('Vehicle preferences', '車輛偏好')}{vehicleOptions.prefer || vehicleOptions.avoid ? t(' · Active', ' · 已啟用') : ''}</summary>
               <JourneyVehiclePreferencesPanel criteria={vehicleCriteria} options={vehicleOptions} verifiedFleetFacts={[...TTC_FLEET_RANGES, ...Object.values(OTHER_FLEET_RANGES).flat()]} excludedCount={vehicleResult.excluded.length} onCriteriaChange={setVehicleCriteria} onOptionsChange={setVehicleOptions} t={t} />
+              <label className="journey-division-choice"><input type="checkbox" checked={preferDivision} onChange={event => setPreferDivision(event.target.checked)} /><span><strong>{t('Prefer out-of-division vehicles', '優先乘搭跨車廠車輛')}</strong><small>{t('Promote options with a fresh, exact assigned TTC vehicle working outside its route garages. Assignments can change before boarding; unconfirmed options remain available.', '優先顯示有最新、準確編配 TTC 車輛跨出路線車廠嘅行程。上車前編配可能改變；未確認行程仍然保留。')}</small></span></label>
+              {preferDivision && planned && <p className="data-note" role="status">{divisionResult.matched ? t(`${divisionResult.matched} options have verified out-of-division evidence.`, `${divisionResult.matched} 個行程有已核實跨車廠資料。`) : t('No returned option has verified out-of-division evidence. The existing options remain in order.', '返回嘅行程未有已核實跨車廠資料。現有選項保持次序。')}</p>}
             </details>
             <button className="primary" disabled={loading} type="submit">
               {loading ? (
@@ -1257,7 +1271,7 @@ export default function Home() {
                       >
                         <button
                           className="journey-summary"
-                          onClick={() => setSelected(index)}
+                          onClick={() => setSelectedId(j.id)}
                           aria-expanded={index === selected}
                         >
                           <div className="journey-times">
@@ -1529,6 +1543,7 @@ export default function Home() {
                                   )}
                                   {leg.mode !== 'WALK' &&
                                     <WashroomBadge washroom={leg.from.washroom} t={t} />}
+                                  {leg.vehicleDivision?.state === 'out-of-division' && isCurrentDivisionEvidence(leg.vehicleDivision, { now: divisionNow }) && <p className="journey-division-evidence"><strong>{t('Verified out of division', '已核實跨車廠')}</strong><span>{leg.vehicleDivision.homeGarageName} → {leg.vehicleDivision.assignedGarageNames?.join(', ')}</span><small>{t('Allocation valid through', '配車資料有效至')} {leg.vehicleDivision.source?.validThrough}</small></p>}
                                   {leg.mode !== 'WALK' &&
                                     (leg.vehicle ? (
                                       <div className="assigned-vehicle">
@@ -1908,6 +1923,7 @@ export default function Home() {
                         setFrom(s.from);
                         setPicking(null);
                         setRequiredRoute(validRequiredRoute(s.requiredRoute) ? s.requiredRoute : null);
+                        setPreferDivision(s.preferDivision === true);
                         setDestinations([...(s.via || []), s.to].map((place, index) => ({ id: `saved-destination-${index}`, place })));
                         setPlanned(false);
                         setJourneys([]);

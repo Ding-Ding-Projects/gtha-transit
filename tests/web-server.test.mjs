@@ -23,6 +23,26 @@ const vehicleFixture=({id,route='29',timestamp})=>bytes(2,cat(
  )),
 ));
 const vehicleFeed=(timestamp,...vehicles)=>cat(bytes(1,cat(string(1,'2.0'),scalar(3,timestamp))),...vehicles);
+test('Journey proxy attaches division evidence only after real exact-trip enrichment', {timeout:10000}, async()=>{
+ const root=mkdtempSync(path.join(tmpdir(),'gtha-journey-division-')),fixture=path.join(root,'vehicles.pb');
+ const now=Date.now(),timestamp=Math.floor(now/1000);writeFileSync(fixture,vehicleFeed(timestamp,vehicleFixture({id:'7001',route:'29',timestamp})));
+ const routing=http.createServer((req,res)=>{res.setHeader('content-type','application/json');res.end(JSON.stringify({itineraries:[{id:'trip',legs:[{mode:'BUS',agencyFeedId:'ttc',routeId:'ttc:29',tripId:'ttc:trip-29',startTime:new Date(now+600000).toISOString(),endTime:new Date(now+1800000).toISOString()}]}]}));});
+ await new Promise(resolve=>routing.listen(0,'127.0.0.1',resolve));
+ const probe=http.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
+ const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:String(port),HOST:'127.0.0.1',ROUTING_ORIGIN:`http://127.0.0.1:${routing.address().port}`,VEHICLE_FIXTURE_PATH:fixture}});let log='';child.stdout.on('data',d=>log+=d);child.stderr.on('data',d=>log+=d);
+ try{
+  for(let i=0;i<50&&!log.includes('ready');i++)await pause(50);assert.match(log,/ready/);
+  for(const key of ['fixturePath','routingOrigin','now','fetchImpl']) {
+   const rejected=await fetch(`http://127.0.0.1:${port}/api/vehicles?${key}=untrusted`);
+   assert.equal(rejected.status,400);assert.equal((await rejected.json()).code,'INVALID_VEHICLE_QUERY');
+  }
+  const response=await fetch(`http://127.0.0.1:${port}/api/plan`,{method:'POST',headers:{'content-type':'application/json'},body:'{}'});assert.equal(response.status,200);
+  const payload=await response.json(),leg=payload.itineraries[0].legs[0];
+  assert.deepEqual(leg.vehicleAssignment,{state:'matched',method:'exact-trip-id'});assert.equal(leg.vehicle.id,'7001');
+  assert.ok(['out-of-division','in-division','unknown'].includes(leg.vehicleDivision.state));assert.equal(leg.vehicleDivision.vehicleId,'7001');
+  assert.equal(leg.vehicleDivision.routeId,'29');assert.ok(Number.isFinite(leg.vehicleDivision.checkedAt));assert.ok(Number.isFinite(leg.vehicleDivision.validUntil));assert.ok(payload.divisionEvidence);
+ }finally{child.kill();await once(child,'exit');await new Promise(resolve=>routing.close(resolve));rmSync(root,{recursive:true,force:true});}
+});
 test('Washroom detour POST reaches the routing origin with its exact body', {timeout:10000}, async()=>{
  const received=[];
  const routing=http.createServer(async(req,res)=>{let raw='';for await(const chunk of req)raw+=chunk;received.push({method:req.method,url:req.url,body:JSON.parse(raw)});res.setHeader('content-type','application/json');res.end(JSON.stringify({status:'facility-only',completeJourney:false,facility:{name:'Verified facility',availability:'confirmed-open'},continuation:null}));});

@@ -32,7 +32,7 @@ Year input is strict: a nonblank bound must be a four-digit whole year from
 1800 through 3000. A reversed interval also returns an explicit error and no
 vehicles, so a malformed filter cannot silently become a broader match.
 
-Published CPTDB year metadata may be a numeric year or a bounded two-year range
+Published fleet year metadata may be a numeric year or a year range
 such as `2007-2010`. A requested range matches a published range when the two
 ranges overlap. For example, a request for 2009 through 2012 includes a vehicle
 whose published range is 2007 through 2010. This is a comparison of the
@@ -57,3 +57,11 @@ vehicle object. It reports `unknownCount` for unknown candidates, and
 `excludedUnknownCount` for the portion excluded because `includeUnknown` is
 false. The helper does not execute a caller-provided regular expression; the UI
 owns free-text searching through the bounded Search Workbench.
+
+## Tracker controls
+
+Open Fleet filters in either Vehicles or Out of division. Manufacturer choices come from the currently loaded agency/route selection; selecting a company reveals only its models and clears an incompatible previous model. Year bounds are typed fields with inline validation. The map and paginated list use the same resulting array. A page contains up to 100 rows while the map shows every loaded match.
+
+Filter choices and the expanded panel state persist separately for the two tracker tabs. Active choices remain visible in the collapsed summary. Clear fleet filters returns to every loaded vehicle; unknown details are included automatically when no criteria are active. Malformed persisted records fall back to the empty default. An incomplete year remains a visible draft with inline validation, rather than silently becoming an active range.
+
+The vehicle search, manufacturer search and model search each have their own adjacent Search Workbench and isolated snippet storage. Vehicle search is local over the loaded records, so typing or changing a regex does not repeatedly download the feeds. An unfinished or invalid regex has an explicit status and never displays stale matches as current. If the loading cap is reached, the tracker discloses it and offers agency/route narrowing rather than claiming exhaustive provider coverage.
