@@ -1,0 +1,12 @@
+services:
+  regional-map:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8789:8789"
+    environment:
+      MBTILES: /srv/maps/data/ontario.mbtiles
+      PLACE_INDEX: /srv/maps/data/places.sqlite3
+    volumes:
+      - ./data:/srv/maps/data
+      - /home/docker/gtha-transit-backend/data:/source:ro
