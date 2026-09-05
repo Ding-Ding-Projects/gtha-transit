@@ -18,6 +18,7 @@ const DEPARTURES = `query Departures($id:String!,$start:Long!,$timeRange:Int!,$c
 
 function finiteNumber(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
 function safeText(value) { if (value == null) return null; const text = String(value); return /[\u0000-\u001f\u007f]/.test(text) ? null : text; }
+export function publicAgencyFeedId(value) { return value === "ttc-next" ? "ttc" : value; }
 function point(raw) {
   if (!raw || finiteNumber(raw.lat) === null || finiteNumber(raw.lon) === null) return null;
   return { name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon) };
@@ -33,7 +34,7 @@ function normalizeLeg(leg, index) {
   const tripId = safeText(leg.trip?.gtfsId); const routeId = safeText(leg.route?.gtfsId); const agencyId = safeText(leg.route?.agency?.gtfsId);
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
-    tripId, routeId, agencyId, agencyFeedId: tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeId?.includes(":") ? routeId.slice(0, routeId.indexOf(":")) : null,
+    tripId, routeId, agencyId, agencyFeedId: publicAgencyFeedId(tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeId?.includes(":") ? routeId.slice(0, routeId.indexOf(":")) : null),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
     agency: leg.route?.agency ? safeText(leg.route.agency.name ?? "") : null,
