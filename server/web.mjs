@@ -470,8 +470,8 @@ const server = http.createServer(async (req, res) => {
           error: 'Too many searches. Please wait a minute.',
         });
       if (
-        (url.pathname === '/api/plan' && req.method !== 'POST') ||
-        (url.pathname !== '/api/plan' && req.method !== 'GET')
+        (['/api/plan', '/api/plan-washroom-detour'].includes(url.pathname) && req.method !== 'POST') ||
+        (!['/api/plan', '/api/plan-washroom-detour'].includes(url.pathname) && req.method !== 'GET')
       )
         return send(res, 405, { error: 'Method not allowed.' });
       if (url.pathname === '/api/places') {

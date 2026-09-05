@@ -23,6 +23,20 @@ const vehicleFixture=({id,route='29',timestamp})=>bytes(2,cat(
  )),
 ));
 const vehicleFeed=(timestamp,...vehicles)=>cat(bytes(1,cat(string(1,'2.0'),scalar(3,timestamp))),...vehicles);
+test('Washroom detour POST reaches the routing origin with its exact body', {timeout:10000}, async()=>{
+ const received=[];
+ const routing=http.createServer(async(req,res)=>{let raw='';for await(const chunk of req)raw+=chunk;received.push({method:req.method,url:req.url,body:JSON.parse(raw)});res.setHeader('content-type','application/json');res.end(JSON.stringify({status:'facility-only',completeJourney:false,facility:{name:'Verified facility',availability:'confirmed-open'},continuation:null}));});
+ await new Promise(resolve=>routing.listen(0,'127.0.0.1',resolve));
+ const probe=http.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
+ const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:String(port),HOST:'127.0.0.1',ROUTING_ORIGIN:`http://127.0.0.1:${routing.address().port}`}});let log='';child.stdout.on('data',d=>log+=d);child.stderr.on('data',d=>log+=d);
+ try{
+  for(let i=0;i<50&&!log.includes('ready');i++)await pause(50);assert.match(log,/ready/);
+  const body={currentPosition:{lat:43.67,lon:-79.38},dateTime:'2026-09-05T12:00:00-04:00',facilityOnly:true,visitMinutes:10};
+  const response=await fetch(`http://127.0.0.1:${port}/api/plan-washroom-detour`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  assert.equal(response.status,200);assert.equal((await response.json()).status,'facility-only');assert.deepEqual(received,[{method:'POST',url:'/api/plan-washroom-detour',body}]);
+  assert.equal((await fetch(`http://127.0.0.1:${port}/api/plan-washroom-detour`)).status,405);assert.equal(received.length,1);
+ }finally{child.kill();await once(child,'exit');await new Promise(resolve=>routing.close(resolve));}
+});
 test('Real HTTP server serves provenance and isolates private backend failures',{timeout:10000},async()=>{
  const root=mkdtempSync(path.join(tmpdir(),'gtha-web-'));writeFileSync(path.join(root,'index.html'),'<!doctype html><title>GTHA</title>');const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:'18784',HOST:'127.0.0.1',STATIC_ROOT:root,ROUTING_ORIGIN:'http://127.0.0.1:1'}});let log='';child.stdout.on('data',d=>log+=d);child.stderr.on('data',d=>log+=d);
  try{for(let i=0;i<50&&!log.includes('ready');i++)await pause(50);assert.match(log,/ready/);const health=await fetch('http://127.0.0.1:18784/health');assert.equal(health.status,200);const csp=new Map(health.headers.get('content-security-policy').split(';').map(rule=>{const words=rule.trim().split(' ').filter(Boolean);return [words.shift(),words];}));assert.deepEqual(csp.get('script-src'),["'self'","'unsafe-inline'"]);assert.deepEqual(csp.get('connect-src'),["'self'"]);assert.deepEqual(csp.get('worker-src'),["'self'"]);assert.deepEqual(csp.get('font-src'),["'self'","data:"]);assert.equal((await health.json()).ok,true);const api=await fetch('http://127.0.0.1:18784/api/coverage');assert.equal(api.status,503);const output=await api.text();assert.equal(output.includes('127.0.0.1'),false);assert.equal(api.headers.get('referrer-policy'),'no-referrer');const page=await fetch('http://127.0.0.1:18784/');assert.equal(page.status,200);assert.ok(page.headers.get('cache-control').split(',').includes('no-transform'));assert.match(await page.text(),/GTHA/);}
