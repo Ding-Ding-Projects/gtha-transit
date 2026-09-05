@@ -49,7 +49,10 @@ def _fold(value):
 
 
 def _raw_terms(value):
-    return re.sub(r"[^0-9a-z]+", " ", _fold(value)).split()
+    normalized = re.sub(r"[^0-9a-z]+", " ", _fold(value))
+    normalized = re.sub(r"([a-z])([0-9])", r"\1 \2", normalized)
+    normalized = re.sub(r"([0-9])([a-z]{2,})", r"\1 \2", normalized)
+    return normalized.split()
 
 
 def _search_terms(query):

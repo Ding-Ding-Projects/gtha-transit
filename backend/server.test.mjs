@@ -72,17 +72,22 @@ test("place suggestions support bounded prefixes, road forms, diacritics, and in
     { id: "fixture:station-clair", name: "Station Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:high-park", name: "High Park", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:route-place", name: "Route Place", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:building-12a", name: "12A Warden Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:route-501x", name: "Route 501X", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:yonge-station", name: "Yonge Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
     { id: "fixture:york-mills", name: "York Mills Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
   ];
-  for (const query of ["Warden Highway 7", "Warden Hwy 7", "ward high 7", "Highway 7 Warden"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:warden-hwy7");
+  for (const query of ["Warden Highway 7", "Warden Highway7", "Warden Hwy 7", "ward high 7", "ward high7", "Highway 7 Warden", "Highway7Warden", "highway7warden"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:warden-hwy7");
   assert.deepEqual(rankPlaces(stops, "ward high 7").map((place) => place.id), ["fixture:warden-hwy7"]);
+  assert.deepEqual(rankPlaces(stops, "ward high7").map((place) => place.id), ["fixture:warden-hwy7"]);
   for (const query of ["Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:yonge-eglinton");
   for (const query of ["Saint Clair", "St. Clair"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:saint-clair");
   assert.deepEqual(rankPlaces(stops, "st clair").map((place) => place.id), ["fixture:saint-clair"]);
   assert.equal(rankPlaces(stops, "union")[0]?.id, "fixture:union-station");
   assert.equal(rankPlaces(stops, "high park")[0]?.id, "fixture:high-park");
   assert.equal(rankPlaces(stops, "route place")[0]?.id, "fixture:route-place");
+  assert.equal(rankPlaces(stops, "12A Warden")[0]?.id, "fixture:building-12a");
+  assert.equal(rankPlaces(stops, "Route 501X")[0]?.id, "fixture:route-501x");
   const shortPrefixIds = rankPlaces(stops, "yo").map((place) => place.id);
   assert.ok(shortPrefixIds.includes("fixture:yonge-station"));
   assert.ok(shortPrefixIds.includes("fixture:york-mills"));

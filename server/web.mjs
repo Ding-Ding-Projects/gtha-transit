@@ -127,6 +127,8 @@ function placeTerms(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/([a-z])(\d)/g, '$1 $2')
+    .replace(/(\d)([a-z]{2,})/g, '$1 $2')
     .trim()
     .split(' ')
     .filter((term) => term && !placeIgnoredTerms.has(term))
