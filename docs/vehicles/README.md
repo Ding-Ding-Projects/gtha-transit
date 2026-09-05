@@ -26,6 +26,8 @@ Verified images currently cover representative TTC Nova Bus LFS Hybrid, TTC FLEX
 
 The same decoder supports the public TTC, MiWay, Burlington Transit, and Hamilton Street Railway feeds. GO Transit and UP Express use the configured routing service's protected proxy; no access credential enters this module or a client response. Each vehicle carries its feed agency namespace, and every agency-specific CPTDB destination is an honest search URL when no verified record page is available.
 
+The matcher uses a fleet-shaped public label first and otherwise falls back to a fleet-shaped vehicle identifier. This matters for UP Express, whose labels describe the destination while identifiers such as `1006` and `3004` identify the equipment. The original label remains unchanged and a separate `fleetNumber` carries the resolved display number. Verified CPTDB roster ranges provide GO Transit MP40PH-3C and MP54AC facts and UP Express Nippon Sharyo A-car and C-car facts. Other agencies remain search-only until an equally specific roster source supports their observed number.
+
 `enrichItineraries()` joins a direction leg to a vehicle only when its agency namespace and normalized GTFS trip identifier both match a fresh vehicle-position entity exactly. It never assigns a vehicle from a route match alone. A leg without the required identifiers, a stale or unavailable feed, or no exact fresh match receives an explicit assignment state and reason instead of a guessed vehicle.
 
 ## Failure and privacy boundaries
