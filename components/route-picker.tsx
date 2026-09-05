@@ -10,12 +10,14 @@ type RouteRecord = {
 };
 const emptySearch = (): SearchState => ({ query: '', pattern: '', flags: 'i', mode: 'text' });
 const routeColor = (value: string | null) => value && /^[a-f0-9]{6}$/i.test(value) ? '#' + value : undefined;
-export default function RoutePicker({ agency, route, onChange, t, allowedAgencyIds, storageId = 'tracker-route-picker' }: {
+export default function RoutePicker({ agency, route, onChange, t, allowedAgencyIds, storageId = 'tracker-route-picker', date: requestedDate, singleRoute = false }: {
   agency: string; route: string;
   onChange: (agency: string, route: string) => void;
   t: (en: string, zh: string) => string;
   allowedAgencyIds?: readonly string[];
   storageId?: string;
+  date?: string;
+  singleRoute?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -33,12 +35,14 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
     setChosenAgency(agency);
     dialog.current?.showModal();
     const controller = new AbortController();
+    let active = true;
+    const deadline = setTimeout(() => controller.abort(), 15000);
     setBusy(true); setError(false);
     void (async () => {
       try {
         const all: RouteRecord[] = [];
         const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).map(part => [part.type, part.value]));
-        const date = `${parts.year}-${parts.month}-${parts.day}`;
+        const date = requestedDate || `${parts.year}-${parts.month}-${parts.day}`;
         setCatalogDate(date);
         const cursors = new Set<string>();
         let cursor: string | null = null;
@@ -60,13 +64,14 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
         }
         throw new Error('catalog exceeds supported bound');
       } catch {
-        if (!controller.signal.aborted) setError(true);
+        if (active) setError(true);
       } finally {
-        if (!controller.signal.aborted) setBusy(false);
+        clearTimeout(deadline);
+        if (active) setBusy(false);
       }
     })();
-    return () => controller.abort();
-  }, [open, refresh]);
+    return () => { active = false; clearTimeout(deadline); controller.abort(); };
+  }, [open, refresh, requestedDate]);
   const agencies = useMemo(() => [...new Map(records.filter(r => !allowedAgencyIds || allowedAgencyIds.includes(r.feedId)).map(r => [r.feedId, r.agency])).entries()], [records, allowedAgencyIds]);
   const agencySamples = useMemo(() => agencies.map(([id, name]) => `${id} ${name}`), [agencies]);
   const agencyMatches = useSearchMatches(agencySamples, agencySearch);
@@ -95,7 +100,7 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
         <section aria-label={t('Routes', '路線')}>
           <h3>{t('2. Choose a route', '2. 選擇路線')}</h3>
           <SearchWorkbench storageId={storageId + '-route'} label={t('Find a route', '搜尋路線')} value={routeSearch} onChange={setRouteSearch} samples={routeSamples} t={t} />
-          <button className="pill" onClick={() => choose(chosenAgency, '')}>{t('Use all routes in this selection', '使用所選公司嘅全部路線')}</button>
+          {!singleRoute && <button className="pill" onClick={() => choose(chosenAgency, '')}>{t('Use all routes in this selection', '使用所選公司嘅全部路線')}</button>}
           <div className="route-picker-results" aria-busy={routeMatches.busy}>
             {routeMatches.error ? <p role="status">{routeMatches.error}</p> : routeMatches.busy ? <p role="status">{t('Matching routes…', '配對路線中…')}</p> : availableRoutes.filter((_, i) => routeMatches.matches[i]).length === 0 ? <p role="status">{t('No matching routes.', '冇符合嘅路線。')}</p> : availableRoutes.map((r, i) => routeMatches.matches[i] && <button key={r.id} className="route-picker-result" onClick={() => choose(r.feedId, r.routeId)}>
               <strong className="route-picker-badge" style={{ background: routeColor(r.color), color: routeColor(r.textColor) }}>{r.shortName || r.routeId}</strong>

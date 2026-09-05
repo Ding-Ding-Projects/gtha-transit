@@ -22,7 +22,7 @@ Add `requiredRoute` to the existing whole-journey planning request:
 
 `feedId` and `routeId` are both required whenever `requiredRoute` is supplied. Route numbers are not globally unique, so a bare `"5"` never inherits TTC identity. If `requiredRoute` is omitted entirely, the helper uses TTC route `5` as its default. `routeRef` is optional display metadata and is never used to prove that the selected line was ridden.
 
-The public HTTP endpoint that owns this helper will expose this same object under its required-line request surface. The helper itself is dependency-injected and does not add a route to an HTTP server.
+The public `/api/plan` endpoint accepts this object. Without it, ordinary planning does not add a required route. Journey preferences provide a Line 5 shortcut and an agency-first route picker with an independent search workbench. The picker uses the selected Toronto date; saved trips and shared links retain the selected route. An unresolved bounded search returns no partial itinerary and does not imply that the route has no service.
 
 ## Verification rule
 

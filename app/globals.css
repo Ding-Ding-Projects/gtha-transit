@@ -13,7 +13,14 @@
 .live-follower__modes,.live-follower__preview-controls,.live-follower__recovery { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
 .live-follower button { min-height:44px; }
 .live-follower__next { display:grid; gap:8px; padding:22px; margin:16px 0; background:var(--primary); color:var(--bg); border-radius:20px; }
-.live-follower__next h3 { font-size:clamp(24px,4vw,38px); margin:0; }
+.live-follower__next > strong { font-size:clamp(24px,4vw,38px); margin:0; }
+.live-follower-map-stop { border:2px solid #184d39; background:#fff; border-radius:50%; }
+.live-follower-map-target { border:3px solid #fff; background:#d27700; border-radius:4px; box-shadow:0 0 0 2px #184d39; }
+.live-follower-map-vehicle { border:3px solid #fff; background:#184d39; border-radius:50%; box-shadow:0 0 0 2px #184d39; }
+.live-follower-map-person { border:3px solid #fff; background:#1565c0; border-radius:50%; box-shadow:0 0 0 2px #1565c0; }
+.live-follower-map-vehicle.is-stale,.live-follower-map-person.is-stale { background:#68776d; border-style:dashed; }
+.required-route-control { display:grid; gap:10px; padding:16px; margin:12px 0; background:var(--surface2); border-radius:20px; }
+.required-route-control h3,.required-route-control p { margin:0; }
 .live-follower__simulation,.live-follower__privacy,.live-follower__preview,.live-follower__vehicle-note { padding:14px; margin:12px 0; border-radius:14px; background:var(--surface2); }
 .live-follower__map { height:320px; border-radius:18px; overflow:hidden; isolation:isolate; }
 .live-follower__stops { max-height:360px; overflow:auto; padding-left:28px; }

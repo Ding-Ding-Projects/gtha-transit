@@ -350,6 +350,11 @@ test("HTTP planning returns a neutral empty result when OTP finds no itinerary",
 
   const invalidCoordinate = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 91, lon: -79.5 }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
   assert.equal(invalidCoordinate.status, 400);
+  for (const bad of [null, false, [], {}, ""]) {
+    const rejected = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: bad, lon: -79.4 }, to: { lat: 43.65, lon: -79.38 }, dateTime: "2026-09-05T12:00:00-04:00" }) });
+    assert.equal(rejected.status, 400);
+    assert.match((await rejected.json()).error, /from.lat must be a finite number/);
+  }
   assert.match((await invalidCoordinate.json()).error, /via\[0\]\.lat must be between -90 and 90/);
 
   const oversizedLabel = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 43.66, lon: -79.5, name: "a".repeat(201) }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });

@@ -20,7 +20,7 @@ const readBody = (req) => new Promise((resolve, reject) => {
   req.on("data", (chunk) => { data += chunk; if (Buffer.byteLength(data) > max) { reject(new Error("request body exceeds limit")); req.destroy(); } });
   req.on("end", () => resolve(data)); req.on("error", reject);
 });
-const number = (value, name) => { const n = Number(value); if (!Number.isFinite(n)) throw new Error(`${name} must be a finite number`); return n; };
+const number = (value, name) => { if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && !value.trim())) throw new Error(`${name} must be a finite number`); const n = Number(value); if (!Number.isFinite(n)) throw new Error(`${name} must be a finite number`); return n; };
 const coordinates = (raw, name) => ({ lat: bounded(raw?.lat, `${name}.lat`, -90, 90), lon: bounded(raw?.lon, `${name}.lon`, -180, 180) });
 const bounded = (value, name, min, max) => { const n = number(value, name); if (n < min || n > max) throw new Error(`${name} must be between ${min} and ${max}`); return n; };
 const nonNegativeInteger = (value, name, max) => { const n = bounded(value, name, 0, max); if (!Number.isInteger(n)) throw new Error(`${name} must be an integer`); return n; };

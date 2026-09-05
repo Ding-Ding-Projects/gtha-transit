@@ -30,6 +30,7 @@ import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
+import RoutePicker from '../components/route-picker';
 import LiveFollower, { type LiveFollowerVehicle } from '../components/live-follower';
 import DestinationList, { type Destination } from '../components/destination-list';
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
@@ -52,7 +53,9 @@ import {
 } from '../lib/journey-utils';
 
 type Lang = 'en' | 'zh' | 'both';
-type Saved = { id: string; from: Place; to: Place; via?: Place[] };
+type RequiredRoute = { feedId: string; routeId: string };
+const validRequiredRoute = (value: unknown): value is RequiredRoute => !!value && typeof value === 'object' && ['feedId', 'routeId'].every(key => typeof (value as Record<string, unknown>)[key] === 'string' && /^[a-zA-Z0-9_.-]{1,100}$/.test((value as Record<string, string>)[key]));
+type Saved = { id: string; from: Place; to: Place; via?: Place[]; requiredRoute?: RequiredRoute | null };
 const planPoint = (place: Place): Place => ({ id: place.id, name: place.name, lat: place.lat, lon: place.lon, ...(place.kind ? { kind: place.kind } : {}), ...(place.agency ? { agency: place.agency } : {}) });
 const time = (v: number | string) =>
   new Date(typeof v === 'number' && v < 1e12 ? v * 1000 : v).toLocaleTimeString(
@@ -271,8 +274,17 @@ export default function Home() {
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
   const [destinations, setDestinations] = useState<Destination[]>([{ id: 'destination-1', place: null }]);
+  const [requiredRoute, setRequiredRoute] = useState<{ feedId: string; routeId: string } | null>(null);
   const [follower, setFollower] = useState<{ journey?: Itinerary; vehicle?: LiveFollowerVehicle } | null>(null);
   const followerAnchor = useRef<HTMLDivElement>(null);
+  const followerReturn = useRef<HTMLElement | null>(null);
+  const [followerSession, setFollowerSession] = useState(0);
+  const openFollower = (next: { journey?: Itinerary; vehicle?: LiveFollowerVehicle }) => {
+    followerReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setFollowerSession(value => value + 1);
+    setFollower(next);
+  };
+  const closeFollower = () => { setFollower(null); requestAnimationFrame(() => { if (followerReturn.current?.isConnected) followerReturn.current.focus(); }); };
   useEffect(() => {
     if (follower) followerAnchor.current?.focus();
   }, [follower]);
@@ -340,6 +352,7 @@ export default function Home() {
         maxWalk,
         preferWashrooms,
         viaPlaces,
+        requiredRoute,
       ])
     )
       return;
@@ -359,6 +372,7 @@ export default function Home() {
     maxWalk,
     preferWashrooms,
     viaPlaces,
+    requiredRoute,
   ]);
   useEffect(() => {
     setWhen(localInput());
@@ -396,6 +410,8 @@ export default function Home() {
             .slice(0, 100),
         );
       const params = new URLSearchParams(location.search);
+      const sharedRoute = { feedId: params.get('requiredAgency'), routeId: params.get('requiredRoute') };
+      if (validRequiredRoute(sharedRoute)) setRequiredRoute(sharedRoute);
       const sharedTime = params.get('dateTime');
       if (sharedTime && /(?:Z|[+-]\d{2}:\d{2})$/.test(sharedTime) && Number.isFinite(Date.parse(sharedTime))) setWhen(torontoLocalInput(new Date(sharedTime)));
       if (params.get('arriveBy') === '1') setArriveBy(true);
@@ -543,12 +559,13 @@ export default function Home() {
       maxWalk,
       preferWashrooms,
       viaPlaces,
+      requiredRoute,
     ]);
     setLoading(true);
     setError('');
     setPlanned(true);
     setJourneys([]);
-    const timer = setTimeout(() => controller.abort(), 25000);
+    const timer = setTimeout(() => controller.abort(), requiredRoute ? 35000 : 25000);
     try {
       const requestedTime = asIso(override || when || localInput());
       const r = await fetch('/api/plan', {
@@ -564,6 +581,7 @@ export default function Home() {
           wheelchair,
           maxWalkDistance: maxWalk,
           preferWashrooms,
+          ...(requiredRoute ? { requiredRoute } : {}),
         }),
         signal: controller.signal,
       });
@@ -623,8 +641,8 @@ export default function Home() {
     const id = `${from.lat},${from.lon}:${to.lat},${to.lon}`;
     if (viaPlaces.some(place => !place)) return;
     const via = viaPlaces.filter((place): place is Place => !!place).map(planPoint);
-    const savedId = id + (via.length ? ':' + via.map(place => `${place.lat},${place.lon}`).join(';') : '');
-    const next = [{ id: savedId, from: planPoint(from), to: planPoint(to), via }, ...saved.filter((x) => x.id !== savedId)].slice(0, 100);
+    const savedId = id + (via.length ? ':' + via.map(place => `${place.lat},${place.lon}`).join(';') : '') + (requiredRoute ? `:${requiredRoute.feedId}:${requiredRoute.routeId}` : '');
+    const next = [{ id: savedId, from: planPoint(from), to: planPoint(to), via, requiredRoute }, ...saved.filter((x) => x.id !== savedId)].slice(0, 100);
     try {
       localStorage.setItem('gtha-saved', JSON.stringify(next));
     } catch {
@@ -647,6 +665,7 @@ export default function Home() {
     }
     if (arriveBy) url.searchParams.set('arriveBy', '1');
     url.searchParams.set('preference', preference);
+    if (requiredRoute) { url.searchParams.set('requiredAgency', requiredRoute.feedId); url.searchParams.set('requiredRoute', requiredRoute.routeId); }
     try {
       await navigator.clipboard.writeText(url.href);
       setNotice(
@@ -672,6 +691,7 @@ export default function Home() {
       arriveBy,
       preference,
       vehiclePreferences: { criteria: vehicleCriteria, options: vehicleOptions },
+      requiredRoute,
       itinerary: j,
       data: provenance,
       exportedAt: new Date().toISOString(),
@@ -924,6 +944,13 @@ export default function Home() {
                 {t('Journey preferences', '行程偏好')}
                 <ChevronRight size={16} />
               </summary>
+              <section className="required-route-control" aria-label={t('Include a route in this trip', '行程必須包括路線')}>
+                <h3>{t('A route you want to ride', '你想乘搭嘅路線')}</h3>
+                <p className="data-note">{t('Take a detour to actually ride this route. Connections may take longer. Results must include a transit leg on your selected route.', '繞路實際乘搭此路線，接駁可能較長。結果必須包括所選路線嘅乘車路段。')}</p>
+                <button type="button" className="pill" aria-pressed={requiredRoute?.feedId === 'ttc' && requiredRoute.routeId === '5'} onClick={() => setRequiredRoute({ feedId: 'ttc', routeId: '5' })}>{t('I want to ride Line 5', '我想搭 5 號線')}</button>
+                <RoutePicker agency={requiredRoute?.feedId || 'ttc'} route={requiredRoute?.routeId || ''} date={when.slice(0, 10)} singleRoute storageId="journey-required-route" t={t} onChange={(feedId, routeId) => setRequiredRoute(routeId ? { feedId, routeId } : null)} />
+                {requiredRoute ? <button type="button" className="text-button" onClick={() => setRequiredRoute(null)}>{t('Remove required route', '取消必經路線')}</button> : <small>{t('No required route selected', '未選擇必經路線')}</small>}
+              </section>
               <div className="journey-priority" role="group" aria-label={t('Prioritize', '優先考慮')}>
                 {[
                   ['fastest', t('Fastest journey', '最快到達')],
@@ -1051,10 +1078,10 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
-          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower {...follower} t={t} onClose={() => setFollower(null)} /></div>}
+          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
           {tab === 'history' && <DisruptionHistory t={t} />}
-          {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => setFollower({ vehicle })} />}
-          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => setFollower({ vehicle })} />}
+          {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => openFollower({ vehicle })} />}
+          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => openFollower({ vehicle })} />}
           {tab === 'coverage' && <RealtimeCoverage t={t} />}
           {tab === 'plan' && (
             <>
@@ -1364,7 +1391,7 @@ export default function Home() {
                         </button>
                         {index === selected && (
                           <div className="leg-list">
-                            <button type="button" className="pill" onClick={() => setFollower({ journey: j })}>{t('Follow this trip', '跟隨此行程')}</button>
+                            <button type="button" className="pill" onClick={() => { const assigned = j.legs.find(leg => leg.vehicle?.id && leg.agencyFeedId); openFollower({ journey: j, ...(assigned?.vehicle ? { vehicle: { ...assigned.vehicle, agencyId: assigned.agencyFeedId } } : {}) }); }}>{t('Follow this trip', '跟隨此行程')}</button>
                             {!!j.washrooms?.length && (
                               <div className="washroom-result">
                                 <strong>
@@ -1493,6 +1520,8 @@ export default function Home() {
                                     </p>
                                   )}
                                   {leg.mode !== 'WALK' &&
+                                    <WashroomBadge washroom={leg.from.washroom} t={t} />}
+                                  {leg.mode !== 'WALK' &&
                                     (leg.vehicle ? (
                                       <div className="assigned-vehicle">
                                         <strong>
@@ -1578,6 +1607,7 @@ export default function Home() {
                                         {t('Get off at', '落車站')}{' '}
                                         <b>{leg.to.name}</b>
                                       </p>
+                                      <WashroomBadge washroom={leg.to.washroom} t={t} />
                                       {leg.intermediateStops?.length ? (
                                         <details>
                                           <summary>
@@ -1590,7 +1620,7 @@ export default function Home() {
                                           <ol>
                                             {leg.intermediateStops.map(
                                               (s, k) => (
-                                                <li key={k}>{s.name}</li>
+                                                <li key={k}>{s.name}<WashroomBadge washroom={s.washroom ? { ...s.washroom, availability: 'unknown' } : null} t={t} /></li>
                                               ),
                                             )}
                                           </ol>
@@ -1868,6 +1898,8 @@ export default function Home() {
                     <button
                       onClick={() => {
                         setFrom(s.from);
+                        setPicking(null);
+                        setRequiredRoute(validRequiredRoute(s.requiredRoute) ? s.requiredRoute : null);
                         setDestinations([...(s.via || []), s.to].map((place, index) => ({ id: `saved-destination-${index}`, place })));
                         setPlanned(false);
                         setJourneys([]);

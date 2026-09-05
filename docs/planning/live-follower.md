@@ -1,5 +1,7 @@
 # Live trip and vehicle follower
 
+The planner exposes Follow this trip on an expanded journey and Follow this vehicle in selected vehicle details. A new follower context remounts the panel, stopping any previous local tracking and clearing old vehicle snapshots. Closing returns keyboard focus to its trigger when that trigger remains present. A trip passes a vehicle only from an existing exact assigned leg and its agency identity. The optional narrator receives follower announcements through its existing opt-in queue.
+
 `LiveFollower` is a client-side panel for following one published itinerary or one explicitly selected vehicle. It is intentionally conservative: a route, headsign, timetable, or nearby position never becomes a rider vehicle assignment or a claimed next stop.
 
 ## Inputs
