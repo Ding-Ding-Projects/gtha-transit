@@ -18,7 +18,15 @@ The registry was checked against a live TTC snapshot retrieved at `2026-09-05T00
 
 ## Photos and rights
 
-`photo` is currently `null`. CPTDB vehicle photographs commonly carry photographer-specific copyright notices, including all-rights-reserved notices, so the service does not copy, hotlink, or treat an image page as permission to display the image. The CPTDB roster link remains available for research. A future photo may be shown only with a verified reusable licence, source page, credit, and an `exactVehicle` label that distinguishes a photographed unit from a representative fleet-series image.
+Photos are shown only from Wikimedia Commons records whose reusable licence, source page, creator credit, and direct media URL were verified through the Commons API. Every photo has an `exactVehicle` flag. It is `true` only when the Commons record identifies the same fleet number; otherwise the image is explicitly representative. A missing verified match remains `null`. CPTDB photographs with an all-rights-reserved notice are never copied or hotlinked.
+
+Verified images currently cover representative TTC Nova Bus LFS Hybrid, TTC FLEXITY M-1, TTC New Flyer XDE60, MiWay, Burlington Transit, Hamilton Street Railway, GO Transit, and UP Express vehicles. The client should proxy and cache these allowlisted URLs rather than making visitor browsers contact the image host directly.
+
+## Multi-agency feeds and direction assignments
+
+The same decoder supports the public TTC, MiWay, Burlington Transit, and Hamilton Street Railway feeds. GO Transit and UP Express use the configured routing service's protected proxy; no access credential enters this module or a client response. Each vehicle carries its feed agency namespace, and every agency-specific CPTDB destination is an honest search URL when no verified record page is available.
+
+`enrichItineraries()` joins a direction leg to a vehicle only when its agency namespace and normalized GTFS trip identifier both match a fresh vehicle-position entity exactly. It never assigns a vehicle from a route match alone. A leg without the required identifiers, a stale or unavailable feed, or no exact fresh match receives an explicit assignment state and reason instead of a guessed vehicle.
 
 ## Failure and privacy boundaries
 

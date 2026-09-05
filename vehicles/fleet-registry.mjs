@@ -27,6 +27,20 @@ export const TTC_FLEET_RANGES = Object.freeze([
   facts(4604, 4663, 'Alstom', 'FLEXITY M-1', '2023-2024', 'Electric', '30 m', '70 seats'),
 ]);
 
+const PHOTOS = Object.freeze({
+  'LFS Hybrid': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/81/A_Nova_Bus_LFS_Hybrid_%282018_Version%29_of_the_Toronto_Transit_Commission_AKA_%28TTC%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_Nova_Bus_LFS_Hybrid_(2018_Version)_of_the_Toronto_Transit_Commission_AKA_(TTC).jpg', credit: 'BrackishStowaway', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en' },
+  'FLEXITY M-1': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Flexity_Outlook_4412_TTC_Streetcar_%2827418871405%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Flexity_Outlook_4412_TTC_Streetcar_(27418871405).jpg', credit: 'Peter Broster', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/' },
+  'Xcelsior XDE60': { url: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/A_New_Flyer_Industries_XDE60_from_TTC_aka_Toronto_Transit_Commission.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_New_Flyer_Industries_XDE60_from_TTC_aka_Toronto_Transit_Commission.jpg', credit: 'BrackishStowaway', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en' },
+});
+
+export const AGENCY_PHOTOS = Object.freeze({
+  miway: { url: 'https://upload.wikimedia.org/wikipedia/commons/b/be/MiWay_bus_at_UTM_IMG_6836.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:MiWay_bus_at_UTM_IMG_6836.jpg', credit: 'Robert T Bell', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/', exactVehicle: false },
+  burlington: { url: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Burlington_Transit_2018_NovaBus_LFS_7036-18.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Burlington_Transit_2018_NovaBus_LFS_7036-18.jpg', credit: 'DiltonPlayzYT', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', exactVehicle: false, depictedVehicleIds: ['7036-18'] },
+  hsr: { url: 'https://upload.wikimedia.org/wikipedia/commons/6/69/NovaBus_LFS_CNG_Hamilton_Street_Railway_%28HSR%29_unit_2283.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:NovaBus_LFS_CNG_Hamilton_Street_Railway_(HSR)_unit_2283.jpg', credit: 'BrackishStowaway', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', exactVehicle: false, depictedVehicleIds: ['2283'] },
+  go: { url: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Milton_GO_Train_Eastbound.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Milton_GO_Train_Eastbound.jpg', credit: 'GTDAquitaine', license: 'Public domain', licenseUrl: 'https://commons.wikimedia.org/wiki/File:Milton_GO_Train_Eastbound.jpg', exactVehicle: false, depictedVehicleIds: ['604'] },
+  up: { url: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Toronto_ON_UP-1012_Nippon-Sharyo-DMU_2019-04-01.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Toronto_ON_UP-1012_Nippon-Sharyo-DMU_2019-04-01.jpg', credit: 'Milan Suvajac', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', exactVehicle: false, depictedVehicleIds: ['1012'] },
+});
+
 const clean = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 128);
 const searchUrl = (agencyName, identity) => `https://cptdb.ca/wiki/index.php?search=${encodeURIComponent(`${agencyName} ${identity || 'vehicle'}`)}`;
 
@@ -39,4 +53,11 @@ export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName
     return { url: searchUrl(agencyName, identity), match: 'search', fleetRange: `${first}-${last}`, observedLive: true, ...verifiedFacts };
   }
   return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', observedLive: Boolean(identity) };
+}
+
+export function matchVehiclePhoto(vehicleId, fleetFacts, agencyId = 'ttc') {
+  const photo = agencyId === 'ttc' ? PHOTOS[fleetFacts?.model] : AGENCY_PHOTOS[agencyId]; if (!photo) return null;
+  const id = clean(vehicleId); const depicted = fleetFacts?.model === 'FLEXITY M-1' ? ['4412'] : fleetFacts?.model === 'Xcelsior XDE60' ? ['9441'] : [];
+  const knownIds = depicted.length ? depicted : photo.depictedVehicleIds ?? [];
+  return { ...photo, exactVehicle: knownIds.includes(id), ...(knownIds.length ? { depictedVehicleIds: knownIds } : {}) };
 }

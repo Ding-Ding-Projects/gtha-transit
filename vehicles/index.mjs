@@ -1,12 +1,20 @@
 import { readFile } from 'node:fs/promises';
-import { matchCptdb } from './fleet-registry.mjs';
+import { matchCptdb, matchVehiclePhoto } from './fleet-registry.mjs';
 
 export const TTC_VEHICLES_URL = 'https://bustime.ttc.ca/gtfsrt/vehicles';
+export const VEHICLE_FEEDS = Object.freeze({
+  ttc: { name: 'Toronto Transit Commission', url: TTC_VEHICLES_URL },
+  miway: { name: 'MiWay', url: 'https://www.miapp.ca/GTFS_RT/Vehicle/VehiclePositions.pb' },
+  burlington: { name: 'Burlington Transit', url: 'https://opendata.burlington.ca/gtfs-rt/GTFS_VehiclePositions.pb' },
+  hsr: { name: 'Hamilton Street Railway', url: 'https://opendata.hamilton.ca/GTFS-RT/GTFS_VehiclePositions.pb' },
+  go: { name: 'GO Transit', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/VehiclePosition', proxyAgency: 'go' },
+  up: { name: 'UP Express', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs/Feed/VehiclePosition', proxyAgency: 'up' },
+});
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_ENTITIES = 10_000;
 const CACHE_MS = 15_000;
 const STALE_MS = 120_000;
-let cache;
+const cache = new Map();
 
 function parseFields(bytes) {
   const fields = []; let offset = 0;
@@ -28,30 +36,33 @@ const text = (value) => value ? new TextDecoder('utf-8', { fatal: true }).decode
 const float = (value) => value ? new DataView(value.buffer, value.byteOffset, 4).getFloat32(0, true) : undefined;
 const iso = (seconds) => Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000).toISOString() : undefined;
 
-function parseVehiclePosition(bytes, entityId, now) {
+function parseVehiclePosition(bytes, entityId, now, { agencyId, agencyName }) {
   const fields = parseFields(bytes); const trip = parseFields(first(fields, 1) ?? new Uint8Array()); const position = parseFields(first(fields, 2) ?? new Uint8Array()); const descriptor = parseFields(first(fields, 8) ?? new Uint8Array());
   const id = text(first(descriptor, 1)) || entityId; const label = text(first(descriptor, 2)) || id; const timestampSeconds = Number(first(fields, 5) ?? 0n);
   const lat = float(first(position, 1)); const lon = float(first(position, 2));
   if (!id || !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
   const bearingValue = float(first(position, 3)); const speedValue = float(first(position, 5)); const timestamp = iso(timestampSeconds);
+  const cptdb = matchCptdb(id, label, { agencyId, agencyName });
   return {
     id, label, routeId: text(first(trip, 5)), tripId: text(first(trip, 1)), lat, lon,
     bearing: Number.isFinite(bearingValue) ? bearingValue : null,
     speedKph: Number.isFinite(speedValue) && speedValue >= 0 ? speedValue * 3.6 : null,
     timestamp: timestamp ?? null, stale: !timestamp || now - timestampSeconds * 1000 > STALE_MS || timestampSeconds * 1000 - now > 60_000,
-    licensePlate: text(first(descriptor, 3)) || null, cptdb: matchCptdb(id, label), photo: null,
+    agencyId, licensePlate: text(first(descriptor, 3)) || null, cptdb, photo: matchVehiclePhoto(id, cptdb, agencyId),
   };
 }
 
-export function parseTtcVehicles(bytes, { fetchedAt = new Date().toISOString(), now = Date.now() } = {}) {
+export function parseVehicleFeed(bytes, { fetchedAt = new Date().toISOString(), now = Date.now(), agencyId = 'ttc', sourceUrl = VEHICLE_FEEDS[agencyId]?.url, agencyName = VEHICLE_FEEDS[agencyId]?.name ?? agencyId } = {}) {
   if (!(bytes instanceof Uint8Array) || !bytes.byteLength || bytes.byteLength > MAX_BYTES) throw new Error('TTC vehicle payload is empty or exceeds the 10 MiB safety bound.');
   const root = parseFields(bytes); const header = parseFields(first(root, 1) ?? new Uint8Array()); const version = text(first(header, 1)); const sourceSeconds = Number(first(header, 3) ?? 0n); const entities = many(root, 2);
   if (!/^\d+\.\d+(?:\.\d+)?$/.test(version) || !sourceSeconds) throw new Error('TTC vehicle feed header is incomplete.');
   if (entities.length > MAX_ENTITIES) throw new Error('TTC vehicle entity count exceeds 10000.');
-  const vehicles = entities.map((entityBytes) => { const entity = parseFields(entityBytes); const entityId = text(first(entity, 1)); const vehicle = first(entity, 4); return vehicle ? parseVehiclePosition(vehicle, entityId, now) : null; }).filter(Boolean);
+  const vehicles = entities.map((entityBytes) => { const entity = parseFields(entityBytes); const entityId = text(first(entity, 1)); const vehicle = first(entity, 4); return vehicle ? parseVehiclePosition(vehicle, entityId, now, { agencyId, agencyName }) : null; }).filter(Boolean);
   const sourceTimestamp = iso(sourceSeconds); const stale = now - sourceSeconds * 1000 > STALE_MS || sourceSeconds * 1000 - now > 60_000;
-  return { state: stale ? 'stale' : 'live', fetchedAt, sourceTimestamp, sourceUrl: TTC_VEHICLES_URL, total: vehicles.length, vehicles };
+  return { state: stale ? 'stale' : 'live', agencyId, fetchedAt, sourceTimestamp, sourceUrl, total: vehicles.length, vehicles };
 }
+
+export const parseTtcVehicles = (bytes, options = {}) => parseVehicleFeed(bytes, { ...options, agencyId: 'ttc', sourceUrl: TTC_VEHICLES_URL, agencyName: VEHICLE_FEEDS.ttc.name });
 
 async function readBoundedBody(response) {
   const declared = Number(response.headers?.get?.('content-length') ?? 0); if (declared > MAX_BYTES) throw new Error('TTC vehicle payload exceeds the 10 MiB safety bound.');
@@ -61,19 +72,22 @@ async function readBoundedBody(response) {
   const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; } return bytes;
 }
 
-export async function getVehicleSnapshot({ fetchImpl = globalThis.fetch, now = Date.now(), timeoutMs = 10_000, fixturePath, force = false } = {}) {
-  if (!force && cache && now - cache.receivedAt < CACHE_MS) return cache.value;
+export async function getVehicleSnapshot({ agency = 'ttc', fetchImpl = globalThis.fetch, now = Date.now(), timeoutMs = 10_000, fixturePath, force = false, routingOrigin = process.env.ROUTING_ORIGIN } = {}) {
+  const feed = VEHICLE_FEEDS[agency]; if (!feed) return { state: 'unavailable', agencyId: agency, fetchedAt: new Date(now).toISOString(), sourceTimestamp: null, sourceUrl: null, total: 0, vehicles: [], error: `Unknown vehicle agency ${agency}.` };
+  const prior = cache.get(agency); if (!force && prior && now - prior.receivedAt < CACHE_MS) return prior.value;
   try {
     let bytes;
     if (fixturePath) bytes = new Uint8Array(await readFile(fixturePath));
     else {
       const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), Math.min(Math.max(Number(timeoutMs) || 10_000, 1), 10_000));
-      try { const response = await fetchImpl(TTC_VEHICLES_URL, { signal: controller.signal, redirect: 'error', headers: { accept: 'application/x-google-protobuf' } }); if (!response.ok) throw new Error(`TTC vehicle feed returned HTTP ${response.status}.`); bytes = await readBoundedBody(response); } finally { clearTimeout(timer); }
+      const requestUrl = feed.proxyAgency ? `${String(routingOrigin ?? '').replace(/\/$/, '')}/api/vehicles/metrolinx?agency=${feed.proxyAgency}` : feed.url;
+      if (feed.proxyAgency && !routingOrigin) throw new Error(`${feed.name} vehicle positions require the configured routing service.`);
+      try { const response = await fetchImpl(requestUrl, { signal: controller.signal, redirect: 'error', headers: { accept: '*/*' } }); if (!response.ok) throw new Error(`${feed.name} vehicle feed returned HTTP ${response.status}.`); bytes = await readBoundedBody(response); } finally { clearTimeout(timer); }
     }
-    const value = parseTtcVehicles(bytes, { fetchedAt: new Date(now).toISOString(), now }); cache = { receivedAt: now, value }; return value;
+    const value = parseVehicleFeed(bytes, { fetchedAt: new Date(now).toISOString(), now, agencyId: agency, agencyName: feed.name, sourceUrl: feed.url }); cache.set(agency, { receivedAt: now, value }); return value;
   } catch (error) {
-    if (cache) return { ...cache.value, state: 'stale', fetchedAt: new Date(now).toISOString(), error: error.message, vehicles: cache.value.vehicles.map((vehicle) => ({ ...vehicle, stale: true })) };
-    return { state: 'unavailable', fetchedAt: new Date(now).toISOString(), sourceTimestamp: null, sourceUrl: TTC_VEHICLES_URL, total: 0, vehicles: [], error: error.message };
+    if (prior) return { ...prior.value, state: 'stale', fetchedAt: new Date(now).toISOString(), error: error.message, vehicles: prior.value.vehicles.map((vehicle) => ({ ...vehicle, stale: true })) };
+    return { state: 'unavailable', agencyId: agency, fetchedAt: new Date(now).toISOString(), sourceTimestamp: null, sourceUrl: feed.url, total: 0, vehicles: [], error: error.message };
   }
 }
 
@@ -84,4 +98,25 @@ export async function getVehicles({ q = '', route = '', limit = 100, cursor = 0,
   return { ...snapshot, total: filtered.length, vehicles, nextCursor };
 }
 
-export function clearVehicleCache() { cache = undefined; }
+export async function getAllVehicleSnapshots(options = {}) { return Promise.all(Object.keys(VEHICLE_FEEDS).map((agency) => getVehicleSnapshot({ ...options, agency }))); }
+
+const feedIdFromLeg = (leg) => String(leg?.agencyFeedId ?? leg?.agencyId ?? '').split(':')[0].toLowerCase();
+const bareTripId = (tripId, feedId) => { const value = String(tripId ?? ''); const prefix = `${feedId}:`; return value.startsWith(prefix) ? value.slice(prefix.length) : value; };
+
+export async function enrichItineraries(itineraries, options = {}) {
+  const list = Array.isArray(itineraries) ? itineraries : itineraries?.itineraries;
+  if (!Array.isArray(list)) throw new Error('Itineraries must be an array or contain an itineraries array.');
+  const agencies = [...new Set(list.flatMap((itinerary) => itinerary.legs ?? []).map(feedIdFromLeg).filter((id) => VEHICLE_FEEDS[id]))];
+  const snapshots = new Map((await Promise.all(agencies.map(async (agency) => [agency, await getVehicleSnapshot({ ...options, agency })]))));
+  const enriched = list.map((itinerary) => ({ ...itinerary, legs: (itinerary.legs ?? []).map((leg) => {
+    const agency = feedIdFromLeg(leg); const tripId = bareTripId(leg.tripId, agency); const snapshot = snapshots.get(agency);
+    if (!agency || !tripId || !snapshot) return { ...leg, vehicleAssignment: { state: 'unavailable', reason: 'No supported agency and trip identifier were published for this leg.' } };
+    if (snapshot.state !== 'live') return { ...leg, vehicleAssignment: { state: snapshot.state, reason: 'Fresh vehicle positions are unavailable for this agency.' } };
+    const matches = snapshot.vehicles.filter((vehicle) => !vehicle.stale && vehicle.tripId === tripId).sort((a, b) => Date.parse(b.timestamp ?? 0) - Date.parse(a.timestamp ?? 0));
+    if (!matches.length) return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier.' } };
+    const vehicle = matches[0]; return { ...leg, vehicle: { id: vehicle.id, label: vehicle.label, agencyId: vehicle.agencyId, timestamp: vehicle.timestamp, cptdb: vehicle.cptdb, photo: vehicle.photo }, vehicleAssignment: { state: 'matched', method: 'exact-trip-id' } };
+  }) }));
+  return Array.isArray(itineraries) ? enriched : { ...itineraries, itineraries: enriched };
+}
+
+export function clearVehicleCache() { cache.clear(); }
