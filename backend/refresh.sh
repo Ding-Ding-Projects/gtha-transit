@@ -11,5 +11,5 @@ if [ "$BEFORE" = "$AFTER" ] && [ -s "$ROOT/backend/runtime/otp/graph.obj" ]; the
   exit 0
 fi
 (cd "$ROOT" && python3 scripts/build-stop-index.py data/feeds)
-"$ROOT/backend/build-graph.sh" "$ROOT"
+sh "$ROOT/backend/build-graph.sh" "$ROOT"
 (cd "$ROOT/backend" && docker compose up -d --build)
