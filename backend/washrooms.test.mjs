@@ -38,6 +38,7 @@ test("published registry schedules support days, endsNextDay, and direct officia
   const published = { agencyId: "go", stationIdentity: { agencyId: "go", stationId: "go:UNION" }, sourceCoordinateIdentity: { lat: 43.645, lon: -79.38 }, hours: { status: "published", timezone: "America/Toronto", weekly: [{ days: ["wed"], opens: "22:00", closes: "02:00", endsNextDay: true }] } };
   assert.equal(facilityAvailability(published, "2026-09-10T05:30:00Z"), "confirmed-open");
   assert.equal(matchWashroom({ agencyId: "go", stationId: "go:UNION" }, [published], { at: "2026-09-10T06:00:00Z" })?.availability, "closed");
+  assert.equal(matchWashroom({ agencyFeedId: "go", stopId: "go:UNION" }, [published])?.stationIdentity.stationId, "go:UNION");
   assert.equal(matchWashroom({ agencyId: "go", sourceCoordinateIdentity: { lat: 43.645, lon: -79.38 } }, [published])?.stationIdentity.stationId, "go:UNION");
 });
 

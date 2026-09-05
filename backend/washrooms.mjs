@@ -5,6 +5,7 @@ import { matchWashroom } from "../shared/washrooms.mjs";
 
 const registryPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/transit-washrooms.json");
 const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY", "TRAM"]);
+const TRANSIT_FACILITY_TYPES = new Set(["transit-station", "transit-terminal"]);
 let registry;
 
 async function load() { return registry ??= JSON.parse(await readFile(registryPath, "utf8")); }
@@ -47,7 +48,9 @@ function boostableWashrooms(legs) {
     if (!isTransit(leg)) continue;
     for (const place of [leg.from, leg.to]) {
       const washroom = place?.washroom;
-      if (!washroom || washroom.availability !== "confirmed-open") continue;
+      const transitFacility = TRANSIT_FACILITY_TYPES.has(String(washroom?.facilityType ?? ""));
+      const eligible = transitFacility ? washroom?.availability !== "closed" : washroom?.availability === "confirmed-open";
+      if (!washroom || !eligible) continue;
       const key = `${washroom.facilityId ?? "unknown"}|${place.name ?? ""}|${place.lat ?? ""}|${place.lon ?? ""}`;
       if (!found.some((item) => item.key === key)) found.push({ ...washroom, key });
     }
@@ -63,7 +66,7 @@ export async function applyWashroomPreference(itineraries, enabled, { facilityRe
     const legs = (Array.isArray(itinerary?.legs) ? itinerary.legs : []).map((leg) => annotatedLeg(leg, facilities));
     return { ...itinerary, legs, totalDistance: legs.reduce((sum, leg) => sum + Number(leg.distance || 0), 0), washrooms: boostableWashrooms(legs), washroomPreferenceApplied: false };
   });
-  if (!enabled || !enriched.length) return { itineraries: enriched, washroomPreferenceApplied: false, note: "Only official facility records are shown. A facility is preferred only when its availability is confirmed at the boarding or alighting time." };
+  if (!enabled || !enriched.length) return { itineraries: enriched, washroomPreferenceApplied: false, note: "Only official facility records are shown. Transit facilities may be preferred by confirmed presence when hours are unknown, while municipal facilities require confirmed-open hours." };
   const fastest = Math.min(...enriched.map((item) => Number(item.duration) || Infinity));
   const leastWalk = Math.min(...enriched.map((item) => Number(item.walkDistance) || Infinity));
   const eligible = enriched.filter((item) => Number(item.duration) <= fastest + 1200 && Number(item.walkDistance) <= leastWalk + 1000);
@@ -74,6 +77,6 @@ export async function applyWashroomPreference(itineraries, enabled, { facilityRe
   return {
     itineraries: selected ? [selected, ...rest] : enriched,
     washroomPreferenceApplied: Boolean(selected?.washrooms.length),
-    note: selected?.washrooms.length ? "Preferred a connection with an official facility confirmed open at a boarding or alighting time. Intermediate pass-through stops do not change ranking." : "No official facility was confirmed open at a boarding or alighting time, so the original ranking was retained."
+    note: selected?.washrooms.length ? selected.washrooms.some((washroom) => TRANSIT_FACILITY_TYPES.has(String(washroom.facilityType ?? "")) && washroom.availability === "unknown") ? "Preferred a connection with an official transit facility at a boarding or alighting point. Its opening hours are unknown, so this is a facility-presence preference, not an open claim." : "Preferred a connection with an official facility confirmed open at a boarding or alighting time. Intermediate pass-through stops do not change ranking." : "No eligible official facility was available at a boarding or alighting time, so the original ranking was retained."
   };
 }
