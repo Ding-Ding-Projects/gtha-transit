@@ -35,6 +35,8 @@ python maps/render_mbtiles.py maps/data/places.sqlite3 maps/data/ontario.mbtiles
 
 The importer reads actual OSM nodes and ways, retaining named places, addresses, shared-node intersections, roads, waterways, and coastline geometry. FTS5 backs text search and SQLite RTree tables bound the geometry reads. The temporary road-vertex table is stored on disk and removed after intersections are created. The renderer produces zoom 8 through 13 PNG tiles for the GTHA region, styles roads by OSM highway class, and labels cities and major roads with collision checks. A nonempty road tile therefore comes from real regional data, not a placeholder.
 
+Road detail is explicit at each zoom. Zooms 8 through 10 show motorway, trunk, and primary roads plus their links. Zoom 11 adds secondary and tertiary roads plus their links. Zoom 12 adds residential, unclassified, and living streets. Zoom 13 adds service roads, footways, paths, cycleways, pedestrian ways, steps, and tracks. Unknown highway kinds are omitted rather than painted through a fallback style. Within each tile, minor ways are painted first and major roads last in stable ID order, so dense local detail cannot cover the regional road hierarchy.
+
 ## Run
 
 ```text
