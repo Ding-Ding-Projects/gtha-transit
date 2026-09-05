@@ -6,19 +6,31 @@
 const WALKING_MODES = new Set(['WALK', 'WALKING']);
 const isPresent = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 const normalise = (value) => String(value).normalize('NFKC').trim().toLocaleLowerCase();
+const MIN_YEAR = 1800;
+const MAX_YEAR = 3000;
+
+function requestedYear(value, field, validationErrors) {
+  if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) return null;
+  const validType = typeof value === 'number' || (typeof value === 'string' && /^[0-9]{4}$/.test(value.trim()));
+  const year = validType ? Number(value) : NaN;
+  if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
+    validationErrors.push({ field, reason: 'Enter a whole year from 1800 through 3000.' });
+    return null;
+  }
+  return year;
+}
 
 function requestedCriteria(criteria = {}) {
   const manufacturer = isPresent(criteria.manufacturer) ? normalise(criteria.manufacturer) : null;
   const model = isPresent(criteria.model) ? normalise(criteria.model) : null;
-  const yearFrom = Number.parseInt(criteria.yearFrom, 10);
-  const yearTo = Number.parseInt(criteria.yearTo, 10);
-  const hasYearFrom = Number.isInteger(yearFrom);
-  const hasYearTo = Number.isInteger(yearTo);
-  const range = hasYearFrom || hasYearTo
-    ? { from: hasYearFrom ? yearFrom : yearTo, to: hasYearTo ? yearTo : yearFrom }
+  const validationErrors = [];
+  const yearFrom = requestedYear(criteria.yearFrom, 'yearFrom', validationErrors);
+  const yearTo = requestedYear(criteria.yearTo, 'yearTo', validationErrors);
+  const range = yearFrom !== null || yearTo !== null
+    ? { from: yearFrom ?? MIN_YEAR, to: yearTo ?? MAX_YEAR }
     : null;
-  if (range && range.from > range.to) [range.from, range.to] = [range.to, range.from];
-  return { manufacturer, model, range, match: criteria.match === 'any' ? 'any' : 'all' };
+  if (range && range.from > range.to) validationErrors.push({ field: 'year', reason: 'The start year must be the same as or earlier than the end year.' });
+  return { manufacturer, model, range, match: criteria.match === 'any' ? 'any' : 'all', valid: validationErrors.length === 0, validationErrors };
 }
 
 function publishedYearRange(value) {
@@ -70,9 +82,10 @@ function evaluateAssignedVehicle(cptdb, criteria) {
 export function evaluateJourneyPreferences(itinerary, inputCriteria = {}, inputOptions = {}) {
   const criteria = requestedCriteria(inputCriteria);
   const options = { prefer: Boolean(inputOptions.prefer), avoid: Boolean(inputOptions.avoid), includeUnconfirmed: Boolean(inputOptions.includeUnconfirmed) };
-  const active = Boolean(criteria.manufacturer || criteria.model || criteria.range);
+  const active = criteria.valid && Boolean(criteria.manufacturer || criteria.model || criteria.range);
   const legs = (Array.isArray(itinerary?.legs) ? itinerary.legs : []).map((leg, index) => {
     if (WALKING_MODES.has(String(leg?.mode ?? '').toUpperCase())) return { index, state: 'ignored', reason: 'Walking legs do not have vehicle preferences.', checks: [] };
+    if (!criteria.valid) return { index, state: 'unknown', reason: 'Vehicle preferences were not applied because the requested year criteria are invalid.', checks: criteria.validationErrors.map(({ field, reason }) => ({ field, state: 'unknown', reason })) };
     const cptdb = leg?.vehicle?.cptdb;
     if (!cptdb || typeof cptdb !== 'object') return { index, state: 'unknown', reason: 'No assigned vehicle with CPTDB facts is available for this leg.', checks: [] };
     const result = active ? evaluateAssignedVehicle(cptdb, criteria) : { state: 'not-applicable', checks: [] };
