@@ -37,6 +37,7 @@ import DestinationList, { type Destination } from '../components/destination-lis
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import NarratorSettings from '../components/narrator-settings';
+import WorkspaceNavigation from '../components/workspace-navigation';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
 import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
@@ -821,58 +822,17 @@ export default function Home() {
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
-      <header className="topbar">
-        <a href="/" className="brand">
-          <img src="/logo.svg" alt="" width="40" height="40" />
-          <span>
-            GTHA<span className="brand-light">transit</span>
-            <small>{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</small>
-          </span>
-        </a>
-        <nav aria-label={t('Main navigation', '主要導覽')}>
-          {[
-            ['plan', t('Plan a trip', '規劃行程')],
-            ['status', t('Live TTC', '即時 TTC')],
-            ['history', t('History', '歷史')],
-            ['vehicles', t('Vehicles', '車輛')],
-            ['divisions', t('Out of division', '跨車廠')],
-            ['saved', t('Saved trips', '已儲存行程')],
-            ['coverage', t('Our region', '服務範圍')],
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={tab === id ? 'active' : ''}
-              aria-current={tab === id ? 'page' : undefined}
-            >
-              {label}
-              {id === 'status' && <span className="live-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="header-actions">
-          <button
-            className="icon-button"
-            onClick={() => setDark(!dark)}
-            aria-label={t('Switch colour theme', '切換色彩主題')}
-          >
-            {dark ? <Sun size={19} /> : <Moon size={19} />}
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => setTab('settings')}
-            aria-label={t('Settings', '設定')}
-          >
-            <Settings size={20} />
-          </button>
-        </div>
-      </header>
+      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} t={t} />
+      <div className="workspace-topline">
+        <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{({ plan: t('Plan your next connection', '規劃你嘅下一程'), vehicles: t('Find your next ride', '搵你嘅下一程車'), status: t('The network, right now', '交通網絡現況'), divisions: t('Beyond the usual garage', '跨越平日車廠分配'), history: t('The service record', '服務歷史記錄'), saved: t('Ready when you are', '隨時準備出發'), coverage: t('Across the whole region', '接通整個地區'), settings: t('Make yourself at home', '按你喜好設定') } as Record<string, string>)[tab]}</h1></div>
+        <div className="build-stamp"><strong>{version?.version ? 'v' + version.version : t('Version unavailable', '版本未能提供')}{version?.commit ? ' · ' + version.commit.slice(0, 7) : ''}</strong><span>{version?.builtAt && Number.isFinite(Date.parse(version.builtAt)) ? t('Updated', '更新') + ' ' + new Date(version.builtAt).toLocaleString('en-CA', { timeZone: 'America/Toronto', timeZoneName: 'short', hour12: false, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : t('Build provenance unavailable', '建置資料未能提供')}</span></div>
+      </div>
       <main id="main" className="workspace">
-        <aside className="planner">
+        <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
           <div className="eyebrow">
             {t('A BETTER WAY ACROSS THE REGION', '輕鬆接駁全個地區')}
           </div>
-          <h1>{t('Where to next?', '下一站，去邊？')}</h1>
+          <h2>{t('Where to next?', '下一站，去邊？')}</h2>
           <p className="lede">
             {t('One journey. Every connection.', '一個行程，接通每一程。')}
           </p>
@@ -2136,7 +2096,7 @@ export default function Home() {
             </div>
           )}
         </section>
-        <aside className="status-rail">
+        {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">
             <span className="eyebrow">{t('ON THE NETWORK', '交通網絡')}</span>
             <span
@@ -2218,7 +2178,7 @@ export default function Home() {
               )}
             </p>
           </div>
-        </aside>
+        </aside>}
       </main>
       <footer className="footer">
         <span>

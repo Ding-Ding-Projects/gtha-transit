@@ -2,6 +2,7 @@
 
 ## 0.1.0, unreleased
 
+- Redesign navigation and all workspaces with a desktop rail, compact mobile navigation, expanded maps and consistent control styling. Journey composition stays on Plan; other destinations use the full content width. Collapse detailed feed metadata and omit inactive single-destination reorder controls.
 - Replace repeated Build regex labels with compact star controls, retaining localized accessible names, tooltips and 44px touch targets. Use a native nonmodal dialog and persist saved snippets directly from save, import and delete actions.
 - Add the regional journey-planning interface and local saved-trip controls.
 - Add official TTC alert ingestion with bounded reads and conservative unavailable states.

@@ -422,6 +422,8 @@ export default function VehicleTracker({
         </small>
       </div>
       {data?.agencies && (
+        <details className="source-details">
+        <summary>{t('Agency colours and feed status', '交通公司顏色及資料狀態')}</summary>
         <div
           className="agency-legend"
           aria-label={t(
@@ -440,6 +442,7 @@ export default function VehicleTracker({
             </span>
           ))}
         </div>
+        </details>
       )}
       {error && (
         <div className="error" role="alert">

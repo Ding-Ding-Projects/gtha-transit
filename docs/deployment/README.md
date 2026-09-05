@@ -2,7 +2,7 @@
 
 The frontend is an ARM64-compatible Node container named `gtha-transit-web`, listening on port **8080** inside the existing tunnel network. The routing and map services use a separate private host. Private host addresses are deployment variables, never checked-in defaults.
 
-Set `SOURCE_COMMIT`, `RELEASE_TAG`, `ROUTING_ORIGIN`, `MAPS_ORIGIN`, and `TUNNEL_NETWORK` in a protected host-local environment. Build with `docker compose build`, then start with `docker compose up -d`. The web process has a 256 MiB memory limit, a read-only filesystem and no additional Linux capabilities.
+Set `SOURCE_COMMIT`, `RELEASE_TAG`, `ROUTING_ORIGIN`, `MAPS_ORIGIN`, and `TUNNEL_NETWORK` in a protected host-local environment. Build with `docker compose build`, then start with `docker compose up -d`. The configuration requests a 256 MiB memory limit, a read-only filesystem and no additional Linux capabilities. Verify the host's cgroup support before claiming the memory cap is enforced: the current frontend host reports that kernel memory limits are unsupported. Node's configured heap bound is not an equivalent process memory cap.
 
 ## Owner-managed tunnel routing
 

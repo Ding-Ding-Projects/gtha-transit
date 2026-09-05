@@ -4,7 +4,9 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
-- [ ] Deploy and verify compact star controls for the shared regex workbench, including focus return and saved snippet persistence.
+- [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
+- [ ] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click. The earlier synthetic Enter did not establish product failure.
+- [ ] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation.
 - [ ] Deploy and exercise manufacturer/model/year tracker filters, per-field search workbenches and the exact-assignment out-of-division planning preference. Local matching, freshness and HTTP-boundary tests pass; built-browser proof is pending.
 
 - [ ] Finish the remaining built-browser checks: actual stop-badge selection, drag reordering and live vehicle switching. Ordered planning, follower simulation and six width/theme captures passed at b92de7c; frontend f45bf93 and backend b92de7c are deployed.

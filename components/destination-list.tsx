@@ -43,7 +43,7 @@ export default function DestinationList({ items, onChange, renderField, t }: {
   };
   return <div className="destination-list" ref={root}>
     {items.map((item, index) => <div key={item.id} className="destination-row" data-destination-id={item.id}>
-      <div className="destination-row-tools">
+      {items.length > 1 && <div className="destination-row-tools">
         <button type="button" className="destination-drag icon-button" aria-label={t(`Drag destination ${index + 1} to reorder`, `拖動第 ${index + 1} 個目的地重新排序`)}
           onPointerDown={event => {
             if (!event.isPrimary || event.button !== 0) return;
@@ -68,7 +68,7 @@ export default function DestinationList({ items, onChange, renderField, t }: {
         <button type="button" className="icon-button" disabled={index === 0} aria-label={t(`Move destination ${index + 1} up`, `將第 ${index + 1} 個目的地上移`)} onClick={() => move(item.id, index - 1)}><ArrowUp size={16} aria-hidden="true" /></button>
         <button type="button" className="icon-button" disabled={index === items.length - 1} aria-label={t(`Move destination ${index + 1} down`, `將第 ${index + 1} 個目的地下移`)} onClick={() => move(item.id, index + 1)}><ArrowDown size={16} aria-hidden="true" /></button>
         <button type="button" className="icon-button" disabled={items.length === 1} aria-label={t(`Remove destination ${index + 1}`, `移除第 ${index + 1} 個目的地`)} onClick={() => onChange(items.filter(row => row.id !== item.id))}><X size={16} aria-hidden="true" /></button>
-      </div>
+      </div>}
       {renderField(item, index)}
     </div>)}
     <button type="button" className="add-destination pill" disabled={items.length >= 6} onClick={() => {
@@ -76,7 +76,7 @@ export default function DestinationList({ items, onChange, renderField, t }: {
       do { id = `destination-added-${nextId.current++}`; } while (items.some(item => item.id === id));
       onChange([...items.slice(0, -1), { id, place: null }, items[items.length - 1]]);
     }}><Plus size={17} aria-hidden="true" />{t('Add intermediate stop', '加入中途地點')}</button>
-    <small className="data-note">{t('Up to five intermediate stops. Drag the handle or use the arrows to change their order.', '最多五個中途地點。拖動把手或使用箭嘴更改次序。')}</small>
+    {items.length > 1 && <small className="data-note">{t('Up to five intermediate stops. Drag the handle or use the arrows to change their order.', '最多五個中途地點。拖動把手或使用箭嘴更改次序。')}</small>}
     <span className="sr-only" role="status" aria-live="polite">{announcement}</span>
   </div>;
 }

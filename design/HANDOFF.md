@@ -1,10 +1,14 @@
 # Transit interface handoff
 
-The visual direction is a calm regional transport workspace: forest-green navigation, high-contrast lime emphasis, a compact journey form, clear itinerary cards and a separate live status rail. Data colours distinguish transit lines; they do not imply service health.
+The September 5 full redesign replaces the three-column shell with one active workspace. A deep-ink desktop navigation rail, pale blue-neutral surfaces, teal primary actions and the existing lime brand mark establish the new direction. Transit route colours remain factual data encodings and do not imply service health. Mobile navigation has Plan, Vehicles, Live TTC and a labelled More sheet.
 
-Material Designer was inspected locally. Its export endpoint requires an existing design project/conversation and an upstream API credential; that complete handoff was unavailable to this session. The approved Sites workflow supplies the frontend scaffold and production implementation.
+Planning alone shows the journey composer beside its map and options. Other destinations use the full workspace width. The single-destination form omits inactive reorder controls; they appear when more destinations exist. Detailed agency-feed rows start inside a disclosure. The shared star remains a compact 44px control; opening the tracker workbench expands its row, and its mode selection uses a deliberate segmented treatment. Current build provenance appears above the active workspace before navigation.
 
-Screens: plan/empty, plan/searching, plan/results/expanded, plan/no-result, plan/unavailable, map/selecting, status/live, status/stale, status/unavailable, saved/empty, saved/populated, coverage, settings.
+Implementation lives in `components/workspace-navigation.tsx`, `app/workspace.css`, `app/page.tsx`, `components/destination-list.tsx` and `components/vehicle-tracker.tsx`. `app/layout.tsx` loads the new composition stylesheet last. Existing routing, follower, narrator, history and preference logic remain the consumers underneath the redesigned surfaces.
+
+Material Designer was re-inspected locally. Its documented daemon endpoint refused the connection and the checkout's desktop build directory contained no launchable executable. The earlier project handoff also records that export requires an existing design project/conversation and upstream access. No complete active creation/export flow was available for this pass. The existing React/Sites scaffold is the implementation route, with production hosted through the owner-requested container and tunnel. This document records a design specification, not a fabricated tool export.
+
+Screens: plan/empty, plan/searching, plan/results/expanded, plan/no-result, plan/unavailable, map/selecting, status/live, status/stale, status/unavailable, history/filtering, vehicles/map/list/detail, divisions/known/unknown, saved/empty, saved/populated, coverage, settings/narrator, navigation/more, regex/open/closed, follower/simulation and washroom/detour.
 
 Verification tuples: 1440x1000 and 320x800 minimum, English/Cantonese/bilingual, light/dark, 100/125/150/200 percent display scales. Keyboard and touch-emulation checks are separate from real physical-device evidence.
 

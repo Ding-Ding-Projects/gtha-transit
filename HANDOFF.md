@@ -2,7 +2,13 @@
 
 ## Current verified deployment
 
-Frontend: `f45bf93c55d1f57448de2f3e362613121c35c65f`, built `2026-09-05T11:05:15.77Z`, live at https://toronto-transit.org. Backend source/data: `9e7a39b`, including direct-walk implementation `3b66327`. Public version and endpoint responses were independently checked. The graph remains `f4763bf444d82e922b892ff2a4dd3368176df4f308d63b7743617e7cc9c9e2b4`. Map revision remains `199cc9933f670a7fc1c33099a18891a53f5d187212c0041ce2b95ac6bafd381c`.
+Frontend: `5482814a170fbeb614faa09e9442c29d4d03c20f`, built `2026-09-05T15:40:39.307Z`, live at https://toronto-transit.org. Public and LAN version responses independently match, and the container reports healthy. Backend image: `gtha-transit-api:6d51bd3`, independently inspected. The frontend-only deployment preserved the routing and map services. Their previously verified graph is `f4763bf444d82e922b892ff2a4dd3368176df4f308d63b7743617e7cc9c9e2b4`; map revision is `199cc9933f670a7fc1c33099a18891a53f5d187212c0041ce2b95ac6bafd381c`.
+
+The compact regex star is deployed across the shared search fields. It retains localized accessible names, tooltips and a 44px target. The workbench now uses a native nonmodal dialog, and snippet save/import/delete persist directly from their user actions with per-field storage isolation. Local production build, type checking, component lint and all 160 existing behavioral tests passed. Native browser interaction, actual computed geometry and snippet persistence are being checked separately; source review alone does not establish them. Release `v0.1.0-53.1` targets this exact commit and includes the web bundle and line-count report. Workflow run `33975502449` completed successfully without running tests.
+
+Earlier tracker evidence at `6d51bd3` exercised manufacturer/model/year filtering, inline invalid-year recovery and the exact-assignment division preference, with four 1440/320 light/dark captures and no body overflow. Its overall run remained red because the regex verifier expression was malformed. The later `3ef84dc` run separately verified plain and regex matches, clearing both modes, restoring 100 list rows and returning focus to the input, with desktop and 320px captures. These are separate evidence scopes, not one retrospectively green run.
+
+Route-level out-of-division opportunities were deployed at `fecb61e` independently of exact-trip assignments. A public route-929 request returned six itineraries with current route evidence from unit 8189 while exact vehicle assignment remained `no-match`. The route preference never labels that observed unit as the passenger's assigned bus.
 
 Expanded indexes contain 38526 stops, 1015 source routes and 4070 representative patterns from 16218863 stop-time rows. Of 575587 declared trips, 575517 have stop times. The 70 empty HSR trips are explicitly excluded from patterns. Source archive checksums and exact exclusion arithmetic accompany the generated indexes. Compact query normalization is deployed to the map service; the public query `high7 ward` returns Highway 7 & Warden Avenue first.
 
@@ -68,11 +74,13 @@ Vehicle-list pagination, the all-agency default, color-coded rows, embedded map 
 
 The complete cumulative request list is in PLAN.md. The company-first model cascade, guided route picker, independent snippet storage, clear-location control, vehicle divisions, multiple destinations, waiting preference, required-line detours, followers, stop-route data and urgent washroom rerouting are deployed. Verification is scoped as recorded above; do not equate deployed controls with completion of every interaction, source-coverage and physical-device requirement.
 
-Narrator browser verification at df1c471 exercised exact labeled controls, English voice choice, Both, rate, quiet, reload persistence and disable. The host exposed three local English voices and no Cantonese voice option. Four 1440/320 light/dark captures had no body overflow. Physical audio was not tested. The strict delivered-page audit is not green: two scripts from static.cloudflareinsights.com were fetched. Investigation and prevention remain required before claiming no analytics.
+Narrator browser verification at df1c471 exercised exact labeled controls, English voice choice, Both, rate, quiet, reload persistence and disable. The host exposed three local English voices and no Cantonese voice option. Four 1440/320 light/dark captures had no body overflow. Physical audio was not tested. That earlier delivered-page audit observed two analytics scripts. The later b92de7c no-transform/CSP correction and browser audit supersede that finding, as recorded above; this does not retroactively change the earlier audit.
 
 The reported route324 journey used static trip ttc:50677154, while fresh live units reported different trip identifiers. Prepared assignment normalization fixes address valid numeric times and TTC version aliases, but the reported mismatch remains unverified. Never label a route-only vehicle as the assigned bus.
 
 The source-feed folder now holds all 12 checksum-verified graph input archives, including both TTC versions. Its prior snapshot is retained outside source control. API and map-service deployment preserved the active OTP process, graph and MBTiles hashes.
+
+The repository's wiki setting is enabled, but the wiki Git endpoint returned repository-not-found during this pass. No wiki publication is claimed. The public documentation remains in this repository. Broader source coverage and physical-device requirements remain open on issues #1 and #3.
 
 
 ## Latest narrow layout evidence
