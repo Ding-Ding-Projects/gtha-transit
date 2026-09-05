@@ -25,3 +25,5 @@
 - [ ] Broader real-time journey updates as compatible official feeds are verified.
 - [ ] Auditable fare estimates and fare-rule coverage.
 - [ ] Specialized/on-demand booking integrations if authorized.
+
+- [ ] Verify and deploy shared exact/representative photo captions and licence links.

@@ -7,18 +7,38 @@ export type Place = {
   agency?: string;
 };
 export type Leg = {
-  tripId?:string;
-  agencyFeedId?:string;
-  vehicle?:{id:string;label?:string;fleetNumber?:string;timestamp?:string|number;cptdb?:{manufacturer?:string;model?:string;year?:string|number;url?:string;match?:string};photo?:{url:string;sourceUrl:string;credit:string;license:string;exactVehicle:boolean}|null}|null;
+  tripId?: string;
+  agencyFeedId?: string;
+  vehicle?: {
+    id: string;
+    label?: string;
+    fleetNumber?: string;
+    timestamp?: string | number;
+    cptdb?: {
+      manufacturer?: string;
+      model?: string;
+      year?: string | number;
+      url?: string;
+      match?: string;
+    };
+    photo?: {
+      url: string;
+      sourceUrl: string;
+      credit: string;
+      license: string;
+      licenseUrl?: string;
+      exactVehicle: boolean;
+    } | null;
+  } | null;
   mode: string;
   from: Place;
   to: Place;
   startTime: number | string;
   endTime: number | string;
   duration: number;
-  realtime?:boolean;
-  scheduledStartTime?:string;
-  scheduledEndTime?:string;
+  realtime?: boolean;
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
   route?: string;
   routeColor?: string;
   agency?: string;
@@ -28,9 +48,14 @@ export type Leg = {
   intermediateStops?: Place[];
 };
 export type Itinerary = {
-  realtime?:{applied:boolean;agencies?:string[]};
-  washrooms?:{name:string;source:string;openingHours?:string|null;wheelchair?:string|null}[];
-  washroomPreferenceApplied?:boolean;
+  realtime?: { applied: boolean; agencies?: string[] };
+  washrooms?: {
+    name: string;
+    source: string;
+    openingHours?: string | null;
+    wheelchair?: string | null;
+  }[];
+  washroomPreferenceApplied?: boolean;
   id: string;
   startTime: number | string;
   endTime: number | string;

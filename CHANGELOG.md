@@ -8,3 +8,5 @@
 - Add static frontend container serving and private API proxy configuration.
 
 This entry describes work in progress, not a verified public release. Commit references will be bound to the final integration at publication.
+
+- Clarify exact versus representative vehicle photos visibly in directions and the tracker, with separate source and licence links.

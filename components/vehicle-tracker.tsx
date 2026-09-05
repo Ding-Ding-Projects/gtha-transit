@@ -10,10 +10,11 @@ import {
   X,
 } from 'lucide-react';
 import type { Map as LeafletMap, LayerGroup } from 'leaflet';
+import VehiclePhotoCaption from './vehicle-photo-caption';
 type Vehicle = {
   id: string;
   label?: string;
-  fleetNumber?:string;
+  fleetNumber?: string;
   routeId?: string;
   lat: number;
   lon: number;
@@ -38,6 +39,7 @@ type Vehicle = {
     sourceUrl: string;
     credit: string;
     license: string;
+    licenseUrl?: string;
     exactVehicle: boolean;
   } | null;
 };
@@ -281,7 +283,17 @@ export default function VehicleTracker({
             maxLength={20}
             placeholder={t('All routes', '全部路線')}
           />
-          <datalist id="tracker-routes">{[...new Set((data?.vehicles||[]).map(v=>v.routeId).filter(Boolean))].sort().map(id=><option key={id} value={id}/>)}</datalist>
+          <datalist id="tracker-routes">
+            {[
+              ...new Set(
+                (data?.vehicles || []).map((v) => v.routeId).filter(Boolean),
+              ),
+            ]
+              .sort()
+              .map((id) => (
+                <option key={id} value={id} />
+              ))}
+          </datalist>
         </label>
       </div>
       <div className="source-state">
@@ -402,19 +414,7 @@ export default function VehicleTracker({
                 loading="lazy"
                 referrerPolicy="no-referrer"
               />
-              <figcaption>
-                <a
-                  href={safe(selected.photo.sourceUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {selected.photo.credit} · {selected.photo.license}
-                </a>{' '}
-                ·{' '}
-                {selected.photo.exactVehicle
-                  ? t('Exact vehicle', '同一架車')
-                  : t('Representative photo', '代表照片')}
-              </figcaption>
+              <VehiclePhotoCaption photo={selected.photo} t={t} />
             </figure>
           ) : (
             <p className="data-note">

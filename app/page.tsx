@@ -30,6 +30,7 @@ import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
+import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
@@ -1237,7 +1238,9 @@ export default function Home() {
                                             'Currently assigned vehicle',
                                             '目前編配車輛',
                                           )}{' '}
-                                          {leg.vehicle.fleetNumber || leg.vehicle.label || leg.vehicle.id}
+                                          {leg.vehicle.fleetNumber ||
+                                            leg.vehicle.label ||
+                                            leg.vehicle.id}
                                         </strong>
                                         <p>
                                           {[
@@ -1292,18 +1295,10 @@ export default function Home() {
                                                       )
                                                 }
                                               />
-                                              <figcaption>
-                                                <a
-                                                  href={safeUrl(
-                                                    leg.vehicle.photo.sourceUrl,
-                                                  )}
-                                                  target="_blank"
-                                                  rel="noreferrer"
-                                                >
-                                                  {leg.vehicle.photo.credit} ·{' '}
-                                                  {leg.vehicle.photo.license}
-                                                </a>
-                                              </figcaption>
+                                              <VehiclePhotoCaption
+                                                photo={leg.vehicle.photo}
+                                                t={t}
+                                              />
                                             </figure>
                                           )}
                                       </div>
