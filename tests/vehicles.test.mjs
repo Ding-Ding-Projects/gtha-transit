@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clearVehicleCache, enrichItineraries, getVehicleSnapshot, getVehicles, parseTtcVehicles, parseVehicleFeed, TTC_VEHICLES_URL } from '../vehicles/index.mjs';
+import { combineVehicleSnapshots, clearVehicleCache, enrichItineraries, getVehicleSnapshot, getVehicles, parseTtcVehicles, parseVehicleFeed, TTC_VEHICLES_URL } from '../vehicles/index.mjs';
 import { matchCptdb, matchVehiclePhoto, resolveFleetNumber } from '../vehicles/fleet-registry.mjs';
 
 const cat = (...parts) => Uint8Array.from(parts.flatMap((part) => [...part]));
@@ -64,4 +64,13 @@ test('returns an honest unavailable snapshot before any successful response', as
 test('conflicting or oversized source photographs are not attached', () => {
   assert.equal(matchVehiclePhoto('9441', matchCptdb('9441')), null);
   assert.equal(matchVehiclePhoto('2283', {}, 'hsr'), null);
+});
+
+test('all-agency snapshots preserve colliding unit numbers and disclose partial coverage', () => {
+ const snapshots = [{agencyId:'ttc',state:'live',fetchedAt:'2026-09-05T05:00:00Z',vehicles:[{id:'100',lat:43.6,lon:-79.4}]},{agencyId:'go',state:'unavailable',fetchedAt:'2026-09-05T05:00:00Z',vehicles:[]},{agencyId:'hsr',state:'live',fetchedAt:'2026-09-05T05:00:00Z',vehicles:[{id:'100',lat:43.3,lon:-79.8}]}];
+ const result=combineVehicleSnapshots(snapshots);
+ assert.equal(result.state,'partial');
+ assert.equal(result.total,2);
+ assert.deepEqual(result.vehicles.map(v=>v.vehicleKey),['ttc:100','hsr:100']);
+ assert.equal(result.agencies.find(a=>a.id==='go').state,'unavailable');
 });

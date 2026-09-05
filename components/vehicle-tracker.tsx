@@ -15,6 +15,8 @@ import { attachMapTiles } from '../lib/map-tiles';
 import { vehiclePage } from '../lib/vehicle-page';
 type Vehicle = {
   id: string;
+  agencyId?: string;
+  agencyName?: string;
   label?: string;
   fleetNumber?: string;
   routeId?: string;
@@ -51,6 +53,17 @@ type Snapshot = {
   total: number;
   vehicles: Vehicle[];
   nextCursor?: string | null;
+  agencies?: { id: string; name: string; state: string; total: number }[];
+};
+const identity = (v?: Vehicle | null) =>
+  v ? `${v.agencyId || 'ttc'}:${v.id}` : '';
+const agencyColors: Record<string, string> = {
+  ttc: '#bf3030',
+  go: '#287641',
+  up: '#79563a',
+  miway: '#c45d15',
+  hsr: '#2869a7',
+  burlington: '#7858a1',
 };
 const safe = (url?: string) => {
   try {
@@ -71,7 +84,7 @@ export default function VehicleTracker({
     [pageSelection, setPageSelection] = useState({ scope: '', page: 0 }),
     [q, setQ] = useState(''),
     [route, setRoute] = useState(''),
-    [agency, setAgency] = useState('ttc'),
+    [agency, setAgency] = useState('all'),
     [detailRequest, setDetailRequest] = useState(0),
     [selected, setSelected] = useState<Vehicle | null>(null),
     [busy, setBusy] = useState(false),
@@ -94,7 +107,9 @@ export default function VehicleTracker({
       setSelected(vehicle);
       setDetailRequest((count) => count + 1);
       const index =
-        data?.vehicles.findIndex((item) => item.id === vehicle.id) ?? -1;
+        data?.vehicles.findIndex(
+          (item) => identity(item) === identity(vehicle),
+        ) ?? -1;
       if (index >= 0)
         setPageSelection({ scope, page: Math.floor(index / 100) });
     };
@@ -178,7 +193,7 @@ export default function VehicleTracker({
         }
         next.vehicles = [
           ...new Map(
-            next.vehicles.map((vehicle) => [vehicle.id, vehicle]),
+            next.vehicles.map((vehicle) => [identity(vehicle), vehicle]),
           ).values(),
         ].sort(
           (a, b) =>
@@ -190,7 +205,10 @@ export default function VehicleTracker({
           setData({ ...next, scope });
           setError('');
           setSelected((prev) =>
-            prev ? next.vehicles.find((v) => v.id === prev.id) || null : null,
+            prev
+              ? next.vehicles.find((v) => identity(v) === identity(prev)) ||
+                null
+              : null,
           );
         }
       } catch (e) {
@@ -233,17 +251,41 @@ export default function VehicleTracker({
         )
           continue;
         const label = document.createElement('span');
-        label.textContent = `${v.fleetNumber || v.label || v.id} · ${v.routeId || 'Route unknown'}`;
+        label.textContent = `${v.agencyName || v.agencyId || 'TTC'} · ${v.fleetNumber || v.label || v.id} · ${v.routeId || 'Route unknown'}`;
+        const summary = document.createElement('div');
+        summary.className = 'vehicle-map-summary';
+        const title = document.createElement('strong');
+        title.textContent = `${t('Vehicle', '車輛')} ${v.fleetNumber || v.label || v.id}`;
+        const routeLine = document.createElement('p');
+        routeLine.textContent = `${t('Route', '路線')} ${v.routeId || t('Unknown', '未知')}`;
+        const equipment = document.createElement('p');
+        equipment.textContent =
+          [v.cptdb?.manufacturer, v.cptdb?.model, v.cptdb?.year]
+            .filter(Boolean)
+            .join(' · ') || t('Fleet details unverified', '車隊資料未核實');
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'pill';
+        more.textContent = t('More details', '更多資料');
+        more.addEventListener('click', () => pick.current(v));
+        for (const child of [title, routeLine, equipment, more])
+          summary.appendChild(child);
         L.circleMarker([v.lat, v.lon], {
-          radius: selected?.id === v.id ? 9 : 5,
-          color: v.stale ? '#877659' : '#153e31',
+          radius: identity(selected) === identity(v) ? 9 : 5,
+          color: v.stale
+            ? '#877659'
+            : agencyColors[v.agencyId || 'ttc'] || '#153e31',
           weight: 2,
           fillColor:
-            selected?.id === v.id ? '#d2f574' : v.stale ? '#aaa' : '#348b67',
+            identity(selected) === identity(v)
+              ? '#d2f574'
+              : v.stale
+                ? '#aaa'
+                : agencyColors[v.agencyId || 'ttc'] || '#348b67',
           fillOpacity: 0.9,
         })
           .bindTooltip(label)
-          .on('click', () => pick.current(v))
+          .bindPopup(summary, { maxWidth: 280, minWidth: 160 })
           .addTo(markers.current);
       }
     };
@@ -252,7 +294,7 @@ export default function VehicleTracker({
       stopped = true;
       clearTimeout(timer);
     };
-  }, [data, selected]);
+  }, [data, selected, t]);
   const choose = (v: Vehicle) => {
     pick.current(v);
     map.current?.setView([v.lat, v.lon], Math.max(map.current.getZoom(), 14));
@@ -307,6 +349,7 @@ export default function VehicleTracker({
             }}
           >
             {[
+              ['all', t('All agencies', '所有交通公司')],
               ['ttc', 'TTC'],
               ['go', 'GO Transit'],
               ['up', 'UP Express'],
@@ -360,7 +403,12 @@ export default function VehicleTracker({
         <span className="live-dot" />
         {data?.state === 'live'
           ? t('Live feed connected', '已連接即時資料')
-          : t('Current positions unconfirmed', '目前位置未能確認')}
+          : data?.state === 'partial'
+            ? t(
+                'Some feeds unavailable; check agency status',
+                '部分資料未能使用，請查看交通公司狀態',
+              )
+            : t('Current positions unconfirmed', '目前位置未能確認')}
         <small>
           {data
             ? `${data.vehicles.length} / ${data.total} ` +
@@ -368,6 +416,26 @@ export default function VehicleTracker({
             : t('Connecting…', '連接中…')}
         </small>
       </div>
+      {data?.agencies && (
+        <div
+          className="agency-legend"
+          aria-label={t(
+            'Agency colours and feed status',
+            '交通公司顏色及資料狀態',
+          )}
+        >
+          {data.agencies.map((item) => (
+            <span
+              key={item.id}
+              style={{
+                borderLeft: `5px solid ${agencyColors[item.id] || '#777'}`,
+              }}
+            >
+              {item.name} · {item.total} · {item.state}
+            </span>
+          ))}
+        </div>
+      )}
       {error && (
         <div className="error" role="alert">
           {error}
@@ -504,19 +572,33 @@ export default function VehicleTracker({
       >
         {page.items.map((v) => (
           <button
-            key={v.id}
+            key={identity(v)}
+            className="vehicle-row"
+            style={{
+              borderLeft: `5px solid ${agencyColors[v.agencyId || 'ttc'] || '#777'}`,
+            }}
             onClick={() => choose(v)}
-            aria-pressed={selected?.id === v.id}
+            aria-pressed={identity(selected) === identity(v)}
           >
-            <BusFront size={18} />
-            <strong>{v.fleetNumber || v.label || v.id}</strong>
-            <span>
-              {t('Route', '路線')} {v.routeId || '?'}
+            <span className="vehicle-row-main">
+              <BusFront size={18} />
+              <strong>{v.fleetNumber || v.label || v.id}</strong>
+              <span className="vehicle-route-badge">
+                {t('Route', '路線')} {v.routeId || '?'}
+              </span>
+              <ChevronRight size={16} />
             </span>
-            <small>
-              {v.cptdb?.model || t('Details unverified', '資料未核實')}
-            </small>
-            <ChevronRight size={16} />
+            <span className="vehicle-row-agency">
+              {v.agencyName || v.agencyId?.toUpperCase() || 'TTC'}
+            </span>
+            <span className="vehicle-row-spec">
+              {[v.cptdb?.manufacturer, v.cptdb?.model]
+                .filter(Boolean)
+                .join(' · ') || t('Details unverified', '資料未核實')}
+            </span>
+            <span className="vehicle-row-year">
+              {t('Built', '製造年份')} {v.cptdb?.year || t('Unknown', '未核實')}
+            </span>
           </button>
         ))}
       </div>

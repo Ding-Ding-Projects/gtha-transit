@@ -92,10 +92,15 @@ export async function getVehicleSnapshot({ agency = 'ttc', fetchImpl = globalThi
 }
 
 export async function getVehicles({ q = '', route = '', limit = 100, cursor = 0, ...options } = {}) {
-  const snapshot = await getVehicleSnapshot(options); const query = String(q).trim().toLocaleLowerCase(); const routeId = String(route).trim();
+  const snapshot = options.agency === 'all' ? combineVehicleSnapshots(await getAllVehicleSnapshots(options)) : await getVehicleSnapshot(options); const query = String(q).trim().toLocaleLowerCase(); const routeId = String(route).trim();
   const filtered = snapshot.vehicles.filter((vehicle) => (!routeId || vehicle.routeId === routeId) && (!query || [vehicle.id, vehicle.label, vehicle.routeId, vehicle.cptdb.manufacturer, vehicle.cptdb.model, vehicle.cptdb.year].some((value) => String(value ?? '').toLocaleLowerCase().includes(query))));
   const start = Math.max(0, Number.parseInt(cursor, 10) || 0); const pageLimit = Math.min(2_500, Math.max(1, Number.parseInt(limit, 10) || 100)); const vehicles = filtered.slice(start, start + pageLimit); const nextCursor = start + vehicles.length < filtered.length ? String(start + vehicles.length) : null;
   return { ...snapshot, total: filtered.length, vehicles, nextCursor };
+}
+
+export function combineVehicleSnapshots(snapshots) {
+  const vehicles = snapshots.flatMap(snapshot => snapshot.vehicles.map(vehicle => ({ ...vehicle, agencyId: snapshot.agencyId, agencyName: VEHICLE_FEEDS[snapshot.agencyId]?.name ?? snapshot.agencyId, vehicleKey: `${snapshot.agencyId}:${vehicle.id}` })));
+  return { agencyId: 'all', state: snapshots.every(snapshot => snapshot.state === 'live') ? 'live' : vehicles.length ? 'partial' : 'unavailable', fetchedAt: snapshots.map(snapshot => snapshot.fetchedAt).filter(Boolean).sort().at(-1) ?? null, sourceTimestamp: null, total: vehicles.length, vehicles, agencies: snapshots.map(snapshot => ({ id: snapshot.agencyId, name: VEHICLE_FEEDS[snapshot.agencyId]?.name ?? snapshot.agencyId, state: snapshot.state, total: snapshot.vehicles.length })) };
 }
 
 export async function getAllVehicleSnapshots(options = {}) { return Promise.all(Object.keys(VEHICLE_FEEDS).map((agency) => getVehicleSnapshot({ ...options, agency }))); }

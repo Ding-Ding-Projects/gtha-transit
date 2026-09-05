@@ -26,3 +26,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Bring selected vehicle details into view automatically on phones and keyboard navigation instead of requiring a manual scroll back up.
 
 - Compare first-service and transfer waiting for each journey option from the chosen departure time, including per-leg boarding waits.
+
+- Show connected transit agencies together by default, add agency colour coding and readable equipment rows, and open embedded map summaries with a More details action.
