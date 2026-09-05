@@ -8,6 +8,41 @@ import { spawn } from "node:child_process";
 import { graphqlDocument, planWithOtp, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
 import { filterRouteCatalog, isCalendarDate, routeCatalogPage } from "./routes.mjs";
 
+let viaResolverModule = null;
+async function resolveViaPlacesForTest() {
+  if (viaResolverModule) return viaResolverModule.resolveViaPlaces;
+  viaResolverModule = await import(`./server.mjs?via-resolver=${Date.now()}`);
+  return viaResolverModule.resolveViaPlaces;
+}
+
+test("via resolution uses only a date-valid published stop with compatible coordinates", async () => {
+  const resolveViaPlaces = await resolveViaPlacesForTest();
+  const calls = [];
+  const places = await resolveViaPlaces([
+    { id: "ttc:old-platform", name: "Selected platform", lat: 43.7, lon: -79.4 },
+    { stopId: "untrusted:stop", name: "Untrusted", lat: 43.71, lon: -79.41 },
+    { stationId: "ttc:old-platform", name: "Moved coordinate", lat: 43.9, lon: -79.4 },
+    { id: "map", name: "Map point", lat: 43.72, lon: -79.42 },
+  ], {
+    date: "2026-09-06",
+    lookup: async (id, options) => {
+      calls.push({ id, options });
+      return id === "ttc:old-platform" ? { id: "ttc-next:live-platform", lat: 43.7002, lon: -79.4002 } : null;
+    },
+  });
+  assert.deepEqual(calls, [
+    { id: "ttc:old-platform", options: { date: "2026-09-06" } },
+    { id: "untrusted:stop", options: { date: "2026-09-06" } },
+    { id: "ttc:old-platform", options: { date: "2026-09-06" } },
+  ]);
+  assert.deepEqual(places, [
+    { name: "Selected platform", lat: 43.7, lon: -79.4, stopId: "ttc-next:live-platform" },
+    { name: "Untrusted", lat: 43.71, lon: -79.41 },
+    { name: "Moved coordinate", lat: 43.9, lon: -79.4 },
+    { name: "Map point", lat: 43.72, lon: -79.42 },
+  ]);
+});
+
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
   assert.ok(Array.isArray(places));
@@ -316,9 +351,11 @@ test("route catalog paginates canonical routes in natural route order", () => {
   assert.equal(isCalendarDate("2026-02-28"), true); assert.equal(isCalendarDate("2026-02-29"), false); assert.equal(isCalendarDate("2026-99-99"), false);
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
+  const plans = [];
   const mock = http.createServer(async (request, response) => {
     let body = ""; for await (const chunk of request) body += chunk;
-    const query = JSON.parse(body).query;
+    const payload = JSON.parse(body); const query = payload.query;
+    if (query.includes("planConnection")) plans.push(payload);
     const data = query.includes("planConnection") ? { planConnection: { edges: [] } } : { stop: { name: "Union Station GO" } };
     response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
   });
@@ -343,6 +380,10 @@ test("HTTP planning returns a neutral empty result when OTP finds no itinerary",
   assert.equal(incompletePayload.code, "MULTI_STOP_INCOMPLETE");
   assert.deepEqual(incompletePayload.itineraries, []);
   assert.deepEqual(incompletePayload.failedSegment, { from: { name: null, lat: 43.68, lon: -79.61 }, to: { name: "Required stop", lat: 43.66, lon: -79.5 }, state: "unverified" });
+
+  const unverifiedId = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ id: "untrusted:stop", lat: 43.66, lon: -79.5, name: "Unverified anchor" }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00", maxWalkDistance: 1500, preference: "fastest" }) });
+  assert.equal(unverifiedId.status, 422);
+  assert.deepEqual(plans.at(-1).variables.via, [{ visit: { coordinate: { latitude: 43.66, longitude: -79.5 }, label: "Unverified anchor", minimumWaitTime: "PT0S" } }]);
 
   const tooMany = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: Array.from({ length: 6 }, () => ({ lat: 43.66, lon: -79.5 })), to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
   assert.equal(tooMany.status, 400);
