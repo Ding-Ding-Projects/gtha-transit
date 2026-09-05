@@ -1,5 +1,9 @@
 {
-  "schemaVersion": 1,
-  "source": "Generated only by scripts/data/build-stop-index.py from validated official GTFS archives",
+  "schemaVersion": 2,
+  "source": "Generated only by scripts/data/build-stop-index.py from checksum-validated official GTFS archives",
+  "provenance": {
+    "sourceArchiveCount": 0,
+    "indexedStopCount": 0
+  },
   "stops": []
 }

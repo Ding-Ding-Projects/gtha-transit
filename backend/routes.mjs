@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const indexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/routes.json");
-let cached = null;
+let cachedIndex = null;
 
 const normalize = (value) => String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const natural = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
@@ -19,18 +19,22 @@ export function isCalendarDate(value) {
   const date = new Date(`${value}T00:00:00.000Z`);
   return Number.isFinite(date.valueOf()) && date.getUTCFullYear() === Number(match[1]) && date.getUTCMonth() + 1 === Number(match[2]) && date.getUTCDate() === Number(match[3]);
 }
-const currentTorontoDate = () => {
+export const currentTorontoDate = () => {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   return `${values.year}-${values.month}-${values.day}`;
 };
 
-async function loadRoutes() {
-  if (!cached) {
+export async function routeIndex() {
+  if (!cachedIndex) {
     const parsed = JSON.parse(await readFile(indexPath, "utf8"));
-    cached = Array.isArray(parsed.routes) ? parsed.routes : [];
+    cachedIndex = { ...parsed, routes: Array.isArray(parsed.routes) ? parsed.routes : [] };
   }
-  return cached;
+  return cachedIndex;
+}
+
+async function loadRoutes() {
+  return (await routeIndex()).routes;
 }
 
 export function filterRouteCatalog(routes, { agency = null, query = null, date = null, limit = 50 } = {}) {

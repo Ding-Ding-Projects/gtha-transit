@@ -5,6 +5,7 @@ COPY backend/*.mjs backend/config.json ./
 COPY backend/start.sh ./start.sh
 COPY data/stops.json /data/stops.json
 COPY data/routes.json /data/routes.json
+COPY data/route-patterns.json /data/route-patterns.json
 COPY data/transit-washrooms.json /data/transit-washrooms.json
 ENV NODE_ENV=production PORT=8787 HOST=0.0.0.0
 EXPOSE 8787
