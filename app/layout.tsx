@@ -4,6 +4,7 @@ import './map-controls.css';
 import './transit-interface.css';
 import './workspace.css';
 import './settings-workspace.css';
+import './journey-time.css';
 export const metadata: Metadata = {
   title: 'GTHA Transit | Your next connection',
   description:

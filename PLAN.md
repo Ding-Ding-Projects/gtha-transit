@@ -12,6 +12,8 @@ This is the durable scope record for the owner's transit-planner requests. It is
 
 ## Priority 1: dependable and understandable planning
 
+- [ ] Separate Date and Time, keep Toronto timezone explicit, preserve incomplete edits, and verify presets, shared instants and elapsed shifts across clock changes.
+
 - [x] Restore current-date Toronto routing with validated adjacent TTC timetable versions.
 - [ ] Finish broad reproducible Toronto and cross-region smoke coverage, including varied real locations and service times.
 - [ ] Complete partial location suggestions, abbreviations, intersections, diacritics, reversed order and compact forms such as `Highway7Warden`, with live verification.

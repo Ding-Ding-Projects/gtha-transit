@@ -1,5 +1,11 @@
 # Implementation handoff
 
+## Journey time changes awaiting deployment verification
+
+The next frontend separates Date and Time, adds explicit departure/arrival radios and a selected Toronto offset, preserves incomplete edits, and puts Reverse trip into its own labelled row. Helpers in `8b7bb4b` calculate tomorrow by Toronto calendar date and preserve exact shared/stepped instants across the repeated hour. Leave now selects departure mode. Invalid fields cannot silently plan now, produce an agency-coverage verdict or be shared with a false time-included claim. Twelve helper tests and the full 178-test local suite passed, along with type checking and focused lint for the new component and helper. Whole-page lint still reports existing unrelated findings; it is not claimed green. Two independent source reviews found and then confirmed repairs for incomplete-date coverage and reverse-control accessible naming. Built-browser checks are pending.
+
+The prior live `1e428b1` destination run verified real Union, Bloor-Yonge, St George and Eglinton selection; arrow and actual pointer-drag ordering; map labels A/1/2/3; and a September 6, 09:02-09:56 four-stop journey whose request preserved both intermediate stops. Eglinton's route-1 colors and washroom identity matched an independent response, with opening hours correctly unconfirmed. That run measured the old reverse icon overlapping Union's selected-name text at 390px. Save/share, physical touch and the broader matrix were not exercised. Its owned browser resources were removed.
+
 ## Current verified deployment
 
 Current frontend: `1e428b1e320f2046e9abc9b49f2d508e68aef274`, built `2026-09-05T19:53:14.945Z`. Public provenance and healthy container identity were checked independently; workflow `33988440515` succeeded. Settings now has Appearance, Language, Narrator and Privacy tabs, guided theme/language choices, independent tone sliders, and collapsed global/section searches with direct control focus. The original preference writer still retains vehicle criteria and division options, and one parent-owned narrator controller remains alive across panel changes.

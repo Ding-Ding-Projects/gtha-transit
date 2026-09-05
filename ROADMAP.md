@@ -4,6 +4,9 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Deploy and verify separate travel date/time fields, explicit departure/arrival choices, calendar-correct presets and exact elapsed-time stepping through daylight-saving changes. Local helpers have 12 passing tests; browser verification is pending.
+- [ ] Verify the reverse-trip control no longer overlaps long selected stop names. The original 390px overlap was measured on 1e428b1; the replacement uses its own labelled row.
+
 - [x] Deploy and verify four settings sections, guided theme/language choices, independent tone sliders and exact-setting search with isolated regex workbenches. Persistence and keyboard paths passed; the correction run at 1e428b1 passed five version-1 browser audits. Broader language/zoom coverage remains open.
 - [x] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period handling and non-submitting picker actions. The nested-form radio correction was verified separately at b7e0ae4 with zero incidental planning requests.
 - [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
@@ -11,7 +14,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation.
 - [ ] Deploy and exercise manufacturer/model/year tracker filters, per-field search workbenches and the exact-assignment out-of-division planning preference. Local matching, freshness and HTTP-boundary tests pass; built-browser proof is pending.
 
-- [ ] Finish the remaining built-browser checks: actual stop-badge selection, drag reordering and live vehicle switching. Ordered planning, follower simulation and six width/theme captures passed at b92de7c; frontend f45bf93 and backend b92de7c are deployed.
+- [ ] Finish the remaining built-browser checks: live vehicle switching and saved/shared destination order. At 1e428b1, actual stop badges, arrow and pointer-drag reordering, matching map labels and a four-stop real journey passed. Physical touch and broader scale coverage remain unverified.
 
 - [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
 - [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.

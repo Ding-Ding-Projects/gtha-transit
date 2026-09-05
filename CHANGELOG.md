@@ -2,6 +2,9 @@
 
 ## 0.1.0, unreleased
 
+- Separate travel date and time, show the selected Toronto offset, and make departure/arrival choices explicit. Preserve incomplete edits, calculate tomorrow by calendar day, and retain exact shared/stepped instants through clock changes. Leave now selects departure mode.
+- Move Reverse trip into its own labelled row so it cannot cover long selected stop names. Suppress schedule-coverage verdicts when the travel time is incomplete.
+
 - Give narration rate and pitch sliders explicit accessible names and label relationships after the rendered accessibility tree exposed unnamed controls.
 - Keep narrator search recovery notices synchronized with current enablement, quiet mode and voice availability. Remove redundant settings headings while preserving accessible legends.
 - Organize Settings into Appearance, Language, Narrator and Privacy with guided theme and language choices, independent tone controls and exact-setting search. Preserve existing preference storage and narrator lifetime.

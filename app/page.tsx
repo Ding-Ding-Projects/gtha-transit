@@ -37,6 +37,7 @@ import DestinationList, { type Destination } from '../components/destination-lis
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import SettingsWorkspace from '../components/settings-workspace';
+import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
@@ -50,7 +51,8 @@ import { journeyWaits } from '../lib/journey-waits';
 import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-groups';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
-  torontoIso as asIso,
+  resolveTorontoTime,
+  shiftTorontoTime,
   torontoLocalInput,
   isPlace,
   readStored,
@@ -70,17 +72,7 @@ const mins = (seconds: number) =>
   seconds > 0 && seconds < 60 ? '<1' : Math.round(seconds / 60);
 const distance = (m: number) =>
   m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
-const localInput = () =>
-  new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Toronto',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-    .format(new Date())
-    .replace(' ', 'T');
+const localInput = torontoLocalInput;
 const safeUrl = (url?: string) => {
   try {
     const u = new URL(url || '');
@@ -311,12 +303,14 @@ export default function Home() {
     [funZh, setFunZh] = useState(5),
     [tab, setTab] = useState('plan');
   const [from, setFrom] = useState<Place | null>(null),
-    [when, setWhen] = useState(''),
     [arriveBy, setArriveBy] = useState(false),
     [preference, setPreference] = useState('fastest'),
     [wheelchair, setWheelchair] = useState(false),
     [preferWashrooms, setPreferWashrooms] = useState(false),
     [maxWalk, setMaxWalk] = useState(1500);
+  const [travelTime, setTravelTime] = useState<{ local: string; instant?: string }>({ local: '' });
+  const when = travelTime.local;
+  const setWhen = useCallback((local: string, instant?: string) => setTravelTime({ local, instant }), []);
   const [allJourneys, setJourneys] = useState<Itinerary[]>([]),
     [plannedDeparture, setPlannedDeparture] = useState<string | null>(null),
     [selectedId, setSelectedId] = useState<string | null>(null),
@@ -362,7 +356,7 @@ export default function Home() {
       JSON.stringify([
         from,
         to,
-        when,
+        travelTime,
         arriveBy,
         preference,
         wheelchair,
@@ -382,7 +376,7 @@ export default function Home() {
   }, [
     from,
     to,
-    when,
+    travelTime,
     arriveBy,
     preference,
     wheelchair,
@@ -392,7 +386,8 @@ export default function Home() {
     requiredRoute,
   ]);
   useEffect(() => {
-    setWhen(localInput());
+    const initialTime = new Date(Math.floor(Date.now() / 60_000) * 60_000);
+    setWhen(localInput(initialTime), initialTime.toISOString());
     try {
       const prefs =
         readStored<Record<string, any>>('gtha-preferences', {}) || {};
@@ -434,7 +429,7 @@ export default function Home() {
       const sharedRoute = { feedId: params.get('requiredAgency'), routeId: params.get('requiredRoute') };
       if (validRequiredRoute(sharedRoute)) setRequiredRoute(sharedRoute);
       const sharedTime = params.get('dateTime');
-      if (sharedTime && /(?:Z|[+-]\d{2}:\d{2})$/.test(sharedTime) && Number.isFinite(Date.parse(sharedTime))) setWhen(torontoLocalInput(new Date(sharedTime)));
+      if (sharedTime && /(?:Z|[+-]\d{2}:\d{2})$/.test(sharedTime) && Number.isFinite(Date.parse(sharedTime))) setWhen(torontoLocalInput(new Date(sharedTime)), new Date(sharedTime).toISOString());
       if (params.get('arriveBy') === '1') setArriveBy(true);
       const sharedPreference = params.get('preference');
       if (sharedPreference && ['fastest', 'transfers', 'walking', 'waiting'].includes(sharedPreference)) setPreference(sharedPreference);
@@ -555,7 +550,7 @@ export default function Home() {
       statusRequest.current?.abort();
     };
   }, []);
-  async function plan(override?: string) {
+  async function plan(override?: { local: string; instant?: string }) {
     if (!from || !to || viaPlaces.some(place => !place)) {
       narrate('journey-error', 'Choose every location from the suggestions or map.', '請喺建議清單或地圖選擇每個地點。', true);
       setError(
@@ -573,7 +568,7 @@ export default function Home() {
     activeInputs.current = JSON.stringify([
       from,
       to,
-      override || when,
+      override ?? travelTime,
       arriveBy,
       preference,
       wheelchair,
@@ -588,7 +583,8 @@ export default function Home() {
     setJourneys([]);
     const timer = setTimeout(() => controller.abort(), requiredRoute ? 35000 : 25000);
     try {
-      const requestedTime = asIso(override || when || localInput());
+      const selectedTime = override ?? travelTime;
+      const requestedTime = resolveTorontoTime(selectedTime.local, selectedTime.instant);
       const r = await fetch('/api/plan', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -676,15 +672,28 @@ export default function Home() {
     setNotice(t('Trip saved on this device.', '行程已儲存喺呢部裝置。'));
     narrate('trip-saved', 'Trip saved on this device.', '行程已儲存喺呢部裝置。');
   }
+  function shiftJourney(minutes: number) {
+    try {
+      const next = shiftTorontoTime(when, minutes, travelTime.instant);
+      setTravelTime(next);
+      void plan(next);
+    } catch {
+      setNotice(t('Choose a valid date and time before moving the journey time.', '更改行程時間前，請選擇有效日期同時間。'));
+    }
+  }
   async function share() {
     if (!from || !to || viaPlaces.some(place => !place)) return;
+    let sharedTime: string;
+    try { sharedTime = resolveTorontoTime(when, travelTime.instant); }
+    catch {
+      setNotice(t('Choose a valid date and time before sharing this trip.', '分享行程前，請選擇有效日期同時間。'));
+      return;
+    }
     const url = new URL(location.origin);
     url.searchParams.set('from', `${from.lat},${from.lon},${from.name}`);
     url.searchParams.set('to', `${to.lat},${to.lon},${to.name}`);
     for (const place of viaPlaces) if (place) url.searchParams.append('via', `${place.lat},${place.lon},${place.name}`);
-    if (when) {
-      try { url.searchParams.set('dateTime', asIso(when)); } catch { /* An incomplete time is not included in a shared link. */ }
-    }
+    url.searchParams.set('dateTime', sharedTime);
     if (arriveBy) url.searchParams.set('arriveBy', '1');
     url.searchParams.set('preference', preference);
     url.searchParams.set('preferDivision', preferDivision ? '1' : '0');
@@ -793,14 +802,17 @@ export default function Home() {
     return () => controller.abort();
   }, [tab]);
   const agencies = coverage?.agencies || [];
-  const serviceDate = (when || localInput()).slice(0, 10).replaceAll('-', '');
-  const dateGaps = agencies.filter(
+  let selectedDate = '';
+  try { resolveTorontoTime(when, travelTime.instant); selectedDate = when.slice(0, 10); }
+  catch { /* Incomplete fields do not establish a service-coverage verdict. */ }
+  const serviceDate = selectedDate.replaceAll('-', '');
+  const dateGaps = selectedDate ? agencies.filter(
     (a: any) =>
-      a.activeTripsByDate?.[(when || localInput()).slice(0, 10)] === 0 ||
+      a.activeTripsByDate?.[selectedDate] === 0 ||
       (a.serviceStart && String(a.serviceStart) > serviceDate) ||
       (a.serviceEnd && String(a.serviceEnd) < serviceDate),
-  );
-  const nextCoveredDate = [
+  ) : [];
+  const nextCoveredDate = selectedDate ? [
     ...new Set<string>(
       agencies.flatMap((a: any) => Object.keys(a.activeTripsByDate || {})),
     ),
@@ -808,9 +820,9 @@ export default function Home() {
     .sort()
     .find(
       (d) =>
-        d > (when || localInput()).slice(0, 10) &&
+        d > selectedDate &&
         dateGaps.every((a: any) => (a.activeTripsByDate?.[d] || 0) > 0),
-    );
+    ) : undefined;
   const lineState = (line: Line) =>
     line.state === 'good'
       ? t('No reported disruption', '未有通報事故')
@@ -859,9 +871,10 @@ export default function Home() {
                 type="button"
                 className="swap"
                 onClick={swap}
-                aria-label={t('Swap origin and destination', '交換起點同終點')}
+                title={t('Swap origin and destination', '交換起點同終點')}
               >
-                <ArrowDownUp size={18} />
+                <ArrowDownUp size={18} aria-hidden="true" />
+                <span>{t('Reverse trip', '反轉行程')}</span>
               </button>
               <DestinationList items={destinations} t={t} onChange={next => {
                 setDestinations(next);
@@ -883,46 +896,8 @@ export default function Home() {
               <LocateFixed size={16} />
               {t('Use my location', '使用目前位置')}
             </button>
-            <div className="time-row">
-              <label>
-                <span>{t('Travel time', '出發時間')}</span>
-                <select
-                  value={arriveBy ? 'arrive' : 'depart'}
-                  onChange={(e) => setArriveBy(e.target.value === 'arrive')}
-                >
-                  <option value="depart">{t('Depart at', '出發')}</option>
-                  <option value="arrive">{t('Arrive by', '到達')}</option>
-                </select>
-              </label>
-              <label className="datetime">
-                <span>{t('Toronto local time', '多倫多當地時間')}</span>
-                <input
-                  type="datetime-local"
-                  required
-                  value={when}
-                  onChange={(e) => setWhen(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="date-presets">
-              <button
-                type="button"
-                className="pill"
-                onClick={() => setWhen(localInput())}
-              >
-                {t('Leave now', '而家出發')}
-              </button>
-              <button
-                type="button"
-                className="pill"
-                onClick={() => {
-                  const tomorrow = new Date(Date.now() + 86400000);
-                  setWhen(torontoLocalInput(tomorrow).slice(0, 10) + 'T09:00');
-                }}
-              >
-                {t('Tomorrow at 9', '聽朝 9 點')}
-              </button>
-            </div>
+            <JourneyTimeControls value={when} instant={travelTime.instant} arriveBy={arriveBy}
+              onChange={setWhen} onModeChange={setArriveBy} t={t} />
             <details className="options">
               <summary>
                 <Settings size={16} />
@@ -1652,44 +1627,14 @@ export default function Home() {
                   <div className="results-footer">
                     <button
                       className="pill"
-                      onClick={() => {
-                        const d = new Date(asIso(when));
-                        d.setMinutes(d.getMinutes() - 30);
-                        const v = new Intl.DateTimeFormat('sv-SE', {
-                          timeZone: 'America/Toronto',
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                          .format(d)
-                          .replace(' ', 'T');
-                        setWhen(v);
-                        plan(v);
-                      }}
+                      onClick={() => shiftJourney(-30)}
                     >
                       <ArrowLeft size={15} />
                       {t('30 min earlier', '早 30 分鐘')}
                     </button>
                     <button
                       className="pill"
-                      onClick={() => {
-                        const d = new Date(asIso(when));
-                        d.setMinutes(d.getMinutes() + 30);
-                        const v = new Intl.DateTimeFormat('sv-SE', {
-                          timeZone: 'America/Toronto',
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                          .format(d)
-                          .replace(' ', 'T');
-                        setWhen(v);
-                        plan(v);
-                      }}
+                      onClick={() => shiftJourney(30)}
                     >
                       {t('30 min later', '遲 30 分鐘')}
                       <ArrowRight size={15} />
