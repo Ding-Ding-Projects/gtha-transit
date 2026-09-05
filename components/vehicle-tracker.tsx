@@ -81,9 +81,11 @@ const safe = (url?: string) => {
 export default function VehicleTracker({
   t,
   divisionMode = false,
+  onFollow,
 }: {
   t: (a: string, b: string) => string;
   divisionMode?: boolean;
+  onFollow?: (vehicle: Vehicle) => void;
 }) {
   const [snapshot, setData] = useState<(Snapshot & { scope: string }) | null>(
       null,
@@ -457,6 +459,7 @@ export default function VehicleTracker({
             </button>
           </div>
           <div className="vehicle-facts">
+            {onFollow && <button type="button" className="pill" onClick={() => onFollow(selected)}>{t('Follow this vehicle', '跟隨此車輛')}</button>}
             {selected.division && <>
               <span><small>{t('Home garage', '所屬車廠')}</small><strong>{selected.division.homeGarageName || t('Unconfirmed', '未確認')}</strong></span>
               <span><small>{t('Route garages', '路線車廠')}</small><strong>{selected.division.assignedGarageNames?.join(', ') || t('Unconfirmed', '未確認')}</strong></span>

@@ -4,8 +4,11 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
-import { applyWashroomPreference } from "./washrooms.mjs";
+import { applyWashroomPreference, resolvedWashroomRegistry, washroomForPublishedPlace } from "./washrooms.mjs";
 import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
+import { publishedStopForId, routeStopAnchors } from "./stop-routes.mjs";
+import { planWithRequiredLine } from "./required-line.mjs";
+import { planWashroomDetour } from "./washroom-detour.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
@@ -43,7 +46,19 @@ const server = http.createServer(async (req, res) => {
       try { const ready = await otpReady({ otpUrl }); return json(res, ready ? 200 : 503, { ok: ready, service: "gtha-transit-routing", router: ready ? "ready" : "unavailable" }); }
       catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE" }); }
     }
-    if (req.method === "GET" && url.pathname === "/api/places") return json(res, 200, { places: await searchPlaces(url.searchParams.get("q"), 20) });
+    if (req.method === "GET" && url.pathname === "/api/places") {
+      const date = url.searchParams.get("date");
+      if (date && !isCalendarDate(date)) throw Error("date must be a real YYYY-MM-DD date");
+      return json(res, 200, { places: await searchPlaces(url.searchParams.get("q"), 20, { date }) });
+    }
+    if (req.method === "GET" && url.pathname === "/api/stop-routes") {
+      const stopId = url.searchParams.get("stopId"), date = url.searchParams.get("date"), at = url.searchParams.get("at");
+      if (!stopId || stopId.length > 120 || !stopId.includes(":") || /[\u0000-\u001f\u007f]/.test(stopId)) throw Error("An exact qualified stopId is required");
+      if (date && !isCalendarDate(date)) throw Error("date must be a real YYYY-MM-DD date");
+      if (at && (!Number.isFinite(Date.parse(at)) || !/(?:Z|[+-]\d{2}:\d{2})$/.test(at))) throw Error("at must be an ISO timestamp with an offset");
+      const stop = await publishedStopForId(stopId, { date });
+      return json(res, 200, { stop, routes: stop?.servingRoutes ?? [], washroom: stop ? await washroomForPublishedPlace(stop, { at: at ?? new Date() }) : null });
+    }
     if (req.method === "GET" && url.pathname === "/api/routes") {
       if (Buffer.byteLength(req.url ?? "") > max) throw new Error("query exceeds limit");
       const limit = url.searchParams.get("limit") == null ? 50 : nonNegativeInteger(url.searchParams.get("limit"), "limit", 200);
@@ -79,11 +94,20 @@ const server = http.createServer(async (req, res) => {
       if (!dateTime || !/[+-]\d\d:\d\d$|Z$/i.test(dateTime)) throw new Error("dateTime must be an ISO 8601 timestamp with an offset");
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking", "waiting"].includes(preference)) throw new Error("preference must be fastest, transfers, walking, or waiting");
-      const result = await planWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults });
+      const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults };
+      const result = input.requiredRoute != null ? await planWithRequiredLine({ ...request, requiredRoute: input.requiredRoute }, { planWithOtp, routeStopAnchors }) : await planWithOtp(request);
       const provenance = await graphProvenance();
+      if (input.requiredRoute != null && !result.itineraries.length) return json(res, 422, { error: "No complete journey riding the selected line was found in this bounded search", code: "REQUIRED_LINE_UNRESOLVED", requiredLine: result.requiredLine, itineraries: [], data: provenance });
       if (via.length && !result.itineraries.length) return json(res, 422, { error: "No complete itinerary visits every requested stop", code: "MULTI_STOP_INCOMPLETE", itineraries: [], failedSegment: result.failedSegment ?? null, data: provenance, coverage: coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
       const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
-      return json(res, 200, { ...preferred, data: provenance, coverage: result.itineraries.length ? null : coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
+      return json(res, 200, { ...preferred, requiredLine: result.requiredLine ?? null, data: provenance, coverage: result.itineraries.length ? null : coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
+    }
+    if (req.method === "POST" && url.pathname === "/api/plan-washroom-detour") {
+      const input = JSON.parse(await readBody(req));
+      const registry = await resolvedWashroomRegistry();
+      const stopIndex = JSON.parse(await readFile(path.join(here, "../data/stops.json"), "utf8"));
+      const result = await planWashroomDetour(input, { facilityRegistry: registry, stopIndex, planWithOtp: (request) => planWithOtp({ ...request, otpUrl, timeoutMs: Math.min(config.requestTimeoutMs, request.timeoutMs ?? config.requestTimeoutMs) }) });
+      return json(res, 200, result);
     }
     return json(res, 404, { error: "route not found" });
   } catch (error) { const upstream = error.name === "AbortError" || error.code === "UPSTREAM"; return json(res, upstream ? 503 : 400, { error: upstream ? "routing service is temporarily unavailable" : String(error.message ?? error) }); }

@@ -4,6 +4,8 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Verify the current integration in the built browser: multi-destination ordering, dated route badges, follower entry points and the wider phone date/time field. Local checks pass (134 root tests, 50 backend tests and type checking); deployment remains pending backend index generation.
+
 - [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
 - [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.
 - [ ] Modernize the route picker, vehicle preference controls and overall visual hierarchy, then verify phone-width light/dark layouts.

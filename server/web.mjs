@@ -141,6 +141,8 @@ const root = path.resolve(
 const routing = process.env.ROUTING_ORIGIN || 'http://127.0.0.1:8787';
 const maps = process.env.MAPS_ORIGIN || 'http://127.0.0.1:8789';
 const routes = new Set([
+  '/api/stop-routes',
+  '/api/plan-washroom-detour',
   '/api/routes',
   '/api/places',
   '/api/coverage',
@@ -306,7 +308,7 @@ async function placeSource(origin, requestPath, field) {
       redirect: 'error',
     });
     if (!response.ok) return { available: false, places: [] };
-    const payload = JSON.parse((await bounded(response, 256 * 1024)).toString('utf8'));
+    const payload = JSON.parse((await bounded(response, 2 * 1024 * 1024)).toString('utf8'));
     const places = field === 'map' ? payload.results ?? payload.places : payload.places;
     return { available: Array.isArray(places), places: Array.isArray(places) ? places.slice(0, 20) : [] };
   } catch {
@@ -489,11 +491,15 @@ const server = http.createServer(async (req, res) => {
         });
       }
       const input = req.method === 'POST' ? await body(req) : undefined;
+      let extendedPlanning = url.pathname === '/api/plan-washroom-detour';
+      if (url.pathname === '/api/plan' && input) {
+        try { extendedPlanning = JSON.parse(input.toString('utf8')).requiredRoute != null; } catch { /* The backend reports invalid request syntax. */ }
+      }
       const upstream = await fetch(routing + url.pathname + url.search, {
         method: req.method,
         headers: { 'content-type': 'application/json' },
         body: input,
-        signal: AbortSignal.timeout(23000),
+        signal: AbortSignal.timeout(extendedPlanning ? 28000 : 23000),
         redirect: 'error',
       });
       let payload = await bounded(upstream);
@@ -502,6 +508,12 @@ const server = http.createServer(async (req, res) => {
         try {
           detail = JSON.parse(payload);
         } catch {}
+        if (detail?.code === 'MULTI_STOP_INCOMPLETE' || detail?.code === 'REQUIRED_LINE_UNRESOLVED') return send(res, 422, {
+          code: detail.code,
+          error: detail.code === 'MULTI_STOP_INCOMPLETE' ? 'No complete journey connecting every destination in order was found.' : 'No complete journey riding the selected line was found in this bounded search.',
+          failedSegment: detail.failedSegment ?? null,
+          requiredLine: detail.requiredLine ?? null,
+        });
         if (detail?.code === 'SCHEDULE_DATE_UNAVAILABLE')
           return send(res, 409, {
             code: detail.code,
@@ -594,7 +606,9 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, {
       'content-type': mime[path.extname(target)] || 'application/octet-stream',
       'content-length': info.size,
-      'cache-control': target.includes('/_next/')
+      'cache-control': path.extname(target) === '.html'
+        ? 'public,no-cache,no-transform'
+        : target.includes('/_next/')
         ? 'public,max-age=31536000,immutable'
         : 'no-cache',
     });

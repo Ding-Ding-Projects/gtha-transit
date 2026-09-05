@@ -1,3 +1,5 @@
+export type StopRoute = { id: string; routeId: string; shortName?: string | null; longName?: string | null; color?: string | null; textColor?: string | null; feedId?: string; agency?: string };
+export type WashroomInfo = { facilityId?: string; agencyId?: string; facilityType?: string; name?: string; source?: string; availability?: string; location?: { name?: string; lat?: number; lon?: number } };
 export type Place = {
   id: string;
   name: string;
@@ -5,6 +7,14 @@ export type Place = {
   lon: number;
   kind?: string;
   agency?: string;
+  feedId?: string;
+  agencyFeedId?: string;
+  stopId?: string;
+  stationId?: string;
+  locationType?: number | string;
+  servingRoutes?: StopRoute[];
+  servingRoutesDate?: string;
+  washroom?: WashroomInfo | null;
 };
 export type Leg = {
   tripId?: string;

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Place, Itinerary } from '../lib/types';
 import 'leaflet/dist/leaflet.css';
 import { attachMapTiles } from '../lib/map-tiles';
+const NO_VIA: readonly (Place | null)[] = [];
 function decode(encoded: string): [number, number][] {
   let i = 0,
     lat = 0,
@@ -36,16 +37,20 @@ function decode(encoded: string): [number, number][] {
 export default function TransitMap({
   from,
   to,
+  via = NO_VIA,
   journey,
   onPick,
   picking,
+  pickLabel,
   t,
 }: {
   from: Place | null;
   to: Place | null;
+  via?: readonly (Place | null)[];
   journey?: Itinerary;
   onPick: (lat: number, lon: number) => void;
   picking: boolean;
+  pickLabel?: string;
   t: (en: string, zh: string) => string;
 }) {
   const [tileError, setTileError] = useState(false),
@@ -99,15 +104,17 @@ export default function TransitMap({
       }
       layer.current.clearLayers();
       const bounds: [number, number][] = [];
-      [from, to].forEach((p, i) => {
+      [from, ...via, to].forEach((p, i) => {
         if (!p) return;
         bounds.push([p.lat, p.lon]);
         const tooltip = document.createElement('span');
         tooltip.textContent = p.name;
         L.marker([p.lat, p.lon], {
+          alt: `${i === 0 ? 'Origin' : 'Destination ' + i}: ${p.name}`,
+          title: p.name,
           icon: L.divIcon({
             className: 'place-marker',
-            html: i ? 'B' : 'A',
+            html: i ? String(i) : 'A',
             iconSize: [30, 30],
             iconAnchor: [15, 15],
           }),
@@ -140,7 +147,7 @@ export default function TransitMap({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [from, to, journey]);
+  }, [from, to, via, journey]);
   return (
     <>
       <div
@@ -163,6 +170,7 @@ export default function TransitMap({
       {picking && (
         <form
           className="coordinate-picker"
+          aria-label={pickLabel || t('Choose map coordinates', '選擇地圖座標')}
           onSubmit={(e) => {
             e.preventDefault();
             const a = Number(lat),
@@ -178,6 +186,7 @@ export default function TransitMap({
               onPick(a, b);
           }}
         >
+          {pickLabel && <strong>{pickLabel}</strong>}
           <label>
             {t('Latitude', '緯度')}
             <input

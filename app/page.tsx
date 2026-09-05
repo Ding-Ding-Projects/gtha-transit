@@ -30,6 +30,9 @@ import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
+import LiveFollower, { type LiveFollowerVehicle } from '../components/live-follower';
+import DestinationList, { type Destination } from '../components/destination-list';
+import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import NarratorSettings from '../components/narrator-settings';
 import { useNarrator } from '../lib/narrator';
@@ -49,7 +52,8 @@ import {
 } from '../lib/journey-utils';
 
 type Lang = 'en' | 'zh' | 'both';
-type Saved = { id: string; from: Place; to: Place };
+type Saved = { id: string; from: Place; to: Place; via?: Place[] };
+const planPoint = (place: Place): Place => ({ id: place.id, name: place.name, lat: place.lat, lon: place.lon, ...(place.kind ? { kind: place.kind } : {}), ...(place.agency ? { agency: place.agency } : {}) });
 const time = (v: number | string) =>
   new Date(typeof v === 'number' && v < 1e12 ? v * 1000 : v).toLocaleTimeString(
     'en-CA',
@@ -85,12 +89,14 @@ function PlaceField({
   onChange,
   t,
   onMap,
+  when,
 }: {
   label: string;
   value: Place | null;
   onChange: (p: Place | null) => void;
   t: (en: string, zh: string) => string;
   onMap: () => void;
+  when?: string;
 }) {
   const [query, setQuery] = useState(value?.name || ''),
     [items, setItems] = useState<Place[]>([]),
@@ -115,13 +121,15 @@ function PlaceField({
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const r = await fetch('/api/places?q=' + encodeURIComponent(query), {
+        const params = new URLSearchParams({ q: query });
+        if (when && /^\d{4}-\d{2}-\d{2}/.test(when)) params.set('date', when.slice(0, 10));
+        const r = await fetch('/api/places?' + params, {
           signal: controller.signal,
         });
         if (!r.ok) throw Error();
         const data = (await r.json()) as { places?: Place[]; partial?: boolean };
         if (controller.signal.aborted) return;
-        setItems(data.places || []);
+        setItems((data.places || []).map(place => ({ ...place, servingRoutesDate: when?.slice(0, 10) })));
         if (data.partial && !data.places?.length) setError(t('Some place sources are unavailable. Try again or choose a point on the map.', '部分地點來源暫時未能使用，請再試或喺地圖揀選。'));
         setActive(-1);
       } catch (e) {
@@ -140,7 +148,7 @@ function PlaceField({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, value, t]);
+  }, [query, value, t, when]);
   const choose = (p: Place) => {
     onChange(p);
     setQuery(p.name);
@@ -210,6 +218,7 @@ function PlaceField({
         </button>
       </div>
       {value && <div className="selected-place-name">{value.name}</div>}
+      {value && <SelectedStopInfo place={value} when={when} t={t} />}
       {open && query.length >= 2 && query !== value?.name && (
         <div
           className="suggestions"
@@ -238,6 +247,7 @@ function PlaceField({
                   <small>
                     {[p.agency, p.kind].filter(Boolean).join(' · ')}
                   </small>
+                  {!!p.servingRoutes?.length && <RouteBadges routes={p.servingRoutes} t={t} />}
                 </span>
               </button>
             ))
@@ -260,13 +270,21 @@ export default function Home() {
   const [ttcRoutes, setTtcRoutes] = useState<OfficialTtcRoute[]>([]);
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
+  const [destinations, setDestinations] = useState<Destination[]>([{ id: 'destination-1', place: null }]);
+  const [follower, setFollower] = useState<{ journey?: Itinerary; vehicle?: LiveFollowerVehicle } | null>(null);
+  const followerAnchor = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (follower) followerAnchor.current?.focus();
+  }, [follower]);
+  const to = destinations[destinations.length - 1]?.place || null;
+  const viaPlaces = useMemo(() => destinations.slice(0, -1).map(item => item.place), [destinations]);
+  const setTo = useCallback((place: Place | null) => setDestinations(current => current.map((item, index) => index === current.length - 1 ? { ...item, place } : item)), []);
   const [lang, setLang] = useState<Lang>('en'),
     [dark, setDark] = useState(false),
     [funEn, setFunEn] = useState(5),
     [funZh, setFunZh] = useState(5),
     [tab, setTab] = useState('plan');
   const [from, setFrom] = useState<Place | null>(null),
-    [to, setTo] = useState<Place | null>(null),
     [when, setWhen] = useState(''),
     [arriveBy, setArriveBy] = useState(false),
     [preference, setPreference] = useState('fastest'),
@@ -280,7 +298,7 @@ export default function Home() {
     [planned, setPlanned] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
-    [picking, setPicking] = useState<'from' | 'to' | null>(null),
+    [picking, setPicking] = useState<string | null>(null),
     [mapVisible, setMapVisible] = useState(true);
   const [status, setStatus] = useState<TransitStatus | null>(null),
     [statusBusy, setStatusBusy] = useState(false),
@@ -321,6 +339,7 @@ export default function Home() {
         wheelchair,
         maxWalk,
         preferWashrooms,
+        viaPlaces,
       ])
     )
       return;
@@ -339,6 +358,7 @@ export default function Home() {
     wheelchair,
     maxWalk,
     preferWashrooms,
+    viaPlaces,
   ]);
   useEffect(() => {
     setWhen(localInput());
@@ -370,16 +390,21 @@ export default function Home() {
                 typeof x === 'object' &&
                 typeof (x as Saved).id === 'string' &&
                 isPlace((x as Saved).from) &&
-                isPlace((x as Saved).to),
+                isPlace((x as Saved).to) &&
+                ((x as Saved).via === undefined || (Array.isArray((x as Saved).via) && (x as Saved).via!.length <= 5 && (x as Saved).via!.every(isPlace))),
             )
             .slice(0, 100),
         );
       const params = new URLSearchParams(location.search);
-      const read = (key: string) => {
-        const raw = params.get(key);
+      const sharedTime = params.get('dateTime');
+      if (sharedTime && /(?:Z|[+-]\d{2}:\d{2})$/.test(sharedTime) && Number.isFinite(Date.parse(sharedTime))) setWhen(torontoLocalInput(new Date(sharedTime)));
+      if (params.get('arriveBy') === '1') setArriveBy(true);
+      const sharedPreference = params.get('preference');
+      if (sharedPreference && ['fastest', 'transfers', 'walking', 'waiting'].includes(sharedPreference)) setPreference(sharedPreference);
+      const read = (key: string, raw = params.get(key)) => {
         if (!raw) return null;
         const [lat, lon, ...name] = raw.split(',');
-        return Number.isFinite(+lat) &&
+        return lat?.trim() && lon?.trim() && Number.isFinite(+lat) &&
           Number.isFinite(+lon) &&
           Math.abs(+lat) <= 90 &&
           Math.abs(+lon) <= 180
@@ -392,7 +417,12 @@ export default function Home() {
           : null;
       };
       setFrom(read('from'));
-      setTo(read('to'));
+      const encodedVia = params.getAll('via');
+      const sharedVia = encodedVia.slice(0, 5).map((raw, index) => read(`via-${index}`, raw));
+      if (encodedVia.length > 5 || sharedVia.some(place => !place)) {
+        setNotice('The shared trip contains an invalid or unsupported destination list. Choose the destinations again.');
+        setDestinations([{ id: 'destination-1', place: null }]);
+      } else setDestinations([...sharedVia, read('to')].map((place, index) => ({ id: `destination-${index}`, place })));
     } catch {}
     hydrated.current = true;
     fetch('/version.json')
@@ -489,12 +519,12 @@ export default function Home() {
     };
   }, []);
   async function plan(override?: string) {
-    if (!from || !to) {
-      narrate('journey-error', 'Choose both places from the suggestions or map.', '請喺建議清單或地圖選擇起點同終點。', true);
+    if (!from || !to || viaPlaces.some(place => !place)) {
+      narrate('journey-error', 'Choose every location from the suggestions or map.', '請喺建議清單或地圖選擇每個地點。', true);
       setError(
         t(
-          'Choose both places from the suggestions or map.',
-          '請喺建議清單或地圖選擇起點同終點。',
+          'Choose every location from the suggestions or map.',
+          '請喺建議清單或地圖選擇每個地點。',
         ),
       );
       return;
@@ -512,6 +542,7 @@ export default function Home() {
       wheelchair,
       maxWalk,
       preferWashrooms,
+      viaPlaces,
     ]);
     setLoading(true);
     setError('');
@@ -524,8 +555,9 @@ export default function Home() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          from,
-          to,
+          from: planPoint(from),
+          to: planPoint(to),
+          via: viaPlaces.filter((place): place is Place => !!place).map(planPoint),
           dateTime: requestedTime,
           arriveBy,
           preference,
@@ -540,7 +572,13 @@ export default function Home() {
         error?: string;
         itineraries?: Itinerary[];
         data?: unknown;
+        code?: string;
+        failedSegment?: { from?: { name?: string }; to?: { name?: string } };
       };
+      if (!r.ok && data.code === 'MULTI_STOP_INCOMPLETE') throw Error(t(
+        `No complete trip was verified through every destination. Check the segment from ${data.failedSegment?.from?.name || 'the preceding location'} to ${data.failedSegment?.to?.name || 'the next location'}, or try another departure time.`,
+        `未能確認途經全部目的地的完整行程。請檢查由 ${data.failedSegment?.from?.name || '上一個地點'} 至 ${data.failedSegment?.to?.name || '下一個地點'} 的路段，或嘗試其他出發時間。`,
+      ));
       if (!r.ok)
         throw Error(
           data.message ||
@@ -573,15 +611,20 @@ export default function Home() {
     }
   }
   function swap() {
-    setFrom(to);
-    setTo(from);
+    setPicking(null);
+    const reversed = [from, ...destinations.map(item => item.place)].reverse();
+    setFrom(reversed[0]);
+    setDestinations(reversed.slice(1).map((place, index) => ({ id: `destination-reversed-${index}`, place })));
     setJourneys([]);
     setPlanned(false);
   }
   function save() {
     if (!from || !to) return;
     const id = `${from.lat},${from.lon}:${to.lat},${to.lon}`;
-    const next = [{ id, from, to }, ...saved.filter((x) => x.id !== id)].slice(0, 100);
+    if (viaPlaces.some(place => !place)) return;
+    const via = viaPlaces.filter((place): place is Place => !!place).map(planPoint);
+    const savedId = id + (via.length ? ':' + via.map(place => `${place.lat},${place.lon}`).join(';') : '');
+    const next = [{ id: savedId, from: planPoint(from), to: planPoint(to), via }, ...saved.filter((x) => x.id !== savedId)].slice(0, 100);
     try {
       localStorage.setItem('gtha-saved', JSON.stringify(next));
     } catch {
@@ -594,16 +637,22 @@ export default function Home() {
     narrate('trip-saved', 'Trip saved on this device.', '行程已儲存喺呢部裝置。');
   }
   async function share() {
-    if (!from || !to) return;
+    if (!from || !to || viaPlaces.some(place => !place)) return;
     const url = new URL(location.origin);
     url.searchParams.set('from', `${from.lat},${from.lon},${from.name}`);
     url.searchParams.set('to', `${to.lat},${to.lon},${to.name}`);
+    for (const place of viaPlaces) if (place) url.searchParams.append('via', `${place.lat},${place.lon},${place.name}`);
+    if (when) {
+      try { url.searchParams.set('dateTime', asIso(when)); } catch { /* An incomplete time is not included in a shared link. */ }
+    }
+    if (arriveBy) url.searchParams.set('arriveBy', '1');
+    url.searchParams.set('preference', preference);
     try {
       await navigator.clipboard.writeText(url.href);
       setNotice(
         t(
-          'Link copied. It includes both trip locations.',
-          '連結已複製，包含起點同終點。',
+          'Link copied. It includes every selected trip location and the selected travel time.',
+          '連結已複製，包含所有已選行程地點同所選時間。',
         ),
       );
     } catch {
@@ -618,6 +667,11 @@ export default function Home() {
       timezone: 'America/Toronto',
       from,
       to,
+      via: viaPlaces,
+      requestedLocalTime: when,
+      arriveBy,
+      preference,
+      vehiclePreferences: { criteria: vehicleCriteria, options: vehicleOptions },
       itinerary: j,
       data: provenance,
       exportedAt: new Date().toISOString(),
@@ -789,6 +843,7 @@ export default function Home() {
                 value={from}
                 onChange={setFrom}
                 t={translate}
+                when={when}
                 onMap={() => {
                   setPicking('from');
                   setMapVisible(true);
@@ -803,17 +858,17 @@ export default function Home() {
               >
                 <ArrowDownUp size={18} />
               </button>
-              <PlaceField
-                label={t('To', '終點')}
-                value={to}
-                onChange={setTo}
+              <DestinationList items={destinations} t={t} onChange={next => {
+                setDestinations(next);
+                if (picking && picking !== 'from' && !next.some(item => item.id === picking)) setPicking(null);
+              }} renderField={(item, index) => <PlaceField
+                label={index === destinations.length - 1 ? t('To', '終點') : t(`Stop ${index + 1}`, `中途地點 ${index + 1}`)}
+                value={item.place}
+                onChange={place => setDestinations(current => current.map(row => row.id === item.id ? { ...row, place } : row))}
                 t={translate}
-                onMap={() => {
-                  setPicking('to');
-                  setMapVisible(true);
-                  setTab('plan');
-                }}
-              />
+                when={when}
+                onMap={() => { setPicking(item.id); setMapVisible(true); setTab('plan'); }}
+              />} />
             </div>
             <button
               type="button"
@@ -869,23 +924,15 @@ export default function Home() {
                 {t('Journey preferences', '行程偏好')}
                 <ChevronRight size={16} />
               </summary>
-              <label>
-                {t('Prioritize', '優先考慮')}
-                <select
-                  value={preference}
-                  onChange={(e) => setPreference(e.target.value)}
-                >
-                  <option value="fastest">
-                    {t('Fastest journey', '最快到達')}
-                  </option>
-                  <option value="transfers">
-                    {t('Fewer transfers', '減少轉車')}
-                  </option>
-                  <option value="walking">
-                    {t('Less walking', '減少步行')}
-                  </option>
-                </select>
-              </label>
+              <div className="journey-priority" role="group" aria-label={t('Prioritize', '優先考慮')}>
+                {[
+                  ['fastest', t('Fastest journey', '最快到達')],
+                  ['transfers', t('Fewer transfers', '減少轉車')],
+                  ['walking', t('Less walking', '減少步行')],
+                  ['waiting', t('Less transfer waiting', '減少轉車等候')],
+                ].map(([value, label]) => <button key={value} type="button" aria-pressed={preference === value} onClick={() => setPreference(value)}>{label}</button>)}
+              </div>
+              {preference === 'waiting' && <p className="data-note">{t('Favors less time waiting between services, even when the ride takes longer. Walking and the longer journey remain visible.', '優先減少班次之間嘅等候，就算車程較長都可以。步行同增加嘅行程時間仍會清楚顯示。')}</p>}
               <label>
                 {t('Maximum walking distance', '最長步行距離')}
                 <select
@@ -1004,9 +1051,10 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
+          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower {...follower} t={t} onClose={() => setFollower(null)} /></div>}
           {tab === 'history' && <DisruptionHistory t={t} />}
-          {tab === 'vehicles' && <VehicleTracker t={t} />}
-          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode />}
+          {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => setFollower({ vehicle })} />}
+          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => setFollower({ vehicle })} />}
           {tab === 'coverage' && <RealtimeCoverage t={t} />}
           {tab === 'plan' && (
             <>
@@ -1039,8 +1087,10 @@ export default function Home() {
                   t={t}
                   from={from}
                   to={to}
+                  via={viaPlaces}
                   journey={current}
                   picking={!!picking}
+                  pickLabel={picking === 'from' ? t('Choose the origin', '選擇起點') : t(`Choose destination ${destinations.findIndex(item => item.id === picking) + 1}`, `選擇第 ${destinations.findIndex(item => item.id === picking) + 1} 個目的地`)}
                   onPick={(lat, lon) => {
                     const p = {
                       id: 'map',
@@ -1048,7 +1098,9 @@ export default function Home() {
                       lat,
                       lon,
                     };
-                    picking === 'from' ? setFrom(p) : setTo(p);
+                    if (picking === 'from') setFrom(p);
+                    else if (picking) setDestinations(current => current.map(item => item.id === picking ? { ...item, place: p } : item));
+                    else setTo(p);
                     setPicking(null);
                   }}
                 />
@@ -1056,8 +1108,8 @@ export default function Home() {
                   <MapPin size={14} />
                   {picking
                     ? t(
-                        'Click the map to choose your location',
-                        '按地圖選擇位置',
+                        `Choose ${picking === 'from' ? 'the origin' : 'destination ' + (destinations.findIndex(item => item.id === picking) + 1)} on the map`,
+                        `在地圖選擇${picking === 'from' ? '起點' : '第 ' + (destinations.findIndex(item => item.id === picking) + 1) + ' 個目的地'}`,
                       )
                     : t('Greater Toronto & Hamilton', '大多倫多及咸美頓')}
                   {picking && (
@@ -1312,6 +1364,7 @@ export default function Home() {
                         </button>
                         {index === selected && (
                           <div className="leg-list">
+                            <button type="button" className="pill" onClick={() => setFollower({ journey: j })}>{t('Follow this trip', '跟隨此行程')}</button>
                             {!!j.washrooms?.length && (
                               <div className="washroom-result">
                                 <strong>
@@ -1815,7 +1868,7 @@ export default function Home() {
                     <button
                       onClick={() => {
                         setFrom(s.from);
-                        setTo(s.to);
+                        setDestinations([...(s.via || []), s.to].map((place, index) => ({ id: `saved-destination-${index}`, place })));
                         setPlanned(false);
                         setJourneys([]);
                         setTab('plan');
@@ -1824,6 +1877,7 @@ export default function Home() {
                       <MapPin size={20} />
                       <span>
                         <strong>{s.from.name}</strong>
+                        {s.via?.length ? <small>{t('Via', '經')}: {s.via.map(place => place.name).join(' → ')}</small> : null}
                         <small>
                           {t('to', '至')} {s.to.name}
                         </small>
