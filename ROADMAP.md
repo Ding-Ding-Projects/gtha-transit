@@ -36,5 +36,6 @@
 - [x] Include the UP Express airport station in public Pearson search results.
 - [x] Return neutral empty journey results without coordinate-based agency attribution.
 - [x] Preserve distinct same-name stop locations and sort next coverage dates.
-- [ ] Version map tiles by the actual dataset revision and improve road detail by zoom.
+- [x] Version map tiles by the actual dataset revision, verified on both live map surfaces.
+- [ ] Improve map road detail by zoom.
 - [ ] Obtain consistent replacement photos for TTC XDE60 and HSR.

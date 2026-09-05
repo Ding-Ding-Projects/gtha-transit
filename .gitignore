@@ -43,3 +43,7 @@ next-env.d.ts
 /data/*.obj
 /.private/
 /public/version.json
+
+# Python runtime caches
+__pycache__/
+*.py[cod]
