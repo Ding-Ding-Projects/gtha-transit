@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Place, Itinerary } from '../lib/types';
 import 'leaflet/dist/leaflet.css';
+import { attachMapTiles } from '../lib/map-tiles';
 function decode(encoded: string): [number, number][] {
   let i = 0,
     lat = 0,
@@ -61,6 +62,7 @@ export default function TransitMap({
   }, [onPick, picking]);
   useEffect(() => {
     let disposed = false;
+    let stopTiles: (() => void) | undefined;
     let observer: ResizeObserver;
     import('leaflet').then((L) => {
       if (disposed || !el.current) return;
@@ -69,14 +71,7 @@ export default function TransitMap({
         10,
       );
       L.control.zoom({ position: 'bottomright' }).addTo(map.current);
-      L.tileLayer('/tiles/{z}/{x}/{y}.png', {
-        minZoom:8,
-        maxNativeZoom:13,
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors',
-      })
-        .on('tileerror', () => setTileError(true))
-        .addTo(map.current);
+      stopTiles = attachMapTiles(L, map.current, setTileError);
       layer.current = L.layerGroup().addTo(map.current);
       map.current.on('click', (e: any) => {
         if (pickRef.current) callback.current(e.latlng.lat, e.latlng.lng);
@@ -86,6 +81,7 @@ export default function TransitMap({
     });
     return () => {
       disposed = true;
+      stopTiles?.();
       observer?.disconnect();
       map.current?.remove();
       map.current = null;
@@ -106,7 +102,8 @@ export default function TransitMap({
       [from, to].forEach((p, i) => {
         if (!p) return;
         bounds.push([p.lat, p.lon]);
-        const tooltip=document.createElement('span');tooltip.textContent=p.name;
+        const tooltip = document.createElement('span');
+        tooltip.textContent = p.name;
         L.marker([p.lat, p.lon], {
           icon: L.divIcon({
             className: 'place-marker',

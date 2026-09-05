@@ -330,8 +330,26 @@ const server = http.createServer(async (req, res) => {
       });
       return res.end(payload);
     }
+    if (url.pathname === '/api/map-info' && req.method === 'GET') {
+      const upstream = await fetch(maps + '/map-info', {
+        signal: AbortSignal.timeout(5000),
+        redirect: 'error',
+      });
+      if (!upstream.ok)
+        return send(res, 503, { error: 'Map revision unavailable.' });
+      const info = JSON.parse((await bounded(upstream, 4096)).toString('utf8'));
+      if (!/^[a-f0-9]{64}$/.test(info.revision ?? ''))
+        return send(res, 503, { error: 'Map revision unavailable.' });
+      return send(res, 200, {
+        revision: info.revision,
+        minZoom: 8,
+        maxZoom: 13,
+      });
+    }
     if (
-      /^\/tiles\/\d{1,2}\/\d+\/\d+\.png$/.test(url.pathname) &&
+      /^\/tiles\/(?:[a-f0-9]{64}\/)?\d{1,2}\/\d+\/\d+\.png$/.test(
+        url.pathname,
+      ) &&
       req.method === 'GET'
     ) {
       const upstream = await fetch(maps + url.pathname, {
@@ -343,7 +361,9 @@ const server = http.createServer(async (req, res) => {
       const bytes = await bounded(upstream, 1024 * 1024);
       res.writeHead(200, {
         'content-type': 'image/png',
-        'cache-control': 'public,max-age=86400',
+        'cache-control': /^\/tiles\/[a-f0-9]{64}\//.test(url.pathname)
+          ? 'public,max-age=86400,immutable'
+          : 'no-cache',
       });
       return res.end(bytes);
     }

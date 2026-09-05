@@ -29,3 +29,5 @@ Routing follow-up at 4b06e653feeb20113a32188f396abdb8eec834ce: deployed API modu
 Frontend c3a768422684a5cb1aecf29f5d0e8207060557e5 additionally removes TTC XDE60 and HSR photo sources after conflicting attribution was verified. Their fleet details remain available. Wikimedia rate limiting paused further photo verification; it is not evidence that other images are defective.
 
 Map follow-up remains open: stable tile URLs are served as immutable for 24 hours, so replacing MBTiles can leave old dark raster tiles visible. Introduce a real dataset revision in tile URLs and remove immutable caching from mutable URLs. Current tiles also need zoom-dependent road-class filtering. No map repair is claimed in this batch.
+
+Map freshness implementation: both map surfaces request uncached revision metadata every minute, then use revision-bound tile paths. Client lifecycle and real proxy HTTP tests pass; removing the layer revision update deliberately makes the test fail. The map-service implementation verifies actual MBTiles hashes, atomic replacement and obsolete-revision rejection. Deployment verification is pending for this change.

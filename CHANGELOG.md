@@ -16,3 +16,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Remove two vehicle photo sources with conflicting attribution, including an oversized image that could not load through the proxy.
 
 - Surface airport transit hubs in place search while preserving distinct stop coordinates. Empty journey results now retain neutral graph coverage context without guessing an agency from coordinates.
+
+- Use actual map-database revisions in tile URLs, refresh both map surfaces every minute, and revalidate legacy tile paths rather than caching mutable content as immutable.

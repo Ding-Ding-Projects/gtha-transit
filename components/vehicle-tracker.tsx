@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Map as LeafletMap, LayerGroup } from 'leaflet';
 import VehiclePhotoCaption from './vehicle-photo-caption';
+import { attachMapTiles } from '../lib/map-tiles';
 type Vehicle = {
   id: string;
   label?: string;
@@ -81,6 +82,7 @@ export default function VehicleTracker({
   }, []);
   useEffect(() => {
     let disposed = false;
+    let stopTiles: (() => void) | undefined;
     let resize: ResizeObserver;
     void import('leaflet').then((L) => {
       if (disposed || !el.current) return;
@@ -88,20 +90,14 @@ export default function VehicleTracker({
         [43.72, -79.4],
         11,
       );
-      L.tileLayer('/tiles/{z}/{x}/{y}.png', {
-        minZoom: 8,
-        maxNativeZoom: 13,
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors',
-      })
-        .on('tileerror', () => setTileError(true))
-        .addTo(map.current);
+      stopTiles = attachMapTiles(L, map.current, setTileError);
       markers.current = L.layerGroup().addTo(map.current);
       resize = new ResizeObserver(() => map.current?.invalidateSize());
       resize.observe(el.current);
     });
     return () => {
       disposed = true;
+      stopTiles?.();
       resize?.disconnect();
       map.current?.remove();
       map.current = null;
