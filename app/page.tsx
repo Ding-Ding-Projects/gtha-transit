@@ -30,8 +30,8 @@ import TransitMap from '../components/transit-map';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
-import {copyAt} from '../lib/copy';
-import {rideMetrics,kilometres} from '../lib/ride-metrics';
+import { copyAt } from '../lib/copy';
+import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   torontoIso as asIso,
@@ -47,7 +47,8 @@ const time = (v: number | string) =>
     'en-CA',
     { timeZone: 'America/Toronto', hour: 'numeric', minute: '2-digit' },
   );
-const mins = (seconds: number) => seconds>0&&seconds<60?'<1':Math.round(seconds / 60);
+const mins = (seconds: number) =>
+  seconds > 0 && seconds < 60 ? '<1' : Math.round(seconds / 60);
 const distance = (m: number) =>
   m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
 const localInput = () =>
@@ -187,7 +188,7 @@ function PlaceField({
           <MapIcon size={17} />
         </button>
       </div>
-      {value&&<div className="selected-place-name">{value.name}</div>}
+      {value && <div className="selected-place-name">{value.name}</div>}
       {open && query.length >= 2 && query !== value?.name && (
         <div
           className="suggestions"
@@ -265,7 +266,14 @@ export default function Home() {
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
     hydrated = useRef(false);
-  const t = useCallback((en:string,zh:string)=>{const a=copyAt(en,'en',funEn),b=copyAt(zh,'zh',funZh);return lang==='zh'?b:lang==='both'?`${a} · ${b}`:a;},[lang,funEn,funZh]);
+  const t = useCallback(
+    (en: string, zh: string) => {
+      const a = copyAt(en, 'en', funEn),
+        b = copyAt(zh, 'zh', funZh);
+      return lang === 'zh' ? b : lang === 'both' ? `${a} · ${b}` : a;
+    },
+    [lang, funEn, funZh],
+  );
   const translate = t;
   const statusRequest = useRef<AbortController | null>(null),
     statusGeneration = useRef(0);
@@ -291,7 +299,16 @@ export default function Home() {
     setPlanned(false);
     setJourneys([]);
     setError('');
-  }, [from, to, when, arriveBy, preference, wheelchair, maxWalk,preferWashrooms]);
+  }, [
+    from,
+    to,
+    when,
+    arriveBy,
+    preference,
+    wheelchair,
+    maxWalk,
+    preferWashrooms,
+  ]);
   useEffect(() => {
     setWhen(localInput());
     try {
@@ -568,12 +585,31 @@ export default function Home() {
     );
   }
   const current = journeys[selected];
-  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),6500);return()=>clearTimeout(timer);},[notice]);
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(''), 6500);
+    return () => clearTimeout(timer);
+  }, [notice]);
   const totalAlerts = status?.alerts?.length || 0;
   const agencies = coverage?.agencies || [];
-  const serviceDate=(when||localInput()).slice(0,10).replaceAll('-','');
-  const dateGaps=agencies.filter((a:any)=>a.activeTripsByDate?.[(when||localInput()).slice(0,10)]===0||(a.serviceStart&&String(a.serviceStart)>serviceDate)||(a.serviceEnd&&String(a.serviceEnd)<serviceDate));
-  const nextCoveredDate=[...new Set<string>(agencies.flatMap((a:any)=>Object.keys(a.activeTripsByDate||{})))].sort().find(d=>d>(when||localInput()).slice(0,10)&&dateGaps.every((a:any)=>(a.activeTripsByDate?.[d]||0)>0));
+  const serviceDate = (when || localInput()).slice(0, 10).replaceAll('-', '');
+  const dateGaps = agencies.filter(
+    (a: any) =>
+      a.activeTripsByDate?.[(when || localInput()).slice(0, 10)] === 0 ||
+      (a.serviceStart && String(a.serviceStart) > serviceDate) ||
+      (a.serviceEnd && String(a.serviceEnd) < serviceDate),
+  );
+  const nextCoveredDate = [
+    ...new Set<string>(
+      agencies.flatMap((a: any) => Object.keys(a.activeTripsByDate || {})),
+    ),
+  ]
+    .sort()
+    .find(
+      (d) =>
+        d > (when || localInput()).slice(0, 10) &&
+        dateGaps.every((a: any) => (a.activeTripsByDate?.[d] || 0) > 0),
+    );
   const lineState = (line: Line) =>
     line.state === 'good'
       ? t('No reported disruption', '未有通報事故')
@@ -597,8 +633,8 @@ export default function Home() {
           {[
             ['plan', t('Plan a trip', '規劃行程')],
             ['status', t('Live TTC', '即時 TTC')],
-            ['history',t('History','歷史')],
-            ['vehicles',t('Vehicles','車輛')],
+            ['history', t('History', '歷史')],
+            ['vehicles', t('Vehicles', '車輛')],
             ['saved', t('Saved trips', '已儲存行程')],
             ['coverage', t('Our region', '服務範圍')],
           ].map(([id, label]) => (
@@ -706,7 +742,25 @@ export default function Home() {
                 />
               </label>
             </div>
-              <div className="date-presets"><button type="button" className="pill" onClick={()=>setWhen(localInput())}>{t('Leave now','而家出發')}</button><button type="button" className="pill" onClick={()=>{const tomorrow=new Date(Date.now()+86400000);setWhen(torontoLocalInput(tomorrow).slice(0,10)+'T09:00');}}>{t('Tomorrow at 9','聽朝 9 點')}</button></div>
+            <div className="date-presets">
+              <button
+                type="button"
+                className="pill"
+                onClick={() => setWhen(localInput())}
+              >
+                {t('Leave now', '而家出發')}
+              </button>
+              <button
+                type="button"
+                className="pill"
+                onClick={() => {
+                  const tomorrow = new Date(Date.now() + 86400000);
+                  setWhen(torontoLocalInput(tomorrow).slice(0, 10) + 'T09:00');
+                }}
+              >
+                {t('Tomorrow at 9', '聽朝 9 點')}
+              </button>
+            </div>
             <details className="options">
               <summary>
                 <Settings size={16} />
@@ -743,8 +797,20 @@ export default function Home() {
                   ))}
                 </select>
               </label>
-              <label className="check"><input type="checkbox" checked={preferWashrooms} onChange={e=>setPreferWashrooms(e.target.checked)}/>{t('Prefer washrooms','優先經有洗手間嘅車站')}</label>
-              <small>{t('Transit-facility washrooms only. Prefers practical connections through confirmed stations or terminals; opening hours and availability may be unknown.','只限交通設施內嘅洗手間，優先選擇經已確認車站或總站嘅合理接駁，開放時間及可用狀況可能未有資料。')}</small>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={preferWashrooms}
+                  onChange={(e) => setPreferWashrooms(e.target.checked)}
+                />
+                {t('Prefer washrooms', '優先經有洗手間嘅車站')}
+              </label>
+              <small>
+                {t(
+                  'Transit-facility washrooms only. Prefers practical connections through confirmed stations or terminals; opening hours and availability may be unknown.',
+                  '只限交通設施內嘅洗手間，優先選擇經已確認車站或總站嘅合理接駁，開放時間及可用狀況可能未有資料。',
+                )}
+              </small>
               <label className="check">
                 <input
                   type="checkbox"
@@ -775,7 +841,35 @@ export default function Home() {
               <ArrowRight size={19} />
             </button>
           </form>
-          {!!dateGaps.length&&<div className="error" role="status"><TriangleAlert size={18}/><span>{t('No scheduled trips are loaded for this date for:','所選日期未有載入以下公司嘅有效班次：')} {dateGaps.map((a:any)=>a.name).join(', ')}. {t('This is a data-coverage gap, not a report that transit is closed.','呢個係資料覆蓋缺口，唔係交通停駛通報。')}{nextCoveredDate&&<button className="pill" onClick={()=>setWhen(nextCoveredDate+'T'+(when.slice(11)||'09:00'))}>{t('Use next covered date','使用下一個有資料嘅日期')}: {nextCoveredDate}</button>}</span></div>}
+          {!!dateGaps.length && (
+            <div className="error" role="status">
+              <TriangleAlert size={18} />
+              <span>
+                {t(
+                  'No scheduled trips are loaded for this date for:',
+                  '所選日期未有載入以下公司嘅有效班次：',
+                )}{' '}
+                {dateGaps.map((a: any) => a.name).join(', ')}.{' '}
+                {t(
+                  'This is a data-coverage gap, not a report that transit is closed.',
+                  '呢個係資料覆蓋缺口，唔係交通停駛通報。',
+                )}
+                {nextCoveredDate && (
+                  <button
+                    className="pill"
+                    onClick={() =>
+                      setWhen(
+                        nextCoveredDate + 'T' + (when.slice(11) || '09:00'),
+                      )
+                    }
+                  >
+                    {t('Use next covered date', '使用下一個有資料嘅日期')}:{' '}
+                    {nextCoveredDate}
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
           {error && (
             <div className="error" role="alert">
               <TriangleAlert size={19} />
@@ -804,9 +898,9 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
-          {tab==='history'&&<DisruptionHistory t={t}/>}
-          {tab==='vehicles'&&<VehicleTracker t={t}/>}
-          {tab==='coverage'&&<RealtimeCoverage t={t}/>}
+          {tab === 'history' && <DisruptionHistory t={t} />}
+          {tab === 'vehicles' && <VehicleTracker t={t} />}
+          {tab === 'coverage' && <RealtimeCoverage t={t} />}
           {tab === 'plan' && (
             <>
               <div className="content-heading">
@@ -1001,10 +1095,35 @@ export default function Home() {
                             ))}
                           </div>
                           <div className="journey-meta">
-                            <span className="ride-stat"><TrainFront size={18}/><strong>{mins(rideMetrics(j).rideSeconds)} min</strong>{t('on transit','乘車')}</span>
-                            <span className="ride-stat"><Route size={18}/><strong>{kilometres(rideMetrics(j).totalMetres)}</strong>{t('total distance','全程距離')}</span>
-                            <span className="ride-stat"><Footprints size={18}/><strong>{mins(rideMetrics(j).walkSeconds)} min · {kilometres(j.walkDistance)}</strong>{t('walking','步行')}</span>
-                            <span className="ride-stat"><Clock size={18}/><strong>{mins(rideMetrics(j).waitSeconds)} min</strong>{t('waiting / transfers','等車／轉車')}</span>
+                            <span className="ride-stat">
+                              <TrainFront size={18} />
+                              <strong>
+                                {mins(rideMetrics(j).rideSeconds)} min
+                              </strong>
+                              {t('on transit', '乘車')}
+                            </span>
+                            <span className="ride-stat">
+                              <Route size={18} />
+                              <strong>
+                                {kilometres(rideMetrics(j).totalMetres)}
+                              </strong>
+                              {t('total distance', '全程距離')}
+                            </span>
+                            <span className="ride-stat">
+                              <Footprints size={18} />
+                              <strong>
+                                {mins(rideMetrics(j).walkSeconds)} min ·{' '}
+                                {kilometres(j.walkDistance)}
+                              </strong>
+                              {t('walking', '步行')}
+                            </span>
+                            <span className="ride-stat">
+                              <Clock size={18} />
+                              <strong>
+                                {mins(rideMetrics(j).waitSeconds)} min
+                              </strong>
+                              {t('waiting / transfers', '等車／轉車')}
+                            </span>
                             <span>
                               {j.transfers} {t('transfers', '次轉車')}
                             </span>
@@ -1012,12 +1131,53 @@ export default function Home() {
                               <Footprints size={14} />
                               {distance(j.walkDistance)}
                             </span>
-                            <span>{j.legs.some(l=>l.realtime)?t('Includes live predictions','包含即時預測'):t('Scheduled', '時間表')}</span>
+                            <span>
+                              {j.legs.some((l) => l.realtime)
+                                ? t('Includes live predictions', '包含即時預測')
+                                : t('Scheduled', '時間表')}
+                            </span>
                           </div>
                         </button>
                         {index === selected && (
                           <div className="leg-list">
-                            {!!j.washrooms?.length&&<div className="washroom-result"><strong>{t('Transit-facility washrooms','交通設施洗手間')}</strong>{j.washroomPreferenceApplied&&<p>{t('Preferred for confirmed washroom connections.','因已確認洗手間接駁而優先顯示。')}</p>}<ul>{j.washrooms.map((w,i)=><li key={i}><a href={safeUrl(w.source)} target="_blank" rel="noreferrer">{w.name}</a><small>{w.openingHours||t('Opening hours and current availability unconfirmed','開放時間及目前可用狀況未能確認')}</small></li>)}</ul></div>}
+                            {!!j.washrooms?.length && (
+                              <div className="washroom-result">
+                                <strong>
+                                  {t(
+                                    'Transit-facility washrooms',
+                                    '交通設施洗手間',
+                                  )}
+                                </strong>
+                                {j.washroomPreferenceApplied && (
+                                  <p>
+                                    {t(
+                                      'Preferred for confirmed washroom connections.',
+                                      '因已確認洗手間接駁而優先顯示。',
+                                    )}
+                                  </p>
+                                )}
+                                <ul>
+                                  {j.washrooms.map((w, i) => (
+                                    <li key={i}>
+                                      <a
+                                        href={safeUrl(w.source)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                      >
+                                        {w.name}
+                                      </a>
+                                      <small>
+                                        {w.openingHours ||
+                                          t(
+                                            'Opening hours and current availability unconfirmed',
+                                            '開放時間及目前可用狀況未能確認',
+                                          )}
+                                      </small>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                             {j.legs.map((leg, i) => (
                               <div className="leg" key={i}>
                                 <div className="leg-time">
@@ -1054,9 +1214,107 @@ export default function Home() {
                                       : leg.agency}{' '}
                                     · {mins(leg.duration)} min
                                   </small>
-                                  <div className="leg-metrics"><strong>{mins(leg.duration)} min</strong><span>{kilometres(leg.distance)}</span></div>
-                                  {leg.realtime&&<p className="schedule-badge">{t('Live prediction','即時預測')}{leg.scheduledStartTime?' · '+t('scheduled','原定')+' '+time(leg.scheduledStartTime):''}</p>}
-                                  {leg.mode!=='WALK'&&(leg.vehicle?<div className="assigned-vehicle"><strong>{t('Currently assigned vehicle','目前編配車輛')} {leg.vehicle.label||leg.vehicle.id}</strong><p>{[leg.vehicle.cptdb?.manufacturer,leg.vehicle.cptdb?.model,leg.vehicle.cptdb?.year].filter(Boolean).join(' · ')||t('Fleet details not verified','車隊資料未核實')}</p><small>{t('Live assignments can change before boarding.','上車前車輛編配可能改變。')}</small>{safeUrl(leg.vehicle.cptdb?.url)&&<a href={safeUrl(leg.vehicle.cptdb?.url)} target="_blank" rel="noreferrer">{t('Fleet source','車隊資料來源')}</a>}{leg.vehicle.photo&&safeUrl(leg.vehicle.photo.url)&&<figure><img loading="lazy" src={'/api/vehicle-photo?source='+encodeURIComponent(leg.vehicle.photo.url)} alt={leg.vehicle.photo.exactVehicle?t('Assigned vehicle photo','已編配車輛照片'):t('Representative fleet photo','代表車隊照片')}/><figcaption><a href={safeUrl(leg.vehicle.photo.sourceUrl)} target="_blank" rel="noreferrer">{leg.vehicle.photo.credit} · {leg.vehicle.photo.license}</a></figcaption></figure>}</div>:<p className="data-note">{t('A vehicle has not been verified for this exact trip.','未能核實呢個指定班次嘅車輛。')}</p>)}
+                                  <div className="leg-metrics">
+                                    <strong>{mins(leg.duration)} min</strong>
+                                    <span>{kilometres(leg.distance)}</span>
+                                  </div>
+                                  {leg.realtime && (
+                                    <p className="schedule-badge">
+                                      {t('Live prediction', '即時預測')}
+                                      {leg.scheduledStartTime
+                                        ? ' · ' +
+                                          t('scheduled', '原定') +
+                                          ' ' +
+                                          time(leg.scheduledStartTime)
+                                        : ''}
+                                    </p>
+                                  )}
+                                  {leg.mode !== 'WALK' &&
+                                    (leg.vehicle ? (
+                                      <div className="assigned-vehicle">
+                                        <strong>
+                                          {t(
+                                            'Currently assigned vehicle',
+                                            '目前編配車輛',
+                                          )}{' '}
+                                          {leg.vehicle.fleetNumber || leg.vehicle.label || leg.vehicle.id}
+                                        </strong>
+                                        <p>
+                                          {[
+                                            leg.vehicle.cptdb?.manufacturer,
+                                            leg.vehicle.cptdb?.model,
+                                            leg.vehicle.cptdb?.year,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(' · ') ||
+                                            t(
+                                              'Fleet details not verified',
+                                              '車隊資料未核實',
+                                            )}
+                                        </p>
+                                        <small>
+                                          {t(
+                                            'Live assignments can change before boarding.',
+                                            '上車前車輛編配可能改變。',
+                                          )}
+                                        </small>
+                                        {safeUrl(leg.vehicle.cptdb?.url) && (
+                                          <a
+                                            href={safeUrl(
+                                              leg.vehicle.cptdb?.url,
+                                            )}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                          >
+                                            {t('Fleet source', '車隊資料來源')}
+                                          </a>
+                                        )}
+                                        {leg.vehicle.photo &&
+                                          safeUrl(leg.vehicle.photo.url) && (
+                                            <figure>
+                                              <img
+                                                loading="lazy"
+                                                src={
+                                                  '/api/vehicle-photo?source=' +
+                                                  encodeURIComponent(
+                                                    leg.vehicle.photo.url,
+                                                  )
+                                                }
+                                                alt={
+                                                  leg.vehicle.photo.exactVehicle
+                                                    ? t(
+                                                        'Assigned vehicle photo',
+                                                        '已編配車輛照片',
+                                                      )
+                                                    : t(
+                                                        'Representative fleet photo',
+                                                        '代表車隊照片',
+                                                      )
+                                                }
+                                              />
+                                              <figcaption>
+                                                <a
+                                                  href={safeUrl(
+                                                    leg.vehicle.photo.sourceUrl,
+                                                  )}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                >
+                                                  {leg.vehicle.photo.credit} ·{' '}
+                                                  {leg.vehicle.photo.license}
+                                                </a>
+                                              </figcaption>
+                                            </figure>
+                                          )}
+                                      </div>
+                                    ) : (
+                                      <p className="data-note">
+                                        {t(
+                                          'A vehicle has not been verified for this exact trip.',
+                                          '未能核實呢個指定班次嘅車輛。',
+                                        )}
+                                      </p>
+                                    ))}
                                   {leg.mode !== 'WALK' && (
                                     <>
                                       <p className="alight">
@@ -1407,7 +1665,12 @@ export default function Home() {
                         {a.loaded ||
                         a.status === 'ready' ||
                         a.status === 'valid'
-                          ? (a.availableToday===false?t('No trips in today’s loaded schedule','已載入時間表今日無班次'):t('Schedules loaded', '已載入時間表'))
+                          ? a.availableToday === false
+                            ? t(
+                                'No trips in today’s loaded schedule',
+                                '已載入時間表今日無班次',
+                              )
+                            : t('Schedules loaded', '已載入時間表')
                           : t('Not yet verified', '尚未核實')}
                       </span>
                       <p>

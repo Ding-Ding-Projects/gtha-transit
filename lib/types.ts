@@ -9,7 +9,7 @@ export type Place = {
 export type Leg = {
   tripId?:string;
   agencyFeedId?:string;
-  vehicle?:{id:string;label?:string;timestamp?:string|number;cptdb?:{manufacturer?:string;model?:string;year?:string|number;url?:string;match?:string};photo?:{url:string;sourceUrl:string;credit:string;license:string;exactVehicle:boolean}|null}|null;
+  vehicle?:{id:string;label?:string;fleetNumber?:string;timestamp?:string|number;cptdb?:{manufacturer?:string;model?:string;year?:string|number;url?:string;match?:string};photo?:{url:string;sourceUrl:string;credit:string;license:string;exactVehicle:boolean}|null}|null;
   mode: string;
   from: Place;
   to: Place;

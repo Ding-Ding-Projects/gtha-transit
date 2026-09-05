@@ -1,4 +1,97 @@
 'use client';
-import {useEffect,useState} from 'react';
-type Agency={id:string;name:string;state:string;capabilities:Record<string,string>;lastSuccessfulFetch?:string;feeds?:Record<string,unknown>};
-export default function RealtimeCoverage({t}:{t:(en:string,zh:string)=>string}){const[data,setData]=useState<Agency[]|null>(null),[failed,setFailed]=useState(false);useEffect(()=>{const c=new AbortController();const run=()=>{fetch('/api/realtime',{signal:c.signal}).then(async r=>{if(!r.ok)throw Error();return r.json() as Promise<{agencies:Agency[]}>;}).then(d=>{setData(d.agencies);setFailed(false);}).catch(()=>{if(!c.signal.aborted)setFailed(true);});};run();const timer=setInterval(run,60000);return()=>{clearInterval(timer);c.abort();};},[]);return <section className="help-block"><h3>{t('Live GTFS coverage','即時 GTFS 覆蓋')}</h3><p>{t('Live vehicle, trip-update and alert feeds are monitored independently. Feed availability is not proof that every vehicle or journey is live.','車輛位置、班次更新同提示會分開監察。有即時資料唔代表每架車或每個行程都有即時更新。')}</p>{failed&&<p role="status">{t('Live-feed monitoring is currently unavailable.','暫時無法取得即時資料監察。')}</p>}{!data&&!failed&&<p>{t('Checking official feeds…','檢查官方資料中…')}</p>}{data?.map(a=><article className="realtime-row" key={a.id}><strong>{a.name}</strong><span>{a.state==='live'?t('Live feeds connected','已連接即時資料'):a.state==='partial'?t('Partial live coverage','部分即時覆蓋'):a.state==='stale'?t('Stale live data','即時資料過時'):t('Scheduled only / live access unavailable','只提供時間表／未能存取即時資料')}</span><small>{Object.entries(a.capabilities).map(([k,v])=>`${k==='vehiclePositions'?t('Vehicles','車輛'):k==='tripUpdates'?t('Trip updates','班次更新'):t('Alerts','提示')}: ${v==='configured'?t('connected integration','已接駁服務'):v==='public'?t('public feed','公開來源'):v==='access_required'?t('registration required','需要註冊'):t('unavailable','未能提供')}`).join(' · ')}</small>{a.lastSuccessfulFetch&&<small>{t('Last successful refresh','上次成功更新')}: {new Date(a.lastSuccessfulFetch).toLocaleString('en-CA',{timeZone:'America/Toronto',timeZoneName:'short'})}</small>}</article>)}</section>}
+import { useEffect, useState } from 'react';
+type Agency = {
+  id: string;
+  name: string;
+  state: string;
+  capabilities: Record<string, string>;
+  lastSuccessfulFetch?: string;
+  feeds?: Record<string, unknown>;
+};
+export default function RealtimeCoverage({
+  t,
+}: {
+  t: (en: string, zh: string) => string;
+}) {
+  const [data, setData] = useState<Agency[] | null>(null),
+    [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const c = new AbortController();
+    const run = () => {
+      fetch('/api/realtime', { signal: c.signal })
+        .then(async (r) => {
+          if (!r.ok) throw Error();
+          return r.json() as Promise<{ agencies: Agency[] }>;
+        })
+        .then((d) => {
+          setData(d.agencies);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (!c.signal.aborted) setFailed(true);
+        });
+    };
+    run();
+    const timer = setInterval(run, 60000);
+    return () => {
+      clearInterval(timer);
+      c.abort();
+    };
+  }, []);
+  return (
+    <section className="help-block">
+      <h3>{t('Live GTFS coverage', '即時 GTFS 覆蓋')}</h3>
+      <p>
+        {t(
+          'Live vehicle, trip-update and alert feeds are monitored independently. Feed availability is not proof that every vehicle or journey is live.',
+          '車輛位置、班次更新同提示會分開監察。有即時資料唔代表每架車或每個行程都有即時更新。',
+        )}
+      </p>
+      {failed && (
+        <p role="status">
+          {t(
+            'Live-feed monitoring is currently unavailable.',
+            '暫時無法取得即時資料監察。',
+          )}
+        </p>
+      )}
+      {!data && !failed && (
+        <p>{t('Checking official feeds…', '檢查官方資料中…')}</p>
+      )}
+      {data?.map((a) => (
+        <article className="realtime-row" key={a.id}>
+          <strong>{a.name}</strong>
+          <span>
+            {a.state === 'live'
+              ? t('Live feeds connected', '已連接即時資料')
+              : a.state === 'partial'
+                ? t('Partial live coverage', '部分即時覆蓋')
+                : a.state === 'stale'
+                  ? t('Stale live data', '即時資料過時')
+                  : t(
+                      'Scheduled only / live access unavailable',
+                      '只提供時間表／未能存取即時資料',
+                    )}
+          </span>
+          <small>
+            {Object.entries(a.capabilities)
+              .map(
+                ([k, v]) =>
+                  `${k === 'vehiclePositions' ? t('Vehicles', '車輛') : k === 'tripUpdates' ? t('Trip updates', '班次更新') : t('Alerts', '提示')}: ${v === 'configured' ? t('connected integration', '已接駁服務') : v === 'public' ? t('public feed', '公開來源') : v === 'access_required' ? t('registration required', '需要註冊') : t('unavailable', '未能提供')}`,
+              )
+              .join(' · ')}
+          </small>
+          {a.lastSuccessfulFetch && (
+            <small>
+              {t('Last successful refresh', '上次成功更新')}:{' '}
+              {new Date(a.lastSuccessfulFetch).toLocaleString('en-CA', {
+                timeZone: 'America/Toronto',
+                timeZoneName: 'short',
+              })}
+            </small>
+          )}
+        </article>
+      ))}
+    </section>
+  );
+}

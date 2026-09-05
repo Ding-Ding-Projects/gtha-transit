@@ -28,6 +28,11 @@ Set `ROUTING_ORIGIN` and `MAPS_ORIGIN` to the private services. Without validate
 - View official TTC subway and light rail alerts, with receipt freshness separate from publisher update time.
 - Save trips in browser storage, reverse a trip, search earlier/later, share endpoints explicitly and export the itinerary as JSON.
 - Use English, Cantonese or bilingual presentation and light/dark appearance.
+- Browse indefinitely retained disruption history with calendar filters and exports.
+- Track live TTC, GO, UP, MiWay, Burlington and HSR vehicles on a map.
+- Inspect verified manufacturer/model/build-year data, CPTDB references and attributed fleet photos.
+- See a currently assigned vehicle inside directions when a fresh exact-trip match exists.
+- Prefer washrooms inside confirmed transit facilities only.
 - Read actual feed coverage and calendar ranges before relying on a journey.
 
 Accessibility attributes reflect available data, not a guarantee of elevator availability. Planned service does not automatically incorporate unplanned disruptions. Fares and specialized transit bookings are not calculated.
@@ -46,7 +51,7 @@ No account or analytics is required. Saved trips and settings stay in the browse
 
 Run `npm run typecheck` and `npm test` locally. The static frontend production build is `npm run build`. The container build is `docker compose build` after setting the documented deployment variables.
 
-See [ROADMAP.md](ROADMAP.md) and [HANDOFF.md](HANDOFF.md) for the current verified state. Real interface captures and end-to-end regional routing verification are pending; source previews are not deployment evidence.
+See [ROADMAP.md](ROADMAP.md) and [HANDOFF.md](HANDOFF.md) for the current verified state. Public regional routing, vehicle maps, photos, history and phone-width bilingual layouts have been exercised. Physical-device testing and unsupported agency live-feed access are not claimed. Publisher schedule-calendar gaps are exposed directly in the planner.
 
 The current user-approved release scope is a browser transit planner. Unrelated universal utilities and desktop packaging are explicitly deferred. This is a functional journey-planning surface, not an advertisement for an unbuilt desktop product.
 </details>

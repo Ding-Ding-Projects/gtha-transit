@@ -41,7 +41,7 @@ test('prefers a fleet-like label but falls back to a numeric vehicle id for desc
 });
 
 test('enriches directions only from an exact fresh agency and trip identifier match', async () => {
-  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '604', trip: '20260905-GT-3511', route: '09261126-GT' })); const fetchImpl = async () => new Response(payload); const input = [{ legs: [{ agencyId: 'go:GO', agencyFeedId: 'go', tripId: 'go:20260905-GT-3511', routeId: 'go:09261126-GT' }, { agencyFeedId: 'go', tripId: 'go:different', routeId: 'go:09261126-GT' }] }];
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '604', trip: '20260905-GT-3511', route: '09261126-GT' })); const fetchImpl = async () => new Response(payload); const input = [{ legs: [{ startTime:'2023-11-14T22:13:20Z', endTime:'2023-11-14T23:13:20Z', agencyId: 'go:GO', agencyFeedId: 'go', tripId: 'go:20260905-GT-3511', routeId: 'go:09261126-GT' }, { startTime:'2023-11-14T22:13:20Z', endTime:'2023-11-14T23:13:20Z', agencyFeedId: 'go', tripId: 'go:different', routeId: 'go:09261126-GT' }] }];
   const result = await enrichItineraries(input, { fetchImpl, routingOrigin: 'https://routing.example', now: 1700000000000 }); assert.equal(result[0].legs[0].vehicle.id, '604'); assert.equal(result[0].legs[0].vehicleAssignment.method, 'exact-trip-id'); assert.equal(result[0].legs[1].vehicle, undefined); assert.equal(result[0].legs[1].vehicleAssignment.state, 'no-match');
 });
 
@@ -50,6 +50,9 @@ test('queries a cached snapshot with exact route filtering and bounded paginatio
   const first = await getVehicles({ q: 'Nova', route: '29', limit: 1, fetchImpl, now: 1700000000000 }); assert.equal(first.total, 2); assert.equal(first.vehicles[0].id, '3400'); assert.equal(first.nextCursor, '1');
   const second = await getVehicles({ route: '29', limit: 1, fetchImpl, now: 1700000000001 }); assert.equal(second.total, 2); assert.equal(second.nextCursor, '1'); assert.equal(calls, 1);
   const mapPage = await getVehicles({ limit: 99999, fetchImpl, now: 1700000000002 }); assert.equal(mapPage.vehicles.length, 3); assert.equal(mapPage.nextCursor, null);
+});
+test('current vehicle positions cannot be assigned to tomorrow by a reused trip id',async()=>{
+ clearVehicleCache();const payload=feed(1700000000,vehicle({id:'604',trip:'daily-trip'}));const result=await enrichItineraries([{legs:[{agencyFeedId:'go',tripId:'go:daily-trip',startTime:'2023-11-15T22:13:20Z',endTime:'2023-11-15T23:13:20Z'}]}],{fetchImpl:async()=>new Response(payload),routingOrigin:'https://routing.example',now:1700000000000});assert.equal(result[0].legs[0].vehicle,undefined);assert.equal(result[0].legs[0].vehicleAssignment.state,'unavailable');
 });
 
 test('preserves the last snapshot as stale after a refresh failure', async () => {
