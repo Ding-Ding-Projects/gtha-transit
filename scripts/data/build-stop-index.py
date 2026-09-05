@@ -481,11 +481,15 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
     records.sort(key=lambda stop: str(stop["id"]))
     routes.sort(key=lambda route: (str(route["feedId"]), str(route["routeId"]), str(route["version"])))
     expanded_stop_routes: dict[str, set[str]] = {}
-    for aliases in stop_alias_groups.values():
+    stop_alias_payload: dict[str, list[str]] = {}
+    for (public_feed_id, raw_stop_id), aliases in stop_alias_groups.items():
         route_refs = set().union(*(stop_routes.get(alias, set()) for alias in aliases))
         if route_refs:
             for alias in aliases:
                 expanded_stop_routes[alias] = route_refs
+        alias_members = sorted(aliases)
+        for alias in {*aliases, f"{public_feed_id}:{raw_stop_id}"}:
+            stop_alias_payload[alias] = alias_members
     stop_route_payload = {stop_id: sorted(route_refs) for stop_id, route_refs in sorted(expanded_stop_routes.items())}
     pattern_count = sum(len(patterns) for patterns in route_patterns.values())
     provenance_gaps = [{"id": archive["id"], "fields": ["license"]} for archive in source_archives if archive["licenseState"] != "verified"]
@@ -496,6 +500,7 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
         "indexedStopCount": len(records),
         "routeCount": len(routes),
         "servedStopCount": len(stop_route_payload),
+        "stopAliasCount": len(stop_alias_payload),
         "patternCount": pattern_count,
         "maxRepresentativePatternsPerDirection": MAX_REPRESENTATIVE_PATTERNS_PER_DIRECTION,
         "tripLookup": {"storage": "temporary-sqlite", "insertBatchSize": TRIP_INSERT_BATCH, "cacheKiB": TRIP_LOOKUP_CACHE_KIB},
@@ -529,12 +534,14 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
                 "sourceArchiveCount",
                 "routeCount",
                 "servedStopCount",
+                "stopAliasCount",
                 "patternCount",
                 "maxRepresentativePatternsPerDirection",
                 "sourceArchives",
             )
         },
         "stopRoutes": stop_route_payload,
+        "stopAliases": stop_alias_payload,
         "routePatterns": route_patterns,
     })
     return len(records), len(routes), pattern_count

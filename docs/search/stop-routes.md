@@ -24,6 +24,10 @@ Schedule versions such as `ttc` and `ttc-next` retain their own qualified identi
 
 `backend/places.mjs` exposes the selected official route badges as `servingRoutes` on each stop suggestion. A badge appears only when the route's declared GTFS calendar covers the selected date. A missing auxiliary pattern index produces an empty route list and does not fabricate a badge or prevent the underlying stop search from returning its source-backed result.
 
+`publishedStopForId(qualifiedStopId, { date })` resolves a published source stop for stop-aware planner and live-following features. It accepts only a complete qualified source identifier, such as `ttc:485`, and returns `null` when that exact record is absent. It never searches by route, stop name, coordinate proximity, or a raw numeric stop code. The generated `stopAliases` map may resolve a schedule-version counterpart only when the index explicitly records the same public agency and raw stop identifier as a stable qualified mapping. With more than one mapped version, the helper uses the source-recorded route calendar for `date`; an ambiguous or unsupported alias remains unresolved.
+
+The returned stop keeps source fields, including `id`, `name`, `lat`, `lon`, `feedId`, `graphFeedId`, `locationType`, `parentStation`, `code`, and `agency`, together with date-exact `servingRoutes`. It is a static scheduled-data record, never a claim that a vehicle is currently at that stop.
+
 ## Route-stop anchors
 
 `backend/stop-routes.mjs` exports the following helper for route-aware planning features:
