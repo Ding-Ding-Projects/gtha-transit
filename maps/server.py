@@ -17,6 +17,16 @@ INDEX = os.environ.get("PLACE_INDEX", os.path.join(ROOT, "data", "places.sqlite3
 HOST = os.environ.get("MAP_HOST", "0.0.0.0")
 PORT = int(os.environ.get("MAP_PORT", "8789"))
 
+ALIASES = {
+    "avenue": "ave", "av": "ave", "road": "rd", "street": "st",
+    "boulevard": "blvd", "drive": "dr", "lane": "ln", "court": "ct",
+    "parkway": "pkwy", "highway": "hwy", "route": "hwy",
+}
+
+def _search_terms(query):
+    words = re.sub(r"[^0-9a-z]+", " ", query.casefold()).split()
+    return [ALIASES.get(word, word) for word in words if word not in {"and", "at", "the"}]
+
 def _json(handler, status, body):
     data = json.dumps(body, ensure_ascii=False).encode("utf-8")
     handler.send_response(status)
@@ -58,12 +68,15 @@ class Handler(BaseHTTPRequestHandler):
             _json(self, HTTPStatus.SERVICE_UNAVAILABLE, {"error": "place index is not installed"})
             return
         # FTS5 MATCH is local and bounded. Quote terms so punctuation cannot alter the query.
-        terms = [t for t in re.split(r"\s+", query) if t]
+        terms = _search_terms(query)
+        if not terms:
+            _json(self, HTTPStatus.BAD_REQUEST, {"error": "q must contain searchable characters"})
+            return
         match = " AND ".join('"' + t.replace('"', '""') + '"' for t in terms)
         try:
             with sqlite3.connect(INDEX) as db:
                 rows = db.execute(
-                    "SELECT name, kind, lat, lon, source_id FROM places WHERE places MATCH ? ORDER BY rank LIMIT 20",
+                    "SELECT name, kind, lat, lon, source_id FROM places WHERE search_text MATCH ? ORDER BY rank LIMIT 20",
                     (match,),
                 ).fetchall()
         except sqlite3.Error:

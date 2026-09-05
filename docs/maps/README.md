@@ -10,7 +10,11 @@ OpenStreetMap data is licensed under the ODbL. The running map must display `© 
 
 ## Place index
 
-Export address and place rows from the same regional OSM extract into a UTF-8 tab-separated file with `name`, `kind`, `lat`, `lon`, and `source_id` columns. Build the bounded FTS5 index:
+The direct PBF importer builds the place index from actual OSM objects. It includes named nodes, `addr:housenumber` plus `addr:street` nodes and ways, and intersections where two differently named highway ways share an OSM node. Intersection coordinates are always those of the shared node; the importer does not invent a midpoint for roads that merely pass near one another. Address display names include `addr:city` or `addr:place` when the source supplies one.
+
+Search normalization treats `&`, `/`, `and`, and `at` as equivalent separators. Common road suffixes and `Hwy`/`Highway` are normalized to the same indexed terms. The public result keeps the source spelling and stable OSM element or shared-node identifier.
+
+For an external curated input, export address and place rows from the same regional OSM extract into a UTF-8 tab-separated file with `name`, `kind`, `lat`, `lon`, and `source_id` columns. Build the bounded FTS5 index:
 
 ```text
 python maps/import_places.py places.tsv maps/data/places.sqlite3
@@ -25,7 +29,7 @@ python maps/import_osm.py ontario.osm.pbf maps/data/places.sqlite3
 python maps/render_mbtiles.py maps/data/places.sqlite3 maps/data/ontario.mbtiles
 ```
 
-The importer reads actual OSM nodes and ways, retaining named places, roads, waterways, and coastline geometry, with bounding-box indexes. The renderer produces zoom 8 through 13 PNG tiles for the GTHA region and queries only geometry intersecting each tile. A nonempty road tile therefore comes from real regional data, not a placeholder.
+The importer reads actual OSM nodes and ways, retaining named places, addresses, shared-node intersections, roads, waterways, and coastline geometry. FTS5 backs text search and SQLite RTree tables bound the geometry reads. The temporary road-vertex table is stored on disk and removed after intersections are created. The renderer produces zoom 8 through 13 PNG tiles for the GTHA region, styles roads by OSM highway class, and labels cities and major roads with collision checks. A nonempty road tile therefore comes from real regional data, not a placeholder.
 
 ## Run
 
@@ -33,8 +37,8 @@ The importer reads actual OSM nodes and ways, retaining named places, roads, wat
 docker compose -f maps/docker-compose.yml up -d --build
 ```
 
-The service listens on port 8787. Check `/health`, request `/tiles/12/1200/1500.png`, or query `/search?q=Union%20Station`. Mount `maps/data` read-only in the container. Keep MBTiles and the SQLite index outside version control because they are generated regional data. Back up their source revision and build manifest beside the deployment record.
+The service listens on port 8789. Check `/health`, request a tile inside the documented MBTiles bounds, or query `/search?q=Union%20Station`. Keep MBTiles and the SQLite index outside version control because they are generated regional data. Back up their source revision and build manifest beside the deployment record.
 
 ## Verification
 
-Before connecting the planner, verify that `/health` reports both data files, a known tile returns `image/png`, an unknown tile returns 404, a valid query returns `offline: true`, and an empty or oversized query returns 400. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
+Before connecting the planner, verify that `/health` reports both data files, a known tile returns a decodable nonempty `image/png`, an unknown tile returns 404, a valid query returns `offline: true`, and an empty or oversized query returns 400. Verify at least one known intersection using `and`, `at`, `&`, or `/`, and inspect its shared-node source identifier and coordinates. Confirm outbound network access is disabled for the container. The map view must retain visible OSM attribution.
