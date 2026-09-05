@@ -21,8 +21,10 @@ MAX_STOPS_PER_FEED = 250_000
 MAX_ROUTES_PER_FEED = 20_000
 MAX_TRIPS_PER_FEED = 500_000
 MAX_STOP_TIMES_PER_TRIP = 5_000
+MAX_STOP_TIMES_PER_FEED = 20_000_000
 MAX_REPRESENTATIVE_PATTERNS_PER_DIRECTION = 4
 TRIP_INSERT_BATCH = 1_024
+STOP_TIME_INSERT_BATCH = 4_096
 TRIP_LOOKUP_CACHE_KIB = 2_048
 
 
@@ -350,11 +352,13 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
             with tempfile.TemporaryDirectory(prefix=f"gtha-stop-route-{feed_id}-") as temporary_root:
                 trip_database = sqlite3.connect(Path(temporary_root) / "trips.sqlite")
                 try:
-                    trip_database.execute("PRAGMA journal_mode=OFF")
+                    trip_database.execute("PRAGMA journal_mode=DELETE")
                     trip_database.execute("PRAGMA synchronous=OFF")
                     trip_database.execute("PRAGMA temp_store=FILE")
                     trip_database.execute(f"PRAGMA cache_size=-{TRIP_LOOKUP_CACHE_KIB}")
-                    trip_database.execute("CREATE TABLE trips (trip_id TEXT PRIMARY KEY, route_ref TEXT NOT NULL, direction_id TEXT, completed INTEGER NOT NULL DEFAULT 0)")
+                    trip_database.execute("PRAGMA foreign_keys=ON")
+                    trip_database.execute("CREATE TABLE trips (trip_id TEXT PRIMARY KEY, route_ref TEXT NOT NULL, direction_id TEXT)")
+                    trip_database.execute("CREATE TABLE stop_times (trip_id TEXT NOT NULL, stop_sequence INTEGER NOT NULL, stop_id TEXT NOT NULL, PRIMARY KEY (trip_id, stop_sequence), FOREIGN KEY (trip_id) REFERENCES trips (trip_id))")
                     trip_count = 0
                     pending_trips: list[tuple[str, str, str | None]] = []
 
@@ -381,26 +385,60 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
                         if len(pending_trips) >= TRIP_INSERT_BATCH:
                             insert_pending_trips()
                     insert_pending_trips()
+                    pending_stop_times: list[tuple[str, int, str]] = []
+                    stop_time_count = 0
+
+                    def insert_pending_stop_times() -> None:
+                        nonlocal pending_stop_times
+                        if not pending_stop_times:
+                            return
+                        trip_database.execute("SAVEPOINT stop_times_batch")
+                        try:
+                            trip_database.executemany("INSERT INTO stop_times (trip_id, stop_sequence, stop_id) VALUES (?, ?, ?)", pending_stop_times)
+                        except sqlite3.IntegrityError:
+                            trip_database.execute("ROLLBACK TO stop_times_batch")
+                            trip_database.execute("RELEASE stop_times_batch")
+                            for entry in pending_stop_times:
+                                try:
+                                    trip_database.execute("INSERT INTO stop_times (trip_id, stop_sequence, stop_id) VALUES (?, ?, ?)", entry)
+                                except sqlite3.IntegrityError as error:
+                                    raise ValueError(f"{feed_id} stop_times has an unknown trip_id or duplicate stop_sequence for {entry[0]}") from error
+                        else:
+                            trip_database.execute("RELEASE stop_times_batch")
+                        pending_stop_times = []
+
+                    for stop_time_row in csv_rows(archive, "stop_times.txt"):
+                        if stop_time_count >= MAX_STOP_TIMES_PER_FEED:
+                            raise ValueError(f"{feed_id} exceeds {MAX_STOP_TIMES_PER_FEED} stop_times")
+                        trip_id = required_text(stop_time_row, "trip_id", f"{feed_id} stop_times.txt")
+                        pending_stop_times.append((trip_id, parse_sequence(stop_time_row.get("stop_sequence"), f"{feed_id} trip {trip_id}"), required_text(stop_time_row, "stop_id", f"{feed_id} trip {trip_id}")))
+                        stop_time_count += 1
+                        if len(pending_stop_times) >= STOP_TIME_INSERT_BATCH:
+                            insert_pending_stop_times()
+                    insert_pending_stop_times()
                     trip_database.commit()
 
                     current_trip_id: str | None = None
+                    current_route_ref: str | None = None
+                    current_direction_id: str | None = None
                     current_rows: list[tuple[int, str]] = []
+                    trips_with_stop_times = 0
+                    excluded_without_stop_times = 0
 
                     def flush_current_trip() -> None:
-                        nonlocal current_trip_id, current_rows
+                        nonlocal current_trip_id, current_route_ref, current_direction_id, current_rows, trips_with_stop_times, excluded_without_stop_times
                         if current_trip_id is None:
                             return
-                        trip = trip_database.execute("SELECT route_ref, direction_id, completed FROM trips WHERE trip_id = ?", (current_trip_id,)).fetchone()
-                        if trip is None:
-                            raise ValueError(f"{feed_id} stop_times references unknown trip {current_trip_id}")
-                        route_ref, direction_id, completed = trip
-                        if completed:
-                            raise ValueError(f"{feed_id} stop_times is not grouped by trip_id; refusing to invent a partial pattern")
                         if not current_rows:
-                            raise ValueError(f"{feed_id} trip {current_trip_id} has no stop_times")
-                        ordered_rows = sorted(current_rows)
-                        if len({sequence for sequence, _ in ordered_rows}) != len(ordered_rows):
-                            raise ValueError(f"{feed_id} trip {current_trip_id} has duplicate stop_sequence values")
+                            excluded_without_stop_times += 1
+                            current_trip_id = None
+                            current_route_ref = None
+                            current_direction_id = None
+                            return
+                        route_ref = str(current_route_ref)
+                        direction_id = current_direction_id
+                        trips_with_stop_times += 1
+                        ordered_rows = current_rows
                         pattern_stops: list[dict[str, object]] = []
                         digest = hashlib.sha256()
                         digest.update(route_ref.encode("utf-8"))
@@ -429,26 +467,24 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
                         fingerprint = digest.hexdigest()
                         bucket = patterns_by_route_direction.setdefault((route_ref, direction_id), [])
                         choose_pattern(bucket, {"_fingerprint": fingerprint, "id": f"{route_ref}:{fingerprint[:16]}", "directionId": direction_id, "stops": pattern_stops})
-                        changed = trip_database.execute("UPDATE trips SET completed = 1 WHERE trip_id = ? AND completed = 0", (current_trip_id,)).rowcount
-                        if changed != 1:
-                            raise ValueError(f"{feed_id} stop_times is not grouped by trip_id; refusing to invent a partial pattern")
                         current_trip_id = None
+                        current_route_ref = None
+                        current_direction_id = None
                         current_rows = []
 
-                    for stop_time_row in csv_rows(archive, "stop_times.txt"):
-                        trip_id = required_text(stop_time_row, "trip_id", f"{feed_id} stop_times.txt")
-                        if current_trip_id is None:
-                            current_trip_id = trip_id
-                        elif trip_id != current_trip_id:
+                    query = "SELECT trips.trip_id, trips.route_ref, trips.direction_id, stop_times.stop_sequence, stop_times.stop_id FROM trips LEFT JOIN stop_times ON stop_times.trip_id = trips.trip_id ORDER BY trips.trip_id, stop_times.stop_sequence"
+                    for trip_id, route_ref, direction_id, stop_sequence, stop_id in trip_database.execute(query):
+                        if current_trip_id != trip_id:
                             flush_current_trip()
-                            current_trip_id = trip_id
-                        if len(current_rows) >= MAX_STOP_TIMES_PER_TRIP:
-                            raise ValueError(f"{feed_id} trip {trip_id} exceeds {MAX_STOP_TIMES_PER_TRIP} stop_times")
-                        current_rows.append((parse_sequence(stop_time_row.get("stop_sequence"), f"{feed_id} trip {trip_id}"), required_text(stop_time_row, "stop_id", f"{feed_id} trip {trip_id}")))
+                            current_trip_id = str(trip_id)
+                            current_route_ref = str(route_ref)
+                            current_direction_id = direction_id
+                        if stop_sequence is not None:
+                            if len(current_rows) >= MAX_STOP_TIMES_PER_TRIP:
+                                raise ValueError(f"{feed_id} trip {trip_id} exceeds {MAX_STOP_TIMES_PER_TRIP} stop_times")
+                            current_rows.append((int(stop_sequence), str(stop_id)))
                     flush_current_trip()
-                    missing_trips = int(trip_database.execute("SELECT COUNT(*) FROM trips WHERE completed = 0").fetchone()[0])
-                    if missing_trips:
-                        raise ValueError(f"{feed_id} has {missing_trips} trips without stop_times")
+                    feed_trip_provenance = {"declared": trip_count, "withStopTimes": trips_with_stop_times, "excludedWithoutStopTimes": excluded_without_stop_times, "stopTimeRows": stop_time_count}
                 finally:
                     trip_database.close()
 
@@ -474,6 +510,7 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
             "serviceEnd": feed_metadata.get("serviceEnd"),
             "promoteAfter": feed_metadata.get("promoteAfter"),
             "retireAfter": feed_metadata.get("retireAfter"),
+            "tripCounts": feed_trip_provenance,
         })
 
     route_patterns: dict[str, list[dict[str, object]]] = {}
@@ -498,6 +535,7 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
             stop_alias_payload[alias] = alias_members
     stop_route_payload = {stop_id: sorted(route_refs) for stop_id, route_refs in sorted(expanded_stop_routes.items())}
     pattern_count = sum(len(patterns) for patterns in route_patterns.values())
+    aggregate_trip_counts = {key: sum(int(archive["tripCounts"][key]) for archive in source_archives) for key in ("declared", "withStopTimes", "excludedWithoutStopTimes", "stopTimeRows")}
     provenance_gaps = [{"id": archive["id"], "fields": ["license"]} for archive in source_archives if archive["licenseState"] != "verified"]
     provenance = {
         "manifestSha256": manifest_sha256,
@@ -508,8 +546,10 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
         "servedStopCount": len(stop_route_payload),
         "stopAliasCount": len(stop_alias_payload),
         "patternCount": pattern_count,
+        "tripCounts": aggregate_trip_counts,
+        "excludedTripCount": aggregate_trip_counts["excludedWithoutStopTimes"],
         "maxRepresentativePatternsPerDirection": MAX_REPRESENTATIVE_PATTERNS_PER_DIRECTION,
-        "tripLookup": {"storage": "temporary-sqlite", "insertBatchSize": TRIP_INSERT_BATCH, "cacheKiB": TRIP_LOOKUP_CACHE_KIB},
+        "tripLookup": {"storage": "temporary-sqlite", "journalMode": "DELETE", "tripInsertBatchSize": TRIP_INSERT_BATCH, "stopTimeInsertBatchSize": STOP_TIME_INSERT_BATCH, "cacheKiB": TRIP_LOOKUP_CACHE_KIB, "maxTripsPerFeed": MAX_TRIPS_PER_FEED, "maxStopTimeRowsPerFeed": MAX_STOP_TIMES_PER_FEED, "maxStopTimesPerTrip": MAX_STOP_TIMES_PER_TRIP},
         "sourceArchives": source_archives,
         "provenanceComplete": not provenance_gaps,
         "provenanceGaps": provenance_gaps,
@@ -542,6 +582,8 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
                 "servedStopCount",
                 "stopAliasCount",
                 "patternCount",
+                "excludedTripCount",
+                "tripCounts",
                 "maxRepresentativePatternsPerDirection",
                 "sourceArchives",
             )

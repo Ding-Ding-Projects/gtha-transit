@@ -106,6 +106,8 @@ class StopRouteIndexTests(unittest.TestCase):
             self.assertEqual(routes["provenance"]["sourceArchives"][0]["batchRetrievedAt"], "2026-09-05T00:00:00Z")
             self.assertEqual(routes["provenance"]["sourceArchives"][0]["individualRetrievalState"], "unavailable")
             self.assertEqual(routes["provenance"]["provenanceComplete"], True)
+            self.assertEqual(routes["provenance"]["sourceArchives"][0]["tripCounts"], {"declared": 3, "withStopTimes": 3, "excludedWithoutStopTimes": 0, "stopTimeRows": 6})
+            self.assertEqual(routes["provenance"]["tripCounts"], {"declared": 4, "withStopTimes": 4, "excludedWithoutStopTimes": 0, "stopTimeRows": 8})
             generated_stops = {stop["id"]: stop for stop in stops["stops"]}
             self.assertEqual(generated_stops["ttc:A"]["validity"], {"serviceStart": "20260901", "serviceEnd": "20260930", "promoteAfter": None, "retireAfter": None})
             summer_routes = {route["id"]: route for route in routes["routes"]}
@@ -122,7 +124,7 @@ class StopRouteIndexTests(unittest.TestCase):
             self.assertEqual([stop["sequence"] for stop in directions["1"]["stops"]], [10, 20])
             self.assertEqual(directions["1"]["stops"][0]["lat"], 43.7002)
 
-    def test_refuses_noncontiguous_trip_rows_instead_of_constructing_a_partial_pattern(self) -> None:
+    def test_groups_noncontiguous_trip_rows_without_constructing_a_partial_pattern(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             feeds = root / "feeds"
@@ -139,8 +141,55 @@ class StopRouteIndexTests(unittest.TestCase):
                 ],
             )
             (feeds / "manifest.json").write_text(json.dumps({"schemaVersion": 1, "generatedAt": "2026-09-05T00:00:00Z", "feeds": [feed]}), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "not grouped by trip_id"):
-                INDEXER.build(feeds, root / "data")
+            output = root / "data"
+            self.assertEqual(INDEXER.build(feeds, output), (5, 1, 2))
+            patterns = json.loads((output / "route-patterns.json").read_text(encoding="utf-8"))
+            directions = {pattern["directionId"]: pattern for pattern in patterns["routePatterns"]["ttc:1"]}
+            self.assertEqual([stop["id"] for stop in directions["0"]["stops"]], ["ttc:A", "ttc:B"])
+
+    def test_excludes_declared_trips_without_stop_times_and_records_the_exact_count(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            feeds = root / "feeds"
+            feeds.mkdir()
+            feed = write_feed(
+                feeds,
+                "ttc",
+                routes=[{"route_id": "1", "agency_id": "TTC", "route_short_name": "1", "route_long_name": "One", "route_type": "3", "route_color": "", "route_text_color": ""}],
+                trips=[{"route_id": "1", "service_id": "WEEKDAY", "trip_id": "T1", "direction_id": "0"}, {"route_id": "1", "service_id": "WEEKDAY", "trip_id": "T2", "direction_id": "1"}],
+                stop_times=[{"trip_id": "T1", "arrival_time": "08:00:00", "departure_time": "08:00:00", "stop_id": "A", "stop_sequence": "10"}],
+            )
+            (feeds / "manifest.json").write_text(json.dumps({"schemaVersion": 1, "generatedAt": "2026-09-05T00:00:00Z", "feeds": [feed]}), encoding="utf-8")
+            output = root / "data"
+            self.assertEqual(INDEXER.build(feeds, output), (5, 1, 1))
+            routes = json.loads((output / "routes.json").read_text(encoding="utf-8"))
+            self.assertEqual(routes["provenance"]["sourceArchives"][0]["tripCounts"], {"declared": 2, "withStopTimes": 1, "excludedWithoutStopTimes": 1, "stopTimeRows": 1})
+            self.assertEqual(routes["provenance"]["tripCounts"], {"declared": 2, "withStopTimes": 1, "excludedWithoutStopTimes": 1, "stopTimeRows": 1})
+            self.assertEqual(routes["provenance"]["excludedTripCount"], 1)
+
+    def test_rejects_invalid_stop_time_references_without_writing_a_partial_pattern(self) -> None:
+        cases = [
+            ("unknown-trip", [{"trip_id": "T1", "arrival_time": "07:55:00", "departure_time": "07:55:00", "stop_id": "A", "stop_sequence": "5"}, {"trip_id": "UNKNOWN", "arrival_time": "08:00:00", "departure_time": "08:00:00", "stop_id": "A", "stop_sequence": "10"}], "unknown trip_id"),
+            ("duplicate-sequence", [{"trip_id": "T1", "arrival_time": "07:55:00", "departure_time": "07:55:00", "stop_id": "A", "stop_sequence": "10"}, {"trip_id": "T1", "arrival_time": "08:05:00", "departure_time": "08:05:00", "stop_id": "B", "stop_sequence": "10"}], "duplicate stop_sequence"),
+            ("unknown-stop", [{"trip_id": "T1", "arrival_time": "08:00:00", "departure_time": "08:00:00", "stop_id": "UNKNOWN", "stop_sequence": "10"}], "unknown stop"),
+        ]
+        for name, stop_times, error in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                feeds = root / "feeds"
+                feeds.mkdir()
+                feed = write_feed(
+                    feeds,
+                    "ttc",
+                    routes=[{"route_id": "1", "agency_id": "TTC", "route_short_name": "1", "route_long_name": "One", "route_type": "3", "route_color": "", "route_text_color": ""}],
+                    trips=[{"route_id": "1", "service_id": "WEEKDAY", "trip_id": "T1", "direction_id": "0"}],
+                    stop_times=stop_times,
+                )
+                (feeds / "manifest.json").write_text(json.dumps({"schemaVersion": 1, "generatedAt": "2026-09-05T00:00:00Z", "feeds": [feed]}), encoding="utf-8")
+                output = root / "data"
+                with self.assertRaisesRegex(ValueError, error):
+                    INDEXER.build(feeds, output)
+                self.assertFalse((output / "route-patterns.json").exists())
 
     def test_rejects_a_manifest_without_a_valid_batch_receipt(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -170,7 +219,9 @@ class StopRouteIndexTests(unittest.TestCase):
             output = root / "data"
             self.assertEqual(INDEXER.build(feeds, output), (5, 1, 1))
             routes = json.loads((output / "routes.json").read_text(encoding="utf-8"))
-            self.assertEqual(routes["provenance"]["tripLookup"], {"storage": "temporary-sqlite", "insertBatchSize": 1024, "cacheKiB": 2048})
+            self.assertEqual(routes["provenance"]["tripLookup"], {"storage": "temporary-sqlite", "journalMode": "DELETE", "tripInsertBatchSize": 1024, "stopTimeInsertBatchSize": 4096, "cacheKiB": 2048, "maxTripsPerFeed": 500000, "maxStopTimeRowsPerFeed": 20000000, "maxStopTimesPerTrip": 5000})
+            self.assertEqual(routes["provenance"]["sourceArchives"][0]["tripCounts"], {"declared": 4097, "withStopTimes": 4097, "excludedWithoutStopTimes": 0, "stopTimeRows": 4097})
+            self.assertEqual(routes["provenance"]["tripCounts"], {"declared": 4097, "withStopTimes": 4097, "excludedWithoutStopTimes": 0, "stopTimeRows": 4097})
             self.assertEqual(routes["provenance"]["provenanceComplete"], False)
             self.assertEqual(routes["provenance"]["provenanceGaps"], [{"id": "ttc", "fields": ["license"]}])
 
