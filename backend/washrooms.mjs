@@ -10,18 +10,23 @@ const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY", "TRAM"]);
 const TRANSIT_FACILITY_TYPES = new Set(["transit-station", "transit-terminal"]);
 let registry;
 
+export function resolveWashroomRegistry(facilityRegistry, stopIndex) {
+  const resolution = resolveFacilityStopIdentities(facilityRegistry?.facilities, stopIndex);
+  return { ...facilityRegistry, facilities: resolution.facilities, washroomIdentityMap: resolution.identityMap };
+}
+
 async function load() {
   if (!registry) {
     const [facilityRegistry, stopIndex] = await Promise.all([readFile(registryPath, "utf8"), readFile(stopIndexPath, "utf8")]);
-    const parsedRegistry = JSON.parse(facilityRegistry); const parsedStopIndex = JSON.parse(stopIndex);
-    const resolution = resolveFacilityStopIdentities(parsedRegistry.facilities, parsedStopIndex);
-    registry = { ...parsedRegistry, facilities: resolution.facilities, washroomIdentityMap: resolution.identityMap };
+    registry = resolveWashroomRegistry(JSON.parse(facilityRegistry), JSON.parse(stopIndex));
   }
   return registry;
 }
 
 /** Exposes the source-backed identity map for the selected-places API adapter. */
 export async function washroomIdentityMap() { return (await load()).washroomIdentityMap; }
+/** Exposes the cached augmented registry for detours and other backend adapters. */
+export async function resolvedWashroomRegistry() { return load(); }
 
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const stamp = (value) => typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : new Date(0).toISOString();
@@ -43,6 +48,17 @@ function annotatePlace(place, facilities, agencyId, at) {
   const match = matchWashroom(original, facilities, { agencyId, at });
   if (!match) return { ...original, washroom: null };
   return { ...original, washroom: publicWashroom(match, original, match.availability) };
+}
+
+/** Produces public metadata only after the strict agency-qualified matcher succeeds. */
+export function washroomForPublishedPlaceFromRegistry(place, facilityRegistry, { at = new Date() } = {}) {
+  const match = matchWashroom(place, Array.isArray(facilityRegistry?.facilities) ? facilityRegistry.facilities : [], { at });
+  return match ? publicWashroom(match, place && typeof place === "object" ? place : {}, match.availability) : null;
+}
+
+/** Resolves strict public washroom metadata from the cached augmented registry. */
+export async function washroomForPublishedPlace(place, { at = new Date() } = {}) {
+  return washroomForPublishedPlaceFromRegistry(place, await resolvedWashroomRegistry(), { at });
 }
 
 function isTransit(leg) { return TRANSIT_MODES.has(String(leg?.mode ?? "").toUpperCase()); }

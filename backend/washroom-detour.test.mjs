@@ -12,6 +12,17 @@ const opened = {
   hours: { timeZone: "America/Toronto", weekly: { mon: [{ open: "00:00", close: "23:59" }], tue: [{ open: "00:00", close: "23:59" }], wed: [{ open: "00:00", close: "23:59" }], thu: [{ open: "00:00", close: "23:59" }], fri: [{ open: "00:00", close: "23:59" }], sat: [{ open: "00:00", close: "23:59" }], sun: [{ open: "00:00", close: "23:59" }] } }
 };
 
+const referenceLibraryFromF187 = {
+  agencyId: "toronto",
+  facilityId: "toronto-library-toronto-reference-library",
+  facilityType: "library",
+  names: ["Toronto Reference Library"],
+  source: "https://tpl.ca/locations/TRL/",
+  sourceReceiptId: "tpl-toronto-reference-library",
+  coordinates: { lat: 43.67195, lon: -79.38674, sourceUrl: "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/f5aa9b07-da35-45e6-b31f-d6790eb9bd9b/resource/5f4950b4-c727-4e54-8d0d-972e198268d6/download/tpl-branch-general-information-4326.geojson", sourceReceiptId: "tpl-branch-general-information-4326", reference: "Toronto Public Library BranchCode=TRL, _id=104" },
+  hours: { status: "published", timezone: "America/Toronto", weekly: [{ days: ["monday", "tuesday", "wednesday", "thursday", "friday"], opens: "11:00", closes: "20:30", endsNextDay: false }], exceptions: [] }
+};
+
 function itinerary({ duration, endTime, id }) { return { itineraries: [{ id, duration, endTime, legs: [{ mode: "WALK" }] }] }; }
 
 function input(overrides = {}) {
@@ -22,6 +33,32 @@ test("missing current coordinates never fall back to a name or original origin",
   const result = await planWashroomDetour(input({ currentPosition: { name: "Eglinton" }, from: { lat: 43.65, lon: -79.38 } }), { planWithOtp: async () => itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "unused" }), facilityRegistry: [opened] });
   assert.equal(result.status, "unroutable");
   assert.equal(result.unresolved.code, "CURRENT_POSITION_UNRESOLVED");
+});
+
+test("facility-only mode routes to a known-open library without inventing an onward journey", async () => {
+  const calls = [];
+  const result = await planWashroomDetour({ facilityOnly: true, currentPosition: { lat: 43.671, lon: -79.387 }, dateTime: "2026-09-08T12:00:00-04:00" }, {
+    planWithOtp: async (request) => { calls.push(request); return itinerary({ duration: 90, endTime: "2026-09-08T12:01:30-04:00", id: "library" }); },
+    facilityRegistry: [referenceLibraryFromF187]
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(result.status, "facility-only");
+  assert.equal(result.scope, "facility-only");
+  assert.equal(result.completeJourney, false);
+  assert.equal(result.facility.facilityId, referenceLibraryFromF187.facilityId);
+  assert.equal(result.continuation, null);
+  assert.equal(result.unresolved, null);
+});
+
+test("a normal detour without the facility-only flag still requires a destination", async () => {
+  let called = false;
+  const result = await planWashroomDetour({ currentPosition: { lat: 43.671, lon: -79.387 }, dateTime: "2026-09-08T12:00:00-04:00" }, {
+    planWithOtp: async () => { called = true; return itinerary({ duration: 90, endTime: "2026-09-08T12:01:30-04:00", id: "unused" }); },
+    facilityRegistry: [referenceLibraryFromF187]
+  });
+  assert.equal(called, false);
+  assert.equal(result.unresolved.code, "DESTINATION_UNRESOLVED");
+  assert.equal(result.scope, undefined);
 });
 
 test("published facilities without coordinates remain explicitly unroutable", async () => {
