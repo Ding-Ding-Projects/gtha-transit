@@ -160,6 +160,18 @@ test("unknown transit presence can be preferred without presenting it as open", 
   assert.deepEqual(result.itineraries.find((item) => item.id === "transit-closed").washrooms, []);
   assert.match(result.note, /not an open claim/);
 });
+test("one facility across two platform endpoints does not outrank two distinct facilities", async () => {
+  const at = "2026-09-07T12:00:00-04:00";
+  const facility = (facilityId, stationIds) => ({ agencyId: "ttc", facilityId, stationIds, facilityType: "transit-station", names: [facilityId], source: `https://publisher.example/${facilityId}`, hours: { timeZone: "America/Toronto", weekly: { mon: [{ open: "08:00", close: "20:00" }] } } });
+  const facilityRegistry = [facility("eglinton", ["ttc:EGL-1", "ttc:EGL-2"]), facility("finch", ["ttc:FINCH"])];
+  const leg = (from, to) => ({ mode: "SUBWAY", agencyId: "ttc", startTime: at, endTime: "2026-09-07T12:10:00-04:00", distance: 200, from, to });
+  const doubled = { id: "two-platforms", duration: 900, walkDistance: 50, legs: [leg({ name: "Eglinton South", stationId: "ttc:EGL-1", lat: 43.7, lon: -79.4 }, { name: "Elsewhere", lat: 43.71, lon: -79.4 }), leg({ name: "Elsewhere", lat: 43.71, lon: -79.4 }, { name: "Eglinton North", stationId: "ttc:EGL-2", lat: 43.7, lon: -79.4 })] };
+  const distinct = { id: "two-facilities", duration: 1000, walkDistance: 100, legs: [leg({ name: "Eglinton", stationId: "ttc:EGL-1", lat: 43.7, lon: -79.4 }, { name: "Finch", stationId: "ttc:FINCH", lat: 43.78, lon: -79.41 })] };
+  const result = await applyWashroomPreference([doubled, distinct], true, { facilityRegistry });
+  assert.equal(result.itineraries[0].id, "two-facilities");
+  assert.equal(result.itineraries.find((item) => item.id === "two-platforms").washrooms.length, 1);
+  assert.equal(result.itineraries.find((item) => item.id === "two-facilities").washrooms.length, 2);
+});
 test("service readiness uses a typed public code without guessing an agency", async () => {
   const source = await readFile(new URL("./server.mjs", import.meta.url), "utf8");
   assert.match(source, /code: "ROUTER_UNAVAILABLE"/);

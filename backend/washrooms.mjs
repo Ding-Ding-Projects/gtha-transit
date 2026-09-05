@@ -64,7 +64,7 @@ function boostableWashrooms(legs) {
       const transitFacility = TRANSIT_FACILITY_TYPES.has(String(washroom?.facilityType ?? ""));
       const eligible = transitFacility ? washroom?.availability !== "closed" : washroom?.availability === "confirmed-open";
       if (!washroom || !eligible) continue;
-      const key = `${washroom.facilityId ?? "unknown"}|${place.name ?? ""}|${place.lat ?? ""}|${place.lon ?? ""}`;
+      const key = `${washroom.agencyId ?? "unknown"}|${washroom.facilityId ?? "unknown"}`;
       if (!found.some((item) => item.key === key)) found.push({ ...washroom, key });
     }
   }

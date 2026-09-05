@@ -1,6 +1,7 @@
 const AGENCY_ALIASES = new Map([["ttcnext", "ttc"]]);
 const NON_IDENTITY_LABELS = new Set(["station", "terminal", "subway"]);
 const TRANSIT_FACILITY_TYPES = new Set(["transit-station", "transit-terminal"]);
+const PLATFORM_OR_BAY_SUFFIX = /\s*(?:[-–]\s*)?(?:(?:northbound|southbound|eastbound|westbound)\s+)?(?:platforms?|bus\s+bays?|bays?)\s*$/i;
 
 function text(value) { return typeof value === "string" && value.trim() ? value.trim() : null; }
 
@@ -23,7 +24,10 @@ function qualifiedStopId(stop) {
 }
 function stopAgency(stop) { return canonicalAgencyId(stop?.feedId ?? stop?.graphFeedId ?? qualifiedStopId(stop)?.split(":", 1)[0]); }
 function facilityAgency(facility) { return canonicalAgencyId(facility?.agencyId ?? facility?.stationIdentity?.agencyId); }
-function trustedIndex(stopIndex) { return /validated\s+official\s+gtfs/i.test(String(stopIndex?.source ?? "")); }
+function trustedIndex(stopIndex) {
+  const source = String(stopIndex?.source ?? "");
+  return source === "scripts/data/build-stop-index.py from official GTFS archives" || /validated\s+official\s+gtfs/i.test(source);
+}
 function sourceEvidence(facility, stopIndex, stationIds) {
   return {
     kind: "official-facility-alias-to-validated-stop-index",
@@ -38,6 +42,25 @@ function existingStationIds(facility) {
   return [...new Set([...(Array.isArray(facility?.stationIds) ? facility.stationIds : []), facility?.stationIdentity?.stationId, facility?.stationIdentity?.stopId].map(text).filter(Boolean))];
 }
 
+function rawStopId(stop) {
+  const id = qualifiedStopId(stop);
+  return id ? id.slice(id.indexOf(":") + 1) : null;
+}
+
+function stopKey(stop) {
+  const graphFeedId = text(stop?.graphFeedId) ?? qualifiedStopId(stop)?.split(":", 1)[0] ?? null;
+  const raw = rawStopId(stop);
+  return graphFeedId && raw ? `${graphFeedId}\u0000${raw}` : null;
+}
+
+function labelForms(value) {
+  const direct = normalizeOfficialStationAlias(value);
+  const stripped = normalizeOfficialStationAlias(String(value ?? "").replace(PLATFORM_OR_BAY_SUFFIX, ""));
+  return new Set([direct, stripped].filter(Boolean));
+}
+
+function labelMatchesAliases(value, aliases) { return [...labelForms(value)].some((label) => aliases.has(label)); }
+
 /**
  * Resolves official facility aliases to unique GTFS station entries. This runs
  * only against a validated local stop index, never against a user query, route
@@ -48,6 +71,7 @@ export function resolveFacilityStopIdentities(facilities, stopIndex) {
   const unresolved = [];
   const indexTrusted = trustedIndex(stopIndex);
   const stops = stopRecords(stopIndex);
+  const stopsByKey = new Map(stops.map((stop) => [stopKey(stop), stop]).filter(([key]) => key));
   const sourceFacilities = Array.isArray(facilities) ? facilities : [];
   const augmentedFacilities = sourceFacilities.map((facility) => {
     const agencyId = facilityAgency(facility);
@@ -61,17 +85,36 @@ export function resolveFacilityStopIdentities(facilities, stopIndex) {
       unresolved.push({ facilityId: text(facility?.facilityId) ?? null, reason: indexTrusted ? "facility-identity-evidence-unavailable" : "stop-index-not-validated" });
       return facility;
     }
-    const candidates = stops.filter((stop) => Number(stop?.locationType) === 1 && stopAgency(stop) === agencyId && aliases.has(normalizeOfficialStationAlias(stop?.name)) && qualifiedStopId(stop));
+    const candidates = stops.map((stop) => {
+      if (!qualifiedStopId(stop) || ![0, 1].includes(Number(stop?.locationType)) || stopAgency(stop) !== agencyId) return null;
+      const parentKey = stop.parentStation ? `${text(stop.graphFeedId) ?? qualifiedStopId(stop).split(":", 1)[0]}\u0000${stop.parentStation}` : null;
+      const parent = parentKey ? stopsByKey.get(parentKey) : null;
+      const parentMatches = parent && Number(parent.locationType) === 1 && stopAgency(parent) === agencyId && labelMatchesAliases(parent.name, aliases);
+      const ownMatches = labelMatchesAliases(stop.name, aliases);
+      return ownMatches || parentMatches ? { stop, parent, parentMatches: Boolean(parentMatches) } : null;
+    }).filter(Boolean);
     const byGraphFeed = new Map();
     for (const candidate of candidates) {
-      const graphFeedId = text(candidate.graphFeedId) ?? qualifiedStopId(candidate).split(":", 1)[0];
+      const graphFeedId = text(candidate.stop.graphFeedId) ?? qualifiedStopId(candidate.stop).split(":", 1)[0];
       const group = byGraphFeed.get(graphFeedId) ?? [];
       group.push(candidate); byGraphFeed.set(graphFeedId, group);
     }
-    const accepted = [...byGraphFeed.values()].filter((group) => group.length === 1).map(([candidate]) => qualifiedStopId(candidate));
+    const accepted = [];
+    let ambiguous = false;
+    for (const group of byGraphFeed.values()) {
+      const parentIds = [...new Set(group.filter((candidate) => candidate.parentMatches).map((candidate) => qualifiedStopId(candidate.parent)))];
+      if (parentIds.length > 1) { ambiguous = true; continue; }
+      if (parentIds.length === 1) {
+        accepted.push(parentIds[0], ...group.filter((candidate) => candidate.parentMatches).map((candidate) => qualifiedStopId(candidate.stop)));
+        continue;
+      }
+      const directStationIds = group.filter((candidate) => Number(candidate.stop.locationType) === 1).map((candidate) => qualifiedStopId(candidate.stop));
+      if (new Set(directStationIds).size > 1) { ambiguous = true; continue; }
+      accepted.push(...group.map((candidate) => qualifiedStopId(candidate.stop)));
+    }
     const stationIds = [...new Set([...supplied, ...accepted])].sort();
     if (!stationIds.length) {
-      unresolved.push({ facilityId: text(facility?.facilityId) ?? null, reason: candidates.length ? "official-station-alias-ambiguous" : "official-station-alias-not-found" });
+      unresolved.push({ facilityId: text(facility?.facilityId) ?? null, reason: ambiguous || candidates.length ? "official-station-alias-ambiguous" : "official-station-alias-not-found" });
       return facility;
     }
     const evidence = sourceEvidence(facility, stopIndex, stationIds);

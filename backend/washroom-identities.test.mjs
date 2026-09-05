@@ -8,13 +8,23 @@ import { washroomIdentityMap } from "./washrooms.mjs";
 const registry = JSON.parse(await readFile(new URL("../data/transit-washrooms.json", import.meta.url), "utf8"));
 
 const officialStopIndex = {
-  source: "scripts/data/build-stop-index.py from validated official GTFS archives",
+  source: "scripts/data/build-stop-index.py from official GTFS archives",
   stops: [
-    { id: "ttc:EL", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 1, lat: 43.7, lon: -79.4 },
-    { id: "ttc-next:EL", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc-next", locationType: 1, lat: 43.7, lon: -79.4 },
+    { id: "ttc:14669", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.704582, lon: -79.39846 },
+    { id: "ttc:14670", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.70476, lon: -79.398499 },
+    { id: "ttc:14672", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.705256, lon: -79.398613 },
+    { id: "ttc:14673", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.705532, lon: -79.399237 },
+    { id: "ttc:14674", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.705572, lon: -79.399461 },
+    { id: "ttc:14675", name: "Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.705608, lon: -79.399657 },
+    { id: "ttc:13795", name: "Eglinton Station - Southbound Platform", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.704648, lon: -79.39889 },
+    { id: "ttc:13796", name: "Eglinton Station - Northbound Platform", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.706548, lon: -79.39839 },
+    { id: "ttc:16073", name: "Eglinton Station Eastbound Platform", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.70638, lon: -79.398765 },
+    { id: "ttc-next:13795", name: "Eglinton Station - Southbound Platform", feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: "43274", lat: 43.704648, lon: -79.39889 },
+    { id: "ttc-next:13796", name: "Eglinton Station - Northbound Platform", feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: "43274", lat: 43.706548, lon: -79.39839 },
+    { id: "ttc-next:43274", name: "Eglinton", feedId: "ttc", graphFeedId: "ttc-next", locationType: 1, parentStation: null, lat: 43.70525, lon: -79.398392 },
     { id: "ttc:FI", name: "Finch Station", feedId: "ttc", graphFeedId: "ttc", locationType: 1, lat: 43.78, lon: -79.41 },
-    { id: "ttc:ROAD", name: "Eglinton Avenue at Yonge", feedId: "ttc", graphFeedId: "ttc", locationType: 0, lat: 43.7, lon: -79.4 },
-    { id: "ttc:UN", name: "Union Station", feedId: "ttc", graphFeedId: "ttc", locationType: 1, lat: 43.64, lon: -79.38 },
+    { id: "ttc:road-alias-fixture", name: "Yonge St at Eglinton Ave - Eglinton Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.7, lon: -79.4 },
+    { id: "ttc:UN", name: "Union Station", feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, lat: 43.64, lon: -79.38 },
     { id: "go:UN", name: "GO Union Station", feedId: "go", graphFeedId: "go", locationType: 1, lat: 43.645195, lon: -79.3806 },
     { id: "go:USBT", name: "Union Station Bus Terminal", feedId: "go", graphFeedId: "go", locationType: 1, lat: 43.644042, lon: -79.376939 },
     { id: "up:UN", name: "Union Station", feedId: "up", graphFeedId: "up", locationType: 1, lat: 43.644238, lon: -79.383555 },
@@ -27,7 +37,7 @@ test("production-shaped facilities gain only source-backed qualified station ide
   assert.ok(registry.facilities.every((facility) => !facility.stationIds && !facility.stationIdentity));
   const resolved = resolveFacilityStopIdentities(registry.facilities, officialStopIndex);
   const byFacility = new Map(resolved.identityMap.entries.map((entry) => [entry.facilityId, entry]));
-  assert.deepEqual(byFacility.get("ttc-eglinton").stationIds, ["ttc-next:EL", "ttc:EL"]);
+  assert.deepEqual(byFacility.get("ttc-eglinton").stationIds, ["ttc-next:13795", "ttc-next:13796", "ttc-next:43274", "ttc:13795", "ttc:13796", "ttc:14669", "ttc:14670", "ttc:14672", "ttc:14673", "ttc:14674", "ttc:14675", "ttc:16073"]);
   assert.deepEqual(byFacility.get("ttc-finch").stationIds, ["ttc:FI"]);
   assert.deepEqual(byFacility.get("go-union-station").stationIds, ["go:UN"]);
   assert.deepEqual(byFacility.get("up-union-station").stationIds, ["up:UN"]);
@@ -36,11 +46,11 @@ test("production-shaped facilities gain only source-backed qualified station ide
   assert.equal(resolved.identityMap.source, officialStopIndex.source);
   assert.equal(registry.facilities.find((facility) => facility.facilityId === "ttc-eglinton").stationIds, undefined);
 
-  assert.equal(matchWashroom({ agencyFeedId: "ttc-next", stopId: "ttc-next:EL" }, resolved.facilities)?.facilityId, "ttc-eglinton");
+  assert.equal(matchWashroom({ agencyFeedId: "ttc-next", stopId: "ttc-next:13795" }, resolved.facilities)?.facilityId, "ttc-eglinton");
   assert.equal(matchWashroom({ agencyFeedId: "ttc", stationId: "ttc:FI" }, resolved.facilities)?.facilityId, "ttc-finch");
   assert.equal(matchWashroom({ agencyFeedId: "go", stopId: "go:UN" }, resolved.facilities)?.facilityId, "go-union-station");
   assert.equal(matchWashroom({ agencyFeedId: "ttc", stopId: "ttc:UN" }, resolved.facilities), null);
-  assert.equal(matchWashroom({ agencyFeedId: "ttc", stopId: "ttc:ROAD", name: "Eglinton Avenue at Yonge" }, resolved.facilities), null);
+  assert.equal(matchWashroom({ agencyFeedId: "ttc", stopId: "ttc:road-alias-fixture", name: "Yonge St at Eglinton Ave - Eglinton Station" }, resolved.facilities), null);
 });
 
 test("unvalidated stop indexes cannot create facility identities", () => {
