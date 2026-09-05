@@ -48,7 +48,7 @@ function parseVehiclePosition(bytes, entityId, now, { agencyId, agencyName }) {
     bearing: Number.isFinite(bearingValue) ? bearingValue : null,
     speedKph: Number.isFinite(speedValue) && speedValue >= 0 ? speedValue * 3.6 : null,
     timestamp: timestamp ?? null, stale: !timestamp || now - timestampSeconds * 1000 > STALE_MS || timestampSeconds * 1000 - now > 60_000,
-    agencyId, licensePlate: text(first(descriptor, 3)) || null, cptdb, photo: matchVehiclePhoto(id, cptdb, agencyId),
+    agencyId, fleetNumber: cptdb.displayFleetNumber, licensePlate: text(first(descriptor, 3)) || null, cptdb, photo: matchVehiclePhoto(cptdb.displayFleetNumber || id, cptdb, agencyId),
   };
 }
 

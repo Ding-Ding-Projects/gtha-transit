@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { clearVehicleCache, enrichItineraries, getVehicleSnapshot, getVehicles, parseTtcVehicles, parseVehicleFeed, TTC_VEHICLES_URL } from '../vehicles/index.mjs';
-import { matchCptdb, matchVehiclePhoto } from '../vehicles/fleet-registry.mjs';
+import { matchCptdb, matchVehiclePhoto, resolveFleetNumber } from '../vehicles/fleet-registry.mjs';
 
 const cat = (...parts) => Uint8Array.from(parts.flatMap((part) => [...part]));
 const varint = (input) => { let value = BigInt(input); const out = []; do { let byte = Number(value & 0x7fn); value >>= 7n; if (value) byte |= 0x80; out.push(byte); } while (value); return Uint8Array.from(out); };
@@ -32,6 +32,12 @@ test('attaches licensed representative photos without claiming the wrong exact v
 test('namespaces non-TTC vehicles and gives each a real agency-specific CPTDB search', () => {
   const result = parseVehicleFeed(feed(1700000000, vehicle({ id: '1234' })), { now: 1700000000000, agencyId: 'miway', agencyName: 'MiWay', sourceUrl: 'https://example.test/vehicles.pb' }); assert.equal(result.agencyId, 'miway'); assert.equal(result.vehicles[0].agencyId, 'miway'); assert.match(result.vehicles[0].cptdb.url, /MiWay%201234/); assert.equal(result.vehicles[0].cptdb.manufacturer, undefined);
   assert.equal(result.vehicles[0].photo.credit, 'Robert T Bell'); assert.equal(result.vehicles[0].photo.exactVehicle, false);
+});
+
+test('prefers a fleet-like label but falls back to a numeric vehicle id for descriptive labels', () => {
+  assert.equal(resolveFleetNumber('2118', '1018'), '1018'); assert.equal(resolveFleetNumber('3004', 'UP - Pearson Airport'), '3004'); assert.equal(resolveFleetNumber('go:646', 'GO train'), '646');
+  const go = matchCptdb('646', '646', { agencyId: 'go', agencyName: 'GO Transit' }); assert.equal(go.model, 'MP40PH-3C'); assert.equal(go.year, '2007-2010'); assert.equal(go.match, 'series');
+  const up = matchCptdb('3004', 'UP - Pearson Airport', { agencyId: 'up', agencyName: 'UP Express' }); assert.equal(up.model, 'DMU C-car'); assert.equal(up.manufacturer, 'Nippon Sharyo'); assert.equal(up.displayFleetNumber, '3004');
 });
 
 test('enriches directions only from an exact fresh agency and trip identifier match', async () => {

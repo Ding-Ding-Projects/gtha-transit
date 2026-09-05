@@ -27,6 +27,20 @@ export const TTC_FLEET_RANGES = Object.freeze([
   facts(4604, 4663, 'Alstom', 'FLEXITY M-1', '2023-2024', 'Electric', '30 m', '70 seats'),
 ]);
 
+const OTHER_FLEET_RANGES = Object.freeze({
+  go: [
+    { first: 600, last: 646, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2007-2010', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
+    { first: 647, last: 647, manufacturer: 'MotivePower', model: 'MP54AC prototype', year: '2015', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
+    { first: 648, last: 656, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2010-2011', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
+    { first: 657, last: 666, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2013-2014', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
+    { first: 667, last: 682, manufacturer: 'MotivePower', model: 'MP54AC / MP40PHT-T4AC', year: '2017-2018', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_667-682', title: 'GO Transit 667-682' } },
+  ],
+  up: [
+    { first: 1001, last: 1012, manufacturer: 'Nippon Sharyo', model: 'DMU A-car', year: '2014-2015', propulsion: 'Diesel multiple unit', source: { url: 'https://cptdb.ca/wiki/index.php/Union_Pearson_Express_1001-1012', title: 'Union Pearson Express 1001-1012' } },
+    { first: 3001, last: 3006, manufacturer: 'Nippon Sharyo', model: 'DMU C-car', year: '2014-2015', propulsion: 'Diesel multiple unit', source: { url: 'https://cptdb.ca/wiki/index.php/Union_Pearson_Express_3001-3006', title: 'Union Pearson Express 3001-3006' } },
+  ],
+});
+
 const PHOTOS = Object.freeze({
   'LFS Hybrid': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/81/A_Nova_Bus_LFS_Hybrid_%282018_Version%29_of_the_Toronto_Transit_Commission_AKA_%28TTC%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A_Nova_Bus_LFS_Hybrid_(2018_Version)_of_the_Toronto_Transit_Commission_AKA_(TTC).jpg', credit: 'BrackishStowaway', license: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en' },
   'FLEXITY M-1': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Flexity_Outlook_4412_TTC_Streetcar_%2827418871405%29.jpg', sourceUrl: 'https://commons.wikimedia.org/wiki/File:Flexity_Outlook_4412_TTC_Streetcar_(27418871405).jpg', credit: 'Peter Broster', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/' },
@@ -44,16 +58,24 @@ export const VERIFIED_PHOTO_URLS=Object.freeze([...Object.values(PHOTOS),...Obje
 
 const clean = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 128);
 const searchUrl = (agencyName, identity) => `https://cptdb.ca/wiki/index.php?search=${encodeURIComponent(`${agencyName} ${identity || 'vehicle'}`)}`;
+const fleetLike = (value) => /^[A-Za-z]?\d{3,6}(?:-\d{2})?$/.test(value);
+
+export function resolveFleetNumber(vehicleId, label = '') {
+  const cleanLabel = clean(label); const cleanId = clean(vehicleId).replace(/^[a-z]+:/i, '');
+  return fleetLike(cleanLabel) ? cleanLabel : fleetLike(cleanId) ? cleanId : cleanLabel || cleanId;
+}
 
 export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName = 'Toronto Transit Commission' } = {}) {
-  const identity = clean(label) || clean(vehicleId);
+  const identity = resolveFleetNumber(vehicleId, label);
   const numeric = /^\d{3,5}$/.test(identity) ? Number(identity) : NaN;
-  const found = agencyId === 'ttc' && Number.isFinite(numeric) ? TTC_FLEET_RANGES.find((entry) => numeric >= entry.first && numeric <= entry.last) : undefined;
+  const ranges = agencyId === 'ttc' ? TTC_FLEET_RANGES : OTHER_FLEET_RANGES[agencyId] ?? [];
+  const found = Number.isFinite(numeric) ? ranges.find((entry) => numeric >= entry.first && numeric <= entry.last) : undefined;
   if (found) {
     const { first, last, ...verifiedFacts } = found;
-    return { url: searchUrl(agencyName, identity), match: 'search', fleetRange: `${first}-${last}`, observedLive: true, ...verifiedFacts };
+    const exactPage = agencyId !== 'ttc' && verifiedFacts.source?.url;
+    return { url: exactPage || searchUrl(agencyName, identity), match: exactPage ? (first === last ? 'vehicle' : 'series') : 'search', displayFleetNumber: identity, fleetRange: `${first}-${last}`, observedLive: true, ...verifiedFacts };
   }
-  return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', observedLive: Boolean(identity) };
+  return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', displayFleetNumber: identity || null, observedLive: Boolean(identity) };
 }
 
 export function matchVehiclePhoto(vehicleId, fleetFacts, agencyId = 'ttc') {
