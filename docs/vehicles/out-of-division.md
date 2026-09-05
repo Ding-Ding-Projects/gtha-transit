@@ -24,3 +24,9 @@ The result always includes both sample counts, the Toronto date window, and the 
 ## Sources and refresh
 
 The publisher page is [TTC Transit Planning](https://www.ttc.ca/transparency-and-accountability/transit-planning). The current file is [Service Summary, July 26 to September 5, 2026](https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-07-26.pdf?rev=e6ea84654386468186317a3c3c440c89). Refresh code must discover the current file from the publisher page, validate it, retain the previous validated data on a failed refresh, and never guess a future filename.
+
+## API filter
+
+`GET /api/vehicles/divisions` returns all loaded TTC vehicles with a `division` object containing the classification, official source receipt, possible home garage, route garage set, and local observed-frequency result. It accepts `classification=all|out-of-division|in-division|unknown`, `route`, `q`, `limit`, and `cursor`. The default page size is 100 and the maximum is 100. The response computes `counts.all`, `counts.outOfDivision`, `counts.inDivision`, and `counts.unknown` before applying the requested filter, so an empty out-of-division page can be distinguished from unavailable or ambiguous evidence.
+
+When `HISTORY_DIR` is configured, the server records one fresh TTC snapshot every 60 seconds in the local SQLite sighting store. It retains only vehicle identifier, route identifier, Toronto calendar day, and observation timestamp. Coordinates are never written. Without that configured local history, each vehicle reports an unavailable observed-frequency result rather than a guessed rarity.

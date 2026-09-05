@@ -4,10 +4,35 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {setTimeout as pause} from 'node:timers/promises';
 import http from 'node:http';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+const cat=(...parts)=>Uint8Array.from(parts.flatMap(part=>[...part]));
+const varint=(input)=>{let value=BigInt(input),out=[];do{let byte=Number(value&0x7fn);value>>=7n;if(value)byte|=0x80;out.push(byte);}while(value);return Uint8Array.from(out);};
+const scalar=(field,value)=>cat(varint(field<<3),varint(value));
+const bytes=(field,value)=>cat(varint((field<<3)|2),varint(value.length),value);
+const string=(field,value)=>bytes(field,new TextEncoder().encode(value));
+const f32=(field,value)=>{const out=new Uint8Array(4);new DataView(out.buffer).setFloat32(0,value,true);return cat(varint((field<<3)|5),out);};
+const vehicleFixture=({id,route='29',timestamp})=>bytes(2,cat(
+ string(1,`entity-${id}`),
+ bytes(4,cat(
+  bytes(1,cat(string(1,`trip-${route}`),string(5,route))),
+  bytes(2,cat(f32(1,43.65),f32(2,-79.44))),
+  scalar(5,timestamp),
+  bytes(8,cat(string(1,id),string(2,id))),
+ )),
+));
+const vehicleFeed=(timestamp,...vehicles)=>cat(bytes(1,cat(string(1,'2.0'),scalar(3,timestamp))),...vehicles);
 test('Real HTTP server serves provenance and isolates private backend failures',{timeout:10000},async()=>{
- const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:'18784',HOST:'127.0.0.1',ROUTING_ORIGIN:'http://127.0.0.1:1'}});let log='';child.stdout.on('data',d=>log+=d);child.stderr.on('data',d=>log+=d);
+ const root=mkdtempSync(path.join(tmpdir(),'gtha-web-'));writeFileSync(path.join(root,'index.html'),'<!doctype html><title>GTHA</title>');const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:'18784',HOST:'127.0.0.1',STATIC_ROOT:root,ROUTING_ORIGIN:'http://127.0.0.1:1'}});let log='';child.stdout.on('data',d=>log+=d);child.stderr.on('data',d=>log+=d);
  try{for(let i=0;i<50&&!log.includes('ready');i++)await pause(50);assert.match(log,/ready/);const health=await fetch('http://127.0.0.1:18784/health');assert.equal(health.status,200);assert.equal((await health.json()).ok,true);const api=await fetch('http://127.0.0.1:18784/api/coverage');assert.equal(api.status,503);const output=await api.text();assert.equal(output.includes('127.0.0.1'),false);assert.equal(api.headers.get('referrer-policy'),'no-referrer');const page=await fetch('http://127.0.0.1:18784/');assert.equal(page.status,200);assert.match(await page.text(),/GTHA/);}
- finally{child.kill();await once(child,'exit');}
+ finally{child.kill();await once(child,'exit');rmSync(root,{recursive:true,force:true});}
+});
+
+test('Vehicle division endpoint paginates annotated TTC records and reports pre-filter counts', {timeout:10000}, async()=>{
+ const root=mkdtempSync(path.join(tmpdir(),'gtha-web-')),history=mkdtempSync(path.join(tmpdir(),'gtha-history-')),fixture=path.join(root,'vehicles.pb');writeFileSync(path.join(root,'index.html'),'<!doctype html><title>GTHA</title>');const now=Math.floor(Date.now()/1000);writeFileSync(fixture,vehicleFeed(now,vehicleFixture({id:'7001',timestamp:now}),vehicleFixture({id:'9001',timestamp:now})));const probe=http.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));const child=spawn(process.execPath,['server/web.mjs'],{env:{...process.env,PORT:String(port),HOST:'127.0.0.1',STATIC_ROOT:root,HISTORY_DIR:history,VEHICLE_FIXTURE_PATH:fixture,ROUTING_ORIGIN:'http://127.0.0.1:1'}});let log='';child.stdout.on('data',data=>log+=data);child.stderr.on('data',data=>log+=data);
+ try{for(let attempt=0;attempt<50&&!log.includes('ready');attempt+=1)await pause(50);assert.match(log,/ready/);const response=await fetch(`http://127.0.0.1:${port}/api/vehicles/divisions?route=29&limit=1`);assert.equal(response.status,200);const payload=await response.json();assert.equal(payload.total,2);assert.equal(payload.counts.all,2);assert.equal(payload.vehicles.length,1);assert.ok(payload.nextCursor);assert.equal(payload.source.sha256,'5A81E7680049BDFADDD9187C1867AE966939B0E5D35085E4EF583D77CEE1466C');assert.deepEqual(payload.vehicles[0].division.routeGarages,['MtD']);assert.equal(payload.vehicles[0].division.rarity.state,'available');const invalid=await fetch(`http://127.0.0.1:${port}/api/vehicles/divisions?classification=made-up`);assert.equal(invalid.status,400);}
+ finally{child.kill();await once(child,'exit');rmSync(root,{recursive:true,force:true});rmSync(history,{recursive:true,force:true});}
 });
 
 test('Real tile proxy preserves revision paths and never caches mutable or rejected tiles', {timeout:10000}, async()=>{
