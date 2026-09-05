@@ -2,13 +2,15 @@
 
 Run the service with `docker compose -f backend/compose.yaml up -d --build`. The public API listens on port `8787`; OpenTripPlanner stays on the private Compose network.
 
-* `GET /health` reports API process readiness.
+* `GET /health` verifies that the API process can query the loaded OTP graph. During graph loading or restart it returns HTTP 503 with `ROUTER_UNAVAILABLE`; it never reports healthy from the API process alone.
 * `GET /api/places?q=union` searches the local GTFS stop index. Empty queries return an empty list.
 * `GET /api/coverage` reports every feed in the active graph, its service calendar, digest, byte size, loaded state, indexed stop count, active trip counts for the graph-build date and the following 14 days, current-date availability, and explicit zero-service warnings.
 * `GET /api/departures?stopId=<feed:stop>&timeRange=3600` reads departures. Scheduled values are Unix epoch seconds computed from OTP's `serviceDay` plus the scheduled offset. `predictedArrival`, `predictedDeparture`, and `realtime` are populated only when OTP matched a verified GTFS-RT update to the scheduled trip.
 * `POST /api/plan` accepts `{from:{lat,lon},to:{lat,lon},dateTime:"2026-09-05T08:00:00-04:00",arriveBy:false,wheelchair:false,maxWalkDistance:2000,preference:"fastest",preferWashrooms:false}`. Preference may be `fastest`, `transfers`, or `walking`. When `preferWashrooms` is true, the service prefers boarding, transfer, and alighting points with officially confirmed transit facility washrooms among trips within 20 minutes and 1,000 metres walking of the fastest eligible trip. It never treats nearby cafes, malls, parks, or generic public toilets as transit facilities and never promises a facility is open.
 
 JSON bodies are limited to 32 KiB, coordinates must be finite numbers, OTP calls have a 15 second deadline, and returned legs are discarded when they lack valid endpoints. Upstream failures return one bounded public message without internal URLs or raw upstream details. No route or departure is synthesized locally.
+
+Transport or router restart failures return HTTP 503 with `ROUTER_UNAVAILABLE`. When a Toronto request has no itinerary and the active TTC feed contains zero trips for the selected date, the API returns HTTP 409 with `SCHEDULE_DATE_UNAVAILABLE`, the agency ID, selected date, and next known service date. This lets clients offer a date change without presenting a service outage as invalid input.
 
 The plan query uses OTP 2's documented `planConnection(origin, destination, dateTime, first, modes, preferences)` operation. Each leg includes string route and agency names, distance in metres, duration in seconds, and encoded polyline geometry. Each itinerary includes total distance, confirmed transit facility washrooms, the preference decision, and graph-bound provenance for the exact feed snapshot consumed by the running graph. See the [official planConnection reference](https://docs.opentripplanner.org/api/dev-2.x/graphql-gtfs/queries/planConnection). GTFS and OpenStreetMap data are loaded by the OTP deployment, while the generated `data/stops.json` provides ranked offline stop search.
 

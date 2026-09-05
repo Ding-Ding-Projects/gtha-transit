@@ -41,7 +41,9 @@ function normalizeLeg(leg, index) {
 async function queryOtp(otpUrl, timeoutMs, query, variables) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${otpUrl.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: controller.signal });
+    let response;
+    try { response = await fetch(`${otpUrl.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: controller.signal }); }
+    catch (cause) { const error = new Error("routing upstream request failed"); error.code = "UPSTREAM"; error.cause = cause; throw error; }
     if (!response.ok) { const error = new Error("routing upstream request failed"); error.code = "UPSTREAM"; throw error; }
     const payload = await response.json();
     if (payload.errors?.length) { const error = new Error("routing upstream rejected the request"); error.code = "UPSTREAM"; error.details = payload.errors; throw error; }
@@ -84,3 +86,8 @@ export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, 
 }
 
 export const graphqlDocument = GRAPHQL;
+
+export async function otpReady({ otpUrl, timeoutMs = 2000 }) {
+  const data = await queryOtp(otpUrl, timeoutMs, "{ stop(id:\"go:UN\") { name } }", {});
+  return data?.stop?.name === "Union Station GO";
+}

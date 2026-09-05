@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { searchPlaces, coverage, graphProvenance } from "./places.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
+import { readFile } from "node:fs/promises";
 import { graphqlDocument } from "./otp-client.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
@@ -30,4 +31,10 @@ test("washroom preference only promotes confirmed transit facilities", async () 
   assert.equal(result.itineraries[0].washrooms[0].name, "Finch Station");
   assert.equal(result.itineraries[0].washroomPreferenceApplied, true);
   assert.equal(result.itineraries[0].totalDistance, 500);
+});
+test("service readiness and unavailable-date responses use typed public codes", async () => {
+  const source = await readFile(new URL("./server.mjs", import.meta.url), "utf8");
+  assert.match(source, /code: "ROUTER_UNAVAILABLE"/);
+  assert.match(source, /code: "SCHEDULE_DATE_UNAVAILABLE"/);
+  assert.match(source, /await otpReady\(/);
 });
