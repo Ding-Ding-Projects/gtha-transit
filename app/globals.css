@@ -21,6 +21,21 @@
 .live-follower-map-vehicle.is-stale,.live-follower-map-person.is-stale { background:#68776d; border-style:dashed; }
 .required-route-control { display:grid; gap:10px; padding:16px; margin:12px 0; background:var(--surface2); border-radius:20px; }
 .required-route-control h3,.required-route-control p { margin:0; }
+.washroom-detour-panel { border:2px solid var(--primary); border-radius:24px; padding:clamp(14px,3vw,28px); background:var(--surface); overflow-wrap:anywhere; }
+.washroom-detour-panel__header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.washroom-detour-panel h2 { margin:0; }
+.washroom-detour-panel button { min-height:44px; border:1px solid var(--border); background:var(--surface2); color:var(--text); padding:10px 16px; border-radius:24px; display:inline-flex; gap:8px; align-items:center; justify-content:center; white-space:normal; }
+.washroom-detour-panel__close { flex:none; width:44px; padding:8px !important; }
+.washroom-detour-panel__position,.washroom-detour-panel__destinations,.washroom-detour-panel__result { margin:18px 0; padding:16px; border:1px solid var(--border); border-radius:18px; }
+.washroom-detour-panel ul { list-style:none; padding:0; }
+.washroom-detour-panel__destination { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding:14px 0; }
+.washroom-detour-panel__destination > div:first-child { display:grid; gap:6px; }
+.washroom-detour-panel__destination span { font-size:13px; color:var(--muted); }
+.washroom-detour-panel__destination-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.washroom-detour-panel__actions button { width:100%; background:var(--primary); color:var(--bg); font-weight:800; }
+.washroom-detour-panel__message { background:var(--alert-bg); color:var(--alert); padding:16px; border-radius:16px; }
+.washroom-detour-panel__facility,.washroom-detour-panel__leg,.washroom-detour-panel__continuation { padding:14px; margin:12px 0; border-radius:16px; background:var(--surface2); }
+.washroom-detour-panel input { min-height:44px; width:100%; padding:8px 12px; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:12px; }
 .live-follower__simulation,.live-follower__privacy,.live-follower__preview,.live-follower__vehicle-note { padding:14px; margin:12px 0; border-radius:14px; background:var(--surface2); }
 .live-follower__map { height:320px; border-radius:18px; overflow:hidden; isolation:isolate; }
 .live-follower__stops { max-height:360px; overflow:auto; padding-left:28px; }

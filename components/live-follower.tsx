@@ -61,6 +61,7 @@ export type LiveFollowerWashroomTarget = {
   etaSeconds: number;
   availability: 'confirmed-open' | 'unknown';
   note?: string;
+  expectedArrival?: number | string;
 };
 
 export type LiveFollowerProps = {
@@ -750,7 +751,8 @@ export default function LiveFollower({
             );
   const followedStop = publisherNext?.stop || estimatedStop || previewStop;
   const followedLegIndex = followedStop?.references[0]?.legIndex ?? 0;
-  const washroomEta =
+  const washroomArrival = typeof washroomTarget?.expectedArrival === 'number' ? washroomTarget.expectedArrival * (washroomTarget.expectedArrival < 1e12 ? 1000 : 1) : Date.parse(washroomTarget?.expectedArrival || '');
+  const washroomEta = Number.isFinite(washroomArrival) ? Math.max(0, Math.ceil((washroomArrival - now) / 60000)) :
     washroomTarget &&
     Number.isFinite(washroomTarget.etaSeconds) &&
     washroomTarget.etaSeconds >= 0
@@ -928,8 +930,8 @@ export default function LiveFollower({
                   {washroomEta === null
                     ? t('Time until this washroom was not supplied.', '未有提供到達此洗手間嘅時間。')
                     : t(
-                        `${washroomEta} min until this washroom.`,
-                        `距離此洗手間約 ${washroomEta} 分鐘。`,
+                        `${washroomEta} min until the planned washroom arrival. This does not confirm your progress.`,
+                        `距離預計到達洗手間約 ${washroomEta} 分鐘。此時間並未確認你的實際進度。`,
                       )}
                 </p>
                 <small>

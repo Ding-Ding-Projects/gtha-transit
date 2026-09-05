@@ -32,6 +32,7 @@ import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
 import RoutePicker from '../components/route-picker';
 import LiveFollower, { type LiveFollowerVehicle } from '../components/live-follower';
+import WashroomDetourPanel, { type WashroomFollowTarget, type WashroomPosition } from '../components/washroom-detour-panel';
 import DestinationList, { type Destination } from '../components/destination-list';
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
@@ -279,9 +280,15 @@ export default function Home() {
   const followerAnchor = useRef<HTMLDivElement>(null);
   const followerReturn = useRef<HTMLElement | null>(null);
   const [followerSession, setFollowerSession] = useState(0);
+  const [washroomRequest, setWashroomRequest] = useState<{ position?: WashroomPosition; destinations: Place[] } | null>(null);
+  const [washroomTarget, setWashroomTarget] = useState<(WashroomFollowTarget & { expectedArrival?: number | string }) | null>(null);
+  const washroomAnchor = useRef<HTMLDivElement>(null);
+  const washroomReturn = useRef<HTMLElement | null>(null);
+  useEffect(() => { if (washroomRequest) washroomAnchor.current?.focus(); }, [washroomRequest]);
   const openFollower = (next: { journey?: Itinerary; vehicle?: LiveFollowerVehicle }) => {
     followerReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setFollowerSession(value => value + 1);
+    setWashroomTarget(null);
     setFollower(next);
   };
   const closeFollower = () => { setFollower(null); requestAnimationFrame(() => { if (followerReturn.current?.isConnected) followerReturn.current.focus(); }); };
@@ -1078,7 +1085,8 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
-          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
+          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
+          {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'history' && <DisruptionHistory t={t} />}
           {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => openFollower({ vehicle })} />}
           {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => openFollower({ vehicle })} />}
