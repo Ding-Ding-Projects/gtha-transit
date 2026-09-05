@@ -5,7 +5,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 ## Current delivery priorities
 
 - [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
-- [ ] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click. The earlier synthetic Enter did not establish product failure.
+- [x] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click at 34f6fff. Both saved entries survived reload; the earlier synthetic Enter did not establish product failure.
 - [ ] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation.
 - [ ] Deploy and exercise manufacturer/model/year tracker filters, per-field search workbenches and the exact-assignment out-of-division planning preference. Local matching, freshness and HTTP-boundary tests pass; built-browser proof is pending.
 

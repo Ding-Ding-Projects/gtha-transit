@@ -2,7 +2,7 @@
 
 An independent journey planner for Greater Toronto and Hamilton, with cross-agency schedules, walking connections, and official TTC subway and light rail alerts.
 
-**Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. Publication is not verified until the hostname responds.
+**Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. The live frontend reports its exact build revision and Toronto update time above the workspace.
 
 ## Run locally
 
@@ -23,6 +23,7 @@ Set `ROUTING_ORIGIN` and `MAPS_ORIGIN` to the private services. Without validate
 <details><summary>Passenger features</summary>
 
 - Search places and transit stops or select coordinates on the map.
+- Use [dedicated workspaces](docs/interface/workspaces.md) with desktop side navigation and compact phone navigation; the journey composer stays on Plan while the tracker receives the full available width.
 - Plan departure-time or arrival-time journeys across agency boundaries.
 - Compare duration, transfers, walking, agencies, boarding points, intermediate stops and arrival times.
 - View official TTC subway and light rail alerts, with receipt freshness separate from publisher update time.
@@ -32,7 +33,7 @@ Set `ROUTING_ORIGIN` and `MAPS_ORIGIN` to the private services. Without validate
 - Track live TTC, GO, UP, MiWay, Burlington and HSR vehicles on a map.
 - Inspect verified manufacturer/model/build-year data, CPTDB references and attributed fleet photos.
 - See a currently assigned vehicle inside directions when a fresh exact-trip match exists.
-- Prefer washrooms inside confirmed transit facilities only.
+- Prefer confirmed transit-facility washrooms, and divert to verified municipal facilities when published hours support arrival-time availability.
 - Read actual feed coverage and calendar ranges before relying on a journey.
 - Compare first-service and transfer waiting times for each returned departure option.
 - Choose an optional [spoken narrator](docs/accessibility/narrator.md), with independent English and Cantonese voices, preview, rate, pitch and quiet controls.

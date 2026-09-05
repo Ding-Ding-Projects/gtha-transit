@@ -361,33 +361,13 @@ export default function VehicleTracker({
   };
   return (
     <div className="page-panel tracker">
-      <div className="content-heading">
-        <div>
-          <span className="eyebrow">{t('FOLLOW THE FLEET', '追蹤車隊')}</span>
-          <h2>{divisionMode ? t('Out-of-division vehicles', '跨車廠車輛') : t('Live vehicle tracker', '即時車輛追蹤')}</h2>
-        </div>
-        <button
-          className="pill"
-          disabled={busy}
-          onClick={() => setRefresh((x) => x + 1)}
-        >
-          <RefreshCw size={16} />
-          {t('Refresh', '重新整理')}
-        </button>
-      </div>
-      <p>
-        {t(
-          'Reported vehicle locations from official agency feeds. Select a marker or list entry for fleet details. Vehicles absent from the feed cannot be tracked.',
-          '官方交通公司資料通報嘅車輛位置。揀地圖標記或清單車輛查看車隊資料。來源無提供嘅車輛未能追蹤。',
-        )}
-      </p>
       <div className="tracker-filters">
         <RoutePicker agency={agency} route={route} t={t} storageId={divisionMode ? 'division-route-picker' : 'tracker-route-picker'} allowedAgencyIds={divisionMode ? TTC_ONLY : undefined} onChange={(nextAgency, nextRoute) => {
           setAgency(nextAgency); setRoute(nextRoute); setSelected(null);
         }} />
         <SearchWorkbench storageId={divisionMode ? 'division-vehicle-search' : 'tracker-vehicle-search'} label={t('Vehicle, route or fleet details', '車輛、路線或車隊資料')} value={search} onChange={setSearch} samples={samples} t={t} />
+        <button type="button" className="pill tracker-refresh" disabled={busy} onClick={() => setRefresh((x) => x + 1)} aria-label={t('Refresh vehicle positions', '重新整理車輛位置')}><RefreshCw size={16} aria-hidden="true" /><span>{t('Refresh', '重新整理')}</span></button>
       </div>
-      <FleetFilterPanel vehicles={sourceData?.vehicles ?? EMPTY_VEHICLES} value={fleetFilter} onChange={setFleetFilter} error={filterError} storageId={divisionMode ? 'division-fleet-filter' : 'tracker-fleet-filter'} t={t} />
       {filterStorageUnavailable && <p className="data-note">{t('This browser could not restore or save fleet filters. Current filtering still works.', '此瀏覽器未能還原或儲存車隊篩選，目前篩選仍然可用。')}</p>}
       {matching.error && <p className="error" role="alert">{matching.error}</p>}
       {matching.busy && <output className="data-note">{t('Matching loaded vehicles…', '配對已載入車輛中…')}</output>}
@@ -421,29 +401,6 @@ export default function VehicleTracker({
             : t('Connecting…', '連接中…')}
         </small>
       </div>
-      {data?.agencies && (
-        <details className="source-details">
-        <summary>{t('Agency colours and feed status', '交通公司顏色及資料狀態')}</summary>
-        <div
-          className="agency-legend"
-          aria-label={t(
-            'Agency colours and feed status',
-            '交通公司顏色及資料狀態',
-          )}
-        >
-          {data.agencies.map((item) => (
-            <span
-              key={item.id}
-              style={{
-                borderLeft: `5px solid ${agencyColors[item.id] || '#777'}`,
-              }}
-            >
-              {item.name} · {item.total} · {item.state}
-            </span>
-          ))}
-        </div>
-        </details>
-      )}
       {error && (
         <div className="error" role="alert">
           {error}
@@ -457,6 +414,14 @@ export default function VehicleTracker({
           '即時車輛地圖，下方清單提供無障礙替代。',
         )}
       />
+      <FleetFilterPanel vehicles={sourceData?.vehicles ?? EMPTY_VEHICLES} value={fleetFilter} onChange={setFleetFilter} error={filterError} storageId={divisionMode ? 'division-fleet-filter' : 'tracker-fleet-filter'} t={t} />
+      <details className="source-details">
+        <summary>{t('About these positions and agency feeds', '關於車輛位置同交通公司資料')}</summary>
+        <p>{t('Reported vehicle locations from official agency feeds. Select a marker or list entry for fleet details. Vehicles absent from the feed cannot be tracked.', '官方交通公司資料通報嘅車輛位置。揀地圖標記或清單車輛查看車隊資料。來源無提供嘅車輛未能追蹤。')}</p>
+        {data?.agencies && <div className="agency-legend" aria-label={t('Agency colours and feed status', '交通公司顏色及資料狀態')}>
+          {data.agencies.map(item => <span key={item.id} style={{ borderLeft: `5px solid ${agencyColors[item.id] || '#777'}` }}>{item.name} · {item.total} · {item.state}</span>)}
+        </div>}
+      </details>
       {tileError && (
         <p className="data-note">
           {t(
