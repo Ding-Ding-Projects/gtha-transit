@@ -13,6 +13,7 @@ export const TTC_LINES = [
 const MAX_BYTES = 2 * 1024 * 1024;
 const MAX_ENTITIES = 2000;
 const MAX_WEB_ALERTS = 5000;
+const MAX_ROUTE_REFS = 250;
 const MAX_TEXT = 2000;
 const MAX_AGE_MS = 10 * 60 * 1000;
 const CACHE_MS = 45_000;
@@ -56,19 +57,42 @@ function translated(bytes) {
   const translations = many(fields(bytes), 1).map((v) => fields(v)).map((f) => ({ text: utf8(first(f, 1) ?? new Uint8Array()), language: utf8(first(f, 2) ?? new Uint8Array()) })).filter((v) => v.text);
   return translations.find((v) => /^en(?:-|$)/i.test(v.language))?.text ?? translations[0]?.text ?? '';
 }
-function routeIds(bytes) {
-  return many(fields(bytes), 5).map((v) => utf8(first(fields(v), 2) ?? new Uint8Array())).filter(Boolean);
+function routeReferences(bytes) {
+  const refs = [];
+  let network = false;
+  let routes = false;
+  let unknown = false;
+  const selectors = many(fields(bytes), 5);
+  if (selectors.length > MAX_ROUTE_REFS) throw new Error('TTC alert route selector count exceeds the safety bound');
+  for (const selectorBytes of selectors) {
+    const selector = fields(selectorBytes);
+    const routeId = utf8(first(selector, 2) ?? new Uint8Array());
+    const type = first(selector, 3);
+    const routeType = typeof type === 'bigint' && type >= 0n && type <= 2147483647n ? Number(type) : undefined;
+    if (routeId || routeType !== undefined) { routes = true; refs.push({ ...(routeId ? { routeId } : {}), ...(routeType !== undefined ? { routeType } : {}) }); }
+    else if (selector.length && selector.every(([number]) => number === 1)) network = true;
+    else unknown = true;
+  }
+  const uniqueRefs = [];
+  const seenRefs = new Set();
+  for (const ref of refs) {
+    const key = `${ref.routeId ?? ''}\u0000${ref.routeType ?? ''}`;
+    if (!seenRefs.has(key)) { seenRefs.add(key); uniqueRefs.push(ref); }
+  }
+  return { refs: uniqueRefs, scope: network ? 'network' : routes ? 'routes' : unknown ? 'unknown' : 'unknown' };
 }
 function parseAlert(bytes, entityId, feedTimestamp, now) {
   const fs = fields(bytes);
   const periods = many(fs, 1).map((v) => fields(v)).map((f) => ({ start: iso(Number(first(f, 1) ?? 0n)), end: iso(Number(first(f, 2) ?? 0n)) }));
-  const routes = [...new Set(routeIds(bytes))];
+  const routeMetadata = routeReferences(bytes);
+  const routeRefs = routeMetadata.refs;
+  const routes = [...new Set(routeRefs.map((ref) => ref.routeId).filter(Boolean))];
   const header = translated(first(fs, 10) ?? new Uint8Array());
   const description = translated(first(fs, 11) ?? new Uint8Array());
   const activeFrom = periods.map((p) => p.start).filter(Boolean).sort()[0];
   const activeTo = periods.map((p) => p.end).filter(Boolean).sort().at(-1);
   const active = periods.length === 0 || periods.some((period) => (!period.start || Date.parse(period.start) <= now) && (!period.end || Date.parse(period.end) >= now));
-  return { alert: { id: text(entityId) || `ttc-alert-${feedTimestamp}`, title: header || 'TTC service alert', description, url: /^https:\/\//i.test(translated(first(fs, 8) ?? new Uint8Array())) ? translated(first(fs, 8) ?? new Uint8Array()) : '', updatedAt: iso(feedTimestamp) ?? new Date().toISOString(), ...(activeFrom ? { activeFrom } : {}), ...(activeTo ? { activeTo } : {}) }, routes, active };
+  return { alert: { id: text(entityId) || `ttc-alert-${feedTimestamp}`, title: header || 'TTC service alert', description, url: /^https:\/\//i.test(translated(first(fs, 8) ?? new Uint8Array())) ? translated(first(fs, 8) ?? new Uint8Array()) : '', updatedAt: iso(feedTimestamp) ?? new Date().toISOString(), routeIds: routes, routeRefs, routeScope: routeMetadata.scope, ...(activeFrom ? { activeFrom } : {}), ...(activeTo ? { activeTo } : {}) }, routes, scope: routeMetadata.scope, active };
 }
 
 export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString(), now = Date.now() } = {}) {
@@ -86,7 +110,7 @@ export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString(), no
   const age = now - feedTimestamp * 1000;
   const state = age > MAX_AGE_MS || age < -60_000 ? 'stale' : 'live';
   const coveredRoutes = new Set(parsed.flatMap((v) => v.routes));
-  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && (!v.routes.length || v.routes.includes(line.id))).map((v) => v.alert); const covered = coveredRoutes.has(line.id) || parsed.some((v) => v.active && !v.routes.length); return { ...line, state: state === 'live' && covered ? (lineAlerts.length ? 'disrupted' : 'good') : 'unknown', alerts: lineAlerts }; });
+  const lines = TTC_LINES.map((line) => { const lineAlerts = parsed.filter((v) => v.active && (v.scope === 'network' || v.routes.includes(line.id))).map((v) => v.alert); const covered = coveredRoutes.has(line.id) || parsed.some((v) => v.active && v.scope === 'network'); return { ...line, state: state === 'live' && covered ? (lineAlerts.length ? 'disrupted' : 'good') : 'unknown', alerts: lineAlerts }; });
   return { state, fetchedAt, sourceUpdatedAt: iso(feedTimestamp), sourceUrl: TTC_ALERTS_URL, lines, alerts };
 }
 
@@ -108,7 +132,11 @@ export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(
   if (!timestamp(fetchedAt)) throw new Error('TTC fetch timestamp must include an explicit timezone');
   const alerts = payload.routeAlerts.map((item) => {
     if (!item || typeof item !== 'object') throw new Error('TTC web alert entry is invalid');
-    const routes = String(item.route ?? '').split('|').map((route) => route.trim()).filter(Boolean);
+    const routes = [...new Set(String(item.route ?? '').split(/[|,]/).map((route) => text(route)).filter(Boolean))];
+    if (routes.length > MAX_ROUTE_REFS) throw new Error('TTC web alert route reference count exceeds the safety bound');
+    const routeType = text(item.routeType);
+    const routeScope = routes.length ? 'routes' : routeType ? 'unknown' : 'network';
+    const routeRefs = routes.length ? routes.map((routeId) => ({ routeId, ...(routeType ? { routeType } : {}) })) : routeType ? [{ routeType }] : [];
     const period = item.activePeriod ?? {};
     if (!period || typeof period !== 'object') throw new Error('TTC web alert period is invalid');
     const start = period.start ? timestamp(period.start) : undefined;
@@ -117,9 +145,9 @@ export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(
     const active = (!start || Date.parse(start) <= now) && (!end || Date.parse(end) >= now);
     const effect = text(item.effectDesc);
     const disrupted = !/^regular service(?:\s|$)/i.test(effect);
-    return { routes, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
+    return { routes, routeScope, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), routeIds: routes, routeRefs, routeScope, ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
   }).filter((item) => item.active);
-  const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.disrupted && (!item.routes.length || item.routes.includes(line.id))).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
+  const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.disrupted && (item.routeScope === 'network' || item.routes.includes(line.id))).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
   return { state: 'live', fetchedAt: timestamp(fetchedAt), sourceUpdatedAtRaw, ...(sourceUpdatedAt ? { sourceUpdatedAt } : {}), sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };
 }
 
