@@ -66,13 +66,18 @@ test("coverage date uses the graph timezone across an offset boundary", () => {
 });
 test("adjacent TTC graph snapshots expose one truthful public calendar", () => {
   const grouped = groupGraphFeeds([
-    { id: "ttc", publicAgencyId: "ttc", serviceStart: "20260726", serviceEnd: "20260905", activeTripsByDate: { "2026-09-05": 3000, "2026-09-06": 0 } },
-    { id: "ttc-next", publicAgencyId: "ttc", serviceStart: "20260906", serviceEnd: "20261031", activeTripsByDate: { "2026-09-05": 0, "2026-09-06": 3100 } }
+    { id: "ttc", publicAgencyId: "ttc", sha256: "summer", publisherDownloadUrl: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 3000, "2026-09-06": 0 } },
+    { id: "ttc-next", publicAgencyId: "ttc", sha256: "fall", publisherDownloadUrl: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05", activeTripsByDate: { "2026-09-05": 0, "2026-09-06": 3100 } }
   ]);
   assert.equal(grouped.length, 1);
   assert.equal(grouped[0].serviceStart, "20260726");
   assert.equal(grouped[0].serviceEnd, "20261031");
   assert.deepEqual(grouped[0].activeTripsByDate, { "2026-09-05": 3000, "2026-09-06": 3100 });
+  assert.deepEqual(grouped[0].sources, ["https://archive.example/summer.zip", "https://publisher.example/fall.zip"]);
+  assert.deepEqual(grouped[0].versions, [
+    { id: "ttc", sha256: "summer", source: "https://archive.example/summer.zip", serviceStart: "20260726", serviceEnd: "20260905", retireAfter: "2026-09-05", promoteAfter: null },
+    { id: "ttc-next", sha256: "fall", source: "https://publisher.example/fall.zip", serviceStart: "20260906", serviceEnd: "20261031", retireAfter: null, promoteAfter: "2026-09-05" }
+  ]);
   assert.equal(publicAgencyFeedId("ttc-next"), "ttc");
 });
 test("journey ranking includes waiting time and respects arrival planning", () => {
