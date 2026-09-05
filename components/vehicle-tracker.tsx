@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Map as LeafletMap, LayerGroup } from 'leaflet';
 import VehiclePhotoCaption from './vehicle-photo-caption';
+import RoutePicker from './route-picker';
 import { attachMapTiles } from '../lib/map-tiles';
 import { vehiclePage } from '../lib/vehicle-page';
 type Vehicle = {
@@ -338,31 +339,9 @@ export default function VehicleTracker({
         )}
       </p>
       <div className="tracker-filters">
-        <label>
-          {t('Transit agency', '交通公司')}
-          <select
-            value={agency}
-            onChange={(e) => {
-              setAgency(e.target.value);
-              setRoute('');
-              setSelected(null);
-            }}
-          >
-            {[
-              ['all', t('All agencies', '所有交通公司')],
-              ['ttc', 'TTC'],
-              ['go', 'GO Transit'],
-              ['up', 'UP Express'],
-              ['miway', 'MiWay'],
-              ['burlington', 'Burlington Transit'],
-              ['hsr', 'HSR'],
-            ].map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <RoutePicker agency={agency} route={route} t={t} onChange={(nextAgency, nextRoute) => {
+          setAgency(nextAgency); setRoute(nextRoute); setSelected(null);
+        }} />
         <label>
           <Search size={16} />
           {t('Vehicle or fleet details', '車輛或車隊資料')}
@@ -376,27 +355,6 @@ export default function VehicleTracker({
               '車隊編號、製造商、型號',
             )}
           />
-        </label>
-        <label>
-          {t('Route', '路線')}
-          <input
-            value={route}
-            list="tracker-routes"
-            onChange={(e) => setRoute(e.target.value)}
-            maxLength={20}
-            placeholder={t('All routes', '全部路線')}
-          />
-          <datalist id="tracker-routes">
-            {[
-              ...new Set(
-                (data?.vehicles || []).map((v) => v.routeId).filter(Boolean),
-              ),
-            ]
-              .sort()
-              .map((id) => (
-                <option key={id} value={id} />
-              ))}
-          </datalist>
         </label>
       </div>
       <div className="source-state">
