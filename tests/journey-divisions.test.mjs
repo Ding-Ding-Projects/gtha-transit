@@ -18,13 +18,28 @@ test('parses current leg times in Unix seconds, Unix milliseconds, and ISO form'
   for (const leg of [seconds, millis, iso]) assert.equal(annotateJourneyDivisions([{ legs: [leg] }], registry, { now: NOW }).itineraries[0].legs[0].vehicleDivision.state, 'out-of-division');
 });
 
-test('withholds division evidence for past, future, ambiguous, expired, and route-only assignments', () => {
+test('withholds division evidence for completed, too-distant, ambiguous, expired, and route-only assignments', () => {
   const routeOnly = assigned({ vehicleAssignment: { state: 'no-match', method: 'route' } });
-  const legs = [assigned({ endTime: NOW - 1 }), assigned({ startTime: NOW + 1 }), assigned({ vehicle: { ...assigned().vehicle, fleetNumber: '9001' } }), routeOnly];
+  const legs = [assigned({ endTime: NOW - 1 }), assigned({ startTime: NOW + 7_200_001, endTime: NOW + 7_260_001 }), assigned({ vehicle: { ...assigned().vehicle, fleetNumber: '9001' } }), routeOnly];
   const result = annotateJourneyDivisions([{ legs }], registry, { now: NOW });
   assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.vehicleDivision.reason), ['leg-is-not-current', 'leg-is-not-current', 'multi-garage-fleet-allocation', 'no-exact-vehicle-assignment']);
   const expiredNow = Date.parse('2026-09-06T04:01:00Z'); const expiredLeg = assigned({ startTime: expiredNow - 60_000, endTime: expiredNow + 60_000, vehicle: { ...assigned().vehicle, timestamp: expiredNow - 30_000 } });
   assert.equal(annotateJourneyDivisions([{ legs: [expiredLeg] }], registry, { now: expiredNow }).itineraries[0].legs[0].vehicleDivision.reason, 'allocation-source-expired');
+});
+
+test('accepts a verified upcoming boarding within two hours but not one three hours away', () => {
+  const upcoming = assigned({ startTime: NOW + 600_000, endTime: NOW + 1_200_000 });
+  const distant = assigned({ startTime: NOW + 10_800_000, endTime: NOW + 10_860_000 });
+  const result = annotateJourneyDivisions([{ legs: [upcoming, distant] }], registry, { now: NOW });
+  assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.vehicleDivision.state), ['out-of-division', 'unknown']);
+  assert.equal(result.itineraries[0].legs[1].vehicleDivision.reason, 'leg-is-not-current');
+});
+
+test('ignores walking and rejects feed aliases outside ttc and ttc-next plus explicit route mismatch', () => {
+  const walking = assigned({ mode: 'WALK' }); const wrongFeed = assigned({ agencyFeedId: 'ttc-other' }); const mismatch = assigned({ routeId: 'ttc-next:29', vehicle: { ...assigned().vehicle, routeId: 'ttc:7' } });
+  const result = annotateJourneyDivisions([{ legs: [walking, wrongFeed, mismatch] }], registry, { now: NOW });
+  assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.vehicleDivision.reason), ['walking-leg', 'not-a-ttc-exact-vehicle-assignment', 'vehicle-route-mismatch']);
+  assert.equal(result.unknown, 2);
 });
 
 test('soft preference is stable, preserves options, and never boosts route-only facts', () => {

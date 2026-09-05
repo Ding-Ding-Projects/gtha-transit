@@ -9,17 +9,21 @@ const timestampMs = (value) => {
   }
   return null;
 };
-const isTtcFeed = (value) => /^ttc(?:$|[-:])/i.test(String(value ?? '').trim());
+const isTtcFeed = (value) => ['ttc', 'ttc-next'].includes(String(value ?? '').trim().toLocaleLowerCase());
+const routeId = (value) => String(value ?? '').trim().replace(/^(?:ttc|ttc-next):/i, '');
 const unknown = (reason) => ({ state: 'unknown', reason });
 
 function classifyJourneyLeg(leg, registry, now) {
+  if (['WALK', 'WALKING'].includes(String(leg?.mode ?? '').toUpperCase())) return { state: 'ignored', reason: 'walking-leg' };
   if (leg?.vehicleAssignment?.state !== 'matched' || leg.vehicleAssignment.method !== 'exact-trip-id') return unknown('no-exact-vehicle-assignment');
   if (!leg?.vehicle || !isTtcFeed(leg.agencyFeedId) || leg.vehicle.agencyId !== 'ttc') return unknown('not-a-ttc-exact-vehicle-assignment');
-  if (!String(leg.routeId ?? '').trim()) return unknown('missing-leg-route');
+  const route = routeId(leg.routeId);
+  if (!route) return unknown('missing-leg-route');
+  if (leg.vehicle.routeId && routeId(leg.vehicle.routeId) !== route) return unknown('vehicle-route-mismatch');
   const start = timestampMs(leg.startTime); const end = timestampMs(leg.endTime);
   if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return unknown('invalid-leg-time');
-  if (now < start || now > end) return unknown('leg-is-not-current');
-  return classifyOutOfDivision(leg.vehicle, leg.routeId, registry, { now });
+  if (end < now || start > now + 7_200_000) return unknown('leg-is-not-current');
+  return classifyOutOfDivision(leg.vehicle, route, registry, { now });
 }
 
 /** Attach dated, assignment-bound division evidence without changing itinerary or leg inputs. */
