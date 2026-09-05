@@ -36,14 +36,17 @@ const patternIndex = {
   },
 };
 
+const summerValidity = { serviceStart: "20260726", serviceEnd: "20260905", promoteAfter: null, retireAfter: null };
+const fallValidity = { serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05", retireAfter: null };
+const unknownValidity = { serviceStart: null, serviceEnd: null, promoteAfter: null, retireAfter: null };
 const stopIndex = {
   stops: [
-    { id: "ttc:PARENT", name: "Summer Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 1, parentStation: null, code: "P", agency: "TTC" },
-    { id: "ttc-next:PARENT", name: "Fall Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 1, parentStation: null, code: "P", agency: "TTC" },
-    { id: "ttc:CHILD-A", name: "Summer Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC" },
-    { id: "ttc-next:CHILD-A", name: "Fall Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC" },
-    { id: "ttc-next:ALIAS-ONLY", name: "Alias Only", lat: 43.71, lon: -79.41, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC" },
-    { id: "ttc:NEARBY", name: "Nearby but unserved", lat: 43.7001, lon: -79.4001, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: "N", agency: "TTC" },
+    { id: "ttc:PARENT", name: "Summer Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 1, parentStation: null, code: "P", agency: "TTC", validity: summerValidity },
+    { id: "ttc-next:PARENT", name: "Fall Parent", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 1, parentStation: null, code: "P", agency: "TTC", validity: fallValidity },
+    { id: "ttc:CHILD-A", name: "Summer Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC", validity: summerValidity },
+    { id: "ttc-next:CHILD-A", name: "Fall Platform A", lat: 43.7, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: "PARENT", code: "A", agency: "TTC", validity: fallValidity },
+    { id: "ttc-next:ALIAS-ONLY", name: "Alias Only", lat: 43.71, lon: -79.41, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: fallValidity },
+    { id: "ttc:NEARBY", name: "Nearby but unserved", lat: 43.7001, lon: -79.4001, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: "N", agency: "TTC", validity: summerValidity },
   ],
 };
 
@@ -87,6 +90,37 @@ test("published stops resolve exact source IDs and explicit stable aliases witho
   assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:ALIAS-ONLY", { date: "2026-09-06" })?.id, "ttc-next:ALIAS-ONLY");
   assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NOT-A-STOP", { date: "2026-09-06" }), null);
   assert.deepEqual(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NEARBY", { date: "2026-09-05" })?.servingRoutes, []);
+});
+
+test("published stop anchors require exact source validity and select one active alias", () => {
+  const stops = structuredClone(stopIndex);
+  const patterns = structuredClone(patternIndex);
+  stops.stops.push(
+    { id: "ttc:STALE-DIRECT", name: "Stale direct", lat: 43.73, lon: -79.43, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: summerValidity },
+    { id: "ttc:UNKNOWN-VALIDITY", name: "Unknown validity", lat: 43.74, lon: -79.44, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: unknownValidity },
+    { id: "ttc:OLD-ALIAS", name: "Old alias", lat: 43.75, lon: -79.45, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: summerValidity },
+    { id: "ttc-next:ACTIVE-ALIAS", name: "Active alias", lat: 43.75, lon: -79.45, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: fallValidity },
+    { id: "ttc:STALE-ALIAS", name: "Stale alias source", lat: 43.76, lon: -79.46, feedId: "ttc", graphFeedId: "ttc", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: summerValidity },
+    { id: "ttc-next:STALE-ALIAS", name: "Stale alias target", lat: 43.76, lon: -79.46, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: summerValidity },
+  );
+  patterns.stopAliases["ttc:OLD-ALIAS"] = ["ttc:OLD-ALIAS", "ttc-next:ACTIVE-ALIAS"];
+  patterns.stopAliases["ttc:STALE-ALIAS"] = ["ttc:STALE-ALIAS", "ttc-next:STALE-ALIAS"];
+  assert.equal(publishedStopForIdFromIndexes(stops, routeIndex, patterns, "ttc:STALE-DIRECT", { date: "2026-09-06" }), null);
+  assert.equal(publishedStopForIdFromIndexes(stops, routeIndex, patterns, "ttc:UNKNOWN-VALIDITY", { date: "2026-09-06" }), null);
+  assert.equal(publishedStopForIdFromIndexes(stops, routeIndex, patterns, "ttc:STALE-ALIAS", { date: "2026-09-06" }), null);
+  assert.equal(publishedStopForIdFromIndexes(stops, routeIndex, patterns, "ttc:OLD-ALIAS", { date: "2026-09-06" })?.id, "ttc-next:ACTIVE-ALIAS");
+});
+
+test("published stop anchors require numeric in-range source coordinates", () => {
+  const invalid = [null, "", "   ", false, "43.7", Number.NaN, Infinity, 91];
+  for (const [index, value] of invalid.entries()) {
+    const stops = structuredClone(stopIndex);
+    stops.stops.push({ id: `ttc-next:INVALID-${index}`, name: "Invalid coordinate", lat: value, lon: -79.4, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: fallValidity });
+    assert.equal(publishedStopForIdFromIndexes(stops, routeIndex, patternIndex, `ttc-next:INVALID-${index}`, { date: "2026-09-06" }), null);
+  }
+  const zero = structuredClone(stopIndex);
+  zero.stops.push({ id: "ttc-next:ZERO", name: "Prime Meridian", lat: 0, lon: 0, feedId: "ttc", graphFeedId: "ttc-next", locationType: 0, parentStation: null, code: null, agency: "TTC", validity: fallValidity });
+  assert.deepEqual(publishedStopForIdFromIndexes(zero, routeIndex, patternIndex, "ttc-next:ZERO", { date: "2026-09-06" })?.id, "ttc-next:ZERO");
 });
 
 test("date-scoped place search excludes only known out-of-range feed versions before generic ranking", () => {
