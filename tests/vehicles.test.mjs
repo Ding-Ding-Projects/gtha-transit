@@ -60,3 +60,8 @@ test('preserves the last snapshot as stale after a refresh failure', async () =>
 });
 
 test('returns an honest unavailable snapshot before any successful response', async () => { clearVehicleCache(); const result = await getVehicleSnapshot({ fetchImpl: async () => { throw new Error('offline'); }, now: 1700000000000 }); assert.equal(result.state, 'unavailable'); assert.equal(result.total, 0); assert.deepEqual(result.vehicles, []); });
+
+test('conflicting or oversized source photographs are not attached', () => {
+  assert.equal(matchVehiclePhoto('9441', matchCptdb('9441')), null);
+  assert.equal(matchVehiclePhoto('2283', {}, 'hsr'), null);
+});
