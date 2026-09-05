@@ -32,15 +32,10 @@ export function annotateJourneyRouteOpportunities(itineraries, snapshot, registr
     if (snapshot?.state !== 'live' || snapshot?.agencyId !== 'ttc') return unknown(eligibility.route, 'snapshot-not-live-ttc');
     const group = byRoute.get(eligibility.route);
     if (!group?.out.length) return unknown(eligibility.route, group?.reasons[0] ?? 'no-verified-out-of-division-vehicle');
-    const selected = group.out.slice(0, 20); const validUntil = Math.min(eligibility.end, ...selected.map(({ vehicle }) => timestampMs(vehicle.timestamp) + 120_000));
-    return { state: 'observed', routeId: eligibility.route, vehicleCount: group.out.length, vehicleIds: selected.map(({ vehicle }) => String(vehicle.id)), fleetNumbers: selected.map(({ vehicle }) => String(vehicle.fleetNumber ?? vehicle.label ?? '')).filter(Boolean), checkedAt: now, validUntil, source: selected[0].classification.source, disclosure };
+    const selected = [...group.out].sort((left, right) => timestampMs(right.vehicle.timestamp) - timestampMs(left.vehicle.timestamp)).slice(0, 20);
+    const observations = selected.map(({ vehicle }) => ({ id: String(vehicle.id), fleetNumber: String(vehicle.fleetNumber ?? vehicle.label ?? ''), validUntil: Math.min(eligibility.end, timestampMs(vehicle.timestamp) + 120_000) }));
+    return { state: 'observed', routeId: eligibility.route, vehicleCount: group.out.length, vehicleIds: observations.map((vehicle) => vehicle.id), fleetNumbers: observations.map((vehicle) => vehicle.fleetNumber).filter(Boolean), observations, truncated: group.out.length > observations.length, checkedAt: now, validUntil: Math.max(...observations.map((vehicle) => vehicle.validUntil)), source: selected[0].classification.source, disclosure };
   };
   const annotated = (Array.isArray(itineraries) ? itineraries : []).map((itinerary) => ({ ...itinerary, legs: (Array.isArray(itinerary?.legs) ? itinerary.legs : []).map((leg) => ({ ...leg, routeDivisionOpportunity: routeEvidence(leg) })) }));
   return { itineraries: annotated };
-}
-
-export function applyJourneyRouteOpportunityPreference(itineraries, { enabled = false, now = Date.now() } = {}) {
-  const entries = (Array.isArray(itineraries) ? itineraries : []).map((itinerary) => ({ itinerary, observed: (itinerary?.legs ?? []).some((leg) => leg?.routeDivisionOpportunity?.state === 'observed' && now >= leg.routeDivisionOpportunity.checkedAt && now <= leg.routeDivisionOpportunity.validUntil) }));
-  const ordered = enabled ? [...entries.filter((entry) => entry.observed), ...entries.filter((entry) => !entry.observed)] : entries;
-  return { itineraries: ordered.map((entry) => entry.itinerary), matched: entries.filter((entry) => entry.observed).length, preferenceApplied: Boolean(enabled) && entries.some((entry) => entry.observed) };
 }
