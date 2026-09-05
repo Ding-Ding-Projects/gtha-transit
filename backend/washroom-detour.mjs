@@ -4,6 +4,9 @@ import { canonicalAgencyId } from "../shared/washroom-identities.mjs";
 export const MAX_WASHROOM_CANDIDATES = 6;
 export const MAX_WASHROOM_CONCURRENCY = 2;
 export const MAX_WASHROOM_DETOUR_DEADLINE_MS = 24_000;
+export const DEFAULT_WASHROOM_VISIT_MINUTES = 10;
+export const MIN_WASHROOM_VISIT_MINUTES = 1;
+export const MAX_WASHROOM_VISIT_MINUTES = 60;
 
 const numeric = (value) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
@@ -114,6 +117,12 @@ function validDateTime(value) {
   return typeof value === "string" && Number.isFinite(Date.parse(value)) && /(?:Z|[+-]\d\d:\d\d)$/i.test(value) ? value : null;
 }
 
+function visitDurationSeconds(value) {
+  const minutes = value == null ? DEFAULT_WASHROOM_VISIT_MINUTES : numeric(value);
+  if (!Number.isInteger(minutes) || minutes < MIN_WASHROOM_VISIT_MINUTES || minutes > MAX_WASHROOM_VISIT_MINUTES) return null;
+  return minutes * 60;
+}
+
 function durationSeconds(itinerary, departureAt) {
   const reported = numeric(itinerary?.duration);
   if (reported !== null && reported >= 0) return Math.round(reported);
@@ -208,6 +217,8 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
   const via = viaResult.via;
   const dateTime = validDateTime(input?.dateTime);
   if (!dateTime) return scopedNoResult(facilityOnly, "DATETIME_UNRESOLVED", "A timestamp with an explicit offset is required before availability can be checked at facility arrival.");
+  const plannedVisitSeconds = visitDurationSeconds(input?.visitMinutes);
+  if (plannedVisitSeconds === null) return scopedNoResult(facilityOnly, "VISIT_DURATION_UNRESOLVED", `Visit time must be a whole number from ${MIN_WASHROOM_VISIT_MINUTES} through ${MAX_WASHROOM_VISIT_MINUTES} minutes.`);
 
   const deadline = now() + Math.min(MAX_WASHROOM_DETOUR_DEADLINE_MS, Math.max(1, numeric(deadlineMs) ?? MAX_WASHROOM_DETOUR_DEADLINE_MS));
   const facilities = list(facilityRegistry);
@@ -233,9 +244,10 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
       const expectedArrival = arrivalTime(immediateItinerary.itinerary, dateTime, immediateItinerary.duration);
       const availability = facilityAvailability(candidate.facility, expectedArrival);
       if (availability !== "confirmed-open") return { state: availability === "closed" ? "closed-at-arrival" : "unknown-at-arrival", candidate, expectedArrival };
-      const facilityLeg = { itinerary: immediateItinerary.itinerary, from: current.point, to: candidate.location.point, timeToFacilitySeconds: immediateItinerary.duration, expectedArrival, internalWalkingUnknown: true, locationSource: candidate.location.source };
+      const departAfterVisit = new Date(Date.parse(expectedArrival) + plannedVisitSeconds * 1000).toISOString();
+      const facilityLeg = { itinerary: immediateItinerary.itinerary, from: current.point, to: candidate.location.point, timeToFacilitySeconds: immediateItinerary.duration, expectedArrival, visitDurationSeconds: plannedVisitSeconds, visitMinutes: plannedVisitSeconds / 60, departAfterVisit, internalWalkingUnknown: true, locationSource: candidate.location.source };
       if (facilityOnly) return { state: "facility-only", candidate, availability, facilityLeg };
-      const continuation = await boundedPlan(planWithOtp, { ...options, from: candidate.location.point, to: destination, via, dateTime: expectedArrival, arriveBy: false }, deadline, now);
+      const continuation = await boundedPlan(planWithOtp, { ...options, from: candidate.location.point, to: destination, via, dateTime: departAfterVisit, arriveBy: false }, deadline, now);
       if (continuation.error) return { state: continuation.error, candidate, availability, facilityLeg };
       const continuationItinerary = itineraryFrom(continuation.result, expectedArrival);
       if (!continuationItinerary) return { state: "continuation-unresolved", candidate, availability, facilityLeg };
@@ -246,14 +258,14 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
   });
   if (facilityOnly) {
     const facility = results.filter((result) => result?.state === "facility-only").sort((left, right) => left.facilityLeg.timeToFacilitySeconds - right.facilityLeg.timeToFacilitySeconds || String(left.candidate.facility.facilityId ?? "").localeCompare(String(right.candidate.facility.facilityId ?? "")))[0];
-    if (facility) return { status: "facility-only", scope: "facility-only", completeJourney: false, facility: publicFacility(facility.candidate.facility, facility.availability), facilityLeg: facility.facilityLeg, continuation: null, unresolved: null, candidateCount: pool.length, note: "The facility is confirmed open at expected arrival. No onward journey was requested or claimed. Internal walking distance and access within the facility are unknown.", locationSource: current.source };
+    if (facility) return { status: "facility-only", scope: "facility-only", completeJourney: false, facility: publicFacility(facility.candidate.facility, facility.availability), facilityLeg: facility.facilityLeg, continuation: null, unresolved: null, candidateCount: pool.length, note: `The facility is confirmed open at expected arrival. A planned ${facility.facilityLeg.visitMinutes}-minute visit is not an observed dwell time. No onward journey was requested or claimed. Internal walking distance and access within the facility are unknown.`, locationSource: current.source };
     const timedOut = results.some((result) => result?.state === "deadline");
     return { status: timedOut ? "unresolved" : "unroutable", scope: "facility-only", completeJourney: false, facility: null, facilityLeg: null, continuation: null, unresolved: { code: timedOut ? "DETOUR_TIMEOUT" : "NO_REACHABLE_OPEN_FACILITY", attempts: results.map((result) => ({ facilityId: result?.candidate?.facility?.facilityId ?? null, state: result?.state ?? "unresolved" })) }, candidateCount: pool.length, note: timedOut ? "Facility-only washroom routing reached its bounded planning deadline before a result was available." : "No nearby facility could be confirmed open at its expected arrival time.", locationSource: current.source };
   }
-  const complete = results.filter((result) => result?.state === "complete").sort((left, right) => left.facilityLeg.timeToFacilitySeconds + left.continuationDurationSeconds - right.facilityLeg.timeToFacilitySeconds - right.continuationDurationSeconds || String(left.candidate.facility.facilityId ?? "").localeCompare(String(right.candidate.facility.facilityId ?? "")))[0];
-  if (complete) return { status: "complete", completeJourney: true, facility: publicFacility(complete.candidate.facility, complete.availability), facilityLeg: complete.facilityLeg, continuation: { itinerary: complete.continuation, durationSeconds: complete.continuationDurationSeconds, preservedTo: destination, preservedVia: via }, unresolved: null, candidateCount: pool.length, note: "The facility is confirmed open at expected arrival. Internal walking distance and access within the facility are unknown.", locationSource: current.source };
+  const complete = results.filter((result) => result?.state === "complete").sort((left, right) => left.facilityLeg.timeToFacilitySeconds - right.facilityLeg.timeToFacilitySeconds || left.continuationDurationSeconds - right.continuationDurationSeconds || String(left.candidate.facility.facilityId ?? "").localeCompare(String(right.candidate.facility.facilityId ?? "")))[0];
+  if (complete) return { status: "complete", completeJourney: true, facility: publicFacility(complete.candidate.facility, complete.availability), facilityLeg: complete.facilityLeg, continuation: { itinerary: complete.continuation, durationSeconds: complete.continuationDurationSeconds, departAfterVisit: complete.facilityLeg.departAfterVisit, preservedTo: destination, preservedVia: via }, unresolved: null, candidateCount: pool.length, note: `The facility is confirmed open at expected arrival. A planned ${complete.facilityLeg.visitMinutes}-minute visit is not an observed dwell time. Internal walking distance and access within the facility are unknown.`, locationSource: current.source };
   const partial = results.filter((result) => result?.facilityLeg).sort((left, right) => left.facilityLeg.timeToFacilitySeconds - right.facilityLeg.timeToFacilitySeconds || String(left.candidate.facility.facilityId ?? "").localeCompare(String(right.candidate.facility.facilityId ?? "")))[0];
-  if (partial) return { status: "partial", completeJourney: false, facility: publicFacility(partial.candidate.facility, partial.availability), facilityLeg: partial.facilityLeg, continuation: null, unresolved: { code: partial.state === "deadline" ? "CONTINUATION_TIMEOUT" : "CONTINUATION_UNRESOLVED", preservedTo: destination, preservedVia: via }, candidateCount: pool.length, note: "The facility is confirmed open at expected arrival, but the remaining journey could not be resolved. Internal walking distance and access within the facility are unknown.", locationSource: current.source };
+  if (partial) return { status: "partial", completeJourney: false, facility: publicFacility(partial.candidate.facility, partial.availability), facilityLeg: partial.facilityLeg, continuation: null, unresolved: { code: partial.state === "deadline" ? "CONTINUATION_TIMEOUT" : "CONTINUATION_UNRESOLVED", preservedTo: destination, preservedVia: via }, candidateCount: pool.length, note: `The facility is confirmed open at expected arrival, but the remaining journey could not be resolved after a planned ${partial.facilityLeg.visitMinutes}-minute visit. The visit is not an observed dwell time. Internal walking distance and access within the facility are unknown.`, locationSource: current.source };
   const timedOut = results.some((result) => result?.state === "deadline");
   return { status: timedOut ? "unresolved" : "unroutable", completeJourney: false, facility: null, facilityLeg: null, continuation: null, unresolved: { code: timedOut ? "DETOUR_TIMEOUT" : "NO_REACHABLE_OPEN_FACILITY", attempts: results.map((result) => ({ facilityId: result?.candidate?.facility?.facilityId ?? null, state: result?.state ?? "unresolved" })) }, candidateCount: pool.length, note: timedOut ? "Washroom routing reached its bounded planning deadline before a complete result was available." : "No nearby facility could be confirmed open at its expected arrival time.", locationSource: current.source };
 }

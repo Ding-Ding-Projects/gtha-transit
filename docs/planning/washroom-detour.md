@@ -39,7 +39,9 @@ The required input has these fields:
 
 `currentPosition` must be an explicit coordinate, or an exact agency-qualified stop identity that resolves uniquely through the local stop index. The operation never falls back to a display name or an earlier trip origin. A facility route uses either published facility coordinates or a unique explicit GTFS identity. It never geocodes a facility name.
 
-The operation sorts verified-coordinate candidates by straight-line distance, considers at most six, and routes at most two candidates concurrently. It sets a total deadline below 25 seconds. For each candidate it first routes to the facility, checks that the facility is `confirmed-open` at the expected arrival, then plans the remaining journey using the original `to` and ordered `via` list.
+The operation sorts verified-coordinate candidates by straight-line distance, considers at most six, and routes at most two candidates concurrently. It sets a total deadline below 25 seconds. For each candidate it first routes to the facility, checks that the facility is `confirmed-open` at the expected arrival, then plans the remaining journey using the original `to` and ordered `via` list. When more than one complete result exists, the earliest confirmed facility arrival wins; onward-journey duration is only a tie-break. This keeps an urgent washroom request focused on reaching a known-open facility rather than optimizing the entire later trip.
+
+`visitMinutes` is a whole value from 1 through 60 and defaults to 10. For a normal detour, the continuation begins at facility arrival plus this planned visit duration. The result includes `departAfterVisit` so callers can show the planned onward departure time. It is planning time only, never a measured queue, washroom, or indoor-access duration.
 
 `completeJourney: true` is returned only when both legs resolve. A facility leg can be useful even when the remaining trip is unavailable, so that state is returned honestly:
 
