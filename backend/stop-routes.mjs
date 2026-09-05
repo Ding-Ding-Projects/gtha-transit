@@ -5,7 +5,7 @@ import { currentTorontoDate, filterRouteCatalog, routeIndex, validityState } fro
 
 const patternIndexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/route-patterns.json");
 const stopIndexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/stops.json");
-const MAX_STOP_ROUTE_BADGES = 12;
+const MAX_STOP_ROUTE_BADGES = 1000;
 let cachedPatterns = null;
 let cachedStops = null;
 
