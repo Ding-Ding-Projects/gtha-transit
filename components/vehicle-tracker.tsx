@@ -12,6 +12,7 @@ import {
 import type { Map as LeafletMap, LayerGroup } from 'leaflet';
 import VehiclePhotoCaption from './vehicle-photo-caption';
 import { attachMapTiles } from '../lib/map-tiles';
+import { vehiclePage } from '../lib/vehicle-page';
 type Vehicle = {
   id: string;
   label?: string;
@@ -64,7 +65,10 @@ export default function VehicleTracker({
 }: {
   t: (a: string, b: string) => string;
 }) {
-  const [data, setData] = useState<Snapshot | null>(null),
+  const [snapshot, setData] = useState<(Snapshot & { scope: string }) | null>(
+      null,
+    ),
+    [pageSelection, setPageSelection] = useState({ scope: '', page: 0 }),
     [q, setQ] = useState(''),
     [route, setRoute] = useState(''),
     [agency, setAgency] = useState('ttc'),
@@ -73,13 +77,25 @@ export default function VehicleTracker({
     [error, setError] = useState(''),
     [refresh, setRefresh] = useState(0),
     [tileError, setTileError] = useState(false);
+  const scope = JSON.stringify([agency, q, route]);
+  const data = snapshot?.scope === scope ? snapshot : null;
+  const page = vehiclePage(
+    data?.vehicles ?? [],
+    pageSelection.scope === scope ? pageSelection.page : 0,
+  );
   const el = useRef<HTMLDivElement>(null),
     map = useRef<LeafletMap | null>(null),
     markers = useRef<LayerGroup | null>(null),
     pick = useRef<(v: Vehicle) => void>(() => {});
   useEffect(() => {
-    pick.current = setSelected;
-  }, []);
+    pick.current = (vehicle) => {
+      setSelected(vehicle);
+      const index =
+        data?.vehicles.findIndex((item) => item.id === vehicle.id) ?? -1;
+      if (index >= 0)
+        setPageSelection({ scope, page: Math.floor(index / 100) });
+    };
+  }, [data, scope]);
   useEffect(() => {
     let disposed = false;
     let stopTiles: (() => void) | undefined;
@@ -123,11 +139,46 @@ export default function VehicleTracker({
             ),
           );
         const next = (await r.json()) as Snapshot;
+        const cursors = new Set<string>();
+        for (let batch = 1; next.nextCursor && batch < 4; batch++) {
+          if (cursors.has(next.nextCursor))
+            throw new Error(
+              t(
+                'Vehicle pagination could not complete.',
+                '未能完成車輛分頁載入。',
+              ),
+            );
+          cursors.add(next.nextCursor);
+          p.set('cursor', next.nextCursor);
+          const response = await fetch('/api/vehicles?' + p, {
+            signal: c.signal,
+          });
+          if (!response.ok)
+            throw new Error(
+              t(
+                'Vehicle pagination could not complete.',
+                '未能完成車輛分頁載入。',
+              ),
+            );
+          const chunk = (await response.json()) as Snapshot;
+          next.vehicles.push(...chunk.vehicles);
+          next.nextCursor = chunk.nextCursor;
+        }
+        next.vehicles = [
+          ...new Map(
+            next.vehicles.map((vehicle) => [vehicle.id, vehicle]),
+          ).values(),
+        ].sort(
+          (a, b) =>
+            (a.fleetNumber || a.id).localeCompare(b.fleetNumber || b.id, 'en', {
+              numeric: true,
+            }) || a.id.localeCompare(b.id),
+        );
         if (!c.signal.aborted) {
-          setData(next);
+          setData({ ...next, scope });
           setError('');
           setSelected((prev) =>
-            prev ? next.vehicles.find((v) => v.id === prev.id) || prev : null,
+            prev ? next.vehicles.find((v) => v.id === prev.id) || null : null,
           );
         }
       } catch (e) {
@@ -149,7 +200,7 @@ export default function VehicleTracker({
       clearInterval(timer);
       c.abort();
     };
-  }, [q, route, refresh, t, agency]);
+  }, [q, route, refresh, t, agency, scope]);
   useEffect(() => {
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
@@ -239,6 +290,7 @@ export default function VehicleTracker({
             value={agency}
             onChange={(e) => {
               setAgency(e.target.value);
+              setRoute('');
               setSelected(null);
             }}
           >
@@ -325,7 +377,7 @@ export default function VehicleTracker({
           )}
         </p>
       )}
-      {selected && (
+      {data && selected && (
         <section
           className="vehicle-detail"
           aria-label={t('Selected vehicle details', '所選車輛資料')}
@@ -434,9 +486,9 @@ export default function VehicleTracker({
       )}
       <div
         className="vehicle-list"
-        aria-label={t('Reported TTC vehicles', '已通報 TTC 車輛')}
+        aria-label={t('Reported vehicles', '已通報車輛')}
       >
-        {data?.vehicles.slice(0, 100).map((v) => (
+        {page.items.map((v) => (
           <button
             key={v.id}
             onClick={() => choose(v)}
@@ -454,13 +506,38 @@ export default function VehicleTracker({
           </button>
         ))}
       </div>
-      {data && data.vehicles.length > 100 && (
+      {data?.nextCursor && (
         <p className="data-note">
           {t(
-            'The map shows up to 2,500 matches; the list shows the first 100. Narrow the route or fleet search to find a specific vehicle.',
-            '地圖最多顯示 2,500 個結果，清單顯示首 100 個。請收窄路線或車隊搜尋以搵指定車輛。',
+            'The feed exceeds the 10,000-vehicle loading limit. Narrow your search to reach additional matches.',
+            '資料超過 10,000 架車嘅載入上限，請收窄搜尋以查看其他結果。',
           )}
         </p>
+      )}
+      {data && data.vehicles.length > 0 && (
+        <nav
+          aria-label={t('Vehicle list pages', '車輛清單分頁')}
+          className="tracker-pagination"
+        >
+          <button
+            className="pill"
+            disabled={page.page === 0}
+            onClick={() => setPageSelection({ scope, page: page.page - 1 })}
+          >
+            {t('Previous', '上一頁')}
+          </button>
+          <p className="data-note" aria-live="polite">
+            {page.start + 1}–{page.end} / {data.vehicles.length} ·{' '}
+            {t('Page', '頁')} {page.page + 1} / {page.pageCount}
+          </p>
+          <button
+            className="pill"
+            disabled={page.page + 1 >= page.pageCount}
+            onClick={() => setPageSelection({ scope, page: page.page + 1 })}
+          >
+            {t('Next', '下一頁')}
+          </button>
+        </nav>
       )}
     </div>
   );

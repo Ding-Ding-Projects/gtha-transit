@@ -20,3 +20,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Use actual map-database revisions in tile URLs, refresh both map surfaces every minute, and revalidate legacy tile paths rather than caching mutable content as immutable.
 
 - Clear stale map-unavailable warnings after tile recovery or navigation, while preserving genuine current tile and metadata failures.
+
+- Paginate the vehicle list while retaining all loaded map markers, use stable fleet ordering, and discard stale selections when live results change.

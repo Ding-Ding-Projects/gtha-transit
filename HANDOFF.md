@@ -53,3 +53,5 @@ Issue #3 tracks remaining official live-feed, fleet-detail and photo coverage. P
 The Metrolinx credential is installed in a protected host-only store. The temporary HTTPS intake was removed. Do not print or export credentials. The frontend host does not enforce its requested memory cgroup limit; Node heap and request bounds are not equivalent to a kernel memory cap. Preserve unrelated workloads and the existing routing graph.
 
 The owner approved web-only, transit-focused delivery. Unrelated universal utilities, desktop installers, payment and sign-in features remain outside this release scope.
+
+Vehicle-list pagination is implemented with full loaded-map coverage, stable fleet ordering, query-scoped snapshots and marker-to-page selection. Two focused pagination tests, type checking and the production build pass; live browser verification is pending. Toronto current-date recovery is actively validating the archived official TTC July26-Sep5 publication against independent archive checksums before a combined graph build.

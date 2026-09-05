@@ -258,3 +258,17 @@
     box-shadow: 0 2px 15px #173c2a0a;
   }
 }
+
+.tracker-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.tracker-pagination .data-note {
+  flex: 1;
+  text-align: center;
+  min-width: 120px;
+}
