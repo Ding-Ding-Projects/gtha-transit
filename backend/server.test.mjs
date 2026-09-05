@@ -6,7 +6,7 @@ import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
 import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
-import { filterRouteCatalog } from "./routes.mjs";
+import { filterRouteCatalog, routeCatalogPage } from "./routes.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -100,6 +100,21 @@ test("route catalog chooses the active TTC snapshot and preserves validated colo
   const septemberSix = filterRouteCatalog(routes, { agency: "ttc", date: "2026-09-06" });
   assert.equal(septemberSix[0].version, "ttc-next"); assert.equal(septemberSix[0].color, null); assert.equal(septemberSix[0].textColor, null);
   assert.equal(filterRouteCatalog(routes, { query: "airport" })[0].feedId, "go");
+});
+test("route catalog paginates canonical routes in natural route order", () => {
+  const routes = [
+    { id: "ttc:10", routeId: "10", shortName: "10", agency: "TTC", feedId: "ttc", version: "ttc", color: null, textColor: null, validity: { serviceStart: "20260101", serviceEnd: "20261231" } },
+    { id: "ttc:2", routeId: "2", shortName: "2", agency: "TTC", feedId: "ttc", version: "ttc", color: "00AA44", textColor: "FFFFFF", validity: { serviceStart: "20260101", serviceEnd: "20261231" } },
+    { id: "ttc-next:2", routeId: "2", shortName: "2", agency: "TTC", feedId: "ttc", version: "ttc-next", color: "00AA44", textColor: "FFFFFF", validity: { serviceStart: "20270101", serviceEnd: "20271231" } },
+    { id: "ttc:1", routeId: "1", shortName: "1", agency: "TTC", feedId: "ttc", version: "ttc", color: null, textColor: null, validity: { serviceStart: "20260101", serviceEnd: "20261231" } }
+  ];
+  const first = routeCatalogPage(routes, { agency: "ttc", date: "2026-09-05", limit: 2 });
+  assert.equal(first.total, 3); assert.deepEqual(first.routes.map((route) => route.routeId), ["1", "2"]); assert.equal(first.coverage.fallback, 0); assert.ok(first.nextCursor);
+  const second = routeCatalogPage(routes, { agency: "ttc", date: "2026-09-05", limit: 2, cursor: first.nextCursor });
+  assert.deepEqual(second.routes.map((route) => route.routeId), ["10"]); assert.equal(second.nextCursor, null);
+  const outside = routeCatalogPage(routes, { agency: "ttc", date: "2028-01-01", limit: 2 });
+  assert.equal(outside.coverage.exact, 0); assert.equal(outside.coverage.fallback, 2);
+  assert.throws(() => routeCatalogPage(routes, { cursor: "invalid" }), /cursor is invalid/);
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {
