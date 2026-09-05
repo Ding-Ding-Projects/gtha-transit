@@ -6,10 +6,10 @@ ROOT=$(CDPATH= cd -- "$ROOT" && pwd -P)
 BEFORE=$(sha256sum "$ROOT"/data/feeds/*.zip 2>/dev/null || true)
 python3 "$ROOT/scripts/data/fetch-feeds.py" --registry "$ROOT/data/feeds.json" --output "$ROOT/data/feeds"
 AFTER=$(sha256sum "$ROOT"/data/feeds/*.zip)
+(cd "$ROOT" && python3 scripts/build-stop-index.py data/feeds)
 if [ "$BEFORE" = "$AFTER" ] && [ -s "$ROOT/backend/runtime/otp/graph.obj" ]; then
   echo "feeds unchanged; active graph retained"
   exit 0
 fi
-(cd "$ROOT" && python3 scripts/build-stop-index.py data/feeds)
 sh "$ROOT/backend/build-graph.sh" "$ROOT"
 (cd "$ROOT/backend" && docker compose up -d --build)

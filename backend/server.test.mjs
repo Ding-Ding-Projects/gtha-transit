@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
 import { graphqlDocument, publicAgencyFeedId, rankItineraries } from "./otp-client.mjs";
+import { filterRouteCatalog } from "./routes.mjs";
 
 test("places are sourced from the generated local stop index", async () => {
   const places = await searchPlaces("union");
@@ -42,6 +43,7 @@ test("service readiness uses a typed public code without guessing an agency", as
   assert.match(source, /await otpReady\(/);
   assert.doesNotMatch(source, /inTtcArea|SCHEDULE_DATE_UNAVAILABLE/);
   assert.match(source, /"\/api\/vehicles\/metrolinx"/);
+  assert.match(source, /"\/api\/routes"/);
   assert.match(source, /code: "VEHICLE_DATA_UNAVAILABLE"/);
 });
 test("Pearson search ranks transit airports before unrelated street stops", () => {
@@ -87,6 +89,17 @@ test("journey ranking includes waiting time and respects arrival planning", () =
   assert.equal(rankItineraries([leavingSoon, shortRideLater], "fastest", true)[0].id, "later");
   assert.equal(rankItineraries([leavingSoon, shortRideLater], "transfers", false)[0].id, "later");
   assert.equal(rankItineraries([leavingSoon, shortRideLater], "walking", false)[0].id, "later");
+});
+test("route catalog chooses the active TTC snapshot and preserves validated colors", () => {
+  const routes = [
+    { id: "ttc:1", routeId: "1", shortName: "1", longName: "Summer", agency: "TTC", feedId: "ttc", version: "ttc", color: "FF0000", textColor: "FFFFFF", validity: { serviceStart: "20260726", serviceEnd: "20260905" } },
+    { id: "ttc-next:1", routeId: "1", shortName: "1", longName: "Fall", agency: "TTC", feedId: "ttc", version: "ttc-next", color: null, textColor: null, validity: { serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05" } },
+    { id: "go:40", routeId: "40", shortName: "40", longName: "Airport", agency: "GO Transit", feedId: "go", version: "go", color: "00AA44", textColor: "000000", validity: {} }
+  ];
+  assert.deepEqual(filterRouteCatalog(routes, { agency: "ttc", date: "2026-09-05" }), [{ id: "ttc:1", routeId: "1", shortName: "1", longName: "Summer", agency: "TTC", agencyId: null, feedId: "ttc", version: "ttc", color: "FF0000", textColor: "FFFFFF", routeType: null, validity: { serviceStart: "20260726", serviceEnd: "20260905" } }]);
+  const septemberSix = filterRouteCatalog(routes, { agency: "ttc", date: "2026-09-06" });
+  assert.equal(septemberSix[0].version, "ttc-next"); assert.equal(septemberSix[0].color, null); assert.equal(septemberSix[0].textColor, null);
+  assert.equal(filterRouteCatalog(routes, { query: "airport" })[0].feedId, "go");
 });
 test("HTTP planning returns a neutral empty result when OTP finds no itinerary", async (context) => {
   const mock = http.createServer(async (request, response) => {

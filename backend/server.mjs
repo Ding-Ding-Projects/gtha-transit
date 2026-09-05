@@ -5,6 +5,7 @@ import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
 import { applyWashroomPreference } from "./washrooms.mjs";
+import { routeCatalog } from "./routes.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
@@ -28,6 +29,11 @@ const server = http.createServer(async (req, res) => {
       catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE" }); }
     }
     if (req.method === "GET" && url.pathname === "/api/places") return json(res, 200, { places: await searchPlaces(url.searchParams.get("q"), 20) });
+    if (req.method === "GET" && url.pathname === "/api/routes") {
+      const limit = url.searchParams.get("limit") == null ? 50 : bounded(url.searchParams.get("limit"), "limit", 1, 200);
+      const date = url.searchParams.get("date"); if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("date must be YYYY-MM-DD");
+      return json(res, 200, { routes: await routeCatalog({ agency: url.searchParams.get("agency"), query: url.searchParams.get("q"), date, limit }) });
+    }
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
       try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }
