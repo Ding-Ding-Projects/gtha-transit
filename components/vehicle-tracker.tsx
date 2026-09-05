@@ -27,6 +27,7 @@ type Vehicle = {
   speedKph?: number;
   timestamp?: string | number;
   stale?: boolean;
+  division?: { state: string; reason: string; homeGarageName?: string; assignedGarageNames?: string[]; routeGarages?: string[]; rarity?: { state: string; eligible?: boolean; percentage?: number | null; rarity?: string | null; sample?: { vehicleRouteDays: number; routeObservedDays: number }; note?: string } };
   cptdb?: {
     url?: string;
     match?: string;
@@ -55,6 +56,8 @@ type Snapshot = {
   vehicles: Vehicle[];
   nextCursor?: string | null;
   agencies?: { id: string; name: string; state: string; total: number }[];
+  counts?: { all: number; outOfDivision: number; inDivision: number; unknown: number };
+  source?: { title?: string; validThrough?: string; publisherPage?: string };
 };
 const identity = (v?: Vehicle | null) =>
   v ? `${v.agencyId || 'ttc'}:${v.id}` : '';
@@ -66,6 +69,7 @@ const agencyColors: Record<string, string> = {
   hsr: '#2869a7',
   burlington: '#7858a1',
 };
+const TTC_ONLY = ['ttc'];
 const safe = (url?: string) => {
   try {
     const u = new URL(url || '');
@@ -76,8 +80,10 @@ const safe = (url?: string) => {
 };
 export default function VehicleTracker({
   t,
+  divisionMode = false,
 }: {
   t: (a: string, b: string) => string;
+  divisionMode?: boolean;
 }) {
   const [snapshot, setData] = useState<(Snapshot & { scope: string }) | null>(
       null,
@@ -85,14 +91,15 @@ export default function VehicleTracker({
     [pageSelection, setPageSelection] = useState({ scope: '', page: 0 }),
     [q, setQ] = useState(''),
     [route, setRoute] = useState(''),
-    [agency, setAgency] = useState('all'),
+    [agency, setAgency] = useState(divisionMode ? 'ttc' : 'all'),
+    [classification, setClassification] = useState('out-of-division'),
     [detailRequest, setDetailRequest] = useState(0),
     [selected, setSelected] = useState<Vehicle | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [refresh, setRefresh] = useState(0),
     [tileError, setTileError] = useState(false);
-  const scope = JSON.stringify([agency, q, route]);
+  const scope = JSON.stringify([agency, q, route, divisionMode, classification]);
   const data = snapshot?.scope === scope ? snapshot : null;
   const page = vehiclePage(
     data?.vehicles ?? [],
@@ -158,7 +165,9 @@ export default function VehicleTracker({
         const p = new URLSearchParams({ limit: '2500', agency });
         if (q) p.set('q', q);
         if (route) p.set('route', route);
-        const r = await fetch('/api/vehicles?' + p, { signal: c.signal });
+        if (divisionMode) p.set('classification', classification);
+        const endpoint = divisionMode ? '/api/vehicles/divisions?' : '/api/vehicles?';
+        const r = await fetch(endpoint + p, { signal: c.signal });
         if (!r.ok)
           throw Error(
             t(
@@ -178,7 +187,7 @@ export default function VehicleTracker({
             );
           cursors.add(next.nextCursor);
           p.set('cursor', next.nextCursor);
-          const response = await fetch('/api/vehicles?' + p, {
+          const response = await fetch(endpoint + p, {
             signal: c.signal,
           });
           if (!response.ok)
@@ -321,7 +330,7 @@ export default function VehicleTracker({
       <div className="content-heading">
         <div>
           <span className="eyebrow">{t('FOLLOW THE FLEET', '追蹤車隊')}</span>
-          <h2>{t('Live vehicle tracker', '即時車輛追蹤')}</h2>
+          <h2>{divisionMode ? t('Out-of-division vehicles', '跨車廠車輛') : t('Live vehicle tracker', '即時車輛追蹤')}</h2>
         </div>
         <button
           className="pill"
@@ -339,7 +348,7 @@ export default function VehicleTracker({
         )}
       </p>
       <div className="tracker-filters">
-        <RoutePicker agency={agency} route={route} t={t} onChange={(nextAgency, nextRoute) => {
+        <RoutePicker agency={agency} route={route} t={t} storageId={divisionMode ? 'division-route-picker' : 'tracker-route-picker'} allowedAgencyIds={divisionMode ? TTC_ONLY : undefined} onChange={(nextAgency, nextRoute) => {
           setAgency(nextAgency); setRoute(nextRoute); setSelected(null);
         }} />
         <label>
@@ -357,6 +366,18 @@ export default function VehicleTracker({
           />
         </label>
       </div>
+      {divisionMode && <section className="division-overview" aria-label={t('Garage assignment filters', '車廠分配篩選')}>
+        <p>{t('Compare a verified vehicle home garage with the garages assigned to its route. Ambiguous and expired evidence stays unconfirmed.', '比較已核實車輛所屬車廠同路線分配車廠。模糊或過期資料保持未確認。')}</p>
+        <div className="division-filter-chips" role="group" aria-label={t('Assignment classification', '配車分類')}>
+          {[
+            ['out-of-division', t('Out of division', '跨車廠'), data?.counts?.outOfDivision],
+            ['in-division', t('Assigned garage', '原定車廠'), data?.counts?.inDivision],
+            ['unknown', t('Unconfirmed', '未確認'), data?.counts?.unknown],
+            ['all', t('All TTC vehicles', '所有 TTC 車輛'), data?.counts?.all],
+          ].map(([id, label, count]) => <button key={String(id)} className="pill" aria-pressed={classification === id} onClick={() => { setClassification(String(id)); setSelected(null); }}>{label}{typeof count === 'number' && <strong>{count}</strong>}</button>)}
+        </div>
+        <p className="data-note">{t('Allocation source valid through', '配車來源有效至')} {data?.source?.validThrough || t('Unconfirmed', '未確認')}. {t('Counts describe all loaded TTC vehicles before route and text filters. Rarity needs at least seven observed days and is not a prediction.', '數量係路線同文字篩選前已載入嘅全部 TTC 車輛。稀有度需要最少七日觀察，唔係預測。')}</p>
+      </section>}
       <div className="source-state">
         <span className="live-dot" />
         {data?.state === 'live'
@@ -436,6 +457,11 @@ export default function VehicleTracker({
             </button>
           </div>
           <div className="vehicle-facts">
+            {selected.division && <>
+              <span><small>{t('Home garage', '所屬車廠')}</small><strong>{selected.division.homeGarageName || t('Unconfirmed', '未確認')}</strong></span>
+              <span><small>{t('Route garages', '路線車廠')}</small><strong>{selected.division.assignedGarageNames?.join(', ') || t('Unconfirmed', '未確認')}</strong></span>
+              <span><small>{t('Observed frequency', '已觀察頻率')}</small><strong>{selected.division.rarity?.eligible ? `${selected.division.rarity.percentage?.toFixed(1)}% · ${selected.division.rarity.rarity}` : t('Collecting observations', '收集觀察資料中')}</strong><small>{selected.division.rarity?.sample ? `${selected.division.rarity.sample.vehicleRouteDays} / ${selected.division.rarity.sample.routeObservedDays} ` + t('observed route days', '路線觀察日') : t('History unavailable', '未有歷史資料')}</small></span>
+            </>}
             <span>
               <small>{t('Route', '路線')}</small>
               <strong>{selected.routeId || t('Unknown', '未知')}</strong>
@@ -459,6 +485,11 @@ export default function VehicleTracker({
               </strong>
             </span>
           </div>
+          {selected.division?.state === 'unknown' && <p className="division-evidence-note">{selected.division.reason === 'allocation-source-expired'
+            ? t('The official allocation source is outside its validity dates. A new source is needed to verify this assignment.', '官方配車來源已過有效日期，需要新資料先可以核實。')
+            : selected.division.reason === 'multi-garage-fleet-allocation'
+              ? t('This fleet series belongs to more than one garage, so this unit’s home garage cannot be confirmed from the series alone.', '呢個車隊系列分配到多個車廠，單靠系列未能核實呢架車嘅所屬車廠。')
+              : t('The available route, fleet or observation evidence is insufficient to verify this garage assignment.', '現有路線、車隊或位置資料不足以核實呢個車廠分配。')}</p>}
           <p className="data-note">
             <Clock size={14} /> {t('Last observed', '最後觀察')}{' '}
             {observed(selected)} ·{' '}
@@ -557,6 +588,7 @@ export default function VehicleTracker({
             <span className="vehicle-row-year">
               {t('Built', '製造年份')} {v.cptdb?.year || t('Unknown', '未核實')}
             </span>
+            {v.division && <span className="vehicle-row-division">{v.division.state === 'out-of-division' ? t('Out of division', '跨車廠') : v.division.state === 'in-division' ? t('Assigned garage', '原定車廠') : t('Assignment unconfirmed', '配車未確認')} · {v.division.homeGarageName || t('Unknown garage', '未知車廠')}</span>}
           </button>
         ))}
       </div>

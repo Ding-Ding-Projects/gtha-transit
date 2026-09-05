@@ -127,7 +127,7 @@ export function groupTtcDisruptions<T extends TtcDisruptionAlert>(
   alerts: readonly T[],
   routes: readonly OfficialTtcRoute[] = [],
 ): GroupedTtcDisruptions<T> {
-  const grouped = Object.fromEntries(groupKeys.map((key) => [key, []])) as Record<DisruptionGroup, T[]>;
+  const grouped: Record<DisruptionGroup, T[]> = { rapidTransit: [], streetcar: [], bus: [], networkWide: [], unknown: [] };
   const seenByGroup = new Map(groupKeys.map((key) => [key, new Set<string>()]));
   const all = new Set<string>();
   alerts.forEach((alert, index) => {

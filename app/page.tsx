@@ -39,6 +39,7 @@ import { TTC_FLEET_RANGES, OTHER_FLEET_RANGES } from '../vehicles/fleet-registry
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import { journeyWaits } from '../lib/journey-waits';
+import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-groups';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   torontoIso as asIso,
@@ -256,6 +257,7 @@ function PlaceField({
 
 export default function Home() {
   const narrator = useNarrator();
+  const [ttcRoutes, setTtcRoutes] = useState<OfficialTtcRoute[]>([]);
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
   const [lang, setLang] = useState<Lang>('en'),
@@ -665,7 +667,31 @@ export default function Home() {
     const timer = setTimeout(() => setNotice(''), 6500);
     return () => clearTimeout(timer);
   }, [notice]);
-  const totalAlerts = status?.alerts?.length || 0;
+  const disruptionGroups = useMemo(() => groupTtcDisruptions(status?.alerts || [], ttcRoutes), [status, ttcRoutes]);
+  const totalAlerts = disruptionGroups.totalDistinct;
+  useEffect(() => {
+    if (tab !== 'status') return;
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const records: OfficialTtcRoute[] = [];
+        let cursor: string | null = null;
+        const date = localInput().slice(0, 10);
+        for (let page = 0; page < 5; page++) {
+          const params = new URLSearchParams({ agency: 'ttc', date, limit: '200' });
+          if (cursor) params.set('cursor', cursor);
+          const response = await fetch('/api/routes?' + params, { signal: controller.signal });
+          if (!response.ok) return;
+          const body = await response.json() as { routes?: OfficialTtcRoute[]; nextCursor?: string | null };
+          if (!Array.isArray(body.routes)) return;
+          records.push(...body.routes);
+          if (!body.nextCursor) { if (!controller.signal.aborted) setTtcRoutes(records); return; }
+          cursor = body.nextCursor;
+        }
+      } catch { /* Alerts remain visible with unknown route classifications. */ }
+    })();
+    return () => controller.abort();
+  }, [tab]);
   const agencies = coverage?.agencies || [];
   const serviceDate = (when || localInput()).slice(0, 10).replaceAll('-', '');
   const dateGaps = agencies.filter(
@@ -710,6 +736,7 @@ export default function Home() {
             ['status', t('Live TTC', '即時 TTC')],
             ['history', t('History', '歷史')],
             ['vehicles', t('Vehicles', '車輛')],
+            ['divisions', t('Out of division', '跨車廠')],
             ['saved', t('Saved trips', '已儲存行程')],
             ['coverage', t('Our region', '服務範圍')],
           ].map(([id, label]) => (
@@ -979,6 +1006,7 @@ export default function Home() {
         <section className="content">
           {tab === 'history' && <DisruptionHistory t={t} />}
           {tab === 'vehicles' && <VehicleTracker t={t} />}
+          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode />}
           {tab === 'coverage' && <RealtimeCoverage t={t} />}
           {tab === 'plan' && (
             <>
@@ -1724,20 +1752,24 @@ export default function Home() {
                 {t('All active TTC alerts', '所有生效中 TTC 提示')}{' '}
                 <span className="count">{totalAlerts}</span>
               </h3>
-              {status?.alerts?.map((a) => (
-                <article className="alert-card" key={a.id}>
+              <p className="data-note">{t('Alerts affecting multiple modes appear in each relevant group; the overall count is deduplicated.', '涉及多種交通服務嘅提示會喺相關組別出現，總數唔會重複計算。')}</p>
+              {([
+                ['bus', t('Bus routes', '巴士路線')],
+                ['streetcar', t('Streetcar routes', '電車路線')],
+                ['rapidTransit', t('Subway & light rail', '地鐵及輕鐵')],
+                ['networkWide', t('Network-wide notices', '全網絡通告')],
+                ['unknown', t('Route not identified', '未能識別路線')],
+              ] as const).map(([key, title]) => <details className="alert-group" key={key}>
+                <summary><strong>{title}</strong><span className="count">{disruptionGroups[key].length}</span></summary>
+                {disruptionGroups[key].length === 0 && <p className="data-note">{t('No notices in this group in the received snapshot.', '已收到嘅資料快照未有呢組通告。')}</p>}
+                {disruptionGroups[key].map(a => <article className="alert-card" key={a.id}>
                   <TriangleAlert size={18} />
-                  <div>
-                    <h4>{a.title}</h4>
-                    <p>{a.description}</p>
-                    {safeUrl(a.url) && (
-                      <a href={safeUrl(a.url)} target="_blank" rel="noreferrer">
-                        {t('Read official update', '閱讀官方更新')}
-                      </a>
-                    )}
+                  <div><h4>{a.title}</h4><p>{a.description}</p>
+                    {a.routeIds?.length ? <small>{t('Routes', '路線')}: {a.routeIds.join(', ')}</small> : null}
+                    {safeUrl(a.url) && <a href={safeUrl(a.url)} target="_blank" rel="noreferrer">{t('Read official update', '閱讀官方更新')}</a>}
                   </div>
-                </article>
-              ))}
+                </article>)}
+              </details>)}
               <a
                 className="source-link"
                 href="https://www.ttc.ca/service-alerts"

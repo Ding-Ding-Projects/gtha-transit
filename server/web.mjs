@@ -78,7 +78,7 @@ async function divisionPage(params) {
   const query = String(params.get('q') ?? '').trim().slice(0, 256).toLocaleLowerCase();
   const route = String(params.get('route') ?? '').replace(/^ttc:/i, '').trim().slice(0, 64);
   const requestedLimit = Number.parseInt(params.get('limit') ?? '100', 10);
-  const limit = Math.min(100, Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 100));
+  const limit = Math.min(2500, Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 100));
   const requestedCursor = Number.parseInt(params.get('cursor') ?? '0', 10);
   const cursor = Number.isSafeInteger(requestedCursor) && requestedCursor >= 0 ? requestedCursor : 0;
   const snapshot = await allTtcVehicles();
@@ -327,6 +327,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('x-content-type-options', 'nosniff');
   res.setHeader('referrer-policy', 'no-referrer');
   res.setHeader('x-frame-options', 'DENY');
+  res.setHeader('content-security-policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
   res.setHeader(
     'permissions-policy',
     'camera=(), microphone=(), geolocation=(self)',

@@ -1,4 +1,5 @@
 @import 'leaflet/dist/leaflet.css';
+@import url('/fonts/manrope/manrope.css');
 :root {
   --bg: #f5f7f3;
   --surface: #fff;
@@ -11,7 +12,7 @@
   --alert: #8f420e;
   --alert-bg: #fff0de;
   --shadow: 0 12px 36px #173c2a0d;
-  font-family: Inter, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  font-family: Manrope, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -1470,6 +1471,20 @@ select {
 .vehicle-pref-panel > details { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 8px; }
 .vehicle-pref-panel > details > summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 650; }
 .clear-place { flex-shrink: 0; }
+.division-overview { background: var(--surface2); border: 1px solid var(--border); border-radius: 24px; padding: 18px; margin: 18px 0; }
+.division-overview > p { margin: 0 0 12px; }
+.division-filter-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 14px; }
+.division-filter-chips button { min-height: 48px; background: var(--surface); }
+.division-filter-chips button[aria-pressed='true'] { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+.division-filter-chips strong { font-size: 16px; margin-left: 5px; }
+.vehicle-row-division { grid-column: 2 / -1; font-size: 12px; color: var(--primary); }
+.division-evidence-note { padding: 14px; border-radius: 16px; background: var(--surface2); font-size: 13px; }
+.alert-group { margin: 14px 0; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); overflow: hidden; }
+.alert-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 16px 20px; cursor: pointer; }
+.alert-group > summary::after { content: '+'; color: var(--primary); font-size: 24px; }
+.alert-group[open] > summary::after { content: '−'; }
+.alert-group > summary .count { margin-left: auto; }
+.alert-group > .data-note, .alert-group > .alert-card { margin: 10px 16px; }
 .narrator-card { border: 1px solid var(--border); border-radius: 24px; background: var(--surface2); padding: 22px; margin: 22px 0; min-width: 0; }
 .narrator-heading { display: flex; align-items: center; gap: 14px; }
 .narrator-heading h3 { margin: 2px 0; }

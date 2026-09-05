@@ -66,6 +66,9 @@ export type Itinerary = {
 };
 export type Alert = {
   id: string;
+  routeIds?: string[];
+  routeRefs?: { routeId?: string; routeType?: string | number }[];
+  routeScope?: 'routes' | 'network' | 'unknown';
   title: string;
   description: string;
   url?: string;

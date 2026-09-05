@@ -10,10 +10,12 @@ type RouteRecord = {
 };
 const emptySearch = (): SearchState => ({ query: '', pattern: '', flags: 'i', mode: 'text' });
 const routeColor = (value: string | null) => value && /^[a-f0-9]{6}$/i.test(value) ? '#' + value : undefined;
-export default function RoutePicker({ agency, route, onChange, t }: {
+export default function RoutePicker({ agency, route, onChange, t, allowedAgencyIds, storageId = 'tracker-route-picker' }: {
   agency: string; route: string;
   onChange: (agency: string, route: string) => void;
   t: (en: string, zh: string) => string;
+  allowedAgencyIds?: readonly string[];
+  storageId?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -65,10 +67,10 @@ export default function RoutePicker({ agency, route, onChange, t }: {
     })();
     return () => controller.abort();
   }, [open, refresh]);
-  const agencies = useMemo(() => [...new Map(records.map(r => [r.feedId, r.agency])).entries()], [records]);
+  const agencies = useMemo(() => [...new Map(records.filter(r => !allowedAgencyIds || allowedAgencyIds.includes(r.feedId)).map(r => [r.feedId, r.agency])).entries()], [records, allowedAgencyIds]);
   const agencySamples = useMemo(() => agencies.map(([id, name]) => `${id} ${name}`), [agencies]);
   const agencyMatches = useSearchMatches(agencySamples, agencySearch);
-  const availableRoutes = useMemo(() => records.filter(r => chosenAgency === 'all' || r.feedId === chosenAgency), [records, chosenAgency]);
+  const availableRoutes = useMemo(() => records.filter(r => (!allowedAgencyIds || allowedAgencyIds.includes(r.feedId)) && (chosenAgency === 'all' || r.feedId === chosenAgency)), [records, chosenAgency, allowedAgencyIds]);
   const routeSamples = useMemo(() => availableRoutes.map(r => `${r.shortName || r.routeId} ${r.longName || ''} ${r.agency}`), [availableRoutes]);
   const routeMatches = useSearchMatches(routeSamples, routeSearch);
   const selectedRoute = records.find(record => record.feedId === agency && record.routeId === route);
@@ -84,15 +86,15 @@ export default function RoutePicker({ agency, route, onChange, t }: {
       {busy ? <p role="status">{t('Loading official routes…', '載入官方路線中…')}</p> : error ? <div role="status"><p>{t('The route catalog could not be loaded. Your existing selection is unchanged.', '未能載入路線清單，現有選擇保持不變。')}</p><button className="pill" onClick={() => setRefresh(x => x + 1)}>{t('Retry', '再試')}</button></div> : <div className="route-picker-columns">
         <section aria-label={t('Agencies', '交通公司')}>
           <h3>{t('1. Choose an agency', '1. 選擇交通公司')}</h3>
-          <SearchWorkbench storageId="tracker-route-picker-agency" label={t('Find an agency', '搜尋交通公司')} value={agencySearch} onChange={setAgencySearch} samples={agencySamples} t={t} />
+          <SearchWorkbench storageId={storageId + '-agency'} label={t('Find an agency', '搜尋交通公司')} value={agencySearch} onChange={setAgencySearch} samples={agencySamples} t={t} />
           <div className="route-picker-agencies">
-            <button className={chosenAgency === 'all' ? 'selected' : ''} aria-pressed={chosenAgency === 'all'} onClick={() => setChosenAgency('all')}>{t('All agencies', '所有交通公司')}</button>
+            {!allowedAgencyIds && <button className={chosenAgency === 'all' ? 'selected' : ''} aria-pressed={chosenAgency === 'all'} onClick={() => setChosenAgency('all')}>{t('All agencies', '所有交通公司')}</button>}
             {!agencyMatches.busy && !agencyMatches.error && agencies.map(([id, name], i) => agencyMatches.matches[i] && <button key={id} className={chosenAgency === id ? 'selected' : ''} aria-pressed={chosenAgency === id} onClick={() => setChosenAgency(id)}>{name}</button>)}
           </div>
         </section>
         <section aria-label={t('Routes', '路線')}>
           <h3>{t('2. Choose a route', '2. 選擇路線')}</h3>
-          <SearchWorkbench storageId="tracker-route-picker-route" label={t('Find a route', '搜尋路線')} value={routeSearch} onChange={setRouteSearch} samples={routeSamples} t={t} />
+          <SearchWorkbench storageId={storageId + '-route'} label={t('Find a route', '搜尋路線')} value={routeSearch} onChange={setRouteSearch} samples={routeSamples} t={t} />
           <button className="pill" onClick={() => choose(chosenAgency, '')}>{t('Use all routes in this selection', '使用所選公司嘅全部路線')}</button>
           <div className="route-picker-results" aria-busy={routeMatches.busy}>
             {routeMatches.error ? <p role="status">{routeMatches.error}</p> : routeMatches.busy ? <p role="status">{t('Matching routes…', '配對路線中…')}</p> : availableRoutes.filter((_, i) => routeMatches.matches[i]).length === 0 ? <p role="status">{t('No matching routes.', '冇符合嘅路線。')}</p> : availableRoutes.map((r, i) => routeMatches.matches[i] && <button key={r.id} className="route-picker-result" onClick={() => choose(r.feedId, r.routeId)}>
