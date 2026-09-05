@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clearVehicleCache, getVehicleSnapshot, getVehicles, parseTtcVehicles, TTC_VEHICLES_URL } from '../vehicles/index.mjs';
-import { matchCptdb } from '../vehicles/fleet-registry.mjs';
+import { clearVehicleCache, enrichItineraries, getVehicleSnapshot, getVehicles, parseTtcVehicles, parseVehicleFeed, TTC_VEHICLES_URL } from '../vehicles/index.mjs';
+import { matchCptdb, matchVehiclePhoto } from '../vehicles/fleet-registry.mjs';
 
 const cat = (...parts) => Uint8Array.from(parts.flatMap((part) => [...part]));
 const varint = (input) => { let value = BigInt(input); const out = []; do { let byte = Number(value & 0x7fn); value >>= 7n; if (value) byte |= 0x80; out.push(byte); } while (value); return Uint8Array.from(out); };
@@ -23,6 +23,20 @@ test('drops invalid coordinates without dropping valid entities', () => { const 
 
 test('uses official TTC boundaries and treats CPTDB links as searches rather than verified records', () => {
   assert.equal(matchCptdb('3400').fleetRange, '3400-3454'); assert.equal(matchCptdb('3400').manufacturer, 'Nova Bus'); assert.equal(matchCptdb('3455').fleetRange, '3455-3654'); assert.equal(matchCptdb('3759').model, 'K9M'); assert.equal(matchCptdb('3760').fleetRange, undefined); assert.equal(matchCptdb('9400').model, 'Xcelsior XDE60'); assert.equal(matchCptdb('9468').capacity, '50 seats'); assert.equal(matchCptdb('4400').manufacturer, 'Alstom'); assert.equal(matchCptdb('3400').match, 'search'); assert.equal(matchCptdb('not-a-fleet').match, 'search');
+});
+
+test('attaches licensed representative photos without claiming the wrong exact vehicle', () => {
+  const flexity = matchCptdb('4412'); assert.equal(matchVehiclePhoto('4412', flexity).exactVehicle, true); assert.equal(matchVehiclePhoto('4400', flexity).exactVehicle, false); assert.equal(matchVehiclePhoto('3400', matchCptdb('3400')).license, 'CC0'); assert.equal(matchVehiclePhoto('9029', matchCptdb('9029')), null);
+});
+
+test('namespaces non-TTC vehicles and gives each a real agency-specific CPTDB search', () => {
+  const result = parseVehicleFeed(feed(1700000000, vehicle({ id: '1234' })), { now: 1700000000000, agencyId: 'miway', agencyName: 'MiWay', sourceUrl: 'https://example.test/vehicles.pb' }); assert.equal(result.agencyId, 'miway'); assert.equal(result.vehicles[0].agencyId, 'miway'); assert.match(result.vehicles[0].cptdb.url, /MiWay%201234/); assert.equal(result.vehicles[0].cptdb.manufacturer, undefined);
+  assert.equal(result.vehicles[0].photo.credit, 'Robert T Bell'); assert.equal(result.vehicles[0].photo.exactVehicle, false);
+});
+
+test('enriches directions only from an exact fresh agency and trip identifier match', async () => {
+  clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '604', trip: '20260905-GT-3511', route: '09261126-GT' })); const fetchImpl = async () => new Response(payload); const input = [{ legs: [{ agencyId: 'go:GO', agencyFeedId: 'go', tripId: 'go:20260905-GT-3511', routeId: 'go:09261126-GT' }, { agencyFeedId: 'go', tripId: 'go:different', routeId: 'go:09261126-GT' }] }];
+  const result = await enrichItineraries(input, { fetchImpl, routingOrigin: 'https://routing.example', now: 1700000000000 }); assert.equal(result[0].legs[0].vehicle.id, '604'); assert.equal(result[0].legs[0].vehicleAssignment.method, 'exact-trip-id'); assert.equal(result[0].legs[1].vehicle, undefined); assert.equal(result[0].legs[1].vehicleAssignment.state, 'no-match');
 });
 
 test('queries a cached snapshot with exact route filtering and bounded pagination', async () => {
