@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MAX_WASHROOM_CANDIDATES, MAX_WASHROOM_CONCURRENCY, MAX_WASHROOM_DETOUR_DEADLINE_MS, planWashroomDetour } from "./washroom-detour.mjs";
+import { DEFAULT_WASHROOM_VISIT_MINUTES, MAX_WASHROOM_CANDIDATES, MAX_WASHROOM_CONCURRENCY, MAX_WASHROOM_DETOUR_DEADLINE_MS, planWashroomDetour } from "./washroom-detour.mjs";
 
 const opened = {
   agencyId: "go",
@@ -133,6 +133,48 @@ test("a later complete facility wins over a nearer continuation failure and pres
   assert.deepEqual(result.continuation.preservedTo, { lat: 43.7, lon: -79.35 });
   assert.deepEqual(result.continuation.preservedVia, [{ lat: 43.68, lon: -79.37 }]);
   assert.ok(calls.some((request) => request.from.lat === farther.coordinates.lat && request.via.length === 1));
+});
+
+test("a complete washroom request prioritizes facility arrival over a faster onward journey", async () => {
+  const near = { ...opened, facilityId: "near-open", coordinates: { ...opened.coordinates, lat: 43.641, lon: -79.39 } };
+  const farther = { ...opened, facilityId: "farther-open", coordinates: { ...opened.coordinates, lat: 43.645, lon: -79.39 } };
+  const planner = async (request) => {
+    if (request.to.lat === near.coordinates.lat) return itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "near-facility" });
+    if (request.to.lat === farther.coordinates.lat) return itinerary({ duration: 120, endTime: "2026-09-07T12:02:00-04:00", id: "farther-facility" });
+    if (request.from.lat === near.coordinates.lat) return itinerary({ duration: 1_000, endTime: "2026-09-07T12:27:40-04:00", id: "near-continuation" });
+    return itinerary({ duration: 100, endTime: "2026-09-07T12:13:40-04:00", id: "farther-continuation" });
+  };
+  const result = await planWashroomDetour(input(), { planWithOtp: planner, facilityRegistry: [near, farther] });
+  assert.equal(result.status, "complete");
+  assert.equal(result.facility.facilityId, "near-open");
+  assert.equal(result.facilityLeg.timeToFacilitySeconds, 60);
+});
+
+test("continuation starts after the planned visit duration and reports departure after visit", async () => {
+  const calls = [];
+  const planner = async (request) => {
+    calls.push(request);
+    return request.to.lat === opened.coordinates.lat
+      ? itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "facility" })
+      : itinerary({ duration: 300, endTime: "2026-09-07T12:21:00-04:00", id: "continuation" });
+  };
+  const result = await planWashroomDetour(input({ visitMinutes: 15 }), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(result.status, "complete");
+  assert.equal(result.facilityLeg.visitDurationSeconds, 900);
+  assert.equal(result.facilityLeg.departAfterVisit, "2026-09-07T16:16:00.000Z");
+  assert.equal(result.continuation.departAfterVisit, "2026-09-07T16:16:00.000Z");
+  assert.equal(calls[1].dateTime, "2026-09-07T16:16:00.000Z");
+  assert.match(result.note, /not an observed dwell time/);
+});
+
+test("visit duration defaults to ten minutes and rejects invalid values before routing", async () => {
+  let calls = 0;
+  const planner = async (request) => { calls += 1; return request.to.lat === opened.coordinates.lat ? itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "facility" }) : itinerary({ duration: 300, endTime: "2026-09-07T12:16:00-04:00", id: "continuation" }); };
+  const defaulted = await planWashroomDetour(input(), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(defaulted.facilityLeg.visitMinutes, DEFAULT_WASHROOM_VISIT_MINUTES);
+  const invalid = await planWashroomDetour(input({ visitMinutes: 61 }), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(invalid.unresolved.code, "VISIT_DURATION_UNRESOLVED");
+  assert.equal(calls, 2);
 });
 
 test("a confirmed immediate facility leg is partial when the continuation is unavailable", async () => {
