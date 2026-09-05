@@ -22,3 +22,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Clear stale map-unavailable warnings after tile recovery or navigation, while preserving genuine current tile and metadata failures.
 
 - Paginate the vehicle list while retaining all loaded map markers, use stable fleet ordering, and discard stale selections when live results change.
+
+- Bring selected vehicle details into view automatically on phones and keyboard navigation instead of requiring a manual scroll back up.

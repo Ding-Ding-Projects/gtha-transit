@@ -72,6 +72,7 @@ export default function VehicleTracker({
     [q, setQ] = useState(''),
     [route, setRoute] = useState(''),
     [agency, setAgency] = useState('ttc'),
+    [detailRequest, setDetailRequest] = useState(0),
     [selected, setSelected] = useState<Vehicle | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
@@ -84,18 +85,29 @@ export default function VehicleTracker({
     pageSelection.scope === scope ? pageSelection.page : 0,
   );
   const el = useRef<HTMLDivElement>(null),
+    detail = useRef<HTMLElement>(null),
     map = useRef<LeafletMap | null>(null),
     markers = useRef<LayerGroup | null>(null),
     pick = useRef<(v: Vehicle) => void>(() => {});
   useEffect(() => {
     pick.current = (vehicle) => {
       setSelected(vehicle);
+      setDetailRequest((count) => count + 1);
       const index =
         data?.vehicles.findIndex((item) => item.id === vehicle.id) ?? -1;
       if (index >= 0)
         setPageSelection({ scope, page: Math.floor(index / 100) });
     };
   }, [data, scope]);
+  useEffect(() => {
+    const panel = detail.current;
+    if (!detailRequest || !panel) return;
+    const headerHeight =
+      document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+    panel.style.scrollMarginTop = `${headerHeight + 16}px`;
+    panel.focus({ preventScroll: true });
+    panel.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, [detailRequest]);
   useEffect(() => {
     let disposed = false;
     let stopTiles: (() => void) | undefined;
@@ -242,7 +254,7 @@ export default function VehicleTracker({
     };
   }, [data, selected]);
   const choose = (v: Vehicle) => {
-    setSelected(v);
+    pick.current(v);
     map.current?.setView([v.lat, v.lon], Math.max(map.current.getZoom(), 14));
   };
   const observed = (v: Vehicle) => {
@@ -379,6 +391,8 @@ export default function VehicleTracker({
       )}
       {data && selected && (
         <section
+          ref={detail}
+          tabIndex={-1}
           className="vehicle-detail"
           aria-label={t('Selected vehicle details', '所選車輛資料')}
         >
