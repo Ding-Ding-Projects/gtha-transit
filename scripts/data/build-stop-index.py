@@ -304,6 +304,12 @@ def build(feeds_root: Path, output_root: Path = Path("data"), registry_path: Pat
                     "locationType": parse_location_type(stop_row.get("location_type")),
                     "parentStation": parent_station,
                     "code": optional_text(stop_row, "stop_code"),
+                    "validity": {
+                        "serviceStart": feed_metadata.get("serviceStart"),
+                        "serviceEnd": feed_metadata.get("serviceEnd"),
+                        "promoteAfter": feed_metadata.get("promoteAfter"),
+                        "retireAfter": feed_metadata.get("retireAfter"),
+                    },
                 }
                 stops[stop_id] = stop
                 if in_search_region(lat, lon):

@@ -8,7 +8,7 @@ The planner can attach a bounded list of scheduled routes to each transit-stop s
 
 The generator writes three coordinated local indexes:
 
-- `data/stops.json` contains search-ready stops.
+- `data/stops.json` contains search-ready stops and each source feed's service validity interval.
 - `data/routes.json` contains route badges and their source-supplied names, GTFS type, colours, text colours, version, and service validity.
 - `data/route-patterns.json` contains stop-to-route references and representative ordered route patterns.
 
@@ -23,6 +23,8 @@ A stop receives a route only when a `stop_times.txt` record names that exact GTF
 Schedule versions such as `ttc` and `ttc-next` retain their own qualified identifiers. For the same public agency and raw stop identifier, the index carries the available version references together. The route catalog then selects the appropriate scheduled version for the requested calendar date through its recorded service dates and promotion boundary. This avoids hard-coding a version alias while keeping the selected stop identity stable.
 
 `backend/places.mjs` exposes the selected official route badges as `servingRoutes` on each stop suggestion. A badge appears only when the route's declared GTFS calendar covers the selected date. A missing auxiliary pattern index produces an empty route list and does not fabricate a badge or prevent the underlying stop search from returning its source-backed result.
+
+Before place ranking, `searchPlaces(query, limit, { date })` excludes a stop only when its source feed has known calendar bounds that do not cover `date`. It retains a stop whose source has no declared bounds, preserving that uncertainty in the returned `validity` field rather than silently treating it as current. `rankPlaces` remains a generic ranking function and does not make date decisions for fixture or caller-supplied arrays.
 
 `publishedStopForId(qualifiedStopId, { date })` resolves a published source stop for stop-aware planner and live-following features. It accepts only a complete qualified source identifier, such as `ttc:485`, and returns `null` when that exact record is absent. It never searches by route, stop name, coordinate proximity, or a raw numeric stop code. The generated `stopAliases` map may resolve a schedule-version counterpart only when the index explicitly records the same public agency and raw stop identifier as a stable qualified mapping. With more than one mapped version, the helper uses the source-recorded route calendar for `date`; an ambiguous or unsupported alias remains unresolved.
 

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { currentTorontoDate, validityState } from "./routes.mjs";
 import { servingRoutesForStop } from "./stop-routes.mjs";
 
 const indexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/stops.json");
@@ -17,11 +18,16 @@ async function loadStops() {
 }
 
 export async function searchPlaces(query, limit = 20, { date = null } = {}) {
-  return withServingRoutes(rankPlaces(await loadStops(), query, limit), date);
+  return withServingRoutes(rankPlaces(filterStopsForDate(await loadStops(), date), query, limit), date);
 }
 
 export async function withServingRoutes(places, date, lookup = servingRoutesForStop) {
   return Promise.all(places.map(async (place) => ({ ...place, servingRoutes: await lookup(place.id, { date }) })));
+}
+
+export function filterStopsForDate(stops, date = null) {
+  const effectiveDate = date ?? currentTorontoDate();
+  return Array.isArray(stops) ? stops.filter((stop) => validityState(effectiveDate, stop?.validity) !== "fallback") : [];
 }
 
 const ignoredTerms = new Set(["and", "at", "the"]);
@@ -110,7 +116,7 @@ export function rankPlaces(stops, query, limit = 20) {
   const ranked = stops.map((stop) => ({ stop, score: score(stop) })).filter((item) => item.score !== null).sort((a, b) => compare(a.score, b.score));
   const seen = new Set();
   return ranked.filter(({ stop }) => { const lat = Number(stop.lat); const lon = Number(stop.lon); const location = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat}|${lon}` : `id:${stop.id}`; const key = `${tokenize(stop.name).join(" ")}|${tokenize(stop.agency).join(" ")}|${location}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, boundedLimit).map(({ stop }) => ({
-    id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", feedId: stop.feedId ?? null, locationType: Number(stop.locationType ?? 0), parentStation: stop.parentStation ?? null, ...(stop.agency ? { agency: String(stop.agency) } : {})
+    id: String(stop.id), name: String(stop.name), lat: Number(stop.lat), lon: Number(stop.lon), kind: "stop", feedId: stop.feedId ?? null, locationType: Number(stop.locationType ?? 0), parentStation: stop.parentStation ?? null, validity: stop.validity ?? {}, ...(stop.agency ? { agency: String(stop.agency) } : {})
   }));
 }
 

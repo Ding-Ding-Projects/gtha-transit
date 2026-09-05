@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { withServingRoutes } from "./places.mjs";
+import { filterStopsForDate, rankPlaces, withServingRoutes } from "./places.mjs";
 import { publishedStopForIdFromIndexes, routeStopAnchorsFromIndexes, servingRoutesFromIndexes } from "./stop-routes.mjs";
 
 const routeIndex = {
@@ -87,6 +87,21 @@ test("published stops resolve exact source IDs and explicit stable aliases witho
   assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:ALIAS-ONLY", { date: "2026-09-06" })?.id, "ttc-next:ALIAS-ONLY");
   assert.equal(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NOT-A-STOP", { date: "2026-09-06" }), null);
   assert.deepEqual(publishedStopForIdFromIndexes(stopIndex, routeIndex, patternIndex, "ttc:NEARBY", { date: "2026-09-05" })?.servingRoutes, []);
+});
+
+test("date-scoped place search excludes only known out-of-range feed versions before generic ranking", () => {
+  const stops = [
+    { id: "ttc-next:43274", name: "Eglinton Station", agency: "TTC", feedId: "ttc", locationType: 1, lat: 43.7, lon: -79.4, validity: { serviceStart: "20260906", serviceEnd: "20261031" } },
+    { id: "ttc:43275", name: "Eglinton Station Platform", agency: "TTC", feedId: "ttc", locationType: 0, lat: 43.7001, lon: -79.4001, validity: { serviceStart: "20260726", serviceEnd: "20260905" } },
+    { id: "ttc:unknown", name: "Eglinton Station Accessible Entrance", agency: "TTC", feedId: "ttc", locationType: 0, lat: 43.7002, lon: -79.4002, validity: {} },
+  ];
+  assert.equal(rankPlaces(stops, "Eglinton")[0].id, "ttc-next:43274");
+  const septemberFive = filterStopsForDate(stops, "2026-09-05");
+  assert.deepEqual(septemberFive.map((stop) => stop.id), ["ttc:43275", "ttc:unknown"]);
+  assert.equal(rankPlaces(septemberFive, "Eglinton")[0].id, "ttc:43275");
+  const septemberSix = filterStopsForDate(stops, "2026-09-06");
+  assert.deepEqual(septemberSix.map((stop) => stop.id), ["ttc-next:43274", "ttc:unknown"]);
+  assert.equal(rankPlaces(septemberSix, "Eglinton")[0].id, "ttc-next:43274");
 });
 
 test("route stop anchors choose a dated version alias and retain official direction-specific full sequences", () => {

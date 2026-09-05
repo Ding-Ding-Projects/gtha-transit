@@ -96,6 +96,7 @@ class StopRouteIndexTests(unittest.TestCase):
             self.assertEqual(INDEXER.build(feeds, output), (10, 3, 4))
             routes = json.loads((output / "routes.json").read_text(encoding="utf-8"))
             patterns = json.loads((output / "route-patterns.json").read_text(encoding="utf-8"))
+            stops = json.loads((output / "stops.json").read_text(encoding="utf-8"))
             self.assertEqual(routes["schemaVersion"], 2)
             self.assertEqual(routes["provenance"]["sourceArchiveCount"], 2)
             self.assertEqual(routes["provenance"]["routeCount"], 3)
@@ -105,6 +106,8 @@ class StopRouteIndexTests(unittest.TestCase):
             self.assertEqual(routes["provenance"]["sourceArchives"][0]["batchRetrievedAt"], "2026-09-05T00:00:00Z")
             self.assertEqual(routes["provenance"]["sourceArchives"][0]["individualRetrievalState"], "unavailable")
             self.assertEqual(routes["provenance"]["provenanceComplete"], True)
+            generated_stops = {stop["id"]: stop for stop in stops["stops"]}
+            self.assertEqual(generated_stops["ttc:A"]["validity"], {"serviceStart": "20260901", "serviceEnd": "20260930", "promoteAfter": None, "retireAfter": None})
             summer_routes = {route["id"]: route for route in routes["routes"]}
             self.assertEqual(summer_routes["ttc:1"]["color"], "ED1B2F")
             self.assertEqual(summer_routes["ttc:1"]["textColor"], "FFFFFF")
