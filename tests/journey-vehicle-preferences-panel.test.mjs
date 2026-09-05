@@ -14,7 +14,7 @@ const context = vm.createContext({ exports, require: createRequire(import.meta.u
 vm.runInContext(compiled, context);
 const Panel = exports.JourneyVehiclePreferencesPanel;
 const fleetFacts = () => vm.runInContext("[{ manufacturer: 'New Flyer', model: 'Xcelsior', year: '2020' }, { manufacturer: 'Nova Bus', model: 'LFS', year: '2018' }]", context);
-const render = (options = {}, facts = fleetFacts()) => renderToStaticMarkup(React.createElement(Panel, { criteria: {}, options, verifiedFleetFacts: facts, excludedCount: 2, onCriteriaChange() {}, onOptionsChange() {} }));
+const render = (options = {}, facts = fleetFacts(), criteria = {}) => renderToStaticMarkup(React.createElement(Panel, { criteria, options, verifiedFleetFacts: facts, excludedCount: 2, onCriteriaChange() {}, onOptionsChange() {} }));
 
 test('renders independent manufacturer and model button choices from supplied verified facts', () => {
   const html = render();
@@ -23,6 +23,9 @@ test('renders independent manufacturer and model button choices from supplied ve
   assert.match(html, />New Flyer<.*>Nova Bus<|>Nova Bus<.*>New Flyer</);
   assert.match(html, />Xcelsior<.*>LFS<|>LFS<.*>Xcelsior</);
   assert.doesNotMatch(html, /<select/);
+  assert.match(html, /var\(--surface\)/);
+  assert.match(html, /min-height:44px/);
+  assert.match(html, /min-height:48px/);
 });
 
 test('renders accessible avoid recovery and does not fabricate a search control', () => {
@@ -38,4 +41,13 @@ test('preserves empty verified-fact states honestly', () => {
   const html = render({}, []);
   assert.match(html, /No verified manufacturers are available yet/);
   assert.match(html, /No verified models are available yet/);
+});
+
+test('reports invalid and reversed year intervals inline without normalising them', () => {
+  const reversed = render({}, fleetFacts(), { yearFrom: 2025, yearTo: 2020 });
+  assert.match(reversed, /The start year must be the same as or earlier than the end year/);
+  assert.match(reversed, /aria-invalid="true"/);
+  assert.match(reversed, /value="2025"/);
+  assert.match(reversed, /value="2020"/);
+  assert.match(render({}, fleetFacts(), { yearFrom: 1700 }), /Enter a whole year from 1800 through 3000/);
 });

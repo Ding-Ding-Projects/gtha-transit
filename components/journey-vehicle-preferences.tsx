@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 
 export type JourneyVehicleCriteria = {
   manufacturer?: string;
@@ -15,7 +16,7 @@ export type JourneyVehiclePreferenceOptions = {
   includeUnconfirmed?: boolean;
 };
 
-/** Facts must come from already verified fleet/CPTDB data, never route inference. */
+/** Facts must come from already verified fleet data, never route inference. */
 export type VerifiedFleetFact = {
   manufacturer?: string | null;
   model?: string | null;
@@ -33,24 +34,26 @@ export type JourneyVehiclePreferencesPanelProps = {
 };
 
 const chipStyle = (active: boolean) => ({
-  border: `1px solid ${active ? '#005ac1' : '#6f7883'}`,
+  border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
   borderRadius: 999,
-  background: active ? '#d9e8ff' : '#ffffff',
-  color: '#10233d',
+  background: active ? 'var(--primary)' : 'var(--surface)',
+  color: 'var(--text)',
   cursor: 'pointer',
-  minHeight: 40,
+  minHeight: 44,
   padding: '8px 12px',
   font: 'inherit',
 });
 
 const panelStyle = {
-  border: '1px solid #b7c4d5',
+  border: '1px solid var(--border)',
   borderRadius: 16,
-  background: '#f8faff',
-  color: '#10233d',
+  background: 'var(--surface)',
+  color: 'var(--text)',
   maxWidth: 720,
   padding: 20,
 };
+
+const yearInputStyle = { background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text)', minHeight: 48, padding: '0 8px' };
 
 function values(facts: readonly VerifiedFleetFact[], field: 'manufacturer' | 'model') {
   const found = new Set<string>();
@@ -61,9 +64,20 @@ function values(facts: readonly VerifiedFleetFact[], field: 'manufacturer' | 'mo
   return Array.from(found).sort((left, right) => left.localeCompare(right));
 }
 
+type YearDraft = { from: string; to: string };
+
+function yearValidation({ from, to }: YearDraft) {
+  const parse = (value: string) => value === '' ? undefined : Number(value);
+  const fromYear = parse(from);
+  const toYear = parse(to);
+  if ((fromYear !== undefined && (!Number.isInteger(fromYear) || fromYear < 1800 || fromYear > 3000)) || (toYear !== undefined && (!Number.isInteger(toYear) || toYear < 1800 || toYear > 3000))) return 'Enter a whole year from 1800 through 3000.';
+  if (fromYear !== undefined && toYear !== undefined && fromYear > toYear) return 'The start year must be the same as or earlier than the end year.';
+  return null;
+}
+
 /**
  * Parent integration recipe:
- * 1. Pass only fleet facts that the parent has independently verified from CPTDB.
+ * 1. Pass only fleet facts that the parent has independently verified from its official sources.
  * 2. Keep criteria/options in parent state and call applyJourneyPreferences separately.
  * 3. Send the returned excluded count back through excludedCount for this recovery message.
  */
@@ -78,9 +92,19 @@ export function JourneyVehiclePreferencesPanel({
 }: JourneyVehiclePreferencesPanelProps) {
   const manufacturers = values(verifiedFleetFacts, 'manufacturer');
   const models = values(verifiedFleetFacts, 'model');
+  const [yearDraft, setYearDraft] = useState<YearDraft>({ from: criteria.yearFrom === undefined ? '' : String(criteria.yearFrom), to: criteria.yearTo === undefined ? '' : String(criteria.yearTo) });
+  const yearError = yearValidation(yearDraft);
   const updateCriteria = (change: Partial<JourneyVehicleCriteria>) => onCriteriaChange({ ...criteria, ...change });
   const updateOptions = (change: Partial<JourneyVehiclePreferenceOptions>) => onOptionsChange({ ...options, ...change });
   const avoidActive = Boolean(options.avoid);
+  const updateYear = (field: keyof YearDraft, value: string) => {
+    const next = { ...yearDraft, [field]: value };
+    setYearDraft(next);
+    if (yearValidation(next)) return;
+    const from = next.from === '' ? undefined : Number(next.from);
+    const to = next.to === '' ? undefined : Number(next.to);
+    updateCriteria({ yearFrom: from, yearTo: to });
+  };
 
   return <section aria-labelledby="vehicle-preferences-heading" style={panelStyle}>
     <h2 id="vehicle-preferences-heading" style={{ marginTop: 0 }}>{t('Vehicle preferences', '車輛偏好')}</h2>
@@ -112,8 +136,9 @@ export function JourneyVehiclePreferencesPanel({
 
     <fieldset>
       <legend>{t('Build-year interval', '建造年份範圍')}</legend>
-      <label>{t('From', '由')} <input type="number" inputMode="numeric" min="1800" max="3000" value={criteria.yearFrom ?? ''} onChange={(event) => updateCriteria({ yearFrom: event.currentTarget.value === '' ? undefined : Number(event.currentTarget.value) })} /></label>{' '}
-      <label>{t('To', '至')} <input type="number" inputMode="numeric" min="1800" max="3000" value={criteria.yearTo ?? ''} onChange={(event) => updateCriteria({ yearTo: event.currentTarget.value === '' ? undefined : Number(event.currentTarget.value) })} /></label>
+      <label>{t('From', '由')} <input type="number" inputMode="numeric" min="1800" max="3000" value={yearDraft.from} aria-invalid={Boolean(yearError)} aria-describedby="vehicle-year-error" onChange={(event) => updateYear('from', event.currentTarget.value)} style={yearInputStyle} /></label>{' '}
+      <label>{t('To', '至')} <input type="number" inputMode="numeric" min="1800" max="3000" value={yearDraft.to} aria-invalid={Boolean(yearError)} aria-describedby="vehicle-year-error" onChange={(event) => updateYear('to', event.currentTarget.value)} style={yearInputStyle} /></label>
+      {yearError && <p id="vehicle-year-error" role="alert">{t(yearError, yearError === 'The start year must be the same as or earlier than the end year.' ? '開始年份必須早過或等於結束年份。' : '請輸入介乎 1800 至 3000 嘅整數年份。')}</p>}
       <p>{t('Published year ranges that only partly overlap remain unconfirmed.', '已公布年份範圍只係部分重疊時會保持未確認。')}</p>
     </fieldset>
 
@@ -125,7 +150,7 @@ export function JourneyVehiclePreferencesPanel({
       </div>
     </fieldset>
 
-    {avoidActive && <aside aria-live="polite" style={{ borderLeft: '4px solid #8b4200', marginTop: 16, paddingLeft: 12 }}>
+    {avoidActive && <aside aria-live="polite" style={{ borderLeft: '4px solid var(--primary)', color: 'var(--text)', marginTop: 16, paddingLeft: 12 }}>
       <strong>{t('Avoid can remove unconfirmed options.', '避開模式可以移除未確認選項。')}</strong>
       <p>{t('A journey with an assigned vehicle that cannot be verified against these facts is excluded by default. Choose the option below to keep it.', '已配車輛未能按這些資料核實嘅行程預設會被移除。選以下項目即可保留。')}</p>
       <button type="button" aria-pressed={Boolean(options.includeUnconfirmed)} onClick={() => updateOptions({ includeUnconfirmed: !options.includeUnconfirmed })} style={chipStyle(Boolean(options.includeUnconfirmed))}>{t('Include unconfirmed assignments', '包括未確認配車')}</button>
