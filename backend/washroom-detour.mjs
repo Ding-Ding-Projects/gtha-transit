@@ -131,9 +131,17 @@ function durationSeconds(itinerary, departureAt) {
   return Number.isFinite(start) && Number.isFinite(end) && end >= start ? Math.round((end - start) / 1000) : null;
 }
 
-function itineraryFrom(result, departureAt) {
+function elapsedToArrivalSeconds(itinerary, requestAt) {
+  const request = Date.parse(requestAt);
+  const end = Date.parse(itinerary?.endTime);
+  if (Number.isFinite(request) && Number.isFinite(end) && end >= request) return Math.round((end - request) / 1000);
+  return durationSeconds(itinerary, requestAt);
+}
+
+function itineraryFrom(result, departureAt, includeInitialWait = false) {
   const candidates = Array.isArray(result?.itineraries) ? result.itineraries : Array.isArray(result) ? result : [];
-  return candidates.map((itinerary) => ({ itinerary, duration: durationSeconds(itinerary, departureAt) })).filter((item) => item.duration !== null).sort((left, right) => left.duration - right.duration || String(left.itinerary?.id ?? "").localeCompare(String(right.itinerary?.id ?? "")))[0] ?? null;
+  const duration = includeInitialWait ? elapsedToArrivalSeconds : durationSeconds;
+  return candidates.map((itinerary) => ({ itinerary, duration: duration(itinerary, departureAt) })).filter((item) => item.duration !== null).sort((left, right) => left.duration - right.duration || String(left.itinerary?.id ?? "").localeCompare(String(right.itinerary?.id ?? "")))[0] ?? null;
 }
 
 function arrivalTime(itinerary, departureAt, seconds) {
@@ -239,7 +247,7 @@ export async function planWashroomDetour(input, { planWithOtp, facilityRegistry,
     try {
       const immediate = await boundedPlan(planWithOtp, { ...options, from: current.point, to: candidate.location.point, via: [], dateTime, arriveBy: false }, deadline, now);
       if (immediate.error) return { state: immediate.error, candidate };
-      const immediateItinerary = itineraryFrom(immediate.result, dateTime);
+      const immediateItinerary = itineraryFrom(immediate.result, dateTime, true);
       if (!immediateItinerary) return { state: "facility-unresolved", candidate };
       const expectedArrival = arrivalTime(immediateItinerary.itinerary, dateTime, immediateItinerary.duration);
       const availability = facilityAvailability(candidate.facility, expectedArrival);

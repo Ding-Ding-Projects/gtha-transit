@@ -43,6 +43,8 @@ The operation sorts verified-coordinate candidates by straight-line distance, co
 
 `visitMinutes` is a whole value from 1 through 60 and defaults to 10. For a normal detour, the continuation begins at facility arrival plus this planned visit duration. The result includes `departAfterVisit` so callers can show the planned onward departure time. It is planning time only, never a measured queue, washroom, or indoor-access duration.
 
+`timeToFacilitySeconds` is the elapsed time from the requested route time through facility arrival, including initial waiting for a later service. The continuation duration remains the returned itinerary duration when that value is available. This keeps the urgent facility ETA honest without relabeling onward travel time as waiting-inclusive elapsed time.
+
 `completeJourney: true` is returned only when both legs resolve. A facility leg can be useful even when the remaining trip is unavailable, so that state is returned honestly:
 
 ```json

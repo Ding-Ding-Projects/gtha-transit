@@ -167,6 +167,17 @@ test("continuation starts after the planned visit duration and reports departure
   assert.match(result.note, /not an observed dwell time/);
 });
 
+test("facility ETA includes initial waiting before the itinerary begins", async () => {
+  const planner = async (request) => request.to.lat === opened.coordinates.lat
+    ? { itineraries: [{ id: "delayed-facility", startTime: "2026-09-07T12:10:00-04:00", endTime: "2026-09-07T12:30:00-04:00", duration: 1_200, legs: [{ mode: "WALK" }] }] }
+    : itinerary({ duration: 300, endTime: "2026-09-07T12:45:00-04:00", id: "continuation" });
+  const result = await planWashroomDetour(input(), { planWithOtp: planner, facilityRegistry: [opened] });
+  assert.equal(result.status, "complete");
+  assert.equal(result.facilityLeg.timeToFacilitySeconds, 1_800);
+  assert.equal(result.facilityLeg.expectedArrival, "2026-09-07T12:30:00-04:00");
+  assert.equal(result.continuation.durationSeconds, 300);
+});
+
 test("visit duration defaults to ten minutes and rejects invalid values before routing", async () => {
   let calls = 0;
   const planner = async (request) => { calls += 1; return request.to.lat === opened.coordinates.lat ? itinerary({ duration: 60, endTime: "2026-09-07T12:01:00-04:00", id: "facility" }) : itinerary({ duration: 300, endTime: "2026-09-07T12:16:00-04:00", id: "continuation" }); };
