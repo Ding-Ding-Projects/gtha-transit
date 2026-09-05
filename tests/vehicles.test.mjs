@@ -21,13 +21,13 @@ test('marks old feed and vehicle timestamps stale', () => { const result = parse
 test('rejects malformed fields, excessive bytes, and incomplete headers', () => { assert.throws(() => parseTtcVehicles(Uint8Array.of(0x12, 0xff))); assert.throws(() => parseTtcVehicles(new Uint8Array(10 * 1024 * 1024 + 1))); assert.throws(() => parseTtcVehicles(bytes(1, string(1, '2.0')))); });
 test('drops invalid coordinates without dropping valid entities', () => { const result = parseTtcVehicles(feed(1700000000, vehicle({ id: 'bad', lat: 120 }), vehicle({ id: '3400' })), { now: 1700000000000 }); assert.deepEqual(result.vehicles.map((item) => item.id), ['3400']); });
 
-test('maps exact fleet boundaries and labels unmatched identifiers as searches', () => {
-  assert.deepEqual([matchCptdb('3400').fleetRange, matchCptdb('3654').fleetRange], ['3400-3654', '3400-3654']); assert.equal(matchCptdb('3399').match, 'search'); assert.equal(matchCptdb('9029').model, 'LFS Artic'); assert.equal(matchCptdb('4400').manufacturer, 'Bombardier Transportation'); assert.equal(matchCptdb('4663').manufacturer, 'Alstom'); assert.equal(matchCptdb('6749').model, 'LFSe+'); assert.equal(matchCptdb('not-a-fleet').match, 'search');
+test('uses official TTC boundaries and treats CPTDB links as searches rather than verified records', () => {
+  assert.equal(matchCptdb('3400').fleetRange, '3400-3454'); assert.equal(matchCptdb('3400').manufacturer, 'Nova Bus'); assert.equal(matchCptdb('3455').fleetRange, '3455-3654'); assert.equal(matchCptdb('3759').model, 'K9M'); assert.equal(matchCptdb('3760').fleetRange, undefined); assert.equal(matchCptdb('9400').model, 'Xcelsior XDE60'); assert.equal(matchCptdb('9468').capacity, '50 seats'); assert.equal(matchCptdb('4400').manufacturer, 'Alstom'); assert.equal(matchCptdb('3400').match, 'search'); assert.equal(matchCptdb('not-a-fleet').match, 'search');
 });
 
 test('queries a cached snapshot with exact route filtering and bounded pagination', async () => {
   clearVehicleCache(); const payload = feed(1700000000, vehicle({ id: '3400', route: '29' }), vehicle({ id: '9029', route: '29' }), vehicle({ id: '4400', route: '501' })); let calls = 0; const fetchImpl = async () => { calls += 1; return new Response(payload, { status: 200 }); };
-  const first = await getVehicles({ q: 'Nova', route: '29', limit: 1, fetchImpl, now: 1700000000000 }); assert.equal(first.total, 1); assert.equal(first.vehicles[0].id, '9029'); assert.equal(first.nextCursor, null);
+  const first = await getVehicles({ q: 'Nova', route: '29', limit: 1, fetchImpl, now: 1700000000000 }); assert.equal(first.total, 2); assert.equal(first.vehicles[0].id, '3400'); assert.equal(first.nextCursor, '1');
   const second = await getVehicles({ route: '29', limit: 1, fetchImpl, now: 1700000000001 }); assert.equal(second.total, 2); assert.equal(second.nextCursor, '1'); assert.equal(calls, 1);
   const mapPage = await getVehicles({ limit: 99999, fetchImpl, now: 1700000000002 }); assert.equal(mapPage.vehicles.length, 3); assert.equal(mapPage.nextCursor, null);
 });

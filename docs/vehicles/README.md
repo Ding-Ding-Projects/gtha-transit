@@ -10,11 +10,11 @@ Each vehicle includes the published identifier, label, route and trip identifier
 
 ## CPTDB roster matching
 
-Fleet facts come from explicit vehicle-number ranges on the linked Canadian Public Transit Discussion Board TTC roster pages. A range match is labelled `series`, because it identifies a fleet series rather than proving a unit-specific page. Unmatched identifiers receive a real CPTDB search URL labelled `search`; the application does not claim that a matching record exists.
+TTC fleet facts come from the official TTC Service Summary dated December 7, 2025, whose vehicle inventory was updated November 24, 2025. Every vehicle receives a CPTDB search URL labelled `search`; the application does not claim that an unverified unit or series page exists. Fleet facts and the CPTDB lookup are separate provenance boundaries.
 
-The registry records only facts supported for the complete linked range: manufacturer, model, build year or range, propulsion, length, capacity where available, and roster status. Review the linked source before changing a boundary. The registry does not infer a model from route, vehicle shape, or nearby fleet numbers.
+The registry records only facts supported for the complete official range: manufacturer, model, build year or range, propulsion, length, and seats. A vehicle appearing in the live feed gets `observedLive: true`; that observation is not a claim that the entire series is active. The registry does not infer a model from route, vehicle shape, or nearby fleet numbers.
 
-The registry was checked against the numeric identifiers in a live TTC snapshot retrieved at `2026-09-05T00:11:50.108Z`; its feed timestamp was `2026-09-05T00:11:43.000Z`, and all 1,678 observed identifiers matched an explicit series boundary. This count is point-in-time evidence rather than a fixed fleet total.
+The registry was checked against a live TTC snapshot retrieved at `2026-09-05T00:11:50.108Z`; its feed timestamp was `2026-09-05T00:11:43.000Z`. Identifiers outside the dated official inventory remain honest search-only records rather than inheriting facts from a nearby range. This count is point-in-time evidence rather than a fixed fleet total.
 
 ## Photos and rights
 
@@ -24,4 +24,4 @@ The registry was checked against the numeric identifiers in a live TTC snapshot 
 
 The parser accepts at most 10 MiB and 10,000 entities, refuses redirects, applies a deadline of at most 10 seconds, validates protobuf boundaries, rejects invalid coordinates, and never logs the feed body. This feature uses public operational data and stores only the short-lived in-memory snapshot.
 
-Sources: [TTC GTFS Realtime vehicle positions](https://bustime.ttc.ca/gtfsrt/vehicles), [City of Toronto dataset and licence](https://open.toronto.ca/dataset/ttc-bustime-real-time-next-vehicle-arrival-nvas/), and [CPTDB TTC index](https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission).
+Sources: [TTC GTFS Realtime vehicle positions](https://bustime.ttc.ca/gtfsrt/vehicles), [TTC Service Summary, December 7, 2025](https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-summary-2025-12-07.pdf?rev=ad117ec728ae47fd868aea9aaa1c3835), [City of Toronto dataset and licence](https://open.toronto.ca/dataset/ttc-bustime-real-time-next-vehicle-arrival-nvas/), and [CPTDB TTC index](https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission).
