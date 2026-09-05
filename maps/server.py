@@ -53,8 +53,7 @@ class RevisionUnavailable(Exception):
 class RevisionCache:
     def __init__(self):
         self._lock = threading.Lock()
-        self._identity = None
-        self._revision = None
+        self._entry = None
 
     @staticmethod
     def identity(stat_result):
@@ -65,16 +64,18 @@ class RevisionCache:
             identity = self.identity(os.stat(path))
         except OSError as error:
             raise RevisionUnavailable(f"regional MBTiles cannot be read: {error.strerror or error}") from error
-        if identity == self._identity and self._revision:
-            return self._revision, identity
+        entry = self._entry
+        if entry is not None and identity == entry[0]:
+            return entry[1], identity
         if not self._lock.acquire(timeout=HASH_LOCK_TIMEOUT_SECONDS):
             raise RevisionUnavailable("regional MBTiles revision is busy")
         try:
             try:
                 with open(path, "rb") as source:
                     before = self.identity(os.fstat(source.fileno()))
-                    if before == self._identity and self._revision:
-                        return self._revision, before
+                    entry = self._entry
+                    if entry is not None and before == entry[0]:
+                        return entry[1], before
                     digest = hashlib.sha256()
                     while chunk := source.read(HASH_CHUNK_SIZE):
                         digest.update(chunk)
@@ -84,9 +85,9 @@ class RevisionCache:
                 raise RevisionUnavailable(f"regional MBTiles cannot be read: {error.strerror or error}") from error
             if before != after or after != current:
                 raise RevisionUnavailable("regional MBTiles changed while its revision was calculated")
-            self._identity = current
-            self._revision = digest.hexdigest()
-            return self._revision, current
+            revision = digest.hexdigest()
+            self._entry = (current, revision)
+            return revision, current
         finally:
             self._lock.release()
 

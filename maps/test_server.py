@@ -94,6 +94,30 @@ class MapRevisionHttpTest(unittest.TestCase):
         self.assertEqual(headers["Cache-Control"], "no-store")
         self.assertIn("cannot be read", json.loads(body)["error"])
 
+    def test_concurrent_revision_reads_publish_one_consistent_cache_entry(self):
+        barrier = threading.Barrier(9)
+        results = []
+        errors = []
+
+        def read_revision():
+            try:
+                barrier.wait(timeout=5)
+                results.append(server.REVISION_CACHE.current(self.database))
+            except Exception as error:
+                errors.append(error)
+
+        workers = [threading.Thread(target=read_revision) for _ in range(8)]
+        for worker in workers:
+            worker.start()
+        barrier.wait(timeout=5)
+        for worker in workers:
+            worker.join(timeout=5)
+
+        self.assertFalse(errors)
+        self.assertEqual(len(results), 8)
+        self.assertEqual(len(set(results)), 1)
+        self.assertEqual(server.REVISION_CACHE._entry, (results[0][1], results[0][0]))
+
 
 if __name__ == "__main__":
     unittest.main()
