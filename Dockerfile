@@ -16,6 +16,7 @@ COPY --chown=node:node status ./status
 COPY --chown=node:node history ./history
 COPY --chown=node:node realtime ./realtime
 COPY --chown=node:node vehicles ./vehicles
+COPY --chown=node:node data/ttc-divisions.json ./data/ttc-divisions.json
 RUN mkdir -p /data/history && chown node:node /data/history
 USER node
 EXPOSE 8080

@@ -5,14 +5,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import { createHistoryStore } from '../history/store.mjs';
+import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
 import { loadRegistry, RealtimeAggregator } from '../realtime/aggregator.mjs';
 import { getVehicles, enrichItineraries } from '../vehicles/index.mjs';
+import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divisions.mjs';
 import { VERIFIED_PHOTO_URLS } from '../vehicles/fleet-registry.mjs';
 const photoCache = new Map();
 const realtime = new RealtimeAggregator({ registry: await loadRegistry() });
 const history = process.env.HISTORY_DIR
   ? createHistoryStore({ directory: process.env.HISTORY_DIR })
   : null;
+const vehicleSightings = process.env.HISTORY_DIR
+  ? createVehicleSightingStore({ directory: process.env.HISTORY_DIR })
+  : null;
+const divisionRegistry = await loadTtcDivisionRegistry();
 let collecting = false;
 async function collect() {
   if (!history || collecting) return;
@@ -30,6 +36,88 @@ async function collect() {
 if (history) {
   void collect();
   setInterval(() => void collect(), 60000).unref();
+}
+let vehicleCollecting = false;
+async function allTtcVehicles() {
+  const vehicles = [];
+  let cursor = '0';
+  let snapshot;
+  for (let pageNumber = 0; pageNumber < 4; pageNumber += 1) {
+    const page = await getVehicles({ agency: 'ttc', limit: 2500, cursor, fixturePath: process.env.VEHICLE_FIXTURE_PATH || undefined });
+    snapshot ??= page;
+    vehicles.push(...page.vehicles);
+    if (!page.nextCursor) return { ...page, vehicles, loaded: vehicles.length };
+    cursor = page.nextCursor;
+  }
+  return { ...snapshot, vehicles, loaded: vehicles.length, nextCursor: cursor };
+}
+async function collectVehicleSightings() {
+  if (!vehicleSightings || vehicleCollecting) return;
+  vehicleCollecting = true;
+  try {
+    vehicleSightings.observe(await allTtcVehicles());
+  } catch {
+    console.error('Vehicle sighting collection failed; existing records retained.');
+  } finally {
+    vehicleCollecting = false;
+  }
+}
+if (vehicleSightings) {
+  void collectVehicleSightings();
+  setInterval(() => void collectVehicleSightings(), 60000).unref();
+}
+function vehicleMatches(vehicle, query, route) {
+  if (route && vehicle.routeId !== route) return false;
+  if (!query) return true;
+  return [vehicle.id, vehicle.label, vehicle.routeId, vehicle.cptdb?.manufacturer, vehicle.cptdb?.model, vehicle.cptdb?.year]
+    .some((value) => String(value ?? '').toLocaleLowerCase().includes(query));
+}
+async function divisionPage(params) {
+  const requestedState = params.get('classification') || 'all';
+  if (!['all', 'out-of-division', 'in-division', 'unknown'].includes(requestedState)) throw Error('Invalid division classification.');
+  const query = String(params.get('q') ?? '').trim().slice(0, 256).toLocaleLowerCase();
+  const route = String(params.get('route') ?? '').replace(/^ttc:/i, '').trim().slice(0, 64);
+  const requestedLimit = Number.parseInt(params.get('limit') ?? '100', 10);
+  const limit = Math.min(100, Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 100));
+  const requestedCursor = Number.parseInt(params.get('cursor') ?? '0', 10);
+  const cursor = Number.isSafeInteger(requestedCursor) && requestedCursor >= 0 ? requestedCursor : 0;
+  const snapshot = await allTtcVehicles();
+  const now = Date.now();
+  const classified = snapshot.vehicles.map((vehicle) => {
+    const classification = classifyOutOfDivision(vehicle, vehicle.routeId, divisionRegistry, { now });
+    const rarity = vehicleSightings && vehicle.routeId
+      ? { state: 'available', ...vehicleSightings.query({ vehicleId: vehicle.id, routeId: vehicle.routeId, now }) }
+      : { state: 'unavailable', reason: vehicleSightings ? 'route-identifier-unavailable' : 'history-storage-unavailable' };
+    return {
+      ...vehicle,
+      division: {
+        ...classification,
+        routeGarages: classification.assignedGarages ?? [],
+        rarity,
+      },
+    };
+  });
+  const counts = {
+    all: classified.length,
+    outOfDivision: classified.filter((vehicle) => vehicle.division.state === 'out-of-division').length,
+    inDivision: classified.filter((vehicle) => vehicle.division.state === 'in-division').length,
+    unknown: classified.filter((vehicle) => vehicle.division.state === 'unknown').length,
+  };
+  const filtered = classified.filter((vehicle) => vehicleMatches(vehicle, query, route) && (requestedState === 'all' || vehicle.division.state === requestedState));
+  const vehicles = filtered.slice(cursor, cursor + limit);
+  return {
+    state: snapshot.state,
+    agencyId: 'ttc',
+    fetchedAt: snapshot.fetchedAt,
+    sourceTimestamp: snapshot.sourceTimestamp,
+    sourceUrl: snapshot.sourceUrl,
+    source: divisionRegistry.source,
+    loaded: snapshot.loaded,
+    total: filtered.length,
+    counts,
+    vehicles,
+    nextCursor: cursor + vehicles.length < filtered.length ? String(cursor + vehicles.length) : null,
+  };
 }
 function historyPage(params) {
   const page = history.query(Object.fromEntries(params));
@@ -288,6 +376,13 @@ const server = http.createServer(async (req, res) => {
         200,
         await getVehicles(Object.fromEntries(url.searchParams)),
       );
+    if (url.pathname === '/api/vehicles/divisions' && req.method === 'GET') {
+      try {
+        return send(res, 200, await divisionPage(url.searchParams));
+      } catch (error) {
+        return send(res, 400, { error: error.message });
+      }
+    }
     if (url.pathname === '/api/realtime' && req.method === 'GET') {
       const summary = await realtime.refresh();
       try {
