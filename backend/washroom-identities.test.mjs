@@ -33,7 +33,7 @@ const officialStopIndex = {
 };
 
 test("production-shaped facilities gain only source-backed qualified station identities", () => {
-  assert.equal(registry.facilities.length, 25);
+  assert.equal(registry.facilities.length, 32);
   assert.ok(registry.facilities.every((facility) => !facility.stationIds && !facility.stationIdentity));
   const resolved = resolveFacilityStopIdentities(registry.facilities, officialStopIndex);
   const byFacility = new Map(resolved.identityMap.entries.map((entry) => [entry.facilityId, entry]));
@@ -43,6 +43,9 @@ test("production-shaped facilities gain only source-backed qualified station ide
   assert.deepEqual(byFacility.get("up-union-station").stationIds, ["up:UN"]);
   assert.equal(byFacility.has("ttc-union-station"), false);
   assert.equal(byFacility.has("toronto-library-high-park"), false);
+  const municipal = registry.facilities.filter((facility) => facility.agencyId === "toronto");
+  assert.equal(municipal.length, 9);
+  for (const facility of municipal) assert.equal(byFacility.has(facility.facilityId), false);
   assert.equal(resolved.identityMap.source, officialStopIndex.source);
   assert.equal(registry.facilities.find((facility) => facility.facilityId === "ttc-eglinton").stationIds, undefined);
 
