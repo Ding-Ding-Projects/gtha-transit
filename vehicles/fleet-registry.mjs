@@ -1,45 +1,42 @@
 export const CPTDB_TTC_URL = 'https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission';
+export const TTC_FLEET_SOURCE = 'https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-summary-2025-12-07.pdf?rev=ad117ec728ae47fd868aea9aaa1c3835';
 
-const page = (range) => `https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission_${range}`;
+const facts = (first, last, manufacturer, model, year, propulsion, length, capacity) => ({ first, last, manufacturer, model, year, propulsion, length, capacity, source: { url: TTC_FLEET_SOURCE, title: 'TTC Service Summary, December 7, 2025', updated: '2025-11-24' } });
 
-/**
- * Vehicle ranges transcribed from the linked CPTDB roster pages. Fields stay absent when the
- * source does not establish them consistently for the complete range.
- */
+/** Official TTC inventory ranges. Live observation is reported separately and is not a roster status. */
 export const TTC_FLEET_RANGES = Object.freeze([
-  { first: 1200, last: 1423, manufacturer: 'Orion Bus Industries', model: 'Orion VII Next Generation HEV', year: '2007–2008', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('1200-1423') },
-  { first: 1500, last: 1689, manufacturer: 'Orion Bus Industries', model: 'Orion VII Next Generation HEV', year: '2008', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('1500-1689') },
-  { first: 3100, last: 3369, manufacturer: 'Nova Bus', model: 'LFS', year: '2018–2019', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('3100-3369') },
-  { first: 3400, last: 3654, manufacturer: 'New Flyer', model: 'Xcelsior XDE40', year: '2018–2019', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('3400-3654') },
-  { first: 3700, last: 3724, manufacturer: 'New Flyer', model: 'Xcelsior XE40', year: '2019', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('3700-3724') },
-  { first: 3725, last: 3749, manufacturer: 'Proterra', model: 'Catalyst BE40', year: '2019', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('3725-3749') },
-  { first: 3750, last: 3769, manufacturer: 'BYD', model: 'K9M', year: '2019', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('3750-3769') },
-  { first: 4400, last: 4603, manufacturer: 'Bombardier Transportation', model: 'Flexity Outlook', year: '2012–2024', propulsion: 'Electric', length: '30.2 m', capacity: '130 passengers', status: 'Active', url: page('4400-4603') },
-  { first: 4604, last: 4663, manufacturer: 'Alstom', model: 'Flexity Outlook', year: '2023–2025', propulsion: 'Electric', length: '30.2 m', capacity: '130 passengers', status: 'Active', url: page('4604-4663') },
-  { first: 6000, last: 6129, manufacturer: 'New Flyer', model: 'Xcelsior XE40 NG', year: '2024–2025', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('6000-6129') },
-  { first: 6130, last: 6204, manufacturer: 'New Flyer', model: 'Xcelsior XE40 NG', year: '2025–2026', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('6130-6204') },
-  { first: 6600, last: 6749, manufacturer: 'Nova Bus', model: 'LFSe+', year: '2025–2026', propulsion: 'Battery electric', length: '12.2 m', status: 'Active', url: page('6600-6749') },
-  { first: 7000, last: 7133, manufacturer: 'Nova Bus', model: 'LFS HEV', year: '2023–2024', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('7000-7133') },
-  { first: 7200, last: 7333, manufacturer: 'New Flyer', model: 'Xcelsior XDE40', year: '2023–2024', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('7200-7333') },
-  { first: 8100, last: 8219, manufacturer: 'Orion Bus Industries', model: 'Orion VII Next Generation', year: '2010', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('8100-8219') },
-  { first: 8300, last: 8396, manufacturer: 'Orion Bus Industries', model: 'Orion VII Next Generation', year: '2011–2012', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('8300-8396') },
-  { first: 8400, last: 8617, manufacturer: 'Nova Bus', model: 'LFS', year: '2015–2016', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('8400-8617') },
-  { first: 8620, last: 8964, manufacturer: 'Nova Bus', model: 'LFS', year: '2017–2018', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('8620-8964') },
-  { first: 9000, last: 9152, manufacturer: 'Nova Bus', model: 'LFS Artic', year: '2013–2014', propulsion: 'Diesel', length: '18.9 m', capacity: '112 passengers', status: 'Active', url: page('9000-9152') },
-  { first: 9200, last: 9239, manufacturer: 'Nova Bus', model: 'LFS', year: '2018', propulsion: 'Diesel', length: '12.2 m', status: 'Active', url: page('9200-9239') },
-  { first: 9400, last: 9467, manufacturer: 'Nova Bus', model: 'LFS HEV', year: '2024', propulsion: 'Diesel-electric hybrid', length: '12.2 m', status: 'Active', url: page('9400-9467') },
+  facts(1200, 1423, 'Daimler Buses North America', 'Orion VII Next Generation', '2007-2008', 'Diesel-electric hybrid', '12 m', '36 seats'),
+  facts(1500, 1689, 'Daimler Buses North America', 'Orion VII Next Generation', '2008', 'Diesel-electric hybrid', '12 m', '36 seats'),
+  facts(3100, 3369, 'Nova Bus', 'LFS', '2018', 'Diesel', '12 m', '33 seats'),
+  facts(3400, 3454, 'Nova Bus', 'LFS Hybrid', '2018', 'Diesel-electric hybrid', '12 m', '33 seats'),
+  facts(3455, 3654, 'Nova Bus', 'LFS Hybrid', '2019', 'Diesel-electric hybrid', '12 m', '33 seats'),
+  facts(3700, 3724, 'New Flyer', 'Xcelsior XE40', '2019-2020', 'Battery electric', '12 m', '33 seats'),
+  facts(3750, 3759, 'BYD', 'K9M', '2019-2020', 'Battery electric', '12 m', '35 seats'),
+  facts(6000, 6203, 'New Flyer', 'Xcelsior XE40', '2024-2025', 'Battery electric', '12 m', '33 seats'),
+  facts(6600, 6735, 'Nova Bus', 'LFSe+', '2024', 'Battery electric', '12 m', '33 seats'),
+  facts(7000, 7133, 'Nova Bus', 'LFS Hybrid', '2023-2024', 'Diesel-electric hybrid', '12 m', '33 seats'),
+  facts(7200, 7333, 'New Flyer', 'Xcelsior XDE40', '2023-2024', 'Diesel-electric hybrid', '12 m', '33 seats'),
+  facts(8100, 8219, 'Daimler Buses North America', 'Orion VII Next Generation', '2010', 'Diesel', '12 m', '36 seats'),
+  facts(8300, 8396, 'Daimler Buses North America', 'Orion VII Next Generation', '2011-2012', 'Diesel', '12 m', '36 seats'),
+  facts(8400, 8617, 'Nova Bus', 'LFS', '2015-2017', 'Diesel', '12 m', '33 seats'),
+  facts(8620, 8964, 'Nova Bus', 'LFS', '2017', 'Diesel', '12 m', '33 seats'),
+  facts(9000, 9152, 'Nova Bus', 'LFS Artic', '2013-2014', 'Diesel', '18 m', '46 seats'),
+  facts(9200, 9239, 'Nova Bus', 'LFS', '2018', 'Diesel', '12 m', '33 seats'),
+  facts(9400, 9468, 'New Flyer', 'Xcelsior XDE60', '2023-2025', 'Diesel-electric hybrid', '18 m', '50 seats'),
+  facts(4400, 4603, 'Alstom', 'FLEXITY M-1', '2012-2019', 'Electric', '30 m', '70 seats'),
+  facts(4604, 4663, 'Alstom', 'FLEXITY M-1', '2023-2024', 'Electric', '30 m', '70 seats'),
 ]);
 
 const clean = (value) => String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 128);
+const searchUrl = (agencyName, identity) => `https://cptdb.ca/wiki/index.php?search=${encodeURIComponent(`${agencyName} ${identity || 'vehicle'}`)}`;
 
-export function matchCptdb(vehicleId, label = '') {
+export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName = 'Toronto Transit Commission' } = {}) {
   const identity = clean(label) || clean(vehicleId);
   const numeric = /^\d{3,5}$/.test(identity) ? Number(identity) : NaN;
-  const found = Number.isFinite(numeric) ? TTC_FLEET_RANGES.find((entry) => numeric >= entry.first && numeric <= entry.last) : undefined;
+  const found = agencyId === 'ttc' && Number.isFinite(numeric) ? TTC_FLEET_RANGES.find((entry) => numeric >= entry.first && numeric <= entry.last) : undefined;
   if (found) {
-    const { first, last, url, ...facts } = found;
-    return { url, match: first === last ? 'vehicle' : 'series', fleetRange: `${first}-${last}`, ...facts };
+    const { first, last, ...verifiedFacts } = found;
+    return { url: searchUrl(agencyName, identity), match: 'search', fleetRange: `${first}-${last}`, observedLive: true, ...verifiedFacts };
   }
-  const query = encodeURIComponent(`Toronto Transit Commission ${identity || 'vehicle'}`);
-  return { url: `https://cptdb.ca/wiki/index.php?search=${query}`, match: identity ? 'search' : 'unmatched' };
+  return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', observedLive: Boolean(identity) };
 }
