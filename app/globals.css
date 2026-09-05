@@ -1595,6 +1595,8 @@ select {
 .regex-workbench { min-width: 0; position: relative; }
 .regex-workbench__input-line { display: flex; align-items: center; gap: 8px; min-height: 48px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); padding: 5px 10px; }
 .regex-workbench__input-line input { border: 0; background: transparent; min-width: 0; width: 100%; color: var(--text); min-height: 40px; }
+.regex-workbench__clear { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; border-radius:50%; background:var(--surface2); color:var(--text); }
+.regex-workbench__input-line input::-webkit-search-cancel-button { -webkit-appearance:none; }
 .regex-workbench__trigger { min-width: 44px; min-height: 44px; border-radius: 12px; color: var(--primary); background: var(--surface2); }
 .regex-workbench__popover { position: relative; z-index: 5; width: 100%; min-width: 0; overflow: auto; margin-top: 10px; padding: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: 0 12px 32px #0002; overflow-wrap: anywhere; }
 .regex-workbench__header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

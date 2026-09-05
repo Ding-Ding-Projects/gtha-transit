@@ -23,6 +23,7 @@
 .tracker-filters {
   display: grid;
   grid-template-columns: 2fr 1fr;
+  align-items: start;
   gap: 12px;
   margin: 20px 0;
 }

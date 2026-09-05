@@ -292,7 +292,7 @@ export function SearchWorkbench({
     <div className="regex-workbench" ref={rootRef}>
       <div className="regex-workbench__field">
         <label htmlFor={fieldId}>{label}</label>
-        <div className="regex-workbench__input-line">
+        <div className="regex-workbench__input-line" data-has-query={!!activeValue}>
           <Search size={17} aria-hidden="true" />
           <input
             id={fieldId}
@@ -307,6 +307,7 @@ export function SearchWorkbench({
             }
             aria-describedby={`${id}-mode ${id}-state`}
           />
+          {activeValue && <button type="button" className="regex-workbench__clear" aria-label={t('Clear search', '清除搜尋') + ': ' + label} onClick={() => { updateActive(''); document.getElementById(fieldId)?.focus(); }}><X size={17} aria-hidden="true" /></button>}
           <button
             type="button"
             className="regex-workbench__trigger"
