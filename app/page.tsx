@@ -570,7 +570,7 @@ export default function Home() {
   const totalAlerts = status?.alerts?.length || 0;
   const agencies = coverage?.agencies || [];
   const serviceDate=(when||localInput()).slice(0,10).replaceAll('-','');
-  const dateGaps=agencies.filter((a:any)=>(a.serviceStart&&String(a.serviceStart)>serviceDate)||(a.serviceEnd&&String(a.serviceEnd)<serviceDate));
+  const dateGaps=agencies.filter((a:any)=>a.activeTripsByDate?.[(when||localInput()).slice(0,10)]===0||(a.serviceStart&&String(a.serviceStart)>serviceDate)||(a.serviceEnd&&String(a.serviceEnd)<serviceDate));
   const lineState = (line: Line) =>
     line.state === 'good'
       ? t('No reported disruption', '未有通報事故')
@@ -1401,7 +1401,7 @@ export default function Home() {
                         {a.loaded ||
                         a.status === 'ready' ||
                         a.status === 'valid'
-                          ? t('Schedules loaded', '已載入時間表')
+                          ? (a.availableToday===false?t('No trips in today’s loaded schedule','已載入時間表今日無班次'):t('Schedules loaded', '已載入時間表'))
                           : t('Not yet verified', '尚未核實')}
                       </span>
                       <p>
