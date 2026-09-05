@@ -1,8 +1,8 @@
 const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanLabeledLocationInput!,$via:[PlanViaLocationInput!],$dateTime:PlanDateTimeInput!,$first:Int!,$modes:PlanModesInput!,$preferences:PlanPreferencesInput) {
   planConnection(origin:$origin,destination:$destination,via:$via,dateTime:$dateTime,first:$first,modes:$modes,preferences:$preferences) {
     edges { node { start end duration walkDistance numberOfTransfers legs {
-      mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon viaLocationType } to { name lat lon viaLocationType }
-      intermediatePlaces { name lat lon }
+      mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } } to { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } }
+      intermediatePlaces { name lat lon stop { gtfsId locationType parentStation { gtfsId } } }
       route { gtfsId shortName longName mode agency { gtfsId name } }
       trip { gtfsId }
       legGeometry { points }
@@ -74,7 +74,18 @@ export function rankItineraries(itineraries, preference, arriveBy) {
 }
 function point(raw) {
   if (!raw || finiteNumber(raw.lat) === null || finiteNumber(raw.lon) === null) return null;
-  return { name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon) };
+  const stopId = safeText(raw.stop?.gtfsId);
+  const locationType = safeText(raw.stop?.locationType);
+  const parentStationId = safeText(raw.stop?.parentStation?.gtfsId);
+  const stationId = parentStationId ?? (locationType === "STATION" ? stopId : null);
+  const id = stopId ?? stationId;
+  const separator = id?.indexOf(":") ?? -1;
+  const agencyFeedId = separator > 0 ? publicAgencyFeedId(id.slice(0, separator)) : null;
+  return {
+    name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon),
+    ...(id ? { id } : {}), ...(stopId ? { stopId } : {}), ...(stationId ? { stationId } : {}),
+    ...(agencyFeedId ? { agencyFeedId } : {}), ...(locationType ? { locationType } : {})
+  };
 }
 function endpoint(raw) {
   const value = point(raw); if (!value) return null;
@@ -89,10 +100,10 @@ function durationSeconds(value) {
 function normalizeLeg(leg, index) {
   const from = endpoint(leg.from); const to = endpoint(leg.to);
   if (!from || !to) return null;
-  const tripId = safeText(leg.trip?.gtfsId); const routeId = safeText(leg.route?.gtfsId); const agencyId = safeText(leg.route?.agency?.gtfsId);
+  const tripId = safeText(leg.trip?.gtfsId); const routeGtfsId = safeText(leg.route?.gtfsId); const routeId = routeGtfsId; const agencyId = safeText(leg.route?.agency?.gtfsId);
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
-    tripId, routeId, agencyId, agencyFeedId: publicAgencyFeedId(tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeId?.includes(":") ? routeId.slice(0, routeId.indexOf(":")) : null),
+    tripId, routeId, routeGtfsId, agencyId, agencyFeedId: publicAgencyFeedId(tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeGtfsId?.includes(":") ? routeGtfsId.slice(0, routeGtfsId.indexOf(":")) : null),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
     agency: leg.route?.agency ? safeText(leg.route.agency.name ?? "") : null,

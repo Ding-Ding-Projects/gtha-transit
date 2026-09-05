@@ -23,6 +23,8 @@ test("OTP query uses the real planConnection GraphQL operation", () => {
   assert.match(graphqlDocument, /\$via:\[PlanViaLocationInput!\]/);
   assert.match(graphqlDocument, /via:\$via/);
   assert.match(graphqlDocument, /viaLocationType/);
+  assert.match(graphqlDocument, /stop \{ gtfsId locationType parentStation \{ gtfsId \} \}/);
+  assert.match(graphqlDocument, /intermediatePlaces \{ name lat lon stop \{ gtfsId locationType parentStation \{ gtfsId \} \} \}/);
   assert.match(graphqlDocument, /legGeometry/);
   assert.match(graphqlDocument, /trip \{ gtfsId \}/);
   assert.match(graphqlDocument, /agency \{ gtfsId name \}/);
@@ -38,8 +40,8 @@ test("native OTP planning submits ordered visit points in one request", async (c
         edges: [{ node: {
           start: "2026-09-05T09:00:00-04:00", end: "2026-09-05T09:35:00-04:00", duration: "PT35M", walkDistance: 80, numberOfTransfers: 1,
           legs: [
-            { mode: "BUS", start: { scheduledTime: "2026-09-05T09:00:00-04:00" }, end: { scheduledTime: "2026-09-05T09:15:00-04:00" }, duration: "PT15M", distance: 1200, from: { name: "Origin", lat: 43.7, lon: -79.4 }, to: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" } },
-            { mode: "RAIL", start: { scheduledTime: "2026-09-05T09:20:00-04:00" }, end: { scheduledTime: "2026-09-05T09:35:00-04:00" }, duration: "PT15M", distance: 1400, from: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" }, to: { name: "Second", lat: 43.66, lon: -79.38, viaLocationType: "VISIT" } }
+            { mode: "BUS", start: { scheduledTime: "2026-09-05T09:00:00-04:00" }, end: { scheduledTime: "2026-09-05T09:15:00-04:00" }, duration: "PT15M", distance: 1200, from: { name: "Origin", lat: 43.7, lon: -79.4, stop: { gtfsId: "ttc-next:origin-platform", locationType: "STOP", parentStation: { gtfsId: "ttc-next:origin-station" } } }, to: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT", stop: { gtfsId: "ttc-next:first-platform", locationType: "STOP", parentStation: { gtfsId: "ttc-next:first-station" } } }, intermediatePlaces: [{ name: "Passed platform", lat: 43.69, lon: -79.395, stop: { gtfsId: "ttc-next:passed-platform", locationType: "STOP", parentStation: null } }, { name: "Unmapped place", lat: 43.691, lon: -79.394 }], route: { gtfsId: "ttc-next:5", shortName: "5", longName: "Display route", agency: { gtfsId: "ttc-next:1", name: "TTC" } }, trip: { gtfsId: "ttc-next:trip-5" } },
+            { mode: "RAIL", start: { scheduledTime: "2026-09-05T09:20:00-04:00" }, end: { scheduledTime: "2026-09-05T09:35:00-04:00" }, duration: "PT15M", distance: 1400, from: { name: "First", lat: 43.68, lon: -79.39, viaLocationType: "VISIT" }, to: { name: "Second", lat: 43.66, lon: -79.38, viaLocationType: "VISIT", stop: { gtfsId: "ttc-next:second-station", locationType: "STATION", parentStation: null } } }
           ]
         } }]
       }
@@ -61,6 +63,14 @@ test("native OTP planning submits ordered visit points in one request", async (c
   assert.equal(result.itineraries[0].viaComplete, true);
   assert.equal(result.itineraries[0].viaVisitCount, 2);
   assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.to.viaLocationType), ["VISIT", "VISIT"]);
+  assert.deepEqual(result.itineraries[0].legs[0].from, { name: "Origin", lat: 43.7, lon: -79.4, id: "ttc-next:origin-platform", stopId: "ttc-next:origin-platform", stationId: "ttc-next:origin-station", agencyFeedId: "ttc", locationType: "STOP" });
+  assert.deepEqual(result.itineraries[0].legs[0].intermediateStops[0], { name: "Passed platform", lat: 43.69, lon: -79.395, id: "ttc-next:passed-platform", stopId: "ttc-next:passed-platform", agencyFeedId: "ttc", locationType: "STOP" });
+  assert.equal(Object.hasOwn(result.itineraries[0].legs[0].intermediateStops[1], "id"), false);
+  assert.deepEqual(result.itineraries[0].legs[1].to, { name: "Second", lat: 43.66, lon: -79.38, id: "ttc-next:second-station", stopId: "ttc-next:second-station", stationId: "ttc-next:second-station", agencyFeedId: "ttc", locationType: "STATION", viaLocationType: "VISIT" });
+  assert.equal(result.itineraries[0].legs[0].routeId, "ttc-next:5");
+  assert.equal(result.itineraries[0].legs[0].routeGtfsId, "ttc-next:5");
+  assert.equal(result.itineraries[0].legs[0].route, "5");
+  assert.equal(result.itineraries[0].legs[0].agencyFeedId, "ttc");
   await planWithOtp({ ...input, arriveBy: true });
   assert.equal(requests.length, 2);
   assert.deepEqual(requests[1].variables.dateTime, { latestArrival: input.dateTime });
