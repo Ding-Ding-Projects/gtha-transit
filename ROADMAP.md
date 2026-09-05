@@ -30,3 +30,11 @@
 - [ ] Exercise the updated caption on a live assigned-vehicle directions flow and promote validated public gallery evidence.
 
 - [ ] Verify deployment of the attribution-corrected TTC 3539 photo and rejection of the removed URL.
+
+## Planner reliability follow-up
+
+- [x] Include the UP Express airport station in public Pearson search results.
+- [x] Return neutral empty journey results without coordinate-based agency attribution.
+- [x] Preserve distinct same-name stop locations and sort next coverage dates.
+- [ ] Version map tiles by the actual dataset revision and improve road detail by zoom.
+- [ ] Obtain consistent replacement photos for TTC XDE60 and HSR.

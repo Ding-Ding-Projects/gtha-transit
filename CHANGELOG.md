@@ -14,3 +14,5 @@ This entry describes work in progress, not a verified public release. Commit ref
 - Replace the TTC LFS Hybrid representative image with a smaller, attribution-verified photo of vehicle 3539; mark it exact only for that fleet number.
 
 - Remove two vehicle photo sources with conflicting attribution, including an oversized image that could not load through the proxy.
+
+- Surface airport transit hubs in place search while preserving distinct stop coordinates. Empty journey results now retain neutral graph coverage context without guessing an agency from coordinates.
