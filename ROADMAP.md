@@ -1,5 +1,26 @@
 # Roadmap
 
+The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked items may contain implemented code, but remain unchecked until their visible behavior and deployment are verified.
+
+## Current delivery priorities
+
+- [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
+- [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.
+- [ ] Modernize the route picker, vehicle preference controls and overall visual hierarchy, then verify phone-width light/dark layouts.
+- [ ] Deploy and interact with the agency/route dialog, official colors and isolated regex workbenches.
+- [ ] Verify compact location queries against deployed services and show served routes/colors on stop suggestions.
+- [ ] Add location clear buttons and ordered multi-destination planning, drag reordering, keyboard reordering and saved/shared order.
+- [ ] Add Less transfer waiting, explicitly allowing longer rides in exchange for shorter platform waits.
+- [ ] Add live trip and vehicle followers with next-stop screens and clearly separated simulation modes.
+- [ ] Research missing transit and official municipal washrooms, including published hours and exceptions.
+- [ ] Show washrooms throughout planning and add urgent washroom diversion with ETA and retained remaining destinations.
+- [ ] Add a required-line detour mode for Line 5 and other lines, verifying an actual ride on the selected line.
+- [ ] Separate bus, streetcar, rapid-transit, network-wide and unclassified disruption groups.
+- [ ] Repair evidenced assignment joins and document the route-324 static/live identifier mismatch without inventing a vehicle.
+- [x] Deploy narrator enable/voice/rate/quiet controls and verify persistence through real browser interaction. Physical audio was not tested.
+- [ ] Remove or block edge-injected analytics and rerun the strict delivered-page network audit.
+- [ ] Keep PLAN.md, ROADMAP.md, HANDOFF.md and the public progress record synchronized with each verified delivery.
+
 ## First complete regional release
 
 - [x] Create a public source repository and agreed deployment architecture.
