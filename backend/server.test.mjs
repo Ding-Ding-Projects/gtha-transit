@@ -69,6 +69,7 @@ test("place suggestions support bounded prefixes, road forms, diacritics, and in
     { id: "fixture:union-station", name: "Union Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
     { id: "fixture:union-avenue", name: "Union Avenue at Queen", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:saint-clair", name: "Saint Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
+    { id: "fixture:station-clair", name: "Station Clair Avenue", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:high-park", name: "High Park", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:route-place", name: "Route Place", agency: "Fixture Transit", feedId: "fixture" },
     { id: "fixture:yonge-station", name: "Yonge Station", agency: "Fixture Transit", feedId: "fixture", locationType: 1 },
@@ -78,6 +79,7 @@ test("place suggestions support bounded prefixes, road forms, diacritics, and in
   assert.deepEqual(rankPlaces(stops, "ward high 7").map((place) => place.id), ["fixture:warden-hwy7"]);
   for (const query of ["Yonge Eglinton", "Églinton / Yonge", "Eglinton Yonge"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:yonge-eglinton");
   for (const query of ["Saint Clair", "St. Clair"]) assert.equal(rankPlaces(stops, query)[0]?.id, "fixture:saint-clair");
+  assert.deepEqual(rankPlaces(stops, "st clair").map((place) => place.id), ["fixture:saint-clair"]);
   assert.equal(rankPlaces(stops, "union")[0]?.id, "fixture:union-station");
   assert.equal(rankPlaces(stops, "high park")[0]?.id, "fixture:high-park");
   assert.equal(rankPlaces(stops, "route place")[0]?.id, "fixture:route-place");
@@ -85,6 +87,7 @@ test("place suggestions support bounded prefixes, road forms, diacritics, and in
   assert.ok(shortPrefixIds.includes("fixture:yonge-station"));
   assert.ok(shortPrefixIds.includes("fixture:york-mills"));
   assert.equal(rankPlaces(stops, "ward ".repeat(13)).length, 0);
+  assert.deepEqual(rankPlaces(stops, "ward high 70"), []);
   assert.equal(rankPlaces(stops, "union", 200).length <= 20, true);
 });
 test("empty-route coverage reports every unavailable feed without selecting one", () => {

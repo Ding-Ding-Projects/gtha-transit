@@ -56,7 +56,7 @@ function termMatch(queryTerms, queryIndex, candidateTerms, candidateIndex) {
   const queryForms = termForms(queryTerms, queryIndex);
   const candidateForms = termForms(candidateTerms, candidateIndex);
   if ([...queryForms].some((form) => candidateForms.has(form))) return 0;
-  if (!numeric(queryTerm) && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
+  if (!numeric(queryTerm) && queryTerm !== "st" && queryTerm.length >= 2 && [...candidateForms].some((form) => form.startsWith(queryTerm))) return 1;
   return null;
 }
 
