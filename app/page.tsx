@@ -98,20 +98,23 @@ function PlaceField({
     if (value) setQuery(value.name);
   }, [value]);
   useEffect(() => {
+    setActive(-1);
+    setItems([]);
+    setError('');
     if (query.length < 2 || query === value?.name) {
-      setItems([]);
+      setBusy(false);
       return;
     }
+    setBusy(true);
     const controller = new AbortController();
     const timer = setTimeout(async () => {
-      setBusy(true);
-      setError('');
       try {
         const r = await fetch('/api/places?q=' + encodeURIComponent(query), {
           signal: controller.signal,
         });
         if (!r.ok) throw Error();
         const data = (await r.json()) as { places?: Place[] };
+        if (controller.signal.aborted) return;
         setItems(data.places || []);
         setActive(-1);
       } catch (e) {
@@ -148,6 +151,7 @@ function PlaceField({
           autoComplete="off"
           role="combobox"
           aria-expanded={open}
+          aria-busy={busy}
           aria-controls={listId + '-list'}
           aria-activedescendant={
             active >= 0 ? listId + '-' + active : undefined
@@ -160,6 +164,10 @@ function PlaceField({
             }, 120)
           }
           onChange={(e) => {
+            setItems([]);
+            setActive(-1);
+            setError('');
+            setBusy(e.target.value.length >= 2);
             setQuery(e.target.value);
             if (value) onChange(null);
             setOpen(true);
@@ -356,14 +364,35 @@ export default function Home() {
       setTo(read('to'));
     } catch {}
     hydrated.current = true;
-    fetch('/api/coverage')
-      .then((r) => r.json())
-      .then(setCoverage)
-      .catch(() => {});
     fetch('/version.json')
       .then((r) => r.json())
       .then(setVersion)
       .catch(() => {});
+  }, []);
+  useEffect(() => {
+    let controller: AbortController | undefined;
+    const refresh = async () => {
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      try {
+        const response = await fetch('/api/coverage', {
+          signal: current.signal,
+          cache: 'no-store',
+        });
+        if (!response.ok) return;
+        const next = await response.json();
+        if (!current.signal.aborted) setCoverage(next);
+      } catch {
+        // Retain the last confirmed coverage during a transient outage.
+      }
+    };
+    void refresh();
+    const timer = setInterval(refresh, 60_000);
+    return () => {
+      clearInterval(timer);
+      controller?.abort();
+    };
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';

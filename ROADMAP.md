@@ -33,6 +33,16 @@
 
 ## Planner reliability follow-up
 
+- [ ] Complete partial-name and intersection suggestions across abbreviations and word order, including real browser verification.
+- [ ] Provide agency and route selection with official colors and an adjacent advanced regex builder for each search.
+- [ ] Deploy and verify the all-agency tracker, paginated list, map summaries and automatic detail focus.
+- [ ] Show first-service and transfer waiting time for each returned journey option.
+- [ ] Add verified manufacturer, model and build-year preference and avoidance controls.
+- [ ] Add dated out-of-division classification and observed-frequency rarity without invented probabilities.
+- [ ] Separate seated, standing and total capacity when supported by sources.
+- [ ] Add an opt-in narrator with separate English and Cantonese voices and serialized announcements.
+- [ ] Add planner-relevant accessibility, command search, appearance, notification history, saved-trip history, exports and help features. Ollama and file conversion are excluded.
+
 - [x] Include the UP Express airport station in public Pearson search results.
 - [x] Return neutral empty journey results without coordinate-based agency attribution.
 - [x] Preserve distinct same-name stop locations and sort next coverage dates.
