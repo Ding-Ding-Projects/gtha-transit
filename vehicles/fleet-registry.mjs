@@ -59,5 +59,6 @@ export function matchVehiclePhoto(vehicleId, fleetFacts, agencyId = 'ttc') {
   const photo = agencyId === 'ttc' ? PHOTOS[fleetFacts?.model] : AGENCY_PHOTOS[agencyId]; if (!photo) return null;
   const id = clean(vehicleId); const depicted = fleetFacts?.model === 'FLEXITY M-1' ? ['4412'] : fleetFacts?.model === 'Xcelsior XDE60' ? ['9441'] : [];
   const knownIds = depicted.length ? depicted : photo.depictedVehicleIds ?? [];
+  if (agencyId === 'go' && !knownIds.includes(id)) return null;
   return { ...photo, exactVehicle: knownIds.includes(id), ...(knownIds.length ? { depictedVehicleIds: knownIds } : {}) };
 }
