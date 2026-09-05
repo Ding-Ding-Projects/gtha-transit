@@ -35,6 +35,21 @@ const many = (fields, number) => fields.filter(([field]) => field === number).ma
 const text = (value) => value ? new TextDecoder('utf-8', { fatal: true }).decode(value).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 256) : '';
 const float = (value) => value ? new DataView(value.buffer, value.byteOffset, 4).getFloat32(0, true) : undefined;
 const iso = (seconds) => Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000).toISOString() : undefined;
+const MAX_UINT32 = 0xffffffff;
+const VEHICLE_STOP_STATUS = Object.freeze({ INCOMING_AT: 0, STOPPED_AT: 1, IN_TRANSIT_TO: 2 });
+
+function uint32(value) {
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number >= 0 && number <= MAX_UINT32 ? number : null;
+}
+
+function publisherStopStatus(stopId, currentStopSequence, currentStatus) {
+  if (!stopId || currentStopSequence === null) return 'unavailable';
+  if (currentStatus === VEHICLE_STOP_STATUS.INCOMING_AT) return 'approaching';
+  if (currentStatus === VEHICLE_STOP_STATUS.STOPPED_AT) return 'stopped-at';
+  if (currentStatus === VEHICLE_STOP_STATUS.IN_TRANSIT_TO) return 'next';
+  return 'unavailable';
+}
 
 function parseVehiclePosition(bytes, entityId, now, { agencyId, agencyName }) {
   const fields = parseFields(bytes); const trip = parseFields(first(fields, 1) ?? new Uint8Array()); const position = parseFields(first(fields, 2) ?? new Uint8Array()); const descriptor = parseFields(first(fields, 8) ?? new Uint8Array());
@@ -42,13 +57,15 @@ function parseVehiclePosition(bytes, entityId, now, { agencyId, agencyName }) {
   const lat = float(first(position, 1)); const lon = float(first(position, 2));
   if (!id || !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
   const bearingValue = float(first(position, 3)); const speedValue = float(first(position, 5)); const timestamp = iso(timestampSeconds);
+  const stopId = text(first(fields, 7)) || null; const currentStopSequence = uint32(first(fields, 3)); const rawCurrentStatus = first(fields, 4); const currentStatus = rawCurrentStatus === undefined ? VEHICLE_STOP_STATUS.IN_TRANSIT_TO : uint32(rawCurrentStatus);
+  const stopStatus = publisherStopStatus(stopId, currentStopSequence, currentStatus); const nextStopId = stopStatus === 'next' || stopStatus === 'approaching' ? stopId : null;
   const cptdb = matchCptdb(id, label, { agencyId, agencyName });
   return {
-    id, label, routeId: text(first(trip, 5)), tripId: text(first(trip, 1)), lat, lon,
+    id, label, routeId: text(first(trip, 5)), tripId: text(first(trip, 1)), startTime: text(first(trip, 2)) || null, startDate: text(first(trip, 3)) || null, directionId: uint32(first(trip, 6)), lat, lon,
     bearing: Number.isFinite(bearingValue) ? bearingValue : null,
     speedKph: Number.isFinite(speedValue) && speedValue >= 0 ? speedValue * 3.6 : null,
     timestamp: timestamp ?? null, stale: !timestamp || now - timestampSeconds * 1000 > STALE_MS || timestampSeconds * 1000 - now > 60_000,
-    agencyId, fleetNumber: cptdb.displayFleetNumber, licensePlate: text(first(descriptor, 3)) || null, cptdb, photo: matchVehiclePhoto(cptdb.displayFleetNumber || id, cptdb, agencyId),
+    agencyId, fleetNumber: cptdb.displayFleetNumber, licensePlate: text(first(descriptor, 3)) || null, stopId, currentStopSequence, currentStatus, stopStatus, nextStopId, cptdb, photo: matchVehiclePhoto(cptdb.displayFleetNumber || id, cptdb, agencyId),
   };
 }
 
