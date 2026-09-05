@@ -2,6 +2,8 @@
 
 ## Journey time deployment and verification
 
+Latest frontend: `e3e70abfbbf6aceb6f52b232dcaa89085ad4038d`, built `2026-09-05T20:24:41.837Z`. Public and LAN provenance match and the container is healthy. Workflow `33990014656` succeeded and published `v0.1.0-65.1` for that exact commit; its web archive and line-count asset returned HTTP 200. This followup changes only the stable hydration effect dependency and handoff records, with type checking, focused lint and the production build passing. The remaining whole-page lint count is 33, including zero `setWhen` findings. Browser interaction evidence below belongs to `9391cba`, not a new run against the followup.
+
 Frontend `9391cbad8a25e8ad3ee8c6ecc08dea9f4f553330`, built `2026-09-05T20:13:48.966Z`, was independently verified on public HTTPS and the LAN fallback with a healthy container. Workflow `33989468767` succeeded; release `v0.1.0-64.1` points to the exact commit and both published assets returned HTTP 200. The recovered served bundle has SHA-256 `429846b9f7fc424c69b7c69b56b640468ca4fe0d601d595d930f81208659d65a`.
 
 The frontend separates Date and Time, adds explicit departure/arrival radios and a selected Toronto offset, preserves incomplete edits, and puts Reverse trip into its own labelled row. Helpers in `8b7bb4b` calculate tomorrow by Toronto calendar date and preserve exact shared/stepped instants across the repeated hour. Leave now selects departure mode. Invalid fields cannot silently plan now, produce an agency-coverage verdict or be shared with a false time-included claim. Twelve helper tests and the full 178-test local suite passed, along with type checking, focused lint for the new component/helper and the production build. All 12 helper tests also passed with the device timezone set to Pacific/Auckland. Whole-page lint is not green; its new stable-callback dependency finding is corrected by listing `setWhen` on the hydration effect. Two independent source reviews found and then confirmed repairs for incomplete-date coverage and reverse-control accessible naming.
@@ -10,7 +12,7 @@ The real `9391cba` browser run verified native Date and Time clearing separately
 
 The prior live `1e428b1` destination run verified real Union, Bloor-Yonge, St George and Eglinton selection; arrow and actual pointer-drag ordering; map labels A/1/2/3; and a September 6, 09:02-09:56 four-stop journey whose request preserved both intermediate stops. Eglinton's route-1 colors and washroom identity matched an independent response, with opening hours correctly unconfirmed. That run measured the old reverse icon overlapping Union's selected-name text at 390px. Save/share, physical touch and the broader matrix were not exercised. Its owned browser resources were removed.
 
-## Current verified deployment
+## Earlier settings deployment and verification
 
 Current frontend: `1e428b1e320f2046e9abc9b49f2d508e68aef274`, built `2026-09-05T19:53:14.945Z`. Public provenance and healthy container identity were checked independently; workflow `33988440515` succeeded. Settings now has Appearance, Language, Narrator and Privacy tabs, guided theme/language choices, independent tone sliders, and collapsed global/section searches with direct control focus. The original preference writer still retains vehicle criteria and division options, and one parent-owned narrator controller remains alive across panel changes.
 

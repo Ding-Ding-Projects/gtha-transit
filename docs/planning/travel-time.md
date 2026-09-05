@@ -12,6 +12,10 @@ Time parsing and conversion happen locally. A planning request sends the resolve
 
 ## Verification
 
-The 12 journey utility tests exercise calendar transitions, leap days, independent field clearing, invalid input, both repeated-hour occurrences, shared instants and elapsed shifting. Built-browser verification is recorded separately in the implementation handoff. Native input rendering, physical-device interaction and a complete language/scale matrix require their own evidence.
+The 12 journey utility tests exercise calendar transitions, leap days, independent field clearing, invalid input, both repeated-hour occurrences, shared instants and elapsed shifting. They also pass with a Pacific/Auckland device timezone. The full integration suite passed 178 tests.
+
+Live browser interaction at [9391cba](https://github.com/Ding-Ding-Projects/gtha-transit/commit/9391cbad8a25e8ad3ee8c6ecc08dea9f4f553330) verified native field clearing, blocked invalid submissions, no false coverage warning, both presets and an actual 30-minute request shift. The reverse control did not overlap the full Union stop name at the tested 320/390px light/dark and 320px bilingual states. The [e3e70ab](https://github.com/Ding-Ding-Projects/gtha-transit/commit/e3e70abfbbf6aceb6f52b232dcaa89085ad4038d) followup only makes the stable hydration callback dependency explicit and records the evidence.
+
+No screenshot is published here yet: the raw capture helper omitted its actual capture timestamp, and owned browser teardown did not finish. The image is retained privately rather than promoted with invented evidence. Physical-device interaction, 360px, browser-level DST/shared-link checks and a complete language/scale matrix remain unverified. See the [handoff](../../HANDOFF.md) for the exact evidence boundary.
 
 Suggested articles: [Planning](README.md), [Multiple destinations](multiple-stops.md), [Required lines](required-line.md), [Workspace navigation](../interface/workspaces.md).

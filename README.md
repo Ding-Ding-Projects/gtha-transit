@@ -4,6 +4,8 @@ An independent journey planner for Greater Toronto and Hamilton, with cross-agen
 
 **Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. The live frontend reports its exact build revision and Toronto update time above the workspace.
 
+The [travel-time controls](docs/planning/travel-time.md) separate Date and Time, preserve Toronto clock-change semantics, and offer explicit departure/arrival choices. Current deployment and the bounded browser verification are recorded in the [handoff](HANDOFF.md).
+
 ## Run locally
 
 <details><summary>See the focused Settings workspace</summary>
