@@ -1,0 +1,26 @@
+# Identifying the vehicle on a leg
+
+A journey leg shows a vehicle only when the published data actually identifies one. There are two ways it can, and the interface always says which was used.
+
+## Why an exact trip identifier is not enough for the TTC
+
+Measured against the live feeds on 6 September 2026: of **406** trip identifiers published in the TTC realtime vehicle feed, **104** also existed in the loaded static timetable, but only **one** of those carried the same route.
+
+The realtime identifier space is therefore not the static one. An identifier that appears in both is almost always a number collision between unrelated trips, which means an identifier match on its own can name a bus from a completely different route. The exact join now requires the route to match as well, so a collision assigns nothing.
+
+## The position join
+
+When no exact identifier matches, a vehicle is identified only if all of the following hold at once:
+
+- it is on the leg's own route, compared on the feed-qualified route identity;
+- the publisher reports it at, or approaching, a stop **this leg calls at** — boarding, intermediate or alighting. TTC stop identities are direction-specific, so this also establishes direction, and stop identities are shared across timetable versions;
+- the observation falls inside the leg's own window, from twenty minutes before boarding to five minutes after arrival;
+- its position is fresh, not stale.
+
+If exactly one vehicle satisfies all of that, it is shown with a visible note explaining that it was identified by position rather than by trip identifier. If more than one does, the leg reports that several vehicles qualify and names none. **Route equality alone never assigns a vehicle.**
+
+## What is not claimed
+
+A position match is evidence, not a booking. It says the operator reported one vehicle of that route at a stop on this leg while the leg was running; it does not prove that vehicle will carry any particular passenger, and a service change after the observation is not reflected. A leg that has already finished, or is more than two hours away, keeps its existing unavailable verdict rather than borrowing a current observation.
+
+Suggested articles: [vehicle assignment](assignment.md), [live vehicle sources](README.md).

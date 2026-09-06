@@ -1707,3 +1707,11 @@ select {
   stroke: var(--super-express-ink);
   opacity: 0.75;
 }
+
+/* How a vehicle was identified, when it was not an exact trip identifier. */
+.assignment-method {
+  display: block;
+  margin: 4px 0 2px;
+  color: var(--muted);
+  line-height: 1.6;
+}

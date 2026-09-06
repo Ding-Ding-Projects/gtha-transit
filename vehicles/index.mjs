@@ -124,6 +124,10 @@ export async function getAllVehicleSnapshots(options = {}) { return Promise.all(
 
 const TTC_PUBLIC_FEED_ALIASES = new Set(['ttc', 'ttc-next']);
 
+/** How far before a leg starts, and after it ends, a live position can still identify it. */
+const POSITION_LEAD_MS = 20 * 60 * 1000;
+const POSITION_TRAIL_MS = 5 * 60 * 1000;
+
 function vehicleFeedId(value) {
   const feedId = String(value ?? '').split(':')[0].trim().toLowerCase();
   return feedId === 'ttc-next' ? 'ttc' : feedId;
@@ -138,6 +142,58 @@ function bareTripId(tripId, feedId) {
   const prefix = value.slice(0, separator).toLowerCase();
   const aliases = feedId === 'ttc' ? TTC_PUBLIC_FEED_ALIASES : new Set([feedId]);
   return aliases.has(prefix) ? value.slice(separator + 1) : value;
+}
+
+/** Stop identities are shared across TTC timetable versions, so the feed prefix is all that differs. */
+function bareStopId(stopId, feedId) {
+  const value = String(stopId ?? '').trim();
+  const separator = value.indexOf(':');
+  if (separator <= 0) return value;
+  const prefix = value.slice(0, separator).toLowerCase();
+  const aliases = feedId === 'ttc' ? TTC_PUBLIC_FEED_ALIASES : new Set([feedId]);
+  return aliases.has(prefix) ? value.slice(separator + 1) : value;
+}
+
+const routeCode = (value) => String(value ?? '').trim().toUpperCase();
+
+/** Prefer the feed-qualified route identity, falling back to the short name. */
+function legRouteCode(leg, feedId) {
+  const qualified = bareStopId(leg?.routeId, feedId);
+  return routeCode(qualified || leg?.route);
+}
+
+/** Every stop this leg calls at, boarding and alighting included. */
+function legStopIds(leg, feedId) {
+  const places = [leg?.from, ...(Array.isArray(leg?.intermediateStops) ? leg.intermediateStops : []), leg?.to];
+  const ids = new Set();
+  for (const place of places) {
+    const id = bareStopId(place?.stopId ?? place?.id, feedId);
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+/**
+ * A vehicle is on this leg when the publisher places it at a stop the leg calls
+ * at, on the leg's own route, while the leg is running. TTC stop identities are
+ * direction-specific, so being at one of these stops also establishes direction.
+ * This is never route equality alone.
+ */
+function positionCandidates(vehicles, leg, feedId, now) {
+  const route = legRouteCode(leg, feedId);
+  if (!route) return [];
+  const stops = legStopIds(leg, feedId);
+  if (!stops.size) return [];
+  const start = legTimeMillis(leg?.startTime);
+  const end = legTimeMillis(leg?.endTime);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return [];
+  if (now < start - POSITION_LEAD_MS || now > end + POSITION_TRAIL_MS) return [];
+  return vehicles.filter((vehicle) => {
+    if (vehicle.stale || routeCode(vehicle.routeId) !== route) return false;
+    const next = bareStopId(vehicle.nextStopId, feedId);
+    const current = bareStopId(vehicle.stopId, feedId);
+    return (next && stops.has(next)) || (current && stops.has(current));
+  });
 }
 
 function legTimeMillis(value) {
@@ -161,9 +217,18 @@ export async function enrichItineraries(itineraries, options = {}) {
     if (!Number.isFinite(start)||!Number.isFinite(end)||start>end||start>now+7200000||end<now-120000) return { ...leg, vehicleAssignment:{state:'unavailable',reason:'A current vehicle observation cannot identify a distant or completed journey.'} };
     if (!agency || !tripId || !snapshot) return { ...leg, vehicleAssignment: { state: 'unavailable', reason: 'No supported agency and trip identifier were published for this leg.' } };
     if (snapshot.state !== 'live') return { ...leg, vehicleAssignment: { state: snapshot.state, reason: 'Fresh vehicle positions are unavailable for this agency.' } };
-    const matches = snapshot.vehicles.filter((vehicle) => !vehicle.stale && bareTripId(vehicle.tripId, agency) === tripId).sort((a, b) => Date.parse(b.timestamp ?? 0) - Date.parse(a.timestamp ?? 0));
-    if (!matches.length) return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier.' } };
-    const vehicle = matches[0]; return { ...leg, vehicle: { id: vehicle.id, label: vehicle.label, fleetNumber: vehicle.fleetNumber, agencyId: vehicle.agencyId, timestamp: vehicle.timestamp, cptdb: vehicle.cptdb, photo: vehicle.photo }, vehicleAssignment: { state: 'matched', method: 'exact-trip-id' } };
+    const legRoute = legRouteCode(leg, agency);
+    const newest = (list) => [...list].sort((a, b) => Date.parse(b.timestamp ?? 0) - Date.parse(a.timestamp ?? 0));
+    const identify = (vehicle) => ({ id: vehicle.id, label: vehicle.label, fleetNumber: vehicle.fleetNumber, agencyId: vehicle.agencyId, timestamp: vehicle.timestamp, cptdb: vehicle.cptdb, photo: vehicle.photo });
+    // A trip identifier published on a different route is a number collision, not this vehicle.
+    const exact = newest(snapshot.vehicles.filter((vehicle) => !vehicle.stale
+      && bareTripId(vehicle.tripId, agency) === tripId
+      && (!legRoute || !vehicle.routeId || routeCode(vehicle.routeId) === legRoute)));
+    if (exact.length) return { ...leg, vehicle: identify(exact[0]), vehicleAssignment: { state: 'matched', method: 'exact-trip-id' } };
+    const onLeg = newest(positionCandidates(snapshot.vehicles, leg, agency, now));
+    if (onLeg.length === 1) return { ...leg, vehicle: identify(onLeg[0]), vehicleAssignment: { state: 'matched', method: 'route-and-stop-position', disclosure: 'This publisher does not share a matching trip identifier. One vehicle on this route is reported at a stop on this leg while the leg is running.' } };
+    if (onLeg.length > 1) return { ...leg, vehicleAssignment: { state: 'ambiguous', reason: 'Several vehicles on this route are reported at stops on this leg, so the exact one cannot be identified.', candidateCount: onLeg.length } };
+    return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier, and none is reported at a stop on this leg.' } };
   }) }));
   return Array.isArray(itineraries) ? enriched : { ...itineraries, itineraries: enriched };
 }

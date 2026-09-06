@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Identify the vehicle on a bus leg when the operator publishes no matching trip identifier. A vehicle is named only when it is on the leg route and the publisher reports it at a stop the leg calls at while the leg is running, and the interface says it was identified by position. Several qualifying vehicles are reported as such rather than guessed. An exact trip identifier now also requires the route to match, so a number collision between unrelated trips can no longer name the wrong bus.
+
 - Label GO Transit branches 12B, 16, 25C, 47D, 56A and 88C as super express on a journey leg, with an original badge. The branch is read from the prefix GO publishes at the head of the headsign, because its route catalog carries numeric routes only. The classification is declared by this project rather than published by GO, and every badge says so.
 
 - Show only the alerts that apply to a journey leg. A station facility notice, such as an escalator out of service, now appears beside a leg only when the leg calls at that station, service disruptions and facility notices are labelled distinctly, and every matching alert is shown instead of the first entry of a line.
