@@ -1496,10 +1496,9 @@ export default function Home() {
                                     (leg.vehicle ? (
                                       <div className="assigned-vehicle">
                                         <strong>
-                                          {t(
-                                            'Currently assigned vehicle',
-                                            '目前編配車輛',
-                                          )}{' '}
+                                          {leg.vehicleAssignment?.method === 'route-and-stop-position'
+                                            ? t('Vehicle seen on this leg', '喺呢段行程見到嘅車輛')
+                                            : t('Currently assigned vehicle', '目前編配車輛')}{' '}
                                           {leg.vehicle.fleetNumber ||
                                             leg.vehicle.label ||
                                             leg.vehicle.id}

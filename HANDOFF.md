@@ -1,5 +1,24 @@
 # Implementation handoff
 
+## Bus vehicle identification: root cause measured, repair deployed, 6 September 2026
+
+Frontend `974a8ed45b913bcf55d750900a174daf1e7833ec` plus the heading correction above it. Public provenance checked and the container is healthy. Frontend only; routing, graph and map services untouched.
+
+**Root cause, measured against the live feeds.** The TTC realtime vehicle feed does not share identifiers with either loaded static timetable.
+
+| Identifier | Measurement |
+| --- | --- |
+| Trip | 406 live identifiers; 104 also exist in `ttc-next`; only **1** carries the same route |
+| Stop | 309 live identifiers; 192 also exist in the timetable; **0** are within 300 m of that timetable's stop, distances up to 23 km |
+
+An exact trip join therefore cannot succeed for the TTC, and any join built on either identifier would name the wrong vehicle rather than none. This is a publisher data property, not a matcher defect.
+
+**Repair.** The exact trip join now also requires the route to agree, so a number collision assigns nothing. When no exact identifier matches, one vehicle is identified when it is on the leg's route, its published position is within 150 metres of a stop the leg calls at, the observation is inside the leg window, and its position is fresh. Exactly one candidate is named as **Vehicle seen on this leg**, with a visible note that it was identified by position; several candidates are reported as several and none is chosen.
+
+**Live sweep on the deployed build.** Ten corridors planned for the current instant returned 56 transit legs: 1 exact-trip match, 6 position matches with real fleet numbers 3330, 7116, 7090 and 8365, 11 honestly ambiguous and 38 with no candidate. Before this change every one of those legs reported no match. The sweep ran at about 02:00 on Sunday with night service only, so it is a floor rather than a typical yield.
+
+**Not claimed.** A position match is not an allocation. On a corridor with departures minutes apart the same observed vehicle can satisfy more than one departure, because the operator publishes nothing tying a vehicle to a departure. Rendered browser verification of the new heading and note is still pending, and the captures remain private.
+
 ## GO super express badge: deployed and verified, 6 September 2026
 
 Frontend `bad8a328e88f1e8d50427684ad5bc8f79f1fc418`, built `2026-09-06T05:49:11.011Z`. Public provenance checked and the container is healthy. Frontend only; routing, graph and map services untouched.
