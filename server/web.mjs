@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import { createHistoryStore } from '../history/store.mjs';
 import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
+import { createRaceStore, LIMITS as RACE_LIMITS } from '../race/store.mjs';
 import { loadRegistry, RealtimeAggregator } from '../realtime/aggregator.mjs';
 import { getVehicles, getVehicleSnapshot, enrichItineraries } from '../vehicles/index.mjs';
 import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divisions.mjs';
@@ -20,6 +21,9 @@ const history = process.env.HISTORY_DIR
   : null;
 const vehicleSightings = process.env.HISTORY_DIR
   ? createVehicleSightingStore({ directory: process.env.HISTORY_DIR })
+  : null;
+const races = process.env.HISTORY_DIR
+  ? createRaceStore({ directory: process.env.HISTORY_DIR })
   : null;
 const divisionRegistry = await loadTtcDivisionRegistry();
 let collecting = false;

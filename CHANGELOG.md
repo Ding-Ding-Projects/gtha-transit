@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Add race rooms: a leader opens a short-lived room, teams join by a readable six-character code, and the room records team routes, position sharing and check-ins. Every limit is enforced on write and an expired room is purged with its photos. Leader and participant secrets are stored only as hashes and never appear in a readable room; position sharing starts off and stopping it clears the stored position; a photo is accepted only as a re-encoded JPEG verified by its own bytes.
+
 - Identify the vehicle where the trip should be right now rather than anywhere along the leg. A long bus leg passes dozens of stops, and matching against all of them reported several qualifying vehicles and named none. The published stop times now place the trip precisely.
 
 - Show the stops still ahead with the minutes to each while following a trip, and answer whether the rider has arrived. Minutes come from the stop times the routing engine publishes for the trip, using a live estimate where one exists and the timetable otherwise; a stop with no published time is shown without one rather than interpolated.
