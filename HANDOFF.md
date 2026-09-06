@@ -1,5 +1,55 @@
 # Implementation handoff
 
+## Session close, 6 September 2026 (later)
+
+Frontend and routing API both at `7297e1b1d883a112e1cc9b0a5adb794b625848aa`, deployed on the
+Compose host and serving publicly (`v0.1.0 · 7297e1b`, built 2026-09-06 15:38:34 EDT). 375
+tests, 374 passing; the one failure remains the garage-evidence test, which correctly refuses a
+TTC allocation source whose `validThrough` is 2026-09-05.
+
+### Delivered
+
+- **A departure is tied to its vehicle block.** The timetable publishes `block_id`, which is the
+  operator's own statement that one vehicle runs a named sequence of trips in order. For a leg
+  that has not departed, the previous trip on that block is resolved and its vehicle identified
+  either by the trip identifier the realtime feed publishes or by position against that trip's own
+  stop times. Exactly one candidate or nothing is claimed.
+- **A finding worth keeping.** On the live corridor the winning method is
+  `block-predecessor-trip-id` — the realtime feed publishes the *previous* trip's identifier while
+  the leg carries the next one. That is why the direct trip-identifier join never worked and why
+  the block chain does.
+- **Race endpoints, real routes and the draw.** A leader picks a start and a finish through the
+  published place search, the routing API supplies the journeys, and each team is drawn one.
+  Two departures riding the same lines count as one route. A shortfall is counted and shown.
+- **GO cancellations are planned.** The alternatives Metrolinx names inside a cancellation alert
+  are parsed into an origin, a destination and a departure time, placed on the alert's own Toronto
+  service date, and looked up in the real timetable.
+- **Metrolinx alerts reach the frontend** through the routing service, which holds the operator
+  key so a browser never does.
+
+### Verified on the deployed build
+
+- **Block chain, at the API.** A live plan on the Warden corridor named four real buses that would
+  previously have shown only "this departure has not started": route 68 bus 6682 (block 680880),
+  route 68 bus 6638 (block 680770), route 17 bus 6018 (block 170552), and route 68 bus 6609
+  (block 681442, matched by position).
+- **Race, in the built browser.** Driven through the cheap headless route on an off-screen
+  desktop with a single proven page target. Union Station to Kipling Station returned 10
+  journeys, reported as "2 of them genuinely different". Three teams drew: Red and Blue got
+  `KI → 2`, Green got `1 → 2`, and the shortfall disclosure appeared word for word. The board
+  showed each team its drawn route. At 360 px there was no horizontal overflow and no clipped
+  element.
+
+### Not verified, and why
+
+- **The block-chained vehicle card is not yet captured.** The API proof above is real and the
+  render strings are present in the publicly served bundle, but the planner's combobox resisted
+  three scripted attempts and no capture of the rendered card exists. Treat it as unproven.
+- **GO cancellations cannot be verified against real alerts.** The Metrolinx feed refuses the
+  request with the credential currently on the host — GO **vehicles** are refused too, so this is
+  not specific to alerts and is not caused by this change. The panel correctly reports the feed as
+  unavailable rather than showing calm, and that honest state is what was observed.
+
 ## Session close, 6 September 2026
 
 Frontend `140aca9ea5b921958abcd63d9a50ba99fd4c4e61`, built `2026-09-06T17:47:57.044Z`, public provenance checked and healthy. Routing API `gtha-transit-api:8953a5eb`. 339 tests, 338 passing; the one failure is the pre-existing garage-evidence test, which correctly refuses a TTC allocation source that expired on 5 September.
