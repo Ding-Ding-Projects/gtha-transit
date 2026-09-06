@@ -25,3 +25,22 @@ CPTDB page/API access returned challenges during this pass. Search snippets are 
 The tests resolve each new series endpoint, reject overlapping identity intervals and namespace collisions, preserve electric prefixes and assert that unsupported capacity/photo data remains absent. They do not establish every current vehicle or every photo. Full all-agency coverage remains open.
 
 Suggested articles: [Vehicle tracking](README.md), [Vehicle preferences](../planning/vehicle-preferences.md).
+
+## GO Transit, Burlington Transit and Hamilton Street Railway, 6 September 2026
+
+Manufacturer coverage measured against the live feeds before this work: TTC 100%, UP 100%, MiWay 97%, **GO 15%, Burlington 0%, HSR 0%** - 259 live vehicles with no manufacturer.
+
+Series were read from the published CPTDB rosters for each agency and kept only where the range covers units the live feed was actually reporting. Twelve GO series, three Burlington series and thirteen HSR series were added, covering 96, 8 and 96 live units respectively.
+
+### What was deliberately left out
+
+- **GO 2500-2620.** The same roster uses those numbers for both MCI D4500CT buses and Bombardier BiLevel rail coaches. A fleet number alone cannot say which vehicle it is, so the whole band is unmatched rather than guessed.
+- **Propulsion where the roster does not state it.** An NFI XN60 is not described as diesel by its row, and several run on natural gas, so inferring a propulsion from the model would have printed a wrong fact with a citation attached to it. Propulsion appears only where the published model or engine says it.
+- **Two Burlington rows** that parsed as spans of thousands of units. A cell covering more than 400 units is a parsing artefact, not a series, and is discarded.
+- **Historic series** whose numbers collide with current ones, such as an HSR 1973 Rek-Vee and a 1989 MCI Classic.
+
+### Burlington fleet numbers
+
+Burlington writes a two-digit delivery-year suffix on each unit - `7019-15`, `7055-12` - and the roster ranges carry it too. A series matches only when the suffix agrees as well as the number, so `7019-99` matches nothing. **The build year is taken from the roster year column, never from the suffix.**
+
+Standing capacity, current roster membership and licensed exact-unit photographs remain open for all three agencies.

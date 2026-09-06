@@ -36,6 +36,43 @@ export const OTHER_FLEET_RANGES = Object.freeze({
     { first: 648, last: 656, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2010-2011', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
     { first: 657, last: 666, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2013-2014', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
     { first: 667, last: 682, manufacturer: 'MotivePower', model: 'MP54AC / MP40PHT-T4AC', year: '2017-2018', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_667-682', title: 'GO Transit 667-682' } },
+    // Buses and coaches from the published GO roster. The 2500-2620 band is left out
+    // because the same numbers are used there by BiLevel rail coaches, so a number
+    // alone cannot say which vehicle it is.
+    { first: 2450, last: 2470, manufacturer: "MCI", model: "D4500CT", year: "2011", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 2554, last: 2606, manufacturer: "MCI", model: "D4500CT", year: "2014", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 5000, last: 5079, manufacturer: "MCI", model: "D45 CRT", year: "2025-2026", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 5080, last: 5177, manufacturer: "MCI", model: "D45 CRT", year: "2026", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8300, last: 8337, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2016", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8338, last: 8378, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2017", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8379, last: 8431, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2017-2018", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8432, last: 8447, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2018-2019", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8448, last: 8452, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2019", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8453, last: 8499, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2019", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8500, last: 8521, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2019", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+    { first: 8522, last: 8567, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2020-2021", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
+  ],
+  burlington: [
+    // Burlington writes a two-digit delivery-year suffix on each unit, so a series
+    // matches only when that suffix agrees as well as the number.
+    { first: 7054, last: 7059, suffix: "12", manufacturer: "New Flyer", model: "XD40", year: "2012", source: { url: "https://cptdb.ca/wiki/index.php/Burlington_Transit", title: "Burlington Transit roster, CPTDB Wiki" } },
+    { first: 7017, last: 7025, suffix: "15", manufacturer: "Nova Bus", model: "LFS", year: "2015", source: { url: "https://cptdb.ca/wiki/index.php/Burlington_Transit", title: "Burlington Transit roster, CPTDB Wiki" } },
+    { first: 71901, last: 71907, manufacturer: "Nova Bus", model: "LFS", year: "2019", source: { url: "https://cptdb.ca/wiki/index.php/Burlington_Transit", title: "Burlington Transit roster, CPTDB Wiki" } },
+  ],
+  hsr: [
+    { first: 1101, last: 1117, manufacturer: "NFI", model: "XD40", year: "2012", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1420, last: 1437, manufacturer: "NFI", model: "XN60", year: "2015", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1501, last: 1524, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2015-16", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1601, last: 1643, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2016", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1701, last: 1719, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2018", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1801, last: 1811, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2018", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1820, last: 1830, manufacturer: "NFI", model: "XN60", year: "2018-19", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1845, last: 1850, manufacturer: "Grande West", model: "Vicinity CNG", year: "2019", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2101, last: 2120, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2022", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2251, last: 2292, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2023", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2301, last: 2314, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2024", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2315, last: 2326, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2025", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2351, last: 2370, manufacturer: "NFI", model: "XN60", year: "2023", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
   ],
   up: [
     { first: 1001, last: 1012, manufacturer: 'Nippon Sharyo', model: 'DMU A-car', year: '2014-2015', propulsion: 'Diesel multiple unit', source: { url: 'https://cptdb.ca/wiki/index.php/Union_Pearson_Express_1001-1012', title: 'Union Pearson Express 1001-1012' } },
@@ -67,15 +104,18 @@ export function resolveFleetNumber(vehicleId, label = '') {
 
 export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName = 'Toronto Transit Commission' } = {}) {
   const identity = resolveFleetNumber(vehicleId, label);
-  const parts = /^([A-Za-z]?)(\d{3,5})$/.exec(identity);
+  const parts = /^([A-Za-z]?)(\d{3,6})(?:-(\d{2}))?$/.exec(identity);
   const numeric = parts ? Number(parts[2]) : NaN;
   const prefix = parts?.[1].toLowerCase() || '';
   const ranges = agencyId === 'ttc' ? TTC_FLEET_RANGES : OTHER_FLEET_RANGES[agencyId] ?? [];
-  const found = Number.isFinite(numeric) ? ranges.find((entry) => prefix === (entry.prefix || '').toLowerCase() && numeric >= entry.first && numeric <= entry.last) : undefined;
+  const unitSuffix = parts?.[3] ?? null;
+  const found = Number.isFinite(numeric) ? ranges.find((entry) => prefix === (entry.prefix || '').toLowerCase()
+    && numeric >= entry.first && numeric <= entry.last
+    && (!entry.suffix || entry.suffix === unitSuffix)) : undefined;
   if (found) {
-    const { first, last, ...verifiedFacts } = found;
+    const { first, last, suffix, ...verifiedFacts } = found;
     const exactPage = agencyId !== 'ttc' && verifiedFacts.source?.url?.startsWith('https://cptdb.ca/');
-    return { url: exactPage ? verifiedFacts.source.url : searchUrl(agencyName, identity), match: exactPage ? (first === last ? 'vehicle' : 'series') : 'search', displayFleetNumber: identity, fleetRange: `${prefix}${first}-${prefix}${last}`, observedLive: true, ...verifiedFacts };
+    return { url: exactPage ? verifiedFacts.source.url : searchUrl(agencyName, identity), match: exactPage ? (first === last ? 'vehicle' : 'series') : 'search', displayFleetNumber: identity, fleetRange: suffix ? `${prefix}${first}-${suffix} to ${prefix}${last}-${suffix}` : `${prefix}${first}-${prefix}${last}`, observedLive: true, ...verifiedFacts };
   }
   return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', displayFleetNumber: identity || null, observedLive: Boolean(identity) };
 }

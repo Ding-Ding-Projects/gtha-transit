@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Identify GO Transit, Burlington Transit and Hamilton Street Railway vehicles from their published rosters. Manufacturer coverage on those three agencies was 15%, 0% and 0%; twenty-eight sourced series now cover 200 of the vehicles their live feeds report. Burlington units match only when their delivery-year suffix agrees, the GO number band shared with rail coaches is left unmatched rather than guessed, and propulsion appears only where the roster states it.
+
 - Name the closest vehicle on the route to your boarding stop while a departure has not started, with its measured distance. A tracker normally chains a vehicle from its previous trip through shared identifiers, which this operator does not publish, so the closest vehicle is offered as exactly that and never as a confirmed assignment.
 
 - Add a Race workspace with head-to-head races and a subway speed run: create or join a room by code, add teams, start the clock, check in at a real place from the published search with optional photo proof, and share a position only while you choose to. Photos are re-encoded in the browser, which removes camera metadata including any location tag.
