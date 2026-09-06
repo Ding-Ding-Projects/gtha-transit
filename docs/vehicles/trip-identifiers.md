@@ -19,11 +19,15 @@ So a stop-identifier match is a number collision too, and a join built on it wou
 When no exact identifier matches, a vehicle is identified only if all of the following hold at once:
 
 - it is on the leg's own route, compared on the feed-qualified route identity;
-- its published position is within 150 metres of a stop **this leg calls at** — boarding, intermediate or alighting — measured as a great-circle distance between the two published coordinates;
+- its published position is within 150 metres of the stop **where this trip should be right now**, measured as a great-circle distance between the two published coordinates. The expected stop comes from the publisher's own stop times: the stop nearest the current moment, and one either side of it to allow for a bus in motion;
 - the observation falls inside the leg's own window, from twenty minutes before boarding to five minutes after arrival;
 - its position is fresh, not stale.
 
 If exactly one vehicle satisfies all of that, it is shown with a visible note explaining that it was identified by position rather than by trip identifier. If more than one does, the leg reports that several vehicles qualify and names none. **Route equality alone never assigns a vehicle.**
+
+## Why the expected position, and not any stop on the leg
+
+A long bus leg passes dozens of stops. Asking whether a vehicle is near **any** of them matched most of the route's fleet at once: a route 68 leg with 42 intermediate stops reported that several vehicles qualified and named none, which is no more useful than finding nothing. The stop times now available for every intermediate stop place the trip precisely, so the question became whether a vehicle is where this trip should be - which is the vehicle the rider will actually board.
 
 ## What is not claimed
 
