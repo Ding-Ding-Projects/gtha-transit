@@ -1,5 +1,21 @@
 # Implementation handoff
 
+## Stops ahead, arrival answer and vehicle identification: deployed and verified, 6 September 2026
+
+Frontend `6f5ff7b81d2491f85b454a14d3bdf1f9d159d5f5`, built `2026-09-06T16:58:19.482Z`, public provenance checked and healthy. Routing API `gtha-transit-api:8953a5eb`, running.
+
+**The routing API now returns published stop times.** Its OTP query asks each intermediate stop for `arrival` and `departure`, and passes `scheduledTime`, `estimatedTime` and `delaySeconds` through unchanged. A real Eglinton to Kennedy journey returns a scheduled time for every intermediate stop.
+
+**Deployment lesson, recorded so nobody repeats it.** The API image must be built from the host tree at `~/gtha-transit-backend`, not from a `git archive` of this repository. The repository ships `data/stops.json` as a 240-byte placeholder while the host holds the real 17.5 MB index, so an image built from the repository has a working health check and an entirely empty place search. That mistake was made and caught here: place search returned `{"places":[]}` for every query until the image was rebuilt from the host tree with the changed `backend/*.mjs` copied in.
+
+**Live browser evidence.** Following an Eglinton to Kennedy Line 5 trip, the follower shows `Are we there yet? Not yet.` with `Getting off at Kennedy Station - Subway Platform, 14 stops to go, about 38 min`, and a Stops ahead list of six entries reading 8, 10, 13, 16, 18 and 19 minutes, each labelled `timetable`. No horizontal overflow. The note states the figures are counted from published stop times and are not a live arrival prediction.
+
+**Vehicle identification narrowed to where the trip is.** A route 68 leg with 42 intermediate stops previously reported that several vehicles qualified and named none, because a 14.9 km corridor makes most of the route's fleet a candidate. The position join now uses the stop nearest the current moment, plus one either side. A sweep of ten corridors returned 97 transit legs: 20 exact-trip matches, 5 position matches, 72 departures that have not started, and zero ambiguous or unmatched.
+
+**A departure that has not left is now said so**, rather than reported as a vehicle that could not be verified.
+
+**Not claimed.** The captures remain private pending version-1 promotion validation. Physical devices, browser zoom and the complete language matrix were not exercised.
+
 ## Bus vehicle identification: root cause measured, repair deployed, 6 September 2026
 
 Frontend `974a8ed45b913bcf55d750900a174daf1e7833ec` plus the heading correction above it. Public provenance checked and the container is healthy. Frontend only; routing, graph and map services untouched.
