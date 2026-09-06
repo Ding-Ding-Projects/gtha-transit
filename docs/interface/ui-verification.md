@@ -61,3 +61,15 @@ Capture plans contain local operational paths and identifiers. Never commit them
 The helper cannot determine whether a page or PNG contains private user data; use an isolated public state and review every capture. After plan validation, a failed capture retains an incomplete record where possible; a failed record write reports failure and must never be treated as successful capture evidence. Failed partial files remain in the private run directory for explicit review. Focused rejection tests use a neutral marker, assert the verifier was never invoked, check that no new files appeared, and inspect every remaining fixture file for marker absence. No real credential is used in these tests.
 
 Suggested articles: [Interface documentation](README.md), [Project handoff](../../HANDOFF.md).
+
+## The verifier the validator spawns
+
+Capture promotion had never succeeded, and the recorded reasons - an absent capture timestamp, incomplete teardown proof - were symptoms. The cause was simpler: `scripts/ui-evidence/capture.mjs` spawns a canonical target verifier at the path its plan names, and **that script had never been committed**. Every attempt failed at `canonical-target-verification-failed` before it reached anything about timestamps.
+
+`scripts/ui-evidence/verify-target.mjs` is that script. It answers one question and writes the answer down: is the debugging endpoint showing exactly one page, and is that page the one we mean to photograph? It refuses a second page, a page on another URL, a target that is not a page, and a socket that does not belong to this endpoint or carries credentials. On refusal it writes no receipt at all, and its message never carries a path or a URL.
+
+It also re-hashes the browser executable the plan named, so the capture is bound to the browser that actually produced it. Page-created iframes are not page targets and are not counted; nothing here relaxes that for research.
+
+## What a passing validation means
+
+The validator returns `scope: capture-record-consistency-only` and `uiVerified: false`, and those words are the whole claim. A passing validation proves the image came from that exact target, at that exact time, at that exact size, from a build with that exact commit and artifact hash, and that every owned resource was observed absent afterwards with its own evidence. **It proves nothing about whether the interface is correct.** That still takes a person looking at it.

@@ -1,7 +1,21 @@
 {
   "version": 1,
-  "scope": "Promoted evidence for the September 5 workspace redesign. Other captures remain private pending complete receipts.",
-  "requiredSurfaces": ["planning", "live-vehicle-tracker", "out-of-division", "live-ttc", "disruption-history", "saved-trips", "regional-coverage", "settings", "mobile-navigation", "route-picker", "regex-workbench", "live-follower", "washroom-detour"],
+  "scope": "Promoted evidence. Every record here passed version-1 validation against its own capture record and cleanup observations. Validation proves record consistency, never that an interface is correct.",
+  "requiredSurfaces": [
+    "planning",
+    "live-vehicle-tracker",
+    "out-of-division",
+    "live-ttc",
+    "disruption-history",
+    "saved-trips",
+    "regional-coverage",
+    "settings",
+    "mobile-navigation",
+    "route-picker",
+    "regex-workbench",
+    "live-follower",
+    "washroom-detour"
+  ],
   "records": [
     {
       "id": "settings-appearance-1e428b1",
@@ -82,6 +96,31 @@
         "The document language attribute is en while visible copy is bilingual.",
         "Counts and positions reflect the live capture moment.",
         "The served static bundle was recovered after capture; original embedded build provenance identifies its source."
+      ]
+    },
+    {
+      "id": "plan-workspace-9c4e3e3",
+      "active": true,
+      "path": "docs/captures/plan-workspace-9c4e3e3.png",
+      "sourceCommit": "9c4e3e37088ba43f0a9e23e4c6f4de3cf3f23a60",
+      "artifactSha256": "d28ddf67f426d5692702e9e6c67d50e076fd9f45c12f4f0d977a3cf7717ae429",
+      "captureSha256": "e81e0b2cab3acea6da6f67002e9f679bb728741dc4db7245ffe1547a38d82369",
+      "screen": "planning",
+      "state": "plan-a-trip-initial-view",
+      "theme": "light",
+      "viewportWidth": 1426,
+      "viewportHeight": 963,
+      "scale": 1.5,
+      "languageMode": "en",
+      "capturedAt": "2026-09-06T17:44:48.466Z",
+      "evidenceKind": "emulated-desktop",
+      "inspectionStatus": "inspected",
+      "limitations": [
+        "This is the first capture promoted through the version-1 validator, which passed with validated true.",
+        "The validator's own scope is record consistency: it proves the image came from this exact target at this exact time, not that the interface is correct.",
+        "The canonical target verifier the validator spawns was written for this run; every earlier promotion attempt failed because that script had never been committed.",
+        "Owned process, port, profile and desktop were each observed absent after the capture, with their own evidence files. One socket remained in the kernel's TimeWait state, which is recorded rather than described as a retained resource.",
+        "Physical touch, browser zoom and the full language and theme matrix remain unverified."
       ]
     }
   ]

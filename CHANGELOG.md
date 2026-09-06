@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Commit the canonical target verifier the capture helper spawns. Its absence, not a missing timestamp, is why capture promotion had never succeeded; the first capture now passes version-1 validation and is promoted with its own record.
+
 - Report the private routing and map origins on their own readiness route. The process health check keeps its own contract and stays available, so a frontend that is working is never restarted because an origin it depends on is not.
 
 - Show the super express badge on the route picker and the live tracker for a whole-route identity. Those surfaces know a route but never a trip, so a branch is not guessed from a bare route number.
