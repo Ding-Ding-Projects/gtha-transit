@@ -129,6 +129,8 @@ const POSITION_LEAD_MS = 20 * 60 * 1000;
 const POSITION_TRAIL_MS = 5 * 60 * 1000;
 /** How close a published position must be to a stop on the leg to count as being there. */
 const POSITION_RADIUS_M = 150;
+/** Stops either side of where the trip should be, allowing for a running vehicle. */
+const EXPECTED_STOP_SPAN = 1;
 
 function vehicleFeedId(value) {
   const feedId = String(value ?? '').split(':')[0].trim().toLowerCase();
@@ -177,7 +179,8 @@ function legRouteCode(leg, feedId) {
 }
 
 /**
- * Every stop this leg calls at, as published coordinates.
+ * Every stop this leg calls at, with its published coordinates and its published
+ * time.
  *
  * Coordinates rather than stop identifiers, deliberately. Measured on
  * 6 September 2026, none of the 192 live TTC vehicles whose reported stop
@@ -186,14 +189,48 @@ function legRouteCode(leg, feedId) {
  * between unrelated stops. A published position cannot collide that way.
  */
 function legStopPoints(leg) {
-  const places = [leg?.from, ...(Array.isArray(leg?.intermediateStops) ? leg.intermediateStops : []), leg?.to];
+  const middle = Array.isArray(leg?.intermediateStops) ? leg.intermediateStops : [];
+  const entries = [
+    { place: leg?.from, at: legTimeMillis(leg?.startTime) },
+    ...middle.map((place) => ({ place, at: stopTimeMillis(place) })),
+    { place: leg?.to, at: legTimeMillis(leg?.endTime) },
+  ];
   const points = [];
-  for (const place of places) {
-    const lat = Number(place?.lat);
-    const lon = Number(place?.lon);
-    if (Number.isFinite(lat) && Number.isFinite(lon)) points.push([lat, lon]);
+  for (const entry of entries) {
+    const lat = Number(entry.place?.lat);
+    const lon = Number(entry.place?.lon);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      points.push({ lat, lon, at: Number.isFinite(entry.at) ? entry.at : null });
+    }
   }
   return points;
+}
+
+/** The publisher's own time for one intermediate stop, estimate preferred. */
+function stopTimeMillis(place) {
+  const time = place?.arrival ?? place?.departure;
+  const value = time?.estimatedTime ?? time?.scheduledTime;
+  return value ? legTimeMillis(value) : Number.NaN;
+}
+
+/**
+ * Where this trip should be right now, by the publisher's own stop times.
+ *
+ * A long leg passes dozens of stops, so asking whether a vehicle is near ANY of
+ * them matches most of the route's fleet and identifies nothing. The rider's
+ * vehicle is the one where the trip actually is at this moment.
+ */
+function expectedStopWindow(points, now) {
+  // Only stops the publisher timed can place the trip, but the window is taken in
+  // the leg's own order so an untimed stop beside the expected one still counts.
+  let nearest = -1;
+  for (let index = 0; index < points.length; index += 1) {
+    if (points[index].at === null) continue;
+    if (nearest < 0 || Math.abs(points[index].at - now) < Math.abs(points[nearest].at - now)) nearest = index;
+  }
+  if (nearest < 0) return points;
+  const first = Math.max(0, nearest - EXPECTED_STOP_SPAN);
+  return points.slice(first, nearest + EXPECTED_STOP_SPAN + 1);
 }
 
 /**
@@ -211,12 +248,14 @@ function positionCandidates(vehicles, leg, feedId, now) {
   const end = legTimeMillis(leg?.endTime);
   if (!Number.isFinite(start) || !Number.isFinite(end)) return [];
   if (now < start - POSITION_LEAD_MS || now > end + POSITION_TRAIL_MS) return [];
+  const window = expectedStopWindow(points, Math.min(Math.max(now, start), end));
+  if (!window.length) return [];
   return vehicles.filter((vehicle) => {
     if (vehicle.stale || routeCode(vehicle.routeId) !== route) return false;
     const lat = Number(vehicle.lat);
     const lon = Number(vehicle.lon);
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
-    return points.some(([stopLat, stopLon]) => metresBetween(lat, lon, stopLat, stopLon) <= POSITION_RADIUS_M);
+    return window.some((stop) => metresBetween(lat, lon, stop.lat, stop.lon) <= POSITION_RADIUS_M);
   });
 }
 

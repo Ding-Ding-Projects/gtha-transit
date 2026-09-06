@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Identify the vehicle where the trip should be right now rather than anywhere along the leg. A long bus leg passes dozens of stops, and matching against all of them reported several qualifying vehicles and named none. The published stop times now place the trip precisely.
+
 - Show the stops still ahead with the minutes to each while following a trip, and answer whether the rider has arrived. Minutes come from the stop times the routing engine publishes for the trip, using a live estimate where one exists and the timetable otherwise; a stop with no published time is shown without one rather than interpolated.
 
 - Say that a departure has not started yet, instead of reporting it as a vehicle that could not be verified. Every unmatched leg checked on a live corridor was simply a bus that had not left.

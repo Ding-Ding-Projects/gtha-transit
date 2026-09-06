@@ -43,11 +43,17 @@ const leg = (overrides = {}) => ({
   agencyFeedId: 'ttc',
   tripId: 'ttc-next:50723818',
   from: { stopId: 'ttc:1001', name: 'Warden Station', lat: 43.71, lon: -79.3 },
+  // A long leg, as a real bus route is: the expected position must pick one stop
+  // out of many rather than treating the whole corridor as a match.
   intermediateStops: [
-    { stopId: 'ttc:1002', lat: 43.75, lon: -79.3 },
-    { stopId: 'ttc:1003', lat: 43.78, lon: -79.3 },
+    { stopId: 'ttc:1002', lat: 43.72, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:16:00.000Z' } },
+    { stopId: 'ttc:1003', lat: 43.73, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:18:00.000Z' } },
+    { stopId: 'ttc:1004', lat: 43.75, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:20:00.000Z' } },
+    { stopId: 'ttc:1005', lat: 43.76, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:24:00.000Z' } },
+    { stopId: 'ttc:1006', lat: 43.78, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:32:00.000Z' } },
+    { stopId: 'ttc:1007', lat: 43.79, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:36:00.000Z' } },
   ],
-  to: { stopId: 'ttc:1004', name: 'Victoria Park', lat: 43.8, lon: -79.3 },
+  to: { stopId: 'ttc:1008', name: 'Victoria Park', lat: 43.8, lon: -79.3 },
   startTime: '2026-09-06T13:15:00.000Z',
   endTime: '2026-09-06T13:45:00.000Z',
   ...overrides,
@@ -104,11 +110,32 @@ test('a vehicle of another route at the same place is not this leg', async () =>
   assert.equal(result.vehicleAssignment.state, 'no-match');
 });
 
-test('two vehicles on this leg are reported as ambiguous rather than guessed', async () => {
-  const result = await run([unit(onLeg), unit({ id: '3202', route: '68', trip: '77311071', lat: 43.78, lon: -79.3 })]);
+test('two vehicles at the same expected position are ambiguous rather than guessed', async () => {
+  const result = await run([unit(onLeg), unit({ id: '3202', route: '68', trip: '77311071', lat: 43.7502, lon: -79.3 })]);
   assert.equal(result.vehicleAssignment.state, 'ambiguous');
   assert.equal(result.vehicleAssignment.candidateCount, 2);
   assert.equal(result.vehicle, undefined);
+});
+
+test('a vehicle further along the leg than the trip has reached is not this trip', async () => {
+  // 43.78 is the stop this trip reaches at 13:32; at 13:20 it is twelve minutes ahead.
+  const result = await run([unit({ id: '3202', route: '68', trip: '77311071', lat: 43.78, lon: -79.3 })]);
+  assert.equal(result.vehicleAssignment.state, 'no-match');
+  assert.equal(result.vehicle, undefined);
+});
+
+test('a long leg does not turn every vehicle on the route into a candidate', async () => {
+  // The defect this guards: on a leg with dozens of stops, asking whether a vehicle
+  // sits near ANY of them matched most of the route's fleet and identified nothing.
+  const spread = [
+    unit(onLeg),
+    unit({ id: 'far-1', route: '68', trip: 'a', lat: 43.71, lon: -79.3 }),
+    unit({ id: 'far-2', route: '68', trip: 'b', lat: 43.78, lon: -79.3 }),
+    unit({ id: 'far-3', route: '68', trip: 'c', lat: 43.8, lon: -79.3 }),
+  ];
+  const result = await run(spread);
+  assert.equal(result.vehicleAssignment.state, 'matched');
+  assert.equal(result.vehicle.id, '3201');
 });
 
 test('a departure that has not left yet reports that, rather than a failed search', async () => {
@@ -130,17 +157,25 @@ test('a leg that has already finished keeps its existing unavailable verdict', a
   assert.equal(late.vehicle, undefined);
 });
 
-test('a position within the lead-in before boarding is accepted', async () => {
-  const soon = await run([unit(onLeg)], { startTime: '2026-09-06T13:30:00.000Z', endTime: '2026-09-06T14:00:00.000Z' });
+test('a bus already at the boarding stop is identified inside the lead-in', async () => {
+  // Boarding in ten minutes, with the bus standing at the boarding stop.
+  const soon = await run([unit({ ...onLeg, lat: 43.71, lon: -79.3 })], {
+    startTime: '2026-09-06T13:30:00.000Z',
+    endTime: '2026-09-06T14:00:00.000Z',
+    intermediateStops: [{ stopId: 'ttc:1002', lat: 43.75, lon: -79.3, arrival: { scheduledTime: '2026-09-06T13:45:00.000Z' } }],
+  });
   assert.equal(soon.vehicleAssignment.state, 'matched');
   assert.equal(soon.vehicleAssignment.method, 'route-and-stop-position');
 });
 
-test('the boarding and alighting stops both count as stops on the leg', async () => {
-  const boarding = await run([unit({ ...onLeg, lat: 43.71, lon: -79.3 })]);
-  assert.equal(boarding.vehicleAssignment.state, 'matched');
-  const alighting = await run([unit({ ...onLeg, lat: 43.8, lon: -79.3 })]);
-  assert.equal(alighting.vehicleAssignment.state, 'matched');
+test('the window follows the trip through the leg', async () => {
+  // At 13:20 the trip is at the 43.75 stop, and that is the bus identified.
+  const middle = await run([unit(onLeg)]);
+  assert.equal(middle.vehicleAssignment.state, 'matched');
+  assert.equal(middle.vehicle.id, '3201');
+  // A bus at the alighting stop is twelve minutes ahead of this trip, so it is not it.
+  const ahead = await run([unit({ ...onLeg, lat: 43.8, lon: -79.3 })]);
+  assert.equal(ahead.vehicleAssignment.state, 'no-match');
 });
 
 test('a leg with no published stop coordinates cannot be matched by position', async () => {
