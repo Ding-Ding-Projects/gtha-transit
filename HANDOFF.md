@@ -1,5 +1,19 @@
 # Implementation handoff
 
+## Leg alerts narrowed: deployed and verified, 6 September 2026
+
+Frontend `9b4b8a2e802e934eca74653c5fbe6f37ed4d3225`, built `2026-09-06T05:28:54.820Z`. The public and LAN provenance responses match exactly and the container reports healthy. This slice changes only which alerts appear beside a journey leg; the routing API, routing graph and map service were not touched.
+
+A journey leg now selects its alerts through `lib/leg-alerts.ts` using the publisher's own fields. The route must match or be network-wide, the alert's active window must overlap the leg, and a station facility notice is shown only when the leg calls at the station the TTC names in its own title prefix. An unrecognized `routeType` is treated as a facility notice rather than promoted to a service disruption. Every match renders; service and facility notices are labelled distinctly and keep the original wording.
+
+**Live browser evidence.** On the deployed build, Eglinton Station eastbound to Kennedy Station at 09:00 Toronto returned a Line 5 itinerary. The Line 5 alert list held four entries at the time: one eastbound delay at Mount Dennis, and escalator notices at Kennedy, Keelesdale and Chaplin. The leg rendered exactly two alerts - the Mount Dennis delay labelled Service alert, and the Kennedy escalator labelled Station facility, because the leg alights at Kennedy. The Keelesdale and Chaplin notices did not appear. Before this change the leg would have rendered a single unlabelled entry chosen by list position.
+
+Measured at 1426 by 963 with device pixel ratio 1.5, and again at 320 by 844 with ratio 1.5 in both themes. There was no horizontal body overflow at either width, zero unnamed interactive controls, and dark-theme contrast of 7.84:1 for the service alert and 10.46:1 for the facility notice. The browser ran on an isolated hidden desktop through a task-only loopback debugging port; the target list held exactly one page whose URL matched the site. Its owned processes, profile, port and desktop were removed afterwards and the removal was confirmed.
+
+**Local checks.** Type checking passed. The suite is 235 tests with 234 passing; the single failure is the pre-existing garage-evidence test, which correctly refuses the TTC allocation source that expired on 5 September. Thirteen new focused tests cover the selection rules, and both narrowing rules were deliberately broken and confirmed red before being restored. Focused lint on the new files is clean, `app/page.tsx` holds the same 34 findings it held before this change, and the production build passed.
+
+**Not claimed.** The raw captures remain private: promoting them still requires the version-1 evidence validator, whose recorded blockers are unchanged. Physical touch devices, browser zoom and the complete language matrix were not exercised.
+
 ## Resume here: owner-requested handoff, September 6, 2026
 
 Implementation has stopped at the owner's request. No race-planner implementation was started. The primary checkout is on main; latest implementation commit is `9d1ac6ef1c9758cde7c8967f487c2dba1ff24c5d`. Earlier sections below are historical evidence, not alternative current deployment claims.
@@ -9,7 +23,7 @@ Current frontend: `9531de6afb1e667c44bb7d9a3010e261571198c5`, built `2026-09-06T
 ### Next work, in priority order
 
 1. Implement the requested transit race planner: teams, common A-to-B locations, optional multiple meetups, route assignment wheel, leader joining and explicit per-race GPS sharing with stop-sharing controls. Use real routing results and separate planned arrivals from actual check-ins. The optional question whether teams must receive different routes has no recorded answer; prefer distinct routes when available and disclose insufficient alternatives. No race UI, sessions, persistence, GPS sharing or tests exist yet.
-2. Implement confirmed subway/light-rail closure handling in routing and officially announced shuttle guidance. Never invent shuttle stops, times or exact vehicles. Fix unrelated line-level facility alerts, including the Kennedy escalator notice shown on a Line 5 leg. Current code simply chooses a line's first alert.
+2. Implement confirmed subway/light-rail closure handling in routing and officially announced shuttle guidance. Never invent shuttle stops, times or exact vehicles. The unrelated line-level facility alert defect is repaired and verified on the deployed build; closure and shuttle handling remain open.
 3. Repair bus schedule/live trip-ID matching. Reproduction: route 68 planned trip `50723818`, live fleet 3201 on route 68 with trip `77311070`. The new explanation/tracker link is not the mapping fix; do not assign a bus by route equality alone.
 4. Verify the next-stop name repair in the built follower. Agency-qualified IDs and exact stop-index name lookup are implemented, with cancellation/deadline and nine focused tests. Vehicle-only and journey simulation require actual rendered checks.
 5. Verify contextual place suggestions. Warden map station now receives explicitly nearby route data without moving the destination; the distant same-name location remains separate. Three focused tests pass. Address/landmark context remains limited to published source fields.
