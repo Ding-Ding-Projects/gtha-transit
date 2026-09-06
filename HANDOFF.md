@@ -47,9 +47,9 @@ Stated rather than quietly skipped:
 - **Deep per-surface audit of every canonical feature.** Not attempted in this pass.
 - **Delegated agents.** The owner has asked for none, so the whole pass was worked directly. That is
   a deliberate owner decision, not an oversight.
-- **Dim-sum release code name.** The workflow published without one. Worth checking whether the name
-  pool is exhausted, since a per-push cadence spends it quickly and exhaustion is designed to be
-  non-fatal and therefore silent.
+- **Dim-sum release code name.** Now wired, and the cause was not exhaustion: the workflow had no
+  code-name step at all. `v0.1.0-96.1` is the first release to carry one, `Classic Har Gow · 蝦餃`,
+  with its published photo attached as a 2,406,444-byte PNG that downloads and decodes.
 
 ## Session close, 6 September 2026 (later)
 

@@ -2,6 +2,12 @@
 
 ## 0.1.0, unreleased
 
+- Give every release its dim sum code name and the photo that goes with it. The workflow had no code-name step at all, so every release so far carried a version and nothing beside it. The picker walks the public catalog, skips every dish this project has already used by reading its own release bodies, checks the photo is genuinely published, verifies its PNG signature and attaches it. A code name can never block a release: when none can be resolved the step warns and the notes carry the version alone.
+
+- Add a journey smoke test across Toronto and the wider region, and teach it the difference between a corridor with no departure at this hour and a planner that is down. Those look the same to a rider and must not look the same here.
+
+- Integrate ten source-backed vehicle capacity series, each carrying the operator page it came from and the basis for its figure, with a null meaning unknown rather than zero.
+
 - Tie a departure to the vehicle finishing the trip before it on the same block. A block identifier is the publisher's own statement that one vehicle runs a named sequence of trips in order, so the bus now completing the previous trip is the bus that will arrive. It is the only published link between a vehicle and a departure this operator offers, and the interface names the block and says a service change after the observation is not reflected. The routing engine can only search a block within one route, so a block that changes route mid-day is reported as unreachable rather than guessed at.
 
 - Pick a start and a finish for a race, ask the timetable for the journeys between them, and draw one for each team. Every route dealt is a real itinerary; two departures riding the same lines count as one route, so a draw that looks varied is. When the timetable offers fewer distinct journeys than there are teams, the shortfall is counted and shown as a real shortage rather than left looking like a deliberate pairing. The wheel spins over a result that is already decided, and reduced motion reaches the same draw with no spin, announced rather than watched.
