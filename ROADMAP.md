@@ -4,10 +4,15 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [x] Show the stops still ahead with published minutes and answer whether the rider has arrived. Verified on the deployed build.
+- [x] Mark a leg running through a confirmed closure, with official shuttle text and an explicit statement when none is published.
+- [x] Add race rooms with a subway speed run and photo proof. Driven end to end on the deployed build.
+- [x] Report the private routing and map origins on their own readiness route, so an outage is not found by a rider.
+- [x] Raise fleet manufacturer coverage from 85% to 99% across every agency from published rosters.
 - [ ] Resume the September 6 handoff at the top of HANDOFF.md. Implement the newly requested transit race planner; no race implementation exists yet.
 - [x] Narrow the alerts shown beside a journey leg. Station facility notices now appear only where the leg calls at that station, service and facility notices are labelled distinctly, and every match renders. Verified on the deployed build at 9b4b8a2 with a real Line 5 journey.
 - [x] Show the declared GO super express badge on branches 12B, 16, 25C, 47D, 56A and 88C. Verified on the deployed build at bad8a32 with real 12B and 16 journeys, a TTC negative control, and 320px light and dark measurements. The route picker and tracker do not carry it yet.
-- [ ] Identify a bus by position when the operator publishes no matching trip identifier. Implemented with eleven focused tests; rendered verification on the deployed build is pending. The measured cause is recorded in docs/vehicles/trip-identifiers.md.
+- [x] Identify a bus by position when the operator publishes no matching trip identifier, and name the closest vehicle before a departure starts. Verified on the deployed build across ten corridors. The measured cause is recorded in docs/vehicles/trip-identifiers.md.
 - [ ] Complete closure/shuttle integration, exact bus assignment mapping and the remaining rendered verification. Preserve the distinction between deployed code and verified behavior.
 
 - [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.
@@ -18,7 +23,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Complete all-agency unit-level fleet research. Added 72 sourced series across MiWay, Brampton, Durham and YRT, including prefixed electric identities. Current membership, missing agencies, standing capacity and licensed exact-unit photos remain explicit gaps in docs/vehicles/regional-research.md.
 
 - [ ] Deploy and verify the dedicated vehicle-preference dialog: staged Apply/Cancel, exclusive Off/Prefer/Avoid, independent manufacturer/model searches, visible unknown-assignment handling and guided narrow sections. Local behavior checks pass; rendered verification remains pending.
-- [ ] Exercise the committed timestamped capture helper against the built interface. Its 29 consistency/privacy tests pass, but mock transport tests are not browser evidence.
+- [x] Exercise the committed timestamped capture helper against the built interface. The canonical target verifier it spawns was never committed; it is now, and the first capture passes version-1 validation and is promoted.
 
 - [ ] Finish the journey-time public evidence record. At 9391cba, native field clearing, blocked invalid submissions, both presets and a real 30-minute request shift passed. Twelve clock/calendar helper tests and the full 178-test local suite passed. The stable effect dependency is corrected; capture promotion is blocked by an absent actual capture timestamp and incomplete owned browser teardown.
 - [ ] Complete evidence promotion for the reverse-trip control. Actual 390/320px light/dark and 320px bilingual checks at 9391cba found no overlap with Union's full selected name. The raw images remain private because their required timestamp and cleanup proof are incomplete. Physical touch and the broader matrix remain unverified.

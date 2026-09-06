@@ -1,5 +1,30 @@
 # Implementation handoff
 
+## Session close, 6 September 2026
+
+Frontend `140aca9ea5b921958abcd63d9a50ba99fd4c4e61`, built `2026-09-06T17:47:57.044Z`, public provenance checked and healthy. Routing API `gtha-transit-api:8953a5eb`. 339 tests, 338 passing; the one failure is the pre-existing garage-evidence test, which correctly refuses a TTC allocation source that expired on 5 September.
+
+### Delivered and verified on the deployed build
+
+- **Leg alerts narrowed.** A station facility notice reaches a leg only where the leg calls at that station. Service and facility notices are labelled apart and every match renders.
+- **Line state follows service, not facilities.** All five rapid-transit lines were reporting a service alert when all 26 alerts were escalator notices. A line now reads as running with its facility count beside it; a published delay still marks it disrupted.
+- **Vehicle identification.** Measured cause: the TTC realtime feed shares no identifiers with either timetable - 1 of 406 trip identifiers matched on the same route, and 0 of 192 stop identifiers were within 300 metres of the stop the timetable gives that number. The exact join now requires the route to agree; a position join matches within 150 metres of the stop the trip should be at, using the newly published stop times; a departure that has not started says so and names the closest vehicle on its route with a measured distance.
+- **Stops ahead and are we there yet.** The routing API now asks OTP for each intermediate stop's own arrival and departure and passes them through unchanged. Nothing is interpolated.
+- **Confirmed closures.** Only a No Service effect counts, reaching a leg through the publisher's own affected-stop list, with official shuttle text verbatim and an explicit statement when none is published.
+- **GO super express.** Six declared identities badge on the leg from the published headsign prefix, and route-scope identities badge on the picker and tracker.
+- **Fleet coverage.** 85% to 99% across every agency: GO 15 to 95, Hamilton 0 to 99, Burlington 0 to 100.
+- **Race rooms.** Bounded rooms with teams, join codes, position sharing that starts off and clears on stop, and check-ins with browser re-encoded photos. Driven end to end on the deployed build.
+- **Readiness route.** `/api/dependencies` reports the private routing and map origins. `/health` keeps its own contract.
+- **Capture promotion unblocked.** The canonical target verifier the helper spawns had never been committed. It is now, and the first capture passes version-1 validation.
+
+### Outage record
+
+The routing API on the private host exited and stayed down for six hours before this session found it; `docker start` then brought it up with no network, and only `docker compose up -d` restored it. Separately, an attempt to publish OTP on the LAN took the port an unrelated service already held and interrupted routing until the compose file was reverted from its backup. Both are recorded in the deployment article.
+
+### Open
+
+Burlington's 2xxx units are absent from the published roster rather than mismatched. Physical devices, browser zoom and the complete language matrix remain unverified. Co-locating the routing API is documented with its real trade-off: OTP's graph and the map tiles stay on the second host either way.
+
 ## Stops ahead, arrival answer and vehicle identification: deployed and verified, 6 September 2026
 
 Frontend `6f5ff7b81d2491f85b454a14d3bdf1f9d159d5f5`, built `2026-09-06T16:58:19.482Z`, public provenance checked and healthy. Routing API `gtha-transit-api:8953a5eb`, running.
