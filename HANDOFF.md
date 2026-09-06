@@ -1,5 +1,15 @@
 # Implementation handoff
 
+## GO super express badge: deployed and verified, 6 September 2026
+
+Frontend `bad8a328e88f1e8d50427684ad5bc8f79f1fc418`, built `2026-09-06T05:49:11.011Z`. Public provenance checked and the container is healthy. Frontend only; routing, graph and map services untouched.
+
+GO's published route catalog carries numeric routes and no branch letters. The branch is on the trip, written at the head of the headsign, and the real GO feed confirms every declared identity as a published prefix: `16` on 3083 trips, `47D` 2007, `12B` 1910, `25C` 1534, `56A` 421 and `88C` 228. `lib/go-express.ts` reads that prefix and requires the leg's own route number plus exactly one letter, so `56B`, `561`, `156A` and a bare `56` stay unlabelled.
+
+**Live browser evidence.** Niagara Falls Bus Terminal to Burlington GO at 10:00 Toronto returned a GO leg headed `12 · 12B - Burlington GO` carrying one badge with identity `12B`, the original mark and the declared-provenance text in both the tooltip and screen-reader copy. Hamilton GO Centre to Union Station Bus Terminal returned `16 · 16 - Union Station` with a route-scope badge. A TTC-only Eglinton to Kennedy journey rendered zero badges. At 320 by 844 with device pixel ratio 1.5 the badge measured 157 by 25 with no horizontal overflow, contrast 12.6:1 light and 10.46:1 dark for the pill, and 6.36:1 light and 8.77:1 dark for the identity chip.
+
+**Not claimed.** Super express is a classification declared by this project's owner, not a label published in the GO feed, and every badge says so. The badge is an original mark and is not any operator's trademark. The route picker and live tracker do not yet show it. Captures remain private pending version-1 promotion validation.
+
 ## Leg alerts narrowed: deployed and verified, 6 September 2026
 
 Frontend `9b4b8a2e802e934eca74653c5fbe6f37ed4d3225`, built `2026-09-06T05:28:54.820Z`. The public and LAN provenance responses match exactly and the container reports healthy. This slice changes only which alerts appear beside a journey leg; the routing API, routing graph and map service were not touched.
