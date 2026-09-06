@@ -290,6 +290,26 @@ export default function RaceWorkspace({ t }: Props) {
         </section>
       )}
 
+      {!person && room && room.teams.length > 0 && (
+        <section className="race-card">
+          <h3><Users size={18} aria-hidden="true" />{t('Ride in this race', '參加呢場比賽')}</h3>
+          <p className="data-note">{t('Running a race does not put you in it. Pick a team to check in and share a position.', '主辦唔等於有份跑。揀一隊先可以打卡同分享位置。')}</p>
+          <label htmlFor="race-own-name">{t('Your name', '你嘅名')}</label>
+          <input id="race-own-name" value={personName} maxLength={40} onChange={(event) => setPersonName(event.target.value)} />
+          <label htmlFor="race-own-team">{t('Your team', '你嘅隊伍')}</label>
+          <select id="race-own-team" value={joinTeam || room.teams[0].teamId} onChange={(event) => setJoinTeam(event.target.value)}>
+            {room.teams.map((team) => <option key={team.teamId} value={team.teamId}>{team.name}</option>)}
+          </select>
+          <button type="button" className="primary" disabled={busy || !personName.trim()} onClick={() => run(async () => {
+            const joined = await joinRace(room.code, { name: personName, teamId: joinTeam || room.teams[0].teamId });
+            const credentials = { ...joined, code: room.code };
+            setPerson(credentials);
+            writeStored(PERSON_KEY, credentials);
+            await refresh();
+          })}>{t('Join a team', '加入隊伍')}</button>
+        </section>
+      )}
+
       {person && (
         <section className="race-card">
           <h3><Camera size={18} aria-hidden="true" />{t('Check in', '打卡')}</h3>
