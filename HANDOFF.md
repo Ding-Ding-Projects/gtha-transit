@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Follower stop-name repair
+
+The follower now compares publisher stop IDs using agency-qualified identities and the known TTC timetable alias. Vehicle-only following resolves a missing name through the exact stop-routes endpoint, with an eight-second deadline, cancellation and keyed response handling. Failed lookup retains the publisher identifier; it never guesses a nearby stop. Type checking and nine focused identity/progress tests pass. Real rendered verification remains pending. The garage HTTP regression is separately explained by the allocation source expiring on September 5; production correctly withholds expired evidence, so the source must be refreshed rather than extending its date without evidence.
+
 ## Bus assignment reproduction
 
 A current Warden/Steeles to Victoria Park/Eglinton probe returned TTC route 68 with planned trip `50723818`; the fresh TTC vehicle snapshot included fleet 3201 on route 68 with trip `77311070`. This confirms a timetable/live identifier mismatch for the reported bus journey, not a dropped display value. Route equality alone does not establish the assigned departure. The UI now explains exact-ID no-match and offers the live tracker, but the identifier mapping itself remains unresolved. The preceding place-context run passed its three focused tests and five HTTP checks; the separate division endpoint check failed its expected MtD garage evidence and must not be reported green.

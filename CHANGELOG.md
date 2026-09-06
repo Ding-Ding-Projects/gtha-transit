@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Resolve follower next-stop names from agency-qualified publisher IDs and the exact stop index instead of displaying only a numeric identifier when no journey timeline is present.
+
 - Tailor place suggestions with published location context, timetable route colors and explicitly nearby transit details instead of bare place/station labels.
 
 - Add directly reviewed CPTDB Milton fleet records, preserving actual build years and the distinct electric conversion of unit 1701.

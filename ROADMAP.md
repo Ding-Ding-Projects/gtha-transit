@@ -4,6 +4,9 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.
+- [ ] Refresh the expired TTC garage source from a new official publication. Do not extend the old September 5 validity date or hide the unknown-evidence state.
+
 - [ ] Verify contextual suggestion cards on the built interface: exact timetable routes, explicitly nearby routes, place-specific type/address fields and washroom presence. Warden source mismatch is repaired without changing destination identity; broader address enrichment remains source-dependent.
 
 - [ ] Complete all-agency unit-level fleet research. Added 72 sourced series across MiWay, Brampton, Durham and YRT, including prefixed electric identities. Current membership, missing agencies, standing capacity and licensed exact-unit photos remain explicit gaps in docs/vehicles/regional-research.md.

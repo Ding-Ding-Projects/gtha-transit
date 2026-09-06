@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import type { Itinerary } from '../lib/types';
+import { qualifiedStopId, samePublishedStop } from '../lib/stop-identity';
 import {
   buildTripStopTimeline,
   createBrowserLocationWatch,
@@ -196,6 +197,7 @@ export default function LiveFollower({
   const [mode, setMode] = useState<FollowerMode>(initialMode);
   const [now, setNow] = useState(() => Date.now());
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
+  const [resolvedStop, setResolvedStop] = useState<{ key: string; name: string } | null>(null);
   const [liveError, setLiveError] = useState('');
   const [loadingLive, setLoadingLive] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
@@ -389,9 +391,27 @@ export default function LiveFollower({
     if (liveState !== 'fresh') return null;
     const stopId = publisherNextStopId(currentVehicle);
     if (!stopId) return null;
-    const stop = timeline.stops.find((entry) => entry.place.id === stopId) || null;
+    const stop = timeline.stops.find((entry) => samePublishedStop(entry.place.id, stopId, currentVehicle?.agencyId || requestedAgency)) || null;
     return { stopId, stop };
-  }, [currentVehicle, liveState, timeline.stops]);
+  }, [currentVehicle, liveState, timeline.stops, requestedAgency]);
+  const publishedStopKey = publisherNext ? qualifiedStopId(publisherNext.stopId, currentVehicle?.agencyId || requestedAgency) : '';
+  useEffect(() => {
+    if (!publishedStopKey || publisherNext?.stop?.place.name) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_DEADLINE_MS);
+    void (async () => {
+      try {
+        const params = new URLSearchParams({ stopId: publishedStopKey });
+        const response = await fetch('/api/stop-routes?' + params, { signal: controller.signal });
+        if (!response.ok) return;
+        const body = await response.json() as { stop?: { id?: string; name?: string } };
+        const name = text(body?.stop?.name, 240);
+        if (!controller.signal.aborted && name && samePublishedStop(body?.stop?.id, publishedStopKey, requestedAgency)) setResolvedStop({ key: publishedStopKey, name });
+      } catch { /* Retain the publisher identifier when its stop name cannot be verified. */ }
+      finally { clearTimeout(timer); }
+    })();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [publishedStopKey, publisherNext?.stop?.place.name, requestedAgency]);
 
   const estimatedStop = locationEstimate
     ? previewTimelineStop(timeline, locationEstimate.nextIndex)
@@ -401,7 +421,7 @@ export default function LiveFollower({
   const nextStopTitle = publisherNext
     ? stopName(
         publisherNext.stop?.place,
-        `${t('Publisher stop', '來源站點')} ${publisherNext.stopId}`,
+        resolvedStop?.key === publishedStopKey ? resolvedStop.name : `${t('Publisher stop', '來源站點')} ${publisherNext.stopId}`,
       )
     : estimatedStop
       ? stopName(
