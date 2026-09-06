@@ -1,3 +1,4 @@
+import { REGIONAL_FLEET_RANGES } from './regional-fleet.mjs';
 export const CPTDB_TTC_URL = 'https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission';
 export const TTC_FLEET_SOURCE = 'https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-summary-2025-12-07.pdf?rev=ad117ec728ae47fd868aea9aaa1c3835';
 
@@ -28,6 +29,7 @@ export const TTC_FLEET_RANGES = Object.freeze([
 ]);
 
 export const OTHER_FLEET_RANGES = Object.freeze({
+  ...REGIONAL_FLEET_RANGES,
   go: [
     { first: 600, last: 646, manufacturer: 'MotivePower', model: 'MP40PH-3C', year: '2007-2010', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
     { first: 647, last: 647, manufacturer: 'MotivePower', model: 'MP54AC prototype', year: '2015', propulsion: 'Diesel-electric', source: { url: 'https://cptdb.ca/wiki/index.php/GO_Transit_600-666', title: 'GO Transit 600-666' } },
@@ -65,13 +67,15 @@ export function resolveFleetNumber(vehicleId, label = '') {
 
 export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName = 'Toronto Transit Commission' } = {}) {
   const identity = resolveFleetNumber(vehicleId, label);
-  const numeric = /^\d{3,5}$/.test(identity) ? Number(identity) : NaN;
+  const parts = /^([A-Za-z]?)(\d{3,5})$/.exec(identity);
+  const numeric = parts ? Number(parts[2]) : NaN;
+  const prefix = parts?.[1].toLowerCase() || '';
   const ranges = agencyId === 'ttc' ? TTC_FLEET_RANGES : OTHER_FLEET_RANGES[agencyId] ?? [];
-  const found = Number.isFinite(numeric) ? ranges.find((entry) => numeric >= entry.first && numeric <= entry.last) : undefined;
+  const found = Number.isFinite(numeric) ? ranges.find((entry) => prefix === (entry.prefix || '').toLowerCase() && numeric >= entry.first && numeric <= entry.last) : undefined;
   if (found) {
     const { first, last, ...verifiedFacts } = found;
-    const exactPage = agencyId !== 'ttc' && verifiedFacts.source?.url;
-    return { url: exactPage || searchUrl(agencyName, identity), match: exactPage ? (first === last ? 'vehicle' : 'series') : 'search', displayFleetNumber: identity, fleetRange: `${first}-${last}`, observedLive: true, ...verifiedFacts };
+    const exactPage = agencyId !== 'ttc' && verifiedFacts.source?.url?.startsWith('https://cptdb.ca/');
+    return { url: exactPage ? verifiedFacts.source.url : searchUrl(agencyName, identity), match: exactPage ? (first === last ? 'vehicle' : 'series') : 'search', displayFleetNumber: identity, fleetRange: `${prefix}${first}-${prefix}${last}`, observedLive: true, ...verifiedFacts };
   }
   return { url: searchUrl(agencyName, identity), match: identity ? 'search' : 'unmatched', displayFleetNumber: identity || null, observedLive: Boolean(identity) };
 }

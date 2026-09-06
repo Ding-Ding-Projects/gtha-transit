@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Regional fleet expansion
+
+Added 72 published manufacturer/model/year series: MiWay 16, Brampton 19, Durham 20 and YRT 17. The matcher preserves YRT electric prefixes and keeps external roster provenance separate from CPTDB search links. The source is the first-hand Barp.ca photo roster, which explicitly is not a complete active fleet. No image reuse licence or standing capacity was invented. The 23 focused regional/vehicle tests pass. All-agency research remains incomplete, with explicit gaps and source leads in docs/vehicles/regional-research.md. This change affects the frontend's vehicle service and preference catalogs; no routing graph rebuild is required.
+
 ## Vehicle chooser implementation awaiting runtime verification
 
 The vehicle chooser now opens a dedicated wide dialog instead of a nested narrow panel. It stages edits until Apply, normalizes Off/Prefer/Avoid to exclusive modes, exposes unconfirmed-journey consequences immediately, and gives manufacturer and model searches isolated star workbenches. Narrow layouts show Company, Model and Years sections with focus/scroll navigation; invalid years block Apply and provide an exact-field recovery action. The existing parent preference writer remains authoritative. TTC garage preferences have a separate visible disclosure.

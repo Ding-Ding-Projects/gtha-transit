@@ -1,5 +1,7 @@
 # Live TTC vehicle positions
 
+See the [regional fleet research inventory](regional-research.md) for source-backed series additions and explicit agency, capacity and photo gaps. Non-CPTDB roster evidence retains its own source link; the CPTDB destination remains a search when no exact page was verified.
+
 The server reads the TTC's official GTFS Realtime vehicle-position feed and exposes a bounded, cached snapshot for the map and a paginated query for search results. Positions are observations, not arrival predictions. A position older than 120 seconds is visibly marked stale.
 
 ## Data contract

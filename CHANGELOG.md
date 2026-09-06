@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Add 72 sourced regional fleet series for MiWay, Brampton, Durham and YRT; preserve YRT electric prefixes and distinguish external roster evidence from CPTDB search destinations. Keep missing capacity, current roster status and image permissions unconfirmed.
+
 - Replace the tall nested vehicle-preference panel with a dedicated responsive dialog, staged changes, exclusive preference modes, searchable manufacturer/model choices and immediate unknown-assignment explanations. Give TTC garage preferences a separate visible entry.
 - Correct open-ended vehicle build-year matching and retain invalid criteria without excluding journeys. Add timestamped capture records that reject unsafe URLs and incomplete resource cleanup.
 

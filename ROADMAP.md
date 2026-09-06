@@ -4,6 +4,8 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Complete all-agency unit-level fleet research. Added 72 sourced series across MiWay, Brampton, Durham and YRT, including prefixed electric identities. Current membership, missing agencies, standing capacity and licensed exact-unit photos remain explicit gaps in docs/vehicles/regional-research.md.
+
 - [ ] Deploy and verify the dedicated vehicle-preference dialog: staged Apply/Cancel, exclusive Off/Prefer/Avoid, independent manufacturer/model searches, visible unknown-assignment handling and guided narrow sections. Local behavior checks pass; rendered verification remains pending.
 - [ ] Exercise the committed timestamped capture helper against the built interface. Its 29 consistency/privacy tests pass, but mock transport tests are not browser evidence.
 

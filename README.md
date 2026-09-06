@@ -1,5 +1,7 @@
 # GTHA Transit
 
+[Regional fleet research and remaining coverage](docs/vehicles/regional-research.md) records source-backed manufacturer, model and year additions without claiming complete live or photo coverage.
+
 An independent journey planner for Greater Toronto and Hamilton, with cross-agency schedules, walking connections, and official TTC subway and light rail alerts.
 
 **Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. The live frontend reports its exact build revision and Toronto update time above the workspace.
