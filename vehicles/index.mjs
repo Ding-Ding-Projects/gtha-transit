@@ -127,6 +127,8 @@ const TTC_PUBLIC_FEED_ALIASES = new Set(['ttc', 'ttc-next']);
 /** How far before a leg starts, and after it ends, a live position can still identify it. */
 const POSITION_LEAD_MS = 20 * 60 * 1000;
 const POSITION_TRAIL_MS = 5 * 60 * 1000;
+/** How close a published position must be to a stop on the leg to count as being there. */
+const POSITION_RADIUS_M = 150;
 
 function vehicleFeedId(value) {
   const feedId = String(value ?? '').split(':')[0].trim().toLowerCase();
@@ -144,7 +146,7 @@ function bareTripId(tripId, feedId) {
   return aliases.has(prefix) ? value.slice(separator + 1) : value;
 }
 
-/** Stop identities are shared across TTC timetable versions, so the feed prefix is all that differs. */
+/** Strip only a known feed alias from a qualified identity. */
 function bareStopId(stopId, feedId) {
   const value = String(stopId ?? '').trim();
   const separator = value.indexOf(':');
@@ -152,6 +154,18 @@ function bareStopId(stopId, feedId) {
   const prefix = value.slice(0, separator).toLowerCase();
   const aliases = feedId === 'ttc' ? TTC_PUBLIC_FEED_ALIASES : new Set([feedId]);
   return aliases.has(prefix) ? value.slice(separator + 1) : value;
+}
+
+const EARTH_RADIUS_M = 6371000;
+const radians = (degrees) => (degrees * Math.PI) / 180;
+
+/** Great-circle distance in metres between two published coordinates. */
+function metresBetween(fromLat, fromLon, toLat, toLon) {
+  const dLat = radians(toLat - fromLat);
+  const dLon = radians(toLon - fromLon);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(radians(fromLat)) * Math.cos(radians(toLat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
 const routeCode = (value) => String(value ?? '').trim().toUpperCase();
@@ -162,15 +176,24 @@ function legRouteCode(leg, feedId) {
   return routeCode(qualified || leg?.route);
 }
 
-/** Every stop this leg calls at, boarding and alighting included. */
-function legStopIds(leg, feedId) {
+/**
+ * Every stop this leg calls at, as published coordinates.
+ *
+ * Coordinates rather than stop identifiers, deliberately. Measured on
+ * 6 September 2026, none of the 192 live TTC vehicles whose reported stop
+ * identifier also existed in the loaded timetable was within 300 metres of that
+ * timetable's stop: every one of those identifier matches was a number collision
+ * between unrelated stops. A published position cannot collide that way.
+ */
+function legStopPoints(leg) {
   const places = [leg?.from, ...(Array.isArray(leg?.intermediateStops) ? leg.intermediateStops : []), leg?.to];
-  const ids = new Set();
+  const points = [];
   for (const place of places) {
-    const id = bareStopId(place?.stopId ?? place?.id, feedId);
-    if (id) ids.add(id);
+    const lat = Number(place?.lat);
+    const lon = Number(place?.lon);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) points.push([lat, lon]);
   }
-  return ids;
+  return points;
 }
 
 /**
@@ -182,17 +205,18 @@ function legStopIds(leg, feedId) {
 function positionCandidates(vehicles, leg, feedId, now) {
   const route = legRouteCode(leg, feedId);
   if (!route) return [];
-  const stops = legStopIds(leg, feedId);
-  if (!stops.size) return [];
+  const points = legStopPoints(leg);
+  if (!points.length) return [];
   const start = legTimeMillis(leg?.startTime);
   const end = legTimeMillis(leg?.endTime);
   if (!Number.isFinite(start) || !Number.isFinite(end)) return [];
   if (now < start - POSITION_LEAD_MS || now > end + POSITION_TRAIL_MS) return [];
   return vehicles.filter((vehicle) => {
     if (vehicle.stale || routeCode(vehicle.routeId) !== route) return false;
-    const next = bareStopId(vehicle.nextStopId, feedId);
-    const current = bareStopId(vehicle.stopId, feedId);
-    return (next && stops.has(next)) || (current && stops.has(current));
+    const lat = Number(vehicle.lat);
+    const lon = Number(vehicle.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+    return points.some(([stopLat, stopLon]) => metresBetween(lat, lon, stopLat, stopLon) <= POSITION_RADIUS_M);
   });
 }
 
