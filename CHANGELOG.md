@@ -2,6 +2,14 @@
 
 ## 0.1.0, unreleased
 
+- Tie a departure to the vehicle finishing the trip before it on the same block. A block identifier is the publisher's own statement that one vehicle runs a named sequence of trips in order, so the bus now completing the previous trip is the bus that will arrive. It is the only published link between a vehicle and a departure this operator offers, and the interface names the block and says a service change after the observation is not reflected. The routing engine can only search a block within one route, so a block that changes route mid-day is reported as unreachable rather than guessed at.
+
+- Pick a start and a finish for a race, ask the timetable for the journeys between them, and draw one for each team. Every route dealt is a real itinerary; two departures riding the same lines count as one route, so a draw that looks varied is. When the timetable offers fewer distinct journeys than there are teams, the shortfall is counted and shown as a real shortage rather than left looking like a deliberate pairing. The wheel spins over a result that is already decided, and reduced motion reaches the same draw with no spin, announced rather than watched.
+
+- Plan the trains a GO cancellation names. Metrolinx writes the replacement services into the alert itself, so each one is read into an origin, a destination and a departure time, placed on the alert's own Toronto service date, and looked up in the real timetable. An option not written as a station and a time is shown exactly as published rather than guessed at, and an option the timetable cannot confirm says so instead of borrowing our authority for the operator's words.
+
+- Read GO and UP service alerts through the routing service, which holds the operator API key so a browser never does. Without that service there is no feed, and that is reported as unavailable rather than as an absence of disruption.
+
 - Run the routing API in the same Compose project as the frontend, reaching OpenTripPlanner over the private LAN. The frontend now reaches the API by service name, so neither can be left behind while the other runs. The dependency on the OpenTripPlanner host remains and is reported rather than claimed away.
 
 - Commit the canonical target verifier the capture helper spawns. Its absence, not a missing timestamp, is why capture promotion had never succeeded; the first capture now passes version-1 validation and is promoted with its own record.

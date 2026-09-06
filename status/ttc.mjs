@@ -114,6 +114,15 @@ export function parseTtcAlerts(bytes, { fetchedAt = new Date().toISOString(), no
   return { state, fetchedAt, sourceUpdatedAt: iso(feedTimestamp), sourceUrl: TTC_ALERTS_URL, lines, alerts };
 }
 
+/**
+ * The same decoder, under a name that says what it is.
+ *
+ * A GTFS-Realtime alert feed has one shape whoever publishes it, so the Metrolinx
+ * feed is read by exactly this code. Only the `lines` summary in the result is
+ * specific to the TTC, and a caller reading another agency's feed uses `alerts`.
+ */
+export const parseAlertFeed = parseTtcAlerts;
+
 export function unavailableTtcStatus({ fetchedAt = new Date().toISOString() } = {}) {
   return { state: 'unavailable', fetchedAt, sourceUrl: TTC_WEB_ALERTS_URL, lines: TTC_LINES.map((line) => ({ ...line, state: 'unknown', alerts: [] })), alerts: [] };
 }

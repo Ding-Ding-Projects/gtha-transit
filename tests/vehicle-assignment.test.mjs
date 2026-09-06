@@ -219,3 +219,102 @@ test('a vehicle with no published position cannot be matched by position', async
   const result = await run([unit({ ...onLeg, lat: 0, lon: 0 })]);
   assert.equal(result.vehicleAssignment.state, 'no-match');
 });
+
+/**
+ * The vehicle block.
+ *
+ * `block_id` is the publisher's own statement that one vehicle runs a named
+ * sequence of trips in order, so the bus finishing the trip before yours is the
+ * bus that will arrive. It is the only published tie between a vehicle and a
+ * departure this operator offers, and it is what an ordinary tracker follows.
+ */
+
+const BLOCK_STOPS = [
+  { name: 'A', lat: 43.60, lon: -79.3, arrivalAt: '2026-09-06T13:00:00.000Z' },
+  { name: 'B', lat: 43.62, lon: -79.3, arrivalAt: '2026-09-06T13:10:00.000Z' },
+  { name: 'C', lat: 43.64, lon: -79.3, arrivalAt: '2026-09-06T13:20:00.000Z' },
+  { name: 'D', lat: 43.66, lon: -79.3, arrivalAt: '2026-09-06T13:30:00.000Z' },
+  { name: 'E', lat: 43.68, lon: -79.3, arrivalAt: '2026-09-06T13:40:00.000Z' },
+  { name: 'F', lat: 43.70, lon: -79.3, arrivalAt: '2026-09-06T13:50:00.000Z' },
+];
+
+const blockLeg = (chain = {}) => ({
+  startTime: '2026-09-06T14:00:00.000Z',
+  endTime: '2026-09-06T14:30:00.000Z',
+  blockChain: {
+    blockId: '680880',
+    previousTripId: 'ttc-next:32972010',
+    previousStartAt: '2026-09-06T13:00:00.000Z',
+    previousEndAt: '2026-09-06T13:50:00.000Z',
+    tripsOnBlockToday: 15,
+    positionInBlock: 7,
+    scope: 'same-route-only',
+    stops: BLOCK_STOPS,
+    ...chain,
+  },
+});
+
+test('a vehicle finishing the previous trip on the same block is the vehicle arriving', async () => {
+  // 43.64 is where the previous trip should be at 13:20 by its own stop times.
+  const result = await run([unit({ id: '3312', route: '68', trip: 'unmatched', lat: 43.64, lon: -79.3 })], blockLeg());
+  assert.equal(result.vehicleAssignment.state, 'matched');
+  assert.equal(result.vehicleAssignment.method, 'block-predecessor-position');
+  assert.equal(result.vehicleAssignment.blockId, '680880');
+  assert.equal(result.vehicleAssignment.previousTripId, 'ttc-next:32972010');
+  assert.equal(result.vehicleAssignment.minutesUntilDeparture, 40);
+  assert.equal(result.vehicle.id, '3312');
+  assert.match(result.vehicleAssignment.disclosure, /same vehicle block/);
+});
+
+test('the previous trip identifier is preferred over position when the feed publishes it', async () => {
+  const result = await run([
+    unit({ id: 'by-id', route: '68', trip: '32972010', lat: 45.5, lon: -73.5 }),
+    unit({ id: 'by-position', route: '68', trip: 'unmatched', lat: 43.64, lon: -79.3 }),
+  ], blockLeg());
+  assert.equal(result.vehicleAssignment.method, 'block-predecessor-trip-id');
+  assert.equal(result.vehicle.id, 'by-id');
+});
+
+test('a vehicle elsewhere on the previous trip is not where that trip should be now', async () => {
+  // 43.70 is the previous trip's last stop, half an hour after this moment.
+  const result = await run([unit({ id: '3312', route: '68', trip: 'unmatched', lat: 43.70, lon: -79.3 })], blockLeg());
+  assert.notEqual(result.vehicleAssignment.state, 'matched');
+  assert.equal(result.vehicleAssignment.state, 'not-started');
+  assert.equal(result.vehicle, undefined);
+});
+
+test('a vehicle on another route never satisfies the block chain', async () => {
+  const result = await run([unit({ id: 'other', route: '24', trip: 'unmatched', lat: 43.64, lon: -79.3 })], blockLeg());
+  assert.notEqual(result.vehicleAssignment.state, 'matched');
+});
+
+test('two vehicles at the previous trip position identify none', async () => {
+  const result = await run([
+    unit({ id: 'one', route: '68', trip: 'a', lat: 43.64, lon: -79.3 }),
+    unit({ id: 'two', route: '68', trip: 'b', lat: 43.6401, lon: -79.3 }),
+  ], blockLeg());
+  assert.notEqual(result.vehicleAssignment.state, 'matched');
+  assert.equal(result.vehicle, undefined);
+});
+
+test('a departure with no published block says why, rather than claiming a chain', async () => {
+  const result = await run([unit({ id: '3312', route: '68', trip: 'unmatched', lat: 43.64, lon: -79.3 })], {
+    startTime: '2026-09-06T14:00:00.000Z',
+    endTime: '2026-09-06T14:30:00.000Z',
+    blockChain: { blockId: null, reason: 'no-block-published' },
+  });
+  assert.equal(result.vehicleAssignment.state, 'not-started');
+  assert.equal(result.vehicleAssignment.blockChainReason, 'no-block-published');
+  assert.equal(result.vehicle, undefined);
+});
+
+test('the first trip of a block has no predecessor to chain from', async () => {
+  const result = await run([unit({ id: '3312', route: '68', trip: 'unmatched', lat: 43.64, lon: -79.3 })], {
+    startTime: '2026-09-06T14:00:00.000Z',
+    endTime: '2026-09-06T14:30:00.000Z',
+    blockChain: { blockId: '680880', reason: 'first-trip-of-the-block' },
+  });
+  assert.equal(result.vehicleAssignment.state, 'not-started');
+  assert.equal(result.vehicleAssignment.blockId, '680880');
+  assert.equal(result.vehicleAssignment.blockChainReason, 'first-trip-of-the-block');
+});

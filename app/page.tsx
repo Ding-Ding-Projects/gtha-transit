@@ -39,6 +39,7 @@ import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import SettingsWorkspace from '../components/settings-workspace';
 import RaceWorkspace from '../components/race-workspace';
+import GoCancellations from '../components/go-cancellations';
 import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import { useNarrator } from '../lib/narrator';
@@ -1504,6 +1505,8 @@ export default function Home() {
                                         <strong>
                                           {leg.vehicleAssignment?.method === 'route-and-stop-position'
                                             ? t('Vehicle seen on this leg', '喺呢段行程見到嘅車輛')
+                                            : String(leg.vehicleAssignment?.method || '').startsWith('block-predecessor')
+                                            ? t('Vehicle arriving on this run', '就嚟行呢班嘅車輛')
                                             : t('Currently assigned vehicle', '目前編配車輛')}{' '}
                                           {leg.vehicle.fleetNumber ||
                                             leg.vehicle.label ||
@@ -1514,6 +1517,17 @@ export default function Home() {
                                             {t(
                                               'Identified by position: this operator does not publish a matching trip identifier, and exactly one vehicle on this route is reported at a stop on this leg while it is running.',
                                               '按位置識別：呢間營運商冇公布對應嘅班次編號，而呢條路線只有一架車喺行程進行期間喺本段車站回報。',
+                                            )}
+                                          </small>
+                                        )}
+                                        {String(leg.vehicleAssignment?.method || '').startsWith('block-predecessor') && (
+                                          <small className="assignment-method">
+                                            {t(
+                                              `Identified by vehicle block${leg.vehicleAssignment?.blockId ? ' ' + leg.vehicleAssignment.blockId : ''}: the timetable puts this departure and the trip before it on the same vehicle, and this is the vehicle running that earlier trip now. It is not a booking, and a service change after this observation is not reflected.`,
+                                              `按車輛班組${leg.vehicleAssignment?.blockId ? ' ' + leg.vehicleAssignment.blockId : ''}識別：時間表將呢班車同上一班排咗同一架車，而呢架就係而家行緊上一班嘅車。呢個唔係確認編配，觀察之後如果改咗班次亦唔會反映。`,
+                                            )}
+                                            {typeof leg.vehicleAssignment?.minutesUntilDeparture === 'number' && (
+                                              <> {t(`It is due to start your departure in about ${leg.vehicleAssignment.minutesUntilDeparture} min.`, `大約 ${leg.vehicleAssignment.minutesUntilDeparture} 分鐘後開你呢班。`)}</>
                                             )}
                                           </small>
                                         )}
@@ -1722,6 +1736,7 @@ export default function Home() {
           )}
           {tab === 'status' && (
             <div className="page-panel">
+              <GoCancellations t={t} />
               <div className="content-heading">
                 <div>
                   <span className="eyebrow">

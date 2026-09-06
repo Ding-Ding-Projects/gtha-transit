@@ -226,6 +226,96 @@ export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateT
   return { itineraries };
 }
 
+/**
+ * The block a trip belongs to, and the trip that runs immediately before it on
+ * that block.
+ *
+ * A block is the sequence of trips one vehicle works through in a day, so the
+ * vehicle that will run a departure is normally the one finishing the previous
+ * trip on the same block. This is how a tracker carries a vehicle from one trip
+ * into the next, and it is the only route to that chain here: this publisher's
+ * realtime trip identifiers match neither loaded timetable, so a live vehicle
+ * cannot be resolved to a trip directly.
+ *
+ * The search is scoped to the leg's own route, because the routing engine offers
+ * no way to query trips by block. A block that changes route mid-day therefore
+ * has a predecessor this cannot see, and that limit is reported rather than hidden.
+ */
+const TRIP_BLOCK = `query TripBlock($id:String!) { trip(id:$id) { gtfsId blockId route { gtfsId } } }`;
+const ROUTE_BLOCK_TRIPS = `query RouteBlockTrips($id:String!) {
+  route(id:$id) { patterns { trips { gtfsId blockId activeDates
+    departureStoptime { scheduledDeparture serviceDay }
+    arrivalStoptime { scheduledArrival serviceDay } } } }
+}`;
+const TRIP_SHAPE_TIMES = `query TripTimes($id:String!,$date:String!) {
+  trip(id:$id) { gtfsId stoptimesForDate(serviceDate:$date) {
+    scheduledArrival scheduledDeparture serviceDay stop { gtfsId name lat lon } } }
+}`;
+
+const MAX_BLOCK_STOPS = 200;
+
+/** A service date as the routing engine writes it, in the region's own calendar. */
+export function serviceDateOf(instantMs, timeZone = "America/Toronto") {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(new Date(instantMs));
+  const value = (type) => parts.find((part) => part.type === type)?.value;
+  const year = value("year"), month = value("month"), day = value("day");
+  return year && month && day ? `${year}${month}${day}` : null;
+}
+
+/** Order a block's trips for one service date, earliest departure first. */
+export function orderBlockTrips(trips, blockId, serviceDate) {
+  return (Array.isArray(trips) ? trips : [])
+    .filter((trip) => trip && trip.blockId === blockId && Array.isArray(trip.activeDates) && trip.activeDates.includes(serviceDate))
+    .map((trip) => ({
+      tripId: safeText(trip.gtfsId),
+      departs: finiteNumber(trip.departureStoptime?.serviceDay) === null || finiteNumber(trip.departureStoptime?.scheduledDeparture) === null
+        ? null : Number(trip.departureStoptime.serviceDay) + Number(trip.departureStoptime.scheduledDeparture),
+      arrives: finiteNumber(trip.arrivalStoptime?.serviceDay) === null || finiteNumber(trip.arrivalStoptime?.scheduledArrival) === null
+        ? null : Number(trip.arrivalStoptime.serviceDay) + Number(trip.arrivalStoptime.scheduledArrival),
+    }))
+    .filter((trip) => trip.tripId && trip.departs !== null)
+    .sort((left, right) => left.departs - right.departs);
+}
+
+export async function blockPredecessorWithOtp({ otpUrl, timeoutMs, tripId, routeId, atMillis = Date.now() }) {
+  const serviceDate = serviceDateOf(atMillis);
+  if (!tripId || !routeId || !serviceDate) return null;
+  const tripData = await queryOtp(otpUrl, timeoutMs, TRIP_BLOCK, { id: String(tripId).slice(0, 200) });
+  const blockId = safeText(tripData?.trip?.blockId);
+  if (!blockId) return { blockId: null, reason: "no-block-published" };
+  const routeData = await queryOtp(otpUrl, timeoutMs, ROUTE_BLOCK_TRIPS, { id: String(routeId).slice(0, 200) });
+  const trips = (routeData?.route?.patterns ?? []).flatMap((pattern) => pattern?.trips ?? []);
+  const ordered = orderBlockTrips(trips, blockId, serviceDate);
+  const index = ordered.findIndex((trip) => trip.tripId === tripId);
+  if (index < 0) return { blockId, reason: "trip-not-on-block-today" };
+  if (index === 0) return { blockId, reason: "first-trip-of-the-block" };
+  const previous = ordered[index - 1];
+  const timesData = await queryOtp(otpUrl, timeoutMs, TRIP_SHAPE_TIMES, { id: previous.tripId, date: serviceDate });
+  const stops = (timesData?.trip?.stoptimesForDate ?? []).slice(0, MAX_BLOCK_STOPS).map((entry) => {
+    const lat = finiteNumber(entry?.stop?.lat), lon = finiteNumber(entry?.stop?.lon);
+    const day = finiteNumber(entry?.serviceDay);
+    const arrival = finiteNumber(entry?.scheduledArrival), departure = finiteNumber(entry?.scheduledDeparture);
+    if (lat === null || lon === null || day === null) return null;
+    return {
+      name: safeText(entry.stop.name), lat, lon,
+      ...(arrival === null ? {} : { arrivalAt: new Date((day + arrival) * 1000).toISOString() }),
+      ...(departure === null ? {} : { departureAt: new Date((day + departure) * 1000).toISOString() }),
+    };
+  }).filter(Boolean);
+  if (!stops.length) return { blockId, reason: "no-published-times-for-previous-trip" };
+  return {
+    blockId,
+    previousTripId: previous.tripId,
+    previousStartAt: new Date(previous.departs * 1000).toISOString(),
+    ...(previous.arrives === null ? {} : { previousEndAt: new Date(previous.arrives * 1000).toISOString() }),
+    tripsOnBlockToday: ordered.length,
+    positionInBlock: index + 1,
+    scope: "same-route-only",
+    stops,
+  };
+}
+
 export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, timeRange = 7200, maxResults = 25 }) {
   const start = finiteNumber(startTime, Math.floor(Date.now() / 1000)); const range = Math.min(86400, Math.max(60, finiteNumber(timeRange, 7200)));
   const data = await queryOtp(otpUrl, timeoutMs, DEPARTURES, { id: String(stopId).slice(0, 200), start, timeRange: range, count: maxResults });

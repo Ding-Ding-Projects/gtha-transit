@@ -9,7 +9,11 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Add race rooms with a subway speed run and photo proof. Driven end to end on the deployed build.
 - [x] Report the private routing and map origins on their own readiness route, so an outage is not found by a rider.
 - [x] Raise fleet manufacturer coverage from 85% to 99% across every agency from published rosters.
-- [ ] Resume the September 6 handoff at the top of HANDOFF.md. Implement the newly requested transit race planner; no race implementation exists yet.
+- [ ] Resume the September 6 handoff at the top of HANDOFF.md. The race planner now covers rooms, teams, endpoints, real routes, the draw and check-ins; the ordered meetup locations of slice 2 remain unbuilt.
+- [x] Draw a route for every team from real itineraries between a chosen start and finish, preferring distinct journeys and disclosing a shortfall, with a wheel whose reduced-motion path reaches the same draw.
+- [x] Tie a departure to the vehicle finishing the previous trip on its own block, disclosing the block, the method and the same-route-only limit of the block search.
+- [x] Plan the alternative trains a GO cancellation names, from the operator's own published wording, and say plainly where the timetable cannot confirm one.
+- [ ] Verify the block chain, the race draw and the GO cancellation planner in the built interface with real captures. Local tests and break tests pass for all three; rendered proof is pending.
 - [x] Narrow the alerts shown beside a journey leg. Station facility notices now appear only where the leg calls at that station, service and facility notices are labelled distinctly, and every match renders. Verified on the deployed build at 9b4b8a2 with a real Line 5 journey.
 - [x] Show the declared GO super express badge on branches 12B, 16, 25C, 47D, 56A and 88C. Verified on the deployed build at bad8a32 with real 12B and 16 journeys, a TTC negative control, and 320px light and dark measurements. The route picker and tracker do not carry it yet.
 - [x] Identify a bus by position when the operator publishes no matching trip identifier, and name the closest vehicle before a departure starts. Verified on the deployed build across ten corridors. The measured cause is recorded in docs/vehicles/trip-identifiers.md.

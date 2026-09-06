@@ -251,13 +251,18 @@ function positionCandidates(vehicles, leg, feedId, now) {
   if (!Number.isFinite(start) || !Number.isFinite(end)) return [];
   if (now < start - POSITION_LEAD_MS || now > end + POSITION_TRAIL_MS) return [];
   const window = expectedStopWindow(points, Math.min(Math.max(now, start), end));
-  if (!window.length) return [];
+  return vehiclesNearStops(vehicles, route, window);
+}
+
+/** Fresh vehicles on one route reported within the position radius of any of these stops. */
+function vehiclesNearStops(vehicles, route, stops) {
+  if (!stops.length) return [];
   return vehicles.filter((vehicle) => {
     if (vehicle.stale || routeCode(vehicle.routeId) !== route) return false;
     const lat = Number(vehicle.lat);
     const lon = Number(vehicle.lon);
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
-    return window.some((stop) => metresBetween(lat, lon, stop.lat, stop.lon) <= POSITION_RADIUS_M);
+    return stops.some((stop) => metresBetween(lat, lon, stop.lat, stop.lon) <= POSITION_RADIUS_M);
   });
 }
 
@@ -285,6 +290,43 @@ function nearestOnRoute(vehicles, leg, feedId) {
     if (!best || metres < best.metres) best = { vehicle, metres };
   }
   return best && best.metres <= APPROACHING_MAX_M ? best : null;
+}
+
+/**
+ * The vehicle finishing the previous trip on this leg's own block.
+ *
+ * A block identifier is the publisher's own statement that one vehicle runs a
+ * named sequence of trips in order, so the vehicle now finishing the trip before
+ * this one is the vehicle that will pull into the boarding stop. That is the
+ * chain ordinary trackers follow, and it is available here because the timetable
+ * publishes `block_id` even though this operator's realtime feed shares no trip
+ * identifier with it.
+ *
+ * The evidence is the same class as the leg's own position join: the predecessor
+ * trip is placed by its published stop times, and a fresh vehicle on that route
+ * within `POSITION_RADIUS_M` of where that trip should be right now is the one
+ * running it. Exactly one candidate, or nothing is claimed.
+ */
+function blockPredecessorCandidates(vehicles, leg, feedId, now) {
+  const chain = leg?.blockChain;
+  if (!chain?.previousTripId || !Array.isArray(chain.stops) || !chain.stops.length) return [];
+  const route = legRouteCode(leg, feedId);
+  if (!route) return [];
+  const start = legTimeMillis(chain.previousStartAt);
+  const end = legTimeMillis(chain.previousEndAt ?? chain.previousStartAt);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return [];
+  if (now < start - POSITION_LEAD_MS || now > end + POSITION_TRAIL_MS) return [];
+  const points = [];
+  for (const stop of chain.stops) {
+    const lat = Number(stop?.lat);
+    const lon = Number(stop?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const at = legTimeMillis(stop?.arrivalAt ?? stop?.departureAt);
+    points.push({ lat, lon, at: Number.isFinite(at) ? at : null });
+  }
+  if (!points.length) return [];
+  const window = expectedStopWindow(points, Math.min(Math.max(now, start), end));
+  return vehiclesNearStops(vehicles, route, window);
 }
 
 function legTimeMillis(value) {
@@ -324,6 +366,28 @@ export async function enrichItineraries(itineraries, options = {}) {
     // on the route is named with its measured distance - and never called the assigned
     // one, because this operator publishes nothing that ties a vehicle to a departure.
     if (now < start) {
+      // The block chain first: the publisher itself says one vehicle runs these
+      // trips in order, so the bus now finishing the previous one is the bus that
+      // will arrive. Prefer its published trip identifier where the realtime feed
+      // happens to share one, and otherwise place it by position exactly as the
+      // running-leg join does.
+      const chain = leg.blockChain;
+      const previousTrip = chain?.previousTripId ? bareTripId(chain.previousTripId, agency) : null;
+      const onPrevious = previousTrip ? newest(snapshot.vehicles.filter((vehicle) => !vehicle.stale
+        && bareTripId(vehicle.tripId, agency) === previousTrip
+        && (!legRoute || !vehicle.routeId || routeCode(vehicle.routeId) === legRoute))) : [];
+      const byBlock = onPrevious.length ? onPrevious : newest(blockPredecessorCandidates(snapshot.vehicles, leg, agency, now));
+      if (byBlock.length === 1 || onPrevious.length) {
+        return { ...leg, vehicle: identify(byBlock[0]), vehicleAssignment: {
+          state: 'matched',
+          method: onPrevious.length ? 'block-predecessor-trip-id' : 'block-predecessor-position',
+          blockId: chain.blockId,
+          previousTripId: chain.previousTripId,
+          minutesUntilDeparture: Math.max(0, Math.round((start - now) / 60000)),
+          blockScope: chain.scope ?? null,
+          disclosure: 'The timetable puts this departure and the trip before it on the same vehicle block, and this vehicle is the one running that earlier trip now. A service change after this observation is not reflected.',
+        } };
+      }
       const approaching = nearestOnRoute(snapshot.vehicles, leg, agency);
       return { ...leg,
         ...(approaching ? { approachingVehicle: identify(approaching.vehicle) } : {}),
@@ -331,6 +395,8 @@ export async function enrichItineraries(itineraries, options = {}) {
           state: 'not-started',
           reason: 'This departure has not started yet, so no vehicle is running it.',
           minutesUntilDeparture: Math.max(0, Math.round((start - now) / 60000)),
+          ...(leg.blockChain?.reason ? { blockChainReason: leg.blockChain.reason } : {}),
+          ...(leg.blockChain?.blockId ? { blockId: leg.blockChain.blockId } : {}),
           ...(approaching ? {
             approachingMetres: Math.round(approaching.metres),
             approachingDisclosure: 'The closest vehicle on this route, by its published position. It is not confirmed as the one that will run this departure.',

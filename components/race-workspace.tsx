@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, Flag, LocateFixed, MapPin, Play, Plus, Timer, TriangleAlert, Users } from 'lucide-react';
+import { Camera, Flag, LocateFixed, MapPin, Play, Plus, Route, Shuffle, Timer, TriangleAlert, Users } from 'lucide-react';
 import {
   addTeam,
+  assignRoutes,
   checkIn,
   createRace,
   elapsed,
@@ -19,7 +20,9 @@ import {
   type RaceMode,
   type RaceView,
 } from '../lib/race-client';
-import type { Place } from '../lib/types';
+import type { Itinerary, Place } from '../lib/types';
+import { drawRoutes, toRaceRoutes, type Draw, type RaceRoute } from '../lib/race-routes';
+import { resolveTorontoTime, torontoLocalInput } from '../lib/journey-utils';
 
 type Props = { t: (en: string, zh: string) => string };
 
@@ -65,6 +68,19 @@ export default function RaceWorkspace({ t }: Props) {
   const [photoNote, setPhotoNote] = useState<string | null>(null);
   const [pendingPhoto, setPendingPhoto] = useState<{ mime: 'image/jpeg'; bytes: string; byteLength: number } | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
+
+  // A race needs a start and a finish before it can have routes at all.
+  const [endpointField, setEndpointField] = useState<'from' | 'to'>('from');
+  const [endpointQuery, setEndpointQuery] = useState('');
+  const [endpointSuggestions, setEndpointSuggestions] = useState<Place[]>([]);
+  const [startPlace, setStartPlace] = useState<Place | null>(null);
+  const [finishPlace, setFinishPlace] = useState<Place | null>(null);
+  const [departAt, setDepartAt] = useState(() => torontoLocalInput());
+  const [routes, setRoutes] = useState<RaceRoute[]>([]);
+  const [routeNote, setRouteNote] = useState<string | null>(null);
+  const [draw, setDraw] = useState<Draw | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const [sharing, setSharingState] = useState(false);
   const watch = useRef<number | null>(null);
@@ -113,6 +129,32 @@ export default function RaceWorkspace({ t }: Props) {
     return () => { controller.abort(); window.clearTimeout(timer); };
   }, [target]);
 
+  // The same published place search, for the race's own start and finish.
+  useEffect(() => {
+    const query = endpointQuery.trim();
+    if (query.length < 2) { setEndpointSuggestions([]); return undefined; }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/places?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+        const payload = (await response.json()) as { places?: Place[] };
+        setEndpointSuggestions((payload.places || []).slice(0, 8));
+      } catch { /* An aborted or failed lookup leaves the list as it was. */ }
+    }, 250);
+    return () => { controller.abort(); window.clearTimeout(timer); };
+  }, [endpointQuery]);
+
+  // A wheel that spins is decoration. Somebody who has asked for less motion gets
+  // the same draw, written out, with no spin at all.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReducedMotion(query.matches);
+    apply();
+    query.addEventListener('change', apply);
+    return () => query.removeEventListener('change', apply);
+  }, []);
+
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
     setError(null);
@@ -120,6 +162,62 @@ export default function RaceWorkspace({ t }: Props) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally { setBusy(false); }
   };
+
+  const planPoint = (place: Place): Place => ({ id: place.id, name: place.name, lat: place.lat, lon: place.lon, ...(place.kind ? { kind: place.kind } : {}), ...(place.agency ? { agency: place.agency } : {}) });
+
+  /**
+   * Ask the routing engine for the real journeys between the two endpoints.
+   *
+   * Every route a team can be given is one of these. Nothing is composed here to
+   * make the draw come out even: if the engine returns two journeys for four
+   * teams, four teams share two journeys and the interface says so.
+   */
+  const findRoutes = () => run(async () => {
+    if (!startPlace || !finishPlace) throw new Error('Choose a start and a finish first.');
+    setDraw(null);
+    const response = await fetch('/api/plan', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: planPoint(startPlace),
+        to: planPoint(finishPlace),
+        via: [],
+        dateTime: resolveTorontoTime(departAt),
+        arriveBy: false,
+        preference: 'fastest',
+        wheelchair: false,
+        maxWalkDistance: 2000,
+      }),
+    });
+    const payload = (await response.json()) as { itineraries?: Itinerary[]; error?: string; message?: string };
+    if (!response.ok) throw new Error(payload.message || payload.error || 'Journey planning is temporarily unavailable.');
+    const found = toRaceRoutes(payload.itineraries || []);
+    setRoutes(found);
+    setRouteNote(found.length
+      ? null
+      : 'The routing engine returned no journey between these two places at that time.');
+  });
+
+  /** Draw a route for each team, then record the assignment in the room. */
+  const spinWheel = () => run(async () => {
+    if (!leader) throw new Error('Only the leader can draw routes.');
+    const teams = room?.teams.map((team) => team.teamId) || [];
+    if (!teams.length) throw new Error('Add at least one team first.');
+    if (!routes.length) throw new Error('Find some routes first.');
+    const result = drawRoutes(teams, routes);
+    if (!reducedMotion) {
+      setSpinning(true);
+      await new Promise((resolve) => window.setTimeout(resolve, 1400));
+      setSpinning(false);
+    }
+    setDraw(result);
+    await assignRoutes(leader, result.assignments.map((entry) => ({
+      teamId: entry.teamId,
+      route: { summary: entry.route.summary, minutes: entry.route.minutes, transfers: entry.route.transfers },
+      routeSignature: entry.route.signature,
+    })));
+    await refresh();
+  });
 
   const leave = () => {
     if (watch.current !== null && typeof navigator !== 'undefined') {
@@ -290,6 +388,103 @@ export default function RaceWorkspace({ t }: Props) {
         </section>
       )}
 
+      {leader && (
+        <section className="race-card">
+          <h3><MapPin size={18} aria-hidden="true" />{t('Start and finish', '起點同終點')}</h3>
+          <p className="data-note">{t('Everyone races between the same two places. Routes come from the real timetable, so the draw can only hand out journeys that actually run.', '大家由同一個起點跑到同一個終點。路線由真實時間表計出，所以抽到嘅一定係真係有得搭嘅行程。')}</p>
+          <div className="race-endpoints">
+            <button type="button" className={endpointField === 'from' ? 'pill selected' : 'pill'} aria-pressed={endpointField === 'from'}
+              onClick={() => { setEndpointField('from'); setEndpointQuery(''); }}>
+              {t('Start', '起點')}: <b>{startPlace ? startPlace.name : t('not chosen', '未揀')}</b>
+            </button>
+            <button type="button" className={endpointField === 'to' ? 'pill selected' : 'pill'} aria-pressed={endpointField === 'to'}
+              onClick={() => { setEndpointField('to'); setEndpointQuery(''); }}>
+              {t('Finish', '終點')}: <b>{finishPlace ? finishPlace.name : t('not chosen', '未揀')}</b>
+            </button>
+          </div>
+          <label htmlFor="race-endpoint">{endpointField === 'from' ? t('Search for the start', '搵起點') : t('Search for the finish', '搵終點')}</label>
+          <input id="race-endpoint" value={endpointQuery} autoComplete="off"
+            placeholder={t('Station, stop or address', '車站、巴士站或地址')}
+            onChange={(event) => setEndpointQuery(event.target.value)} />
+          {endpointSuggestions.length > 0 && (
+            <ul className="race-suggestions">
+              {endpointSuggestions.map((place) => (
+                <li key={place.id}>
+                  <button type="button" onClick={() => {
+                    if (endpointField === 'from') { setStartPlace(place); setEndpointField('to'); }
+                    else setFinishPlace(place);
+                    setEndpointQuery('');
+                    setEndpointSuggestions([]);
+                    setRoutes([]);
+                    setDraw(null);
+                  }}>{place.name}{place.city ? <small> · {place.city}</small> : null}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <label htmlFor="race-depart">{t('Everyone leaves at', '大家幾點出發')}</label>
+          <input id="race-depart" type="datetime-local" value={departAt} onChange={(event) => { setDepartAt(event.target.value); setRoutes([]); setDraw(null); }} />
+          <button type="button" disabled={busy || !startPlace || !finishPlace} onClick={findRoutes}>
+            <Route size={17} aria-hidden="true" />{t('Find the routes', '搵路線')}
+          </button>
+          {routeNote && <p className="data-note">{routeNote}</p>}
+          {routes.length > 0 && (
+            <>
+              <p className="data-note">{t(`${routes.length} journeys found, ${new Set(routes.map((route) => route.signature)).size} of them genuinely different.`, `搵到 ${routes.length} 條行程，其中 ${new Set(routes.map((route) => route.signature)).size} 條係真係唔同。`)}</p>
+              <ol className="race-route-list">
+                {routes.map((route) => (
+                  <li key={route.id}><b>{route.summary}</b> · {t(`${route.minutes} min`, `${route.minutes} 分鐘`)} · {t(`${route.transfers} transfers`, `轉乘 ${route.transfers} 次`)}</li>
+                ))}
+              </ol>
+            </>
+          )}
+        </section>
+      )}
+
+      {leader && routes.length > 0 && room && room.teams.length > 0 && (
+        <section className="race-card">
+          <h3><Shuffle size={18} aria-hidden="true" />{t('Draw the routes', '抽路線')}</h3>
+          <p className="data-note">{t('Each team is drawn a different route while different ones remain. The result is written out below, so the wheel is never the only way to read it.', '有唔同路線嘅時候，每隊都會抽到唔同嘅一條。結果會列喺下面，唔使靠轉盤先睇到。')}</p>
+          <div className={spinning ? 'race-wheel spinning' : 'race-wheel'} role="group"
+            aria-label={t(`A wheel of ${routes.length} routes`, `一個有 ${routes.length} 條路線嘅轉盤`)}>
+            {routes.slice(0, 8).map((route, index) => (
+              <span key={route.id} className="race-wheel-slice" style={{ ['--slice' as string]: String(index) }}>{route.summary}</span>
+            ))}
+          </div>
+          <button type="button" className="primary" disabled={busy || spinning} onClick={spinWheel}>
+            <Shuffle size={17} aria-hidden="true" />{spinning ? t('Drawing…', '抽緊…') : t('Draw for every team', '幫每隊抽')}
+          </button>
+          <p aria-live="polite" className="race-draw-live">
+            {spinning ? t('Drawing a route for every team.', '幫每隊抽緊路線。') : draw ? t('The draw is done.', '抽好喇。') : ''}
+          </p>
+          {draw && (
+            <>
+              <ol className="race-assignments">
+                {draw.assignments.map((entry) => {
+                  const team = room.teams.find((candidate) => candidate.teamId === entry.teamId);
+                  return (
+                    <li key={entry.teamId}>
+                      <b>{team?.name || entry.teamId}</b>
+                      <span>{entry.route.summary}</span>
+                      <small>{t(`${entry.route.minutes} min · ${entry.route.transfers} transfers`, `${entry.route.minutes} 分鐘 · 轉乘 ${entry.route.transfers} 次`)}</small>
+                    </li>
+                  );
+                })}
+              </ol>
+              {draw.shortfall > 0 && (
+                <output className="data-note">
+                  <TriangleAlert size={16} aria-hidden="true" />
+                  {t(
+                    `The timetable offered only ${draw.distinctRoutes} genuinely different journeys, so ${draw.shortfall} ${draw.shortfall === 1 ? 'team is' : 'teams are'} riding a route another team also has. That is a real shortage of routes, not a pairing chosen for you.`,
+                    `時間表只有 ${draw.distinctRoutes} 條真係唔同嘅行程，所以有 ${draw.shortfall} 隊要同人哋行同一條。呢個係真係唔夠路線，唔係特登配對。`,
+                  )}
+                </output>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
       {!person && room && room.teams.length > 0 && (
         <section className="race-card">
           <h3><Users size={18} aria-hidden="true" />{t('Ride in this race', '參加呢場比賽')}</h3>
@@ -384,6 +579,16 @@ export default function RaceWorkspace({ t }: Props) {
                 <span>{distinct} {room?.mode === 'speedrun' ? t('stations', '個站') : t('check-ins', '次打卡')}</span>
               </div>
               {last && <p className="data-note">{t('Last', '最近')}: {last.target} · {new Date(last.recordedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Toronto', hour: 'numeric', minute: '2-digit' })}</p>}
+              {(() => {
+                const drawn = team.route as { summary?: string; minutes?: number; transfers?: number } | null;
+                return drawn && typeof drawn.summary === 'string' ? (
+                  <p className="race-team-route">
+                    <b>{t('Drawn route', '抽到嘅路線')}:</b>
+                    <span>{drawn.summary}</span>
+                    {typeof drawn.minutes === 'number' && <small>{t(`${drawn.minutes} min`, `${drawn.minutes} 分鐘`)}{typeof drawn.transfers === 'number' ? t(` · ${drawn.transfers} transfers`, ` · 轉乘 ${drawn.transfers} 次`) : ''}</small>}
+                  </p>
+                ) : null;
+              })()}
               {team.route != null && !team.distinctRoute && (
                 <p className="data-note">{t('This team shares a route with another team; routing did not offer enough distinct options.', '呢隊同另一隊路線相同，因為路線規劃提供唔到足夠唔同嘅選擇。')}</p>
               )}

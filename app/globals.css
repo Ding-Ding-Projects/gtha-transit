@@ -1788,6 +1788,24 @@ select {
 
 /* Race rooms. */
 .race-workspace { display: flex; flex-direction: column; gap: 16px; }
+.go-cancellations {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.go-cancellations h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; }
+.go-cancellation-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.go-cancellation-list > li { border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.go-alternatives { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.go-alternatives > li { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.go-alternatives small { font-size: 12.5px; opacity: 0.85; }
+.go-planned { color: var(--good, inherit); }
+.go-unconfirmed { color: var(--warn, inherit); }
 .race-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1851,6 +1869,59 @@ select {
 }
 .race-photo { display: flex; flex-direction: column-reverse; gap: 6px; }
 .race-sharing { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.race-card input[type='datetime-local'] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2, var(--surface));
+  color: inherit;
+  font: inherit;
+}
+.race-endpoints { display: flex; gap: 8px; flex-wrap: wrap; }
+.race-endpoints .pill { flex: 1 1 160px; text-align: left; }
+.race-endpoints .pill.selected { border-color: var(--accent, currentColor); font-weight: 600; }
+.race-route-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+
+/* The wheel is decoration around a result that is always written out below it. */
+.race-wheel {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  justify-content: center;
+}
+.race-wheel-slice {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2, var(--surface));
+}
+.race-wheel.spinning { animation: race-wheel-spin 1.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes race-wheel-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(1080deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .race-wheel.spinning { animation: none; }
+}
+.race-draw-live { font-size: 13px; margin: 0; min-height: 1em; }
+.race-assignments { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.race-assignments > li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.race-assignments b { font-size: 15px; }
+.race-assignments small { opacity: 0.75; }
+.race-team-route { font-size: 13px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .race-board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .race-board > li { border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
 .race-board-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }

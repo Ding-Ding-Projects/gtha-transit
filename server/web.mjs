@@ -5,6 +5,7 @@ import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
+import { getMetrolinxAlerts, METROLINX_AGENCIES } from '../status/go.mjs';
 import { createHistoryStore } from '../history/store.mjs';
 import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
 import { createRaceStore, LIMITS as RACE_LIMITS } from '../race/store.mjs';
@@ -542,6 +543,11 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/api/status/ttc' && req.method === 'GET')
       return send(res, 200, await getTtcStatus());
+    if (url.pathname === '/api/status/metrolinx' && req.method === 'GET') {
+      const agency = url.searchParams.get('agency') || 'go';
+      if (!METROLINX_AGENCIES[agency]) return send(res, 400, { error: 'agency must be go or up' });
+      return send(res, 200, await getMetrolinxAlerts({ agency, routingOrigin: routing }));
+    }
     if (url.pathname === '/api/race' || url.pathname.startsWith('/api/race/')) {
       if (!races) return send(res, 503, { error: 'Race rooms are unavailable on this deployment.' });
       const client = process.env.TRUST_TUNNEL === '1'
