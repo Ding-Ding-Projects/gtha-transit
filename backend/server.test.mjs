@@ -59,7 +59,13 @@ test("OTP query uses the real planConnection GraphQL operation", () => {
   assert.match(graphqlDocument, /via:\$via/);
   assert.match(graphqlDocument, /viaLocationType/);
   assert.match(graphqlDocument, /stop \{ gtfsId locationType parentStation \{ gtfsId \} \}/);
-  assert.match(graphqlDocument, /intermediatePlaces \{ name lat lon stop \{ gtfsId locationType parentStation \{ gtfsId \} \} \}/);
+  // The whole selection on one line, as a plain string: each passed stop carries
+  // its own published times so the follower can say how many minutes remain to it
+  // without interpolating one.
+  assert.ok(graphqlDocument.includes(
+    "intermediatePlaces { name lat lon stop { gtfsId locationType parentStation { gtfsId } } "
+    + "arrival { scheduledTime estimated { time delay } } departure { scheduledTime estimated { time delay } } }",
+  ), "the intermediate-stop selection must keep its stop identity and both published times");
   assert.match(graphqlDocument, /legGeometry/);
   assert.match(graphqlDocument, /trip \{ gtfsId \}/);
   assert.match(graphqlDocument, /agency \{ gtfsId name \}/);
