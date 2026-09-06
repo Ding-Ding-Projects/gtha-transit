@@ -24,12 +24,21 @@ Alternatively set `WEB_BIND_ADDRESS` to the host's private LAN address and `WEB_
 
 This exists because of a real outage: the routing container exited and stayed down for six hours while the frontend reported itself healthy, and the failure was found by a person trying to plan a journey. Poll this route.
 
-## Where the services actually live, and what co-locating would and would not fix
+## Where the services live
 
-The frontend runs on one host; the routing API, the OpenTripPlanner instance behind it and the map service run on another. Moving the routing API onto the frontend host does **not** remove the cross-host dependency: OTP holds a multi-gigabyte graph and the map service holds its own tile database, and both would remain on the second host. The frontend would still be unable to plan a journey or draw a map if that host had a problem.
+The frontend and the routing API now run in **one Compose project on one host**, as `gtha-transit-web` and `gtha-transit-api`, on a shared network. The frontend reaches the API by service name, so nothing crosses a network boundary between them and neither can be left behind while the other runs.
 
-What co-location would buy is narrower: one fewer container that can be left behind when a host restarts. What it costs is a published OTP port and a graph reload to add it. On the current hosts the obvious port was already taken by an unrelated service, and taking it was what interrupted routing while this was being attempted.
+The routing API reaches OpenTripPlanner over the private LAN through `OTP_URL`. OTP holds a multi-gigabyte graph and stays on its own host with the map service, so **that dependency is not removed by co-location** and is not claimed to be. What co-location removes is one container that can go missing on its own; what remains is a private LAN dependency that `/api/dependencies` now reports.
 
+### The API image needs the real indexes
+
+The image is built from a release checkout with `data/stops.json`, `data/routes.json`, `data/route-patterns.json` and `data/transit-washrooms.json` copied in from `api/data/`. **This repository ships those four files as small placeholders**, and an image built straight from a `git archive` passes its health check while returning an entirely empty place search. That mistake has been made; do not repeat it.
+
+The API mounts three small files read-only from `api/runtime/`: the feed manifest, the graph provenance, and the secrets directory holding the Metrolinx key. The key is never copied into an image, printed, logged or committed.
+
+### Publishing the OpenTripPlanner port
+
+OTP is published on the private LAN so the co-located API can reach it. **Check the port is genuinely free on that host first.** Taking a port an unrelated service already held is what interrupted routing during this migration, and adding the port at all recreates the OTP container, which reloads the graph and makes routing unavailable for roughly a minute. Do it deliberately, then poll the API health endpoint until it answers 200 before declaring the change done.
 ## Recovery
 
 Retain the prior container image tag and last validated graph/data generation. Change the release tag to the prior image and recreate only this Compose project's frontend. Keep the routing service on its prior graph until a new graph passes real itinerary checks. Do not prune global Docker data or restart unrelated services.

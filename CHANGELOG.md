@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Run the routing API in the same Compose project as the frontend, reaching OpenTripPlanner over the private LAN. The frontend now reaches the API by service name, so neither can be left behind while the other runs. The dependency on the OpenTripPlanner host remains and is reported rather than claimed away.
+
 - Commit the canonical target verifier the capture helper spawns. Its absence, not a missing timestamp, is why capture promotion had never succeeded; the first capture now passes version-1 validation and is promoted with its own record.
 
 - Report the private routing and map origins on their own readiness route. The process health check keeps its own contract and stays available, so a frontend that is working is never restarted because an origin it depends on is not.
