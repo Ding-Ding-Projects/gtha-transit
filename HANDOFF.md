@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Required-line unnecessary transfer repair
+
+Internal required-line anchors were encoded as OTP visit points, which explicitly require boarding/alighting. They now use passThrough stop identities; completion verifies the ordered stop occurrences including intermediate stops. User-created destinations retain physical visit semantics. The Sunnybrook Park Line 5 report motivated this repair. Real backend verification is still required. Closure-aware planning and official shuttle notices are newly recorded requirements; current whole-line alert attachment can show unrelated facility notices and must be narrowed before claiming accurate leg alerts.
+
 ## Follower stop-name repair
 
 The follower now compares publisher stop IDs using agency-qualified identities and the known TTC timetable alias. Vehicle-only following resolves a missing name through the exact stop-routes endpoint, with an eight-second deadline, cancellation and keyed response handling. Failed lookup retains the publisher identifier; it never guesses a nearby stop. Type checking and nine focused identity/progress tests pass. Real rendered verification remains pending. The garage HTTP regression is separately explained by the allocation source expiring on September 5; production correctly withholds expired evidence, so the source must be refreshed rather than extending its date without evidence.

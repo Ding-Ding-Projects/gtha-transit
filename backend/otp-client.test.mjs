@@ -29,6 +29,17 @@ async function withResponse(payload, run) {
 }
 
 const stop = (id, lat, lon, viaLocationType = "VISIT") => ({ name: id, lat, lon, viaLocationType, stop: { gtfsId: id, locationType: "STOP", parentStation: null } });
+test('internal required-line anchors permit staying aboard and verify intermediate stop order', async () => {
+  const a={stopId:'ttc:a',name:'A',lat:43.7,lon:-79.4,passThrough:true};
+  const b={stopId:'ttc:b',name:'B',lat:43.71,lon:-79.4,passThrough:true};
+  const payload=planPayload(stop('ttc:origin',43.69,-79.4,null),stop('ttc:end',43.72,-79.4,null));
+  payload.data.planConnection.edges[0].node.legs[0].intermediatePlaces=[stop('ttc:a',43.7,-79.4,null),stop('ttc:b',43.71,-79.4,null)];
+  const {result,requests}=await withResponse(payload,()=>planWithOtp(input({via:[a,b]})));
+  assert.deepEqual(requests[0].variables.via[0],{passThrough:{stopLocationIds:['ttc:a'],label:'A'}});
+  assert.equal(result.itineraries.length,1);assert.equal(result.itineraries[0].legs.length,1);
+  const reverse=await withResponse(payload,()=>planWithOtp(input({via:[b,a]})));
+  assert.equal(reverse.result.itineraries.length,0);
+});
 const planPayload = (fromStop, toStop) => ({ data: { planConnection: { edges: [{ node: {
   start: "2026-09-05T12:00:00-04:00",
   end: "2026-09-05T12:10:00-04:00",

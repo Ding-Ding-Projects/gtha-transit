@@ -213,7 +213,7 @@ function anchorCandidates(anchorResponse, input, requiredRoute, { deadlineAt, no
 }
 
 function anchorVisit(stop) {
-  return { id: stop.id, stopId: stop.id, name: stop.name, lat: stop.lat, lon: stop.lon };
+  return { id: stop.id, stopId: stop.id, name: stop.name, lat: stop.lat, lon: stop.lon, passThrough: true };
 }
 
 function plannerInput(input, requiredRoute, timeoutMs, signal, via = input.via) {

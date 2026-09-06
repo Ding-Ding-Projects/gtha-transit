@@ -132,6 +132,7 @@ function qualifiedStopLocationId(value) {
 function visitInput(place) {
   const label = safeText(place?.name ?? place?.label)?.slice(0, 200);
   const stopLocationId = qualifiedStopLocationId(place?.stopId);
+  if (place?.passThrough === true && stopLocationId) return { passThrough: { stopLocationIds: [stopLocationId], ...(label ? { label } : {}) } };
   const visit = { minimumWaitTime: "PT0S" };
   if (stopLocationId) visit.stopLocationIds = [stopLocationId];
   else visit.coordinate = { latitude: place.lat, longitude: place.lon };
@@ -141,7 +142,7 @@ function visitInput(place) {
 const VIA_MATCH_DISTANCE_METRES = 100;
 function viaVisitEvents(legs) {
   if (!legs.length) return [];
-  return [legs[0].from, ...legs.map((leg) => leg.to)].filter((place) => place?.viaLocationType === "VISIT");
+  return legs.flatMap(leg => [leg.from, ...(leg.intermediateStops || []), leg.to]).filter(Boolean);
 }
 function distanceMetres(left, right) {
   if (![left?.lat, left?.lon, right?.lat, right?.lon].every(Number.isFinite)) return Infinity;
@@ -156,6 +157,7 @@ function matchedViaCount(legs, via) {
   for (const visit of viaVisitEvents(legs)) {
     if (matched >= via.length) break;
     const requestedStopId = qualifiedStopLocationId(via[matched]?.stopId);
+    if (via[matched]?.passThrough !== true && visit.viaLocationType !== "VISIT") continue;
     if (requestedStopId ? visit.stopId === requestedStopId : distanceMetres(visit, via[matched]) <= VIA_MATCH_DISTANCE_METRES) matched += 1;
   }
   return matched;
