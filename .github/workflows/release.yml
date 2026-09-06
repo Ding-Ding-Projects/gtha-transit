@@ -31,8 +31,21 @@ jobs:
         run: |
           TAG="v0.1.0-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
           export TAG
+          # A code name is decoration with a purpose and must never block a release.
+          # Exit 3 means no unused dish with a published photo could be resolved, and
+          # the notes then carry the version alone.
+          ASSETS="dist/gtha-transit-web.tar.gz dist/line-counts.md"
+          if node scripts/dim-sum-code-name.mjs --json --photo dist/dim-sum.png > dist/dim-sum.json; then
+            PHOTO_FILE=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('dist/dim-sum.json','utf8')).file)")
+            mv dist/dim-sum.png "dist/$PHOTO_FILE"
+            ASSETS="$ASSETS dist/$PHOTO_FILE"
+            echo "Code name resolved: $(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('dist/dim-sum.json','utf8')).name)")"
+          else
+            rm -f dist/dim-sum.json dist/dim-sum.png
+            echo "::warning::No unused dim sum code name with a published photo was resolved; this release ships without one."
+          fi
           node scripts/release-notes.mjs
-          gh release create "$TAG" dist/gtha-transit-web.tar.gz dist/line-counts.md --target "$GITHUB_SHA" --title "GTHA Transit $TAG" --notes-file dist/release-notes.md
+          gh release create "$TAG" $ASSETS --target "$GITHUB_SHA" --title "GTHA Transit $TAG" --notes-file dist/release-notes.md
       - name: Retain build evidence
         if: ${{ always() }}
         continue-on-error: true
