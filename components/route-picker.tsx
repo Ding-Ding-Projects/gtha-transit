@@ -3,6 +3,8 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, Building2, LoaderCircle, Route, X } from 'lucide-react';
 import { SearchWorkbench, useSearchMatches, type SearchState } from './search-workbench';
 import { agencySearchText, canChooseCatalogRoute, loadRouteCatalog, routePeriodState, type RouteCatalogSnapshot } from '../lib/route-catalog';
+import { superExpressFor } from '../lib/go-express';
+import SuperExpressBadge from './super-express-badge';
 
 const emptySearch = (): SearchState => ({ query: '', pattern: '', flags: 'i', mode: 'text' });
 const swatch = (value: string | null) => value && /^[a-f0-9]{6}$/i.test(value) ? '#' + value : undefined;
@@ -153,7 +155,7 @@ export default function RoutePicker({ agency, route, onChange, t, allowedAgencyI
                 const period = routePeriodState(record, snapshot.date);
                 return <button type="button" key={record.id} className="route-picker-result" aria-pressed={record.feedId === agency && record.routeId === route} onClick={() => choose(record.feedId, record.routeId)}>
                   <strong className="route-picker-badge" style={{ background: swatch(record.color), color: swatch(record.textColor) }}>{record.shortName || record.routeId}</strong>
-                  <span><strong>{record.longName || t('Route name unavailable', '未有路線名稱')}</strong><small>{record.agency || record.feedId.toUpperCase()}</small>{period !== 'within' && <small className="route-period-note">{period === 'outside' ? t('Outside this timetable period', '不在此時間表有效期內') : t('Timetable period unconfirmed', '時間表有效期未確認')}</small>}{!record.color && <small>{t('Official color unavailable', '未有官方顏色')}</small>}</span>
+                  <span><strong>{record.longName || t('Route name unavailable', '未有路線名稱')}</strong>{superExpressFor({ agency: record.agency, route: record.shortName || record.routeId, headsign: null }) && <SuperExpressBadge match={superExpressFor({ agency: record.agency, route: record.shortName || record.routeId, headsign: null })!} t={t} />}<small>{record.agency || record.feedId.toUpperCase()}</small>{period !== 'within' && <small className="route-period-note">{period === 'outside' ? t('Outside this timetable period', '不在此時間表有效期內') : t('Timetable period unconfirmed', '時間表有效期未確認')}</small>}{!record.color && <small>{t('Official color unavailable', '未有官方顏色')}</small>}</span>
                   {record.feedId === agency && record.routeId === route ? <Check size={18} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}
                 </button>;
               })}

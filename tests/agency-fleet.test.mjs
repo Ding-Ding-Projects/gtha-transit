@@ -106,3 +106,23 @@ test('a current series is not blocked by a historic one that shares its numbers'
   assert.equal(nova.manufacturer, 'Nova Bus');
   assert.equal(nova.year, '2022');
 });
+
+test('Burlington units the roster writes with a leading 7 are still identified', () => {
+  // The roster says 72101-72108 and 7-2301 to 7-2305; the live feed says 2101 and
+  // 2301. The correspondence is exact across all six series, and each entry records
+  // the published form it came from so the mapping can be checked.
+  const nova = match('burlington', '2101', 'Burlington Transit');
+  assert.equal(nova.manufacturer, 'Nova Bus');
+  assert.equal(nova.year, '2021');
+  assert.equal(nova.publishedAs, '72101-72108');
+  const flyer = match('burlington', '2605', 'Burlington Transit');
+  assert.equal(flyer.manufacturer, 'New Flyer');
+  assert.equal(flyer.model, 'XDE40');
+  assert.equal(flyer.publishedAs, '7-2601 to 7-2606');
+});
+
+test('a Burlington number outside every published series is still only a search', () => {
+  const unknown = match('burlington', '2999', 'Burlington Transit');
+  assert.equal(unknown.manufacturer, undefined);
+  assert.equal(unknown.match, 'search');
+});

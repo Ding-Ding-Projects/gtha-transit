@@ -82,3 +82,25 @@ test('the agency test accepts the published GO name only', () => {
 test('a walking leg carries no route and is never labelled', () => {
   assert.equal(superExpressFor({ agency: 'GO Transit', route: null, headsign: '56A - x' }), null);
 });
+
+/**
+ * The route picker and the live tracker know a route but never a trip, so only a
+ * whole-route identity can be labelled there. A branch is not guessed from a bare
+ * route number, because that number also carries services that are not declared.
+ */
+test('a surface that knows only a route can still label a whole-route identity', () => {
+  const match = superExpressFor({ agency: 'GO Transit', route: '16', headsign: null });
+  assert.equal(match.identity, '16');
+  assert.equal(match.scope, 'route');
+});
+
+test('a route whose declared identity is a branch is not labelled without the branch', () => {
+  for (const route of ['56', '25', '47', '12', '88']) {
+    assert.equal(superExpressFor({ agency: 'GO Transit', route, headsign: null }), null, route);
+  }
+});
+
+test('another agency route 16 is never labelled on those surfaces either', () => {
+  assert.equal(superExpressFor({ agency: 'TTC', route: '16', headsign: null }), null);
+  assert.equal(superExpressFor({ agency: 'Durham Region Transit', route: '16', headsign: null }), null);
+});

@@ -53,6 +53,17 @@ export const OTHER_FLEET_RANGES = Object.freeze({
     { first: 8522, last: 8567, manufacturer: "ADL", model: "Enviro500 'SuperLo'", year: "2020-2021", source: { url: "https://cptdb.ca/wiki/index.php/GO_Transit", title: "GO Transit roster, CPTDB Wiki" } },
   ],
   burlington: [
+    // Burlington's newer buses are written on the roster with a leading 7 - 72101,
+    // 7-2301 - which its live feed omits. The correspondence was established by
+    // matching each published series against the reporting fleet unit for unit, and
+    // it is exact across all six series with nothing else in that number band.
+    { first: 2101, last: 2108, manufacturer: 'Nova Bus', model: 'LFS', year: '2021', publishedAs: '72101-72108', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2201, last: 2207, manufacturer: 'Nova Bus', model: 'LFS', year: '2022', publishedAs: '72201-72207', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2301, last: 2305, manufacturer: 'Nova Bus', model: 'LFS', year: '2023', publishedAs: '7-2301 to 7-2305', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2306, last: 2309, manufacturer: 'Nova Bus', model: 'LFS', year: '2023', publishedAs: '7-2306 to 7-2309', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2401, last: 2408, manufacturer: 'Nova Bus', model: 'LFS', year: '2024', publishedAs: '7-2401 to 7-2408', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2501, last: 2504, manufacturer: 'New Flyer', model: 'XDE40', year: '2025', publishedAs: '7-2501 to 7-2504', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
+    { first: 2601, last: 2606, manufacturer: 'New Flyer', model: 'XDE40', year: '2026', publishedAs: '7-2601 to 7-2606', source: { url: 'https://cptdb.ca/wiki/index.php/Burlington_Transit', title: 'Burlington Transit roster, CPTDB Wiki' } },
     // Burlington writes a two-digit delivery-year suffix on each unit, so a series
     // matches only when that suffix agrees as well as the number.
     { first: 7054, last: 7059, suffix: "12", manufacturer: "New Flyer", model: "XD40", year: "2012", source: { url: "https://cptdb.ca/wiki/index.php/Burlington_Transit", title: "Burlington Transit roster, CPTDB Wiki" } },

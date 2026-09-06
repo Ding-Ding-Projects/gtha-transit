@@ -43,4 +43,8 @@ Series were read from the published CPTDB rosters for each agency and kept only 
 
 Burlington writes a two-digit delivery-year suffix on each unit - `7019-15`, `7055-12` - and the roster ranges carry it too. A series matches only when the suffix agrees as well as the number, so `7019-99` matches nothing. **The build year is taken from the roster year column, never from the suffix.**
 
+### The leading 7 on Burlington units
+
+Burlington's newer buses appear on the roster as `72101-72108` and `7-2301 to 7-2305`, while its live feed reports the same vehicles as `2101` and `2301`. The correspondence was established by matching each published series against the reporting fleet unit for unit: it is exact across all six series, every reporting unit falls inside one of them, and nothing else on the roster occupies that number band. Each entry records the published form it came from, so the mapping can be checked rather than taken on trust.
+
 Standing capacity, current roster membership and licensed exact-unit photographs remain open for all three agencies.

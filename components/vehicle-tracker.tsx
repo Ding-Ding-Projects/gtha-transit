@@ -18,6 +18,8 @@ import { emptyFleetFilter, filterFleetVehicles } from '../lib/fleet-filter';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import { attachMapTiles } from '../lib/map-tiles';
 import { vehiclePage } from '../lib/vehicle-page';
+import { superExpressFor } from '../lib/go-express';
+import SuperExpressBadge from './super-express-badge';
 type Vehicle = {
   id: string;
   agencyId?: string;
@@ -571,6 +573,9 @@ export default function VehicleTracker({
               <span className="vehicle-route-badge">
                 {t('Route', '路線')} {v.routeId || '?'}
               </span>
+              {superExpressFor({ agency: v.agencyName, route: v.routeId, headsign: null }) && (
+                <SuperExpressBadge match={superExpressFor({ agency: v.agencyName, route: v.routeId, headsign: null })!} t={t} />
+              )}
               <ChevronRight size={16} />
             </span>
             <span className="vehicle-row-agency">

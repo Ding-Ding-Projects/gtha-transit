@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Show the super express badge on the route picker and the live tracker for a whole-route identity. Those surfaces know a route but never a trip, so a branch is not guessed from a bare route number.
+
+- Identify the rest of the Burlington fleet. Its roster writes newer buses with a leading 7 that the live feed omits; the correspondence is exact across all six series and each entry records the published form it came from.
+
 - Identify GO Transit, Burlington Transit and Hamilton Street Railway vehicles from their published rosters. Manufacturer coverage on those three agencies was 15%, 0% and 0%; twenty-eight sourced series now cover 200 of the vehicles their live feeds report. Burlington units match only when their delivery-year suffix agrees, the GO number band shared with rail coaches is left unmatched rather than guessed, and propulsion appears only where the roster states it.
 
 - Name the closest vehicle on the route to your boarding stop while a departure has not started, with its measured distance. A tracker normally chains a vehicle from its previous trip through shared identifiers, which this operator does not publish, so the closest vehicle is offered as exactly that and never as a confirmed assignment.
