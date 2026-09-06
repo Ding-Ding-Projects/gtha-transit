@@ -61,6 +61,7 @@ export const OTHER_FLEET_RANGES = Object.freeze({
   ],
   hsr: [
     { first: 1101, last: 1117, manufacturer: "NFI", model: "XD40", year: "2012", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 1201, last: 1224, manufacturer: "NFI", model: "XD40", year: "2012", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 1420, last: 1437, manufacturer: "NFI", model: "XN60", year: "2015", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 1501, last: 1524, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2015-16", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 1601, last: 1643, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2016", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
@@ -69,6 +70,7 @@ export const OTHER_FLEET_RANGES = Object.freeze({
     { first: 1820, last: 1830, manufacturer: "NFI", model: "XN60", year: "2018-19", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 1845, last: 1850, manufacturer: "Grande West", model: "Vicinity CNG", year: "2019", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 2101, last: 2120, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2022", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
+    { first: 2201, last: 2231, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2022", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 2251, last: 2292, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2023", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 2301, last: 2314, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2024", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },
     { first: 2315, last: 2326, manufacturer: "Nova Bus", model: "LFS Natural Gas", year: "2025", propulsion: "Compressed natural gas", source: { url: "https://cptdb.ca/wiki/index.php/Hamilton_Street_Railway", title: "Hamilton Street Railway roster, CPTDB Wiki" } },

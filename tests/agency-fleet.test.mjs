@@ -93,3 +93,16 @@ test('a unit outside every published series still gets a search, never a guess',
   assert.equal(unknown.match, 'search');
   assert.equal(unknown.displayFleetNumber, '9999');
 });
+
+test('a current series is not blocked by a historic one that shares its numbers', () => {
+  // The roster also lists a 1973 Rek-Vee at 1215-1216 and a 1989 MCI Classic at
+  // 2204-2208. Neither is on the road in 2026, and letting them cancel the current
+  // series left a quarter of the live fleet unidentified.
+  const xd40 = match('hsr', '1215', 'Hamilton Street Railway');
+  assert.equal(xd40.manufacturer, 'NFI');
+  assert.equal(xd40.model, 'XD40');
+  assert.equal(xd40.year, '2012');
+  const nova = match('hsr', '2205', 'Hamilton Street Railway');
+  assert.equal(nova.manufacturer, 'Nova Bus');
+  assert.equal(nova.year, '2022');
+});

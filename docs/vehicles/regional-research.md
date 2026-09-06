@@ -37,7 +37,7 @@ Series were read from the published CPTDB rosters for each agency and kept only 
 - **GO 2500-2620.** The same roster uses those numbers for both MCI D4500CT buses and Bombardier BiLevel rail coaches. A fleet number alone cannot say which vehicle it is, so the whole band is unmatched rather than guessed.
 - **Propulsion where the roster does not state it.** An NFI XN60 is not described as diesel by its row, and several run on natural gas, so inferring a propulsion from the model would have printed a wrong fact with a citation attached to it. Propulsion appears only where the published model or engine says it.
 - **Two Burlington rows** that parsed as spans of thousands of units. A cell covering more than 400 units is a parsing artefact, not a series, and is discarded.
-- **Historic series** whose numbers collide with current ones, such as an HSR 1973 Rek-Vee and a 1989 MCI Classic.
+- **Historic series** built before 2005 on the two bus rosters. A 1973 Rek-Vee at 1215-1216 and a 1989 MCI Classic at 2204-2208 are not on the road in 2026, and letting them cancel the current series that share those numbers left a quarter of the Hamilton fleet unidentified. GO is not filtered this way because its locomotives genuinely are that old.
 
 ### Burlington fleet numbers
 
