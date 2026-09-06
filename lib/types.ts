@@ -6,6 +6,10 @@ export type Place = {
   lat: number;
   lon: number;
   kind?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  nearbyTransit?: { distanceMetres: number; stopName: string; routes: StopRoute[]; scope?: string };
   agency?: string;
   feedId?: string;
   agencyFeedId?: string;

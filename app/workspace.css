@@ -1,5 +1,10 @@
 /* Workspace composition. These role values and component rules replace the
    previous three-column page presentation across every active destination. */
+.suggestions .place-suggestion-info { display: grid; gap: 5px; margin-top: 5px; }
+.suggestions .place-suggestion-info small { margin: 0; white-space: normal; line-height: 1.5; }
+.suggestions .suggestion-route-label { font-size: 11px; font-weight: 650; }
+.suggestions > button { align-items: flex-start; }
+.suggestions > button > span { min-width: 0; overflow-wrap: anywhere; }
 :root {
   --bg: #f1f4f6;
   --surface: #ffffff;

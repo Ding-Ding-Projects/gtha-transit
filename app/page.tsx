@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
+import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
 import VehicleTracker from '../components/vehicle-tracker';
@@ -243,10 +244,7 @@ function PlaceField({
                 <MapPin size={17} />
                 <span>
                   {p.name}
-                  <small>
-                    {[p.agency, p.kind].filter(Boolean).join(' · ')}
-                  </small>
-                  {!!p.servingRoutes?.length && <RouteBadges routes={p.servingRoutes} t={t} />}
+                  <PlaceSuggestionInfo place={p} t={t} />
                 </span>
               </button>
             ))

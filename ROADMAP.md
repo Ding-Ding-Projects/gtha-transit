@@ -4,6 +4,8 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Verify contextual suggestion cards on the built interface: exact timetable routes, explicitly nearby routes, place-specific type/address fields and washroom presence. Warden source mismatch is repaired without changing destination identity; broader address enrichment remains source-dependent.
+
 - [ ] Complete all-agency unit-level fleet research. Added 72 sourced series across MiWay, Brampton, Durham and YRT, including prefixed electric identities. Current membership, missing agencies, standing capacity and licensed exact-unit photos remain explicit gaps in docs/vehicles/regional-research.md.
 
 - [ ] Deploy and verify the dedicated vehicle-preference dialog: staged Apply/Cancel, exclusive Off/Prefer/Avoid, independent manufacturer/model searches, visible unknown-assignment handling and guided narrow sections. Local behavior checks pass; rendered verification remains pending.

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { withPlaceContext } from './place-context.mjs';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
@@ -291,7 +292,7 @@ function mergedPlaces(stops, mapPlaces, query) {
     .sort((left, right) => comparePlaceRanks(left.rank, right.rank));
   const ids = new Set();
   const locations = new Set();
-  return ranked.filter(({ place }) => {
+  const merged = ranked.filter(({ place }) => {
     const id = place.id == null ? '' : String(place.id);
     if (id && ids.has(id)) return false;
     const lat = Number(place.lat); const lon = Number(place.lon);
@@ -302,6 +303,7 @@ function mergedPlaces(stops, mapPlaces, query) {
     if (location) locations.add(location);
     return true;
   }).slice(0, 25).map(({ place }) => place);
+  return withPlaceContext(merged, stops);
 }
 async function placeSource(origin, requestPath, field) {
   try {

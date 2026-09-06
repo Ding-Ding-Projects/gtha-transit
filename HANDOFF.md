@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Contextual place suggestions
+
+The Warden report exposed map results without route data ahead of route-rich TTC platforms. The frontend service now adds explicitly nearby transit context only from stops within 250 metres in the same search response, retaining exact destination identity. Suggestion rendering distinguishes timetable service from nearby routes, shows straight-line distance/stop name, localizes place-specific types and uses published address/district/city when supplied. No location-name-only route inference or invented opening hours is used. Built interaction verification remains pending.
+
 ## Direct browser fleet research
 
 The approved isolated browser route now permits CPTDB-created iframe targets alongside one exact top-level page. Nine agency pages yielded structured tables with revision links; Durham remained unavailable in this attempt. Added 11 Milton conventional-fleet records from revision 857419 and verified the separate propulsion history of 1701/1702 against revision 804140. All 24 focused regional/vehicle tests pass. Other extracted tables remain unreviewed research, not claimed shipped coverage. No image rights or standing capacity were invented.
