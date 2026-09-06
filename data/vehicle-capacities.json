@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+  "purpose": "Source-backed passenger-capacity details for later fleet-registry integration. A null field is unknown, not zero.",
+  "series": [
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": "Nova Bus",
+      "model": "LFS",
+      "vehicleYear": "2015-2018",
+      "fleetRange": "8400-9239",
+      "capacityDetails": {
+        "seated": 33,
+        "standing": null,
+        "total": null,
+        "basis": "operator-published seats",
+        "sourceUrl": "https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-03-15.pdf?rev=ff632fa0a1a24466b0f13b840124fc1e",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC Service Summary lists 33 seats. It does not publish standing or total passenger capacity for this series."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": "Nova Bus",
+      "model": "LFS Artic",
+      "vehicleYear": "2013-2014",
+      "fleetRange": "9000-9152",
+      "capacityDetails": {
+        "seated": 46,
+        "standing": null,
+        "total": null,
+        "basis": "operator-published seats",
+        "sourceUrl": "https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-03-15.pdf?rev=ff632fa0a1a24466b0f13b840124fc1e",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC Service Summary lists 46 seats. It does not publish standing or total passenger capacity for this series."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": "New Flyer",
+      "model": "Xcelsior XDE60",
+      "vehicleYear": "2023-2025",
+      "fleetRange": "9400-9468",
+      "capacityDetails": {
+        "seated": 50,
+        "standing": null,
+        "total": null,
+        "basis": "operator-published seats",
+        "sourceUrl": "https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-03-15.pdf?rev=ff632fa0a1a24466b0f13b840124fc1e",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC Service Summary lists 50 seats. It does not publish standing or total passenger capacity for this series."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": "Alstom",
+      "model": "FLEXITY M-1",
+      "vehicleYear": "2012-2024",
+      "fleetRange": "4400-4663",
+      "capacityDetails": {
+        "seated": 70,
+        "standing": null,
+        "total": null,
+        "basis": "operator-published seats",
+        "sourceUrl": "https://cdn.ttc.ca/-/media/Project/TTC/DevProto/Documents/Home/Transparency-and-accountability/Service-Summary-2026-03-15.pdf?rev=ff632fa0a1a24466b0f13b840124fc1e",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC Service Summary lists 70 seats. It does not publish standing or total passenger capacity for this series."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": null,
+      "model": "LFLRV Streetcar",
+      "vehicleYear": null,
+      "fleetRange": null,
+      "capacityDetails": {
+        "seated": 70,
+        "standing": 181,
+        "total": 251,
+        "basis": "TTC charter-category maximum",
+        "sourceUrl": "https://www.ttc.ca/en/doing-business-with-the-ttc/chartering-ttc-vehicles/charter-rates",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC charter page labels this vehicle category LFLRV Streetcar. It is not assigned here to an exact FLEXITY M-1 series."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": null,
+      "model": "LFLRV Streetcar",
+      "vehicleYear": null,
+      "fleetRange": null,
+      "capacityDetails": {
+        "seated": 70,
+        "standing": null,
+        "total": 130,
+        "basis": "TTC planned carrying capacity, 2018",
+        "sourceUrl": "https://www.ttc.ca/en/transparency-and-accountability/Operating-Statistics/Operating-Statistics---2018/Conventional-System",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC labels this planned number of customers per vehicle. Standing capacity is not derived from the planned total."
+      }
+    },
+    {
+      "agencyId": "ttc",
+      "agencyName": "Toronto Transit Commission",
+      "manufacturer": "Nova Bus",
+      "model": "LFS Artic",
+      "vehicleYear": "2013-2014",
+      "fleetRange": "9000-9152",
+      "capacityDetails": {
+        "seated": null,
+        "standing": null,
+        "total": 77,
+        "basis": "TTC historical articulated-fleet capacity",
+        "sourceUrl": "https://www.ttc.ca/news/2017/April/TTC-grounds-articulated-bus-fleet-over-safety-concern",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "The TTC 2017 safety notice gives 77 seated-and-standing for the 153 Nova 60-foot articulated buses. It does not publish a split."
+      }
+    },
+    {
+      "agencyId": "go",
+      "agencyName": "GO Transit",
+      "manufacturer": "Motor Coach Industries",
+      "model": "D4500",
+      "vehicleYear": null,
+      "fleetRange": "2432-2616",
+      "capacityDetails": {
+        "seated": null,
+        "standing": null,
+        "total": 55,
+        "basis": "operator-published maximum passengers",
+        "sourceUrl": "https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "Metrolinx says each D4500 can transport up to 55 passengers. The article does not split seats and standing places."
+      }
+    },
+    {
+      "agencyId": "go",
+      "agencyName": "GO Transit",
+      "manufacturer": "Alexander Dennis Limited",
+      "model": "Enviro500",
+      "vehicleYear": null,
+      "fleetRange": "8300-8567",
+      "capacityDetails": {
+        "seated": null,
+        "standing": null,
+        "total": 81,
+        "basis": "operator-published maximum passengers",
+        "sourceUrl": "https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "Metrolinx says each Enviro500 can transport 81 passengers. The article does not split seats and standing places."
+      }
+    },
+    {
+      "agencyId": "up",
+      "agencyName": "UP Express",
+      "manufacturer": "Nippon Sharyo",
+      "model": "Diesel multiple unit",
+      "vehicleYear": null,
+      "fleetRange": null,
+      "capacityDetails": {
+        "seated": null,
+        "standing": null,
+        "total": null,
+        "basis": null,
+        "sourceUrl": "https://www.metrolinx.com/en/discover/the-differences-between-trains-light-rail-vehicles-and-subways",
+        "retrievedAt": "2026-09-05T08:41:36.1781308-04:00",
+        "notes": "Metrolinx’s 180-passenger statement applies to a UP Express train trip, not an individual DMU. No individual-vehicle capacity is recorded."
+      }
+    }
+  ]
+}
