@@ -50,6 +50,7 @@ import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import { journeyWaits } from '../lib/journey-waits';
 import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-groups';
+import { selectLegAlerts } from '../lib/leg-alerts';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   resolveTorontoTime,
@@ -1593,22 +1594,25 @@ export default function Home() {
                                           </ol>
                                         </details>
                                       ) : null}
-                                      {status?.lines
-                                        ?.filter(
-                                          (l) =>
-                                            l.state === 'disrupted' &&
-                                            leg.agency?.includes('TTC') &&
-                                            leg.route === l.id,
-                                        )
-                                        .map((l) => (
-                                          <p
-                                            className="inline-alert"
-                                            key={l.id}
-                                          >
-                                            <TriangleAlert size={14} />
-                                            {l.alerts[0]?.title}
-                                          </p>
-                                        ))}
+                                      {selectLegAlerts({
+                                        alerts: status?.alerts,
+                                        leg,
+                                      }).map(({ alert, kind }) => (
+                                        <p
+                                          className={`inline-alert${kind === 'facility' ? ' inline-alert-facility' : ''}`}
+                                          key={alert.id}
+                                        >
+                                          <TriangleAlert size={14} />
+                                          <span>
+                                            <b>
+                                              {kind === 'facility'
+                                                ? t('Station facility', '車站設施')
+                                                : t('Service alert', '服務提示')}
+                                            </b>{' '}
+                                            {alert.title}
+                                          </span>
+                                        </p>
+                                      ))}
                                     </>
                                   )}
                                 </div>

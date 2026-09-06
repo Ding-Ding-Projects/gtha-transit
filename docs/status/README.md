@@ -8,4 +8,4 @@ The TTC payload contains `routeAlerts` alongside other categories such as access
 
 The parser accepts the GTFS-Realtime protobuf wire format directly, bounds payload size and entity count, sanitizes provider text, and applies an 8 second request deadline. It retains only bounded alert fields and never logs the upstream response.
 
-See [TTC disruption route groups](route-groups.md) for the explicit source-metadata and official-catalog rules that separate rapid transit, streetcar, bus, network-wide, and unclassified alerts.
+See [alerts beside a journey leg](leg-alerts.md) for how a leg selects the alerts that apply to it, and [TTC disruption route groups](route-groups.md) for the explicit source-metadata and official-catalog rules that separate rapid transit, streetcar, bus, network-wide, and unclassified alerts.

@@ -1240,6 +1240,23 @@ select {
   color: var(--alert) !important;
   border-radius: 6px;
   padding: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 6px;
+}
+.inline-alert > svg {
+  flex: none;
+  margin-top: 2px;
+}
+.inline-alert b {
+  font-weight: 650;
+}
+/* A station facility notice is not a service disruption; it must not read like one. */
+.inline-alert-facility {
+  background: var(--surface2);
+  color: var(--text) !important;
+  border: 1px solid var(--border);
 }
 .toast {
   position: fixed;

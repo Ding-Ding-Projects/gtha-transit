@@ -90,6 +90,8 @@ export type Alert = {
   description: string;
   url?: string;
   updatedAt?: string;
+  activeFrom?: string;
+  activeTo?: string;
 };
 export type Line = {
   id: string;

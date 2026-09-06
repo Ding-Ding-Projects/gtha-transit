@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Show only the alerts that apply to a journey leg. A station facility notice, such as an escalator out of service, now appears beside a leg only when the leg calls at that station, service disruptions and facility notices are labelled distinctly, and every matching alert is shown instead of the first entry of a line.
+
 - Resolve follower next-stop names from agency-qualified publisher IDs and the exact stop index instead of displaying only a numeric identifier when no journey timeline is present.
 
 - Tailor place suggestions with published location context, timetable route colors and explicitly nearby transit details instead of bare place/station labels.
