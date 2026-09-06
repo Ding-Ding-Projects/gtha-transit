@@ -38,6 +38,7 @@ import DestinationList, { type Destination } from '../components/destination-lis
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import SettingsWorkspace from '../components/settings-workspace';
+import RaceWorkspace from '../components/race-workspace';
 import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import { useNarrator } from '../lib/narrator';
@@ -1048,6 +1049,7 @@ export default function Home() {
         <section className="content">
           {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
+          {tab === 'race' && <RaceWorkspace t={t} />}
           {tab === 'history' && <DisruptionHistory t={t} />}
           {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => openFollower({ vehicle })} />}
           {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => openFollower({ vehicle })} />}
@@ -1586,6 +1588,17 @@ export default function Home() {
                                         {leg.vehicleAssignment?.state === 'not-started' && <small>{typeof leg.vehicleAssignment.minutesUntilDeparture === 'number'
                                           ? t(`A vehicle is normally identified once the trip is running, about ${leg.vehicleAssignment.minutesUntilDeparture} min from now.`, `班次開出之後先會識別到車輛，大約 ${leg.vehicleAssignment.minutesUntilDeparture} 分鐘後。`)
                                           : t('A vehicle is normally identified once the trip is running.', '班次開出之後先會識別到車輛。')}</small>}
+                                        {leg.vehicleAssignment?.state === 'not-started' && leg.approachingVehicle && (
+                                          <small className="approaching-vehicle">
+                                            <b>{t('Closest vehicle on this route now', '呢條路線而家最近嘅車')}: {leg.approachingVehicle.fleetNumber || leg.approachingVehicle.label || leg.approachingVehicle.id}</b>
+                                            {typeof leg.vehicleAssignment.approachingMetres === 'number' && (
+                                              <> · {leg.vehicleAssignment.approachingMetres >= 1000
+                                                ? t(`${(leg.vehicleAssignment.approachingMetres / 1000).toFixed(1)} km from your boarding stop`, `距離你上車站 ${(leg.vehicleAssignment.approachingMetres / 1000).toFixed(1)} 公里`)
+                                                : t(`${leg.vehicleAssignment.approachingMetres} m from your boarding stop`, `距離你上車站 ${leg.vehicleAssignment.approachingMetres} 米`)}</>
+                                            )}
+                                            <span>{t('This operator publishes nothing tying a vehicle to a departure, so this is the closest vehicle by its published position, not a confirmed assignment.', '呢間營運商冇公布邊架車跑邊班，所以呢個只係按公布位置計算最近嘅一架，唔係確認嘅編配。')}</span>
+                                          </small>
+                                        )}
                                         {leg.vehicleAssignment?.state === 'no-match' && <small>{t('Live positions did not report a vehicle with this trip ID, and none is reported at a stop on this leg. A vehicle on the same route may be running a different departure.', '即時位置未有呢個班次編號嘅配車，呢段行程嘅車站亦冇車輛回報。同路線車輛可能正行駛另一班次。')}</small>}
                                         {leg.vehicleAssignment?.state === 'ambiguous' && <small>{t('Several vehicles on this route are reported at stops on this leg, so the exact one cannot be identified.', '呢條路線有幾架車喺呢段行程嘅車站回報，未能確定係邊一架。')}</small>}
                                         {['stale', 'unavailable', 'error'].includes(leg.vehicleAssignment?.state || '') && <small>{t('A fresh assignment is unavailable for this departure. Check the live tracker for current observations.', '呢個出發班次暫未有最新配車資料，可到即時追蹤查看目前觀察。')}</small>}

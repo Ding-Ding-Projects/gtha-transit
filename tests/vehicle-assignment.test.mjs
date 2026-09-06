@@ -145,6 +145,37 @@ test('a departure that has not left yet reports that, rather than a failed searc
   assert.equal(early.vehicle, undefined);
 });
 
+test('before departure the closest vehicle on the route is named, with its measured distance', async () => {
+  // 43.75 is about 4.4 km up the corridor from the 43.71 boarding stop.
+  const early = await run([unit(onLeg)], { startTime: '2026-09-06T14:00:00.000Z', endTime: '2026-09-06T14:30:00.000Z' });
+  assert.equal(early.vehicleAssignment.state, 'not-started');
+  assert.equal(early.approachingVehicle.id, '3201');
+  assert.equal(early.vehicleAssignment.approachingMetres > 4000 && early.vehicleAssignment.approachingMetres < 4800, true,
+    `measured ${early.vehicleAssignment.approachingMetres} m`);
+  assert.match(early.vehicleAssignment.approachingDisclosure, /not confirmed/);
+  // It is offered as the closest vehicle, never as the assigned one.
+  assert.equal(early.vehicle, undefined);
+});
+
+test('the closest vehicle is chosen, and one on another route is never offered', async () => {
+  const options = [
+    unit({ id: 'far', route: '68', trip: 'x', lat: 43.79, lon: -79.3 }),
+    unit({ id: 'near', route: '68', trip: 'y', lat: 43.72, lon: -79.3 }),
+    unit({ id: 'other-route', route: '24', trip: 'z', lat: 43.7101, lon: -79.3 }),
+  ];
+  const early = await run(options, { startTime: '2026-09-06T14:00:00.000Z', endTime: '2026-09-06T14:30:00.000Z' });
+  assert.equal(early.approachingVehicle.id, 'near');
+});
+
+test('a vehicle far outside the region is not described as approaching', async () => {
+  const early = await run(
+    [unit({ ...onLeg, lat: 45.5, lon: -73.5 })],
+    { startTime: '2026-09-06T14:00:00.000Z', endTime: '2026-09-06T14:30:00.000Z' },
+  );
+  assert.equal(early.approachingVehicle, undefined);
+  assert.equal(early.vehicleAssignment.approachingMetres, undefined);
+});
+
 test('a running departure with no candidate is still an honest no-match', async () => {
   const running = await run([unit({ ...onLeg, lat: 43.95, lon: -79.3 })], { startTime: '2026-09-06T13:10:00.000Z', endTime: '2026-09-06T13:40:00.000Z' });
   assert.equal(running.vehicleAssignment.state, 'no-match');

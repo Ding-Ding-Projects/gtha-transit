@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Name the closest vehicle on the route to your boarding stop while a departure has not started, with its measured distance. A tracker normally chains a vehicle from its previous trip through shared identifiers, which this operator does not publish, so the closest vehicle is offered as exactly that and never as a confirmed assignment.
+
+- Add a Race workspace with head-to-head races and a subway speed run: create or join a room by code, add teams, start the clock, check in at a real place from the published search with optional photo proof, and share a position only while you choose to. Photos are re-encoded in the browser, which removes camera metadata including any location tag.
+
 - Add race rooms: a leader opens a short-lived room, teams join by a readable six-character code, and the room records team routes, position sharing and check-ins. Every limit is enforced on write and an expired room is purged with its photos. Leader and participant secrets are stored only as hashes and never appear in a readable room; position sharing starts off and stopping it clears the stored position; a photo is accepted only as a re-encoded JPEG verified by its own bytes.
 
 - Identify the vehicle where the trip should be right now rather than anywhere along the leg. A long bus leg passes dozens of stops, and matching against all of them reported several qualifying vehicles and named none. The published stop times now place the trip precisely.

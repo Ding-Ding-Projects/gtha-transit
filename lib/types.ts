@@ -23,7 +23,8 @@ export type Place = {
   departure?: { scheduledTime?: string; estimatedTime?: string; delaySeconds?: number };
 };
 export type Leg = {
-  vehicleAssignment?: { state?: string; reason?: string; method?: string; disclosure?: string; candidateCount?: number; minutesUntilDeparture?: number };
+  vehicleAssignment?: { state?: string; reason?: string; method?: string; disclosure?: string; candidateCount?: number; minutesUntilDeparture?: number; approachingMetres?: number; approachingDisclosure?: string };
+  approachingVehicle?: { id: string; label?: string; fleetNumber?: string; agencyId?: string; timestamp?: string | number } | null;
   routeDivisionOpportunity?: { state: string; reason?: string; routeId?: string; vehicleCount?: number; checkedAt?: number; validUntil?: number; vehicleIds?: string[]; fleetNumbers?: string[]; observations?: { id: string; fleetNumber: string; validUntil: number }[]; truncated?: boolean; source?: { validFrom?: string; validThrough?: string }; disclosure?: string };
   vehicleDivision?: { state: string; reason?: string; checkedAt?: number; validUntil?: number; homeGarageName?: string; assignedGarageNames?: string[]; source?: { validFrom?: string; validThrough?: string; publisherPage?: string } };
   tripId?: string;

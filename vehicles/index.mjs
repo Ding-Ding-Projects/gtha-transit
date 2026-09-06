@@ -131,6 +131,8 @@ const POSITION_TRAIL_MS = 5 * 60 * 1000;
 const POSITION_RADIUS_M = 150;
 /** Stops either side of where the trip should be, allowing for a running vehicle. */
 const EXPECTED_STOP_SPAN = 1;
+/** Beyond this, a vehicle is not usefully described as approaching the boarding stop. */
+const APPROACHING_MAX_M = 25000;
 
 function vehicleFeedId(value) {
   const feedId = String(value ?? '').split(':')[0].trim().toLowerCase();
@@ -259,6 +261,32 @@ function positionCandidates(vehicles, leg, feedId, now) {
   });
 }
 
+/**
+ * The closest fresh vehicle on this leg's route to its boarding stop.
+ *
+ * Reported as a measured distance, never as an assignment. Trackers that chain a
+ * vehicle from its previous trip into the next one do it through identifiers the
+ * realtime feed shares with the timetable; this operator's realtime identifiers
+ * match neither loaded timetable, so that chain cannot be built from published
+ * data and is not pretended.
+ */
+function nearestOnRoute(vehicles, leg, feedId) {
+  const route = legRouteCode(leg, feedId);
+  const boardingLat = Number(leg?.from?.lat);
+  const boardingLon = Number(leg?.from?.lon);
+  if (!route || !Number.isFinite(boardingLat) || !Number.isFinite(boardingLon)) return null;
+  let best = null;
+  for (const vehicle of vehicles) {
+    if (vehicle.stale || routeCode(vehicle.routeId) !== route) continue;
+    const lat = Number(vehicle.lat);
+    const lon = Number(vehicle.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const metres = metresBetween(lat, lon, boardingLat, boardingLon);
+    if (!best || metres < best.metres) best = { vehicle, metres };
+  }
+  return best && best.metres <= APPROACHING_MAX_M ? best : null;
+}
+
 function legTimeMillis(value) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     const milliseconds = Math.abs(value) < 100_000_000_000 ? value * 1000 : value;
@@ -291,9 +319,23 @@ export async function enrichItineraries(itineraries, options = {}) {
     const onLeg = newest(positionCandidates(snapshot.vehicles, leg, agency, now));
     if (onLeg.length === 1) return { ...leg, vehicle: identify(onLeg[0]), vehicleAssignment: { state: 'matched', method: 'route-and-stop-position', disclosure: 'This publisher does not share a matching trip identifier. One vehicle on this route is reported at a stop on this leg while the leg is running.' } };
     if (onLeg.length > 1) return { ...leg, vehicleAssignment: { state: 'ambiguous', reason: 'Several vehicles on this route are reported at stops on this leg, so the exact one cannot be identified.', candidateCount: onLeg.length } };
-    // A departure that has not left yet has no vehicle on it, which is not a failure to find one.
+    // A departure that has not left yet has no vehicle on it, which is not a failure to
+    // find one. Riders still want to know which bus is coming, so the nearest vehicle
+    // on the route is named with its measured distance - and never called the assigned
+    // one, because this operator publishes nothing that ties a vehicle to a departure.
     if (now < start) {
-      return { ...leg, vehicleAssignment: { state: 'not-started', reason: 'This departure has not started yet, so no vehicle is running it.', minutesUntilDeparture: Math.max(0, Math.round((start - now) / 60000)) } };
+      const approaching = nearestOnRoute(snapshot.vehicles, leg, agency);
+      return { ...leg,
+        ...(approaching ? { approachingVehicle: identify(approaching.vehicle) } : {}),
+        vehicleAssignment: {
+          state: 'not-started',
+          reason: 'This departure has not started yet, so no vehicle is running it.',
+          minutesUntilDeparture: Math.max(0, Math.round((start - now) / 60000)),
+          ...(approaching ? {
+            approachingMetres: Math.round(approaching.metres),
+            approachingDisclosure: 'The closest vehicle on this route, by its published position. It is not confirmed as the one that will run this departure.',
+          } : {}),
+        } };
     }
     return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier, and none is reported at a stop on this leg.' } };
   }) }));

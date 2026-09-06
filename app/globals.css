@@ -1785,3 +1785,91 @@ select {
   font-size: 10px;
   color: var(--muted);
 }
+
+/* Race rooms. */
+.race-workspace { display: flex; flex-direction: column; gap: 16px; }
+.race-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.race-card h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; }
+.race-card h4 { margin: 0; font-size: 14px; }
+.race-card label { font-size: 13px; font-weight: 600; }
+.race-card input[type='text'],
+.race-card input:not([type]),
+.race-card input[type='file'],
+.race-card select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.race-card button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+}
+.race-card button.primary { background: var(--primary); color: var(--bg); border-color: transparent; }
+.race-card button:disabled { opacity: 0.55; cursor: not-allowed; }
+.race-modes { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.race-modes legend { font-size: 13px; font-weight: 600; padding: 0 0 4px; }
+.race-modes label { display: flex; gap: 9px; align-items: flex-start; font-weight: 400; }
+.race-headline { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.race-code { font-size: 22px; letter-spacing: 0.14em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.race-clock { display: flex; align-items: center; gap: 8px; }
+.race-clock strong { font-size: 26px; font-variant-numeric: tabular-nums; }
+.race-clock small { color: var(--muted); }
+.race-team-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.race-team-add input { flex: 1 1 200px; width: auto; }
+.race-suggestions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.race-suggestions button {
+  align-self: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  border-radius: 10px;
+  background: var(--surface2);
+  font-weight: 500;
+  text-align: left;
+}
+.race-photo { display: flex; flex-direction: column-reverse; gap: 6px; }
+.race-sharing { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.race-board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.race-board > li { border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.race-board-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.race-board-head strong { font-size: 16px; }
+.race-checkins { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.race-checkins li { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.race-checkins img { width: 54px; height: 54px; object-fit: cover; border-radius: 8px; flex: none; }
+.race-checkins small { display: block; color: var(--muted); font-size: 11px; }
+/* The closest vehicle on the route before a departure has started. */
+.approaching-vehicle {
+  display: block;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface2);
+  line-height: 1.6;
+}
+.approaching-vehicle span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}

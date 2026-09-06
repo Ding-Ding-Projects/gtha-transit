@@ -29,6 +29,12 @@ If exactly one vehicle satisfies all of that, it is shown with a visible note ex
 
 A long bus leg passes dozens of stops. Asking whether a vehicle is near **any** of them matched most of the route's fleet at once: a route 68 leg with 42 intermediate stops reported that several vehicles qualified and named none, which is no more useful than finding nothing. The stop times now available for every intermediate stop place the trip precisely, so the question became whether a vehicle is where this trip should be - which is the vehicle the rider will actually board.
 
+## Before a departure has started
+
+A tracker normally carries a vehicle from its previous trip into the next one, because its realtime feed and its timetable share trip or block identifiers. This operator's do not - measured above - so that chain cannot be built from published data and is not pretended here.
+
+What is offered instead is a measured fact: the **closest vehicle on this route to your boarding stop**, with its distance. It is labelled as exactly that. It is not called the assigned vehicle, because nothing published ties a vehicle to a departure, and a vehicle more than 25 km away is not described as approaching at all.
+
 ## What is not claimed
 
 A position match is titled **Vehicle seen on this leg**, not *Currently assigned vehicle*, because that is all it establishes. On a corridor with departures a few minutes apart, the same observed vehicle can satisfy more than one departure at once: the operator publishes nothing tying a vehicle to a particular departure, so the interface reports what was seen rather than inventing an allocation. A position match is evidence, not a booking. It says the operator reported one vehicle of that route at a stop on this leg while the leg was running; it does not prove that vehicle will carry any particular passenger, and a service change after the observation is not reflected. A leg that has already finished, or is more than two hours away, keeps its existing unavailable verdict rather than borrowing a current observation.

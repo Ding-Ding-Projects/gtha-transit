@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, Bookmark, BusFront, ChartNoAxesCombined, CircleHelp, History, Menu, Moon, Route, Settings, Sun, TrainFront, X } from 'lucide-react';
+import { ArrowUpRight, Bookmark, BusFront, ChartNoAxesCombined, CircleHelp, Flag, History, Menu, Moon, Route, Settings, Sun, TrainFront, X } from 'lucide-react';
 
 type Props = {
   active: string;
@@ -21,6 +21,7 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
     { id: 'plan', label: t('Plan a trip', '規劃行程'), icon: Route, primary: true },
     { id: 'vehicles', label: t('Vehicles', '車輛'), icon: BusFront, primary: true },
     { id: 'status', label: t('Live TTC', '即時 TTC'), icon: TrainFront, primary: true },
+    { id: 'race', label: t('Race', '比賽'), icon: Flag },
     { id: 'divisions', label: t('Out of division', '跨車廠'), icon: ChartNoAxesCombined },
     { id: 'history', label: t('History', '歷史'), icon: History },
     { id: 'saved', label: t('Saved trips', '已儲存行程'), icon: Bookmark },
