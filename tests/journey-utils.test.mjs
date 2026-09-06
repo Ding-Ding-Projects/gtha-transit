@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {torontoIso,torontoLocalInput,isPlace,torontoTomorrowAtNine,updateTorontoInputPart,resolveTorontoTime,shiftTorontoTime} from '../lib/journey-utils.ts';
+import {torontoIso,torontoLocalInput,isPlace,torontoTomorrowAtNine,updateTorontoInputPart,resolveTorontoTime,shiftTorontoTime,torontoOffset} from '../lib/journey-utils.ts';
 test('Toronto date conversion accounts for winter, summer and the actual DST transition',()=>{assert.equal(torontoIso('2026-01-15T12:00'),'2026-01-15T17:00:00.000Z');assert.equal(torontoIso('2026-07-15T12:00'),'2026-07-15T16:00:00.000Z');assert.equal(torontoIso('2026-03-08T03:30'),'2026-03-08T07:30:00.000Z');});
 test('Nonexistent time is rejected and repeated time explicitly chooses earlier occurrence',()=>{assert.throws(()=>torontoIso('2026-03-08T02:30'));assert.equal(torontoIso('2026-11-01T01:30'),'2026-11-01T05:30:00.000Z');assert.throws(()=>torontoIso('2026-02-30T12:00'));});
 test('Saved coordinates cannot inject invalid values into the map',()=>{assert.equal(isPlace({id:'a',name:'Union',lat:43.64,lon:-79.38}),true);for(const lat of [NaN,Infinity,91,'43'])assert.equal(isPlace({id:'a',name:'Union',lat,lon:0}),false);assert.equal(isPlace({name:'Incomplete'}),false);});
@@ -83,4 +83,50 @@ test('Time shifting rejects invalid inputs and unrepresentable elapsed values', 
   for (const minutes of [NaN, Infinity, -Infinity, 0.5, Number.MAX_VALUE]) assert.throws(() => shiftTorontoTime('2026-09-05T09:00', minutes));
   assert.throws(() => shiftTorontoTime('T09:00', 30));
   assert.throws(() => shiftTorontoTime('2026-03-08T02:30', 30));
+});
+
+/**
+ * Engines do not agree on how a formatted date and time are joined, nor on
+ * whether longOffset is supported at all. A field value assembled from the
+ * rendered string was engine-dependent; these check the parts-based assembly
+ * and the offset fallback instead.
+ */
+test('the field value is assembled from formatter parts, not a rendered separator', () => {
+  const value = torontoLocalInput(new Date('2026-09-06T16:31:00Z'));
+  assert.match(value, /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/);
+  assert.equal(value, '2026-09-06T12:31');
+});
+
+test('midnight is written as 00, never as hour 24', () => {
+  const value = torontoLocalInput(new Date('2026-09-06T04:00:00Z'));
+  assert.equal(value, '2026-09-06T00:00');
+  assert.match(value, /T00:/);
+});
+
+test('a Toronto instant round-trips through the field value and back', () => {
+  const local = torontoLocalInput(new Date('2026-09-06T16:31:00Z'));
+  assert.equal(torontoIso(local), '2026-09-06T16:31:00.000Z');
+});
+
+test('the winter offset resolves as exactly as the summer one', () => {
+  assert.equal(torontoIso('2026-01-15T09:00'), '2026-01-15T14:00:00.000Z');
+  assert.equal(torontoIso('2026-07-15T09:00'), '2026-07-15T13:00:00.000Z');
+});
+
+test('a skipped local time is still refused rather than guessed', () => {
+  assert.throws(() => torontoIso('2026-03-08T02:30'), /does not exist/);
+});
+
+test('an engine that reports no usable offset name still yields the right offset', () => {
+  // Exactly what an engine without longOffset support gives back: no timeZoneName part.
+  const withoutOffsetName = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto' });
+  assert.equal(torontoOffset(withoutOffsetName, new Date('2026-07-15T16:00:00Z')), '-04:00');
+  assert.equal(torontoOffset(withoutOffsetName, new Date('2026-01-15T17:00:00Z')), '-05:00');
+});
+
+test('a short offset name is normalised to a form the Date constructor accepts', () => {
+  const shortName = { formatToParts: () => [{ type: 'timeZoneName', value: 'GMT-4' }] };
+  assert.equal(torontoOffset(shortName, new Date('2026-07-15T16:00:00Z')), '-04:00');
+  const compact = { formatToParts: () => [{ type: 'timeZoneName', value: 'GMT-0430' }] };
+  assert.equal(torontoOffset(compact, new Date('2026-07-15T16:00:00Z')), '-04:30');
 });

@@ -7,8 +7,26 @@ const localFormatter = new Intl.DateTimeFormat('sv-SE', {
   hour: '2-digit',
   minute: '2-digit',
 });
+/**
+ * Assemble the field value from the formatter's own parts rather than from its
+ * rendered string. The separator between date and time is an engine decision -
+ * some spell it with a plain space, others with a narrow no-break space or a
+ * comma - and a single replace of one ASCII space silently produced a value that
+ * no native date or time input would accept.
+ */
 export function torontoLocalInput(value: Date = new Date()): string {
-  return localFormatter.format(value).replace(' ', 'T');
+  const parts = new Map(
+    localFormatter.formatToParts(value).map((part) => [part.type, part.value]),
+  );
+  const year = parts.get('year');
+  const month = parts.get('month');
+  const day = parts.get('day');
+  const hour = parts.get('hour');
+  const minute = parts.get('minute');
+  if (!year || !month || !day || !hour || !minute) {
+    throw new Error('Toronto local time could not be formatted on this device.');
+  }
+  return `${year}-${month}-${day}T${hour === '24' ? '00' : hour}:${minute}`;
 }
 /** Keep independently cleared native fields incomplete until both are supplied. */
 export function updateTorontoInputPart(
@@ -33,6 +51,33 @@ function validWallTime(value: string): boolean {
   return Number.isFinite(wall.getTime()) && wall.toISOString().slice(0, 16) === value;
 }
 
+/** Read a usable UTC offset for this instant, whatever shape the engine reports. */
+export function torontoOffset(formatter: Intl.DateTimeFormat, at: Date): string | null {
+  const named = formatter
+    .formatToParts(at)
+    .find((part) => part.type === 'timeZoneName')?.value;
+  const parsed = /GMT([+-])([0-9]{1,2})(?::?([0-9]{2}))?/.exec(named ?? '');
+  if (parsed) {
+    return `${parsed[1]}${parsed[2].padStart(2, '0')}:${(parsed[3] ?? '00').padStart(2, '0')}`;
+  }
+  // No usable offset in the name: derive it from the zone's own wall clock.
+  const wallParts = new Map(
+    localFormatter.formatToParts(at).map((part) => [part.type, part.value]),
+  );
+  const year = wallParts.get('year');
+  const month = wallParts.get('month');
+  const day = wallParts.get('day');
+  const hour = wallParts.get('hour');
+  const minute = wallParts.get('minute');
+  if (!year || !month || !day || !hour || !minute) return null;
+  const asUtc = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour) === 24 ? 0 : Number(hour), Number(minute));
+  const totalMinutes = Math.round((asUtc - Math.floor(at.getTime() / 60000) * 60000) / 60000);
+  if (!Number.isFinite(totalMinutes) || Math.abs(totalMinutes) > 14 * 60) return null;
+  const sign = totalMinutes < 0 ? '-' : '+';
+  const absolute = Math.abs(totalMinutes);
+  return `${sign}${String(Math.floor(absolute / 60)).padStart(2, '0')}:${String(absolute % 60).padStart(2, '0')}`;
+}
+
 /** Reject skipped local times. Repeated local times choose the earlier occurrence. */
 export function torontoIso(value: string): string {
   if (!validWallTime(value))
@@ -44,14 +89,15 @@ export function torontoIso(value: string): string {
     timeZone: 'America/Toronto',
     timeZoneName: 'longOffset',
   });
+  // Not every engine supports longOffset. Accept what it does return, normalise a
+  // short form such as GMT-4 to -04:00, and fall back to reading the offset from
+  // the clock itself rather than asserting a part that may not be there.
   const offsets = new Set(
-    [-86400000, 0, 86400000].map((delta) =>
-      formatter
-        .formatToParts(new Date(wall + delta))
-        .find((p) => p.type === 'timeZoneName')!
-        .value.replace('GMT', ''),
-    ),
+    [-86400000, 0, 86400000]
+      .map((delta) => torontoOffset(formatter, new Date(wall + delta)))
+      .filter(Boolean) as string[],
   );
+  if (!offsets.size) throw new Error('Choose a valid Toronto date and time.');
   const matches = [...offsets]
     .map((offset) => new Date(value + ':00' + offset))
     .filter(

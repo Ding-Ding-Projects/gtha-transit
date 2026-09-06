@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Build the travel date and time field value from the formatter own parts instead of replacing one space in its rendered string, and read the Toronto offset from whatever shape the browser reports, deriving it from the zone clock when the browser does not support a long offset name. Both paths previously assumed behaviour that not every browser provides.
+
 - Stop a station escalator notice from marking a whole subway line disrupted. A line state now follows service-affecting alerts only; facility notices stay listed and are counted separately, and the line reads as running with the notice count beside it.
 
 - Rank a stop the timetable publishes above a bare map pin of the same name, and collapse the several map pins one station attracts within 90 metres, so a search reaches something a passenger can board instead of repeating the same name.
