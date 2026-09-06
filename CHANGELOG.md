@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Stop a station escalator notice from marking a whole subway line disrupted. A line state now follows service-affecting alerts only; facility notices stay listed and are counted separately, and the line reads as running with the notice count beside it.
+
+- Rank a stop the timetable publishes above a bare map pin of the same name, and collapse the several map pins one station attracts within 90 metres, so a search reaches something a passenger can board instead of repeating the same name.
+
 - Mark a journey leg that runs through a confirmed TTC closure, naming the affected stops from the publisher own list and showing any officially announced shuttle verbatim. When no shuttle has been announced the leg says so rather than implying one exists. Closure handling is presentational; the route is not yet recalculated around the closed segment.
 
 - Identify the vehicle on a bus leg when the operator publishes no matching trip identifier. A vehicle is named only when it is on the leg route and the publisher reports it at a stop the leg calls at while the leg is running, and the interface says it was identified by position. Being at a stop is measured from published coordinates rather than stop identifiers, because the TTC realtime feed numbers its stops differently from the timetable. Several qualifying vehicles are reported as such rather than guessed. An exact trip identifier now also requires the route to match, so a number collision between unrelated trips can no longer name the wrong bus.

@@ -124,6 +124,21 @@ function staleTtcStatus(value) {
   return { ...value, state: 'stale', lines: unknownLines() };
 }
 
+/**
+ * The publisher types each route reference. A transit mode describes service; a
+ * facility type such as Escalator or Elevator describes fixed equipment inside a
+ * station. An escalator out of service must never mark a whole line disrupted,
+ * so only a service-affecting alert decides a line's state. Facility notices stay
+ * listed against the line.
+ */
+const TRANSIT_ROUTE_TYPES = new Set(['subway', 'bus', 'streetcar', 'tram', 'light rail', 'lightrail', 'rail', 'ferry', '0', '1', '2', '3', '4', '5', '6', '7', '11', '12']);
+
+export function isServiceRouteType(routeType) {
+  const value = String(routeType ?? '').trim().toLowerCase();
+  if (!value) return true;
+  return TRANSIT_ROUTE_TYPES.has(value);
+}
+
 /** The exact stops the publisher named as the ends of a closed or diverted segment. */
 function segmentOf(item) {
   const startName = text(item.stopStart);
@@ -174,14 +189,19 @@ export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(
     const active = (!start || Date.parse(start) <= now) && (!end || Date.parse(end) >= now);
     const effect = text(item.effectDesc);
     const disrupted = !/^regular service(?:\s|$)/i.test(effect);
+    const serviceAffecting = disrupted && isServiceRouteType(routeType);
     // The publisher names the closed segment and any official shuttle itself. Both are
     // retained verbatim; nothing about a shuttle stop, time or vehicle is ever derived.
     const segment = segmentOf(item);
     const shuttle = shuttleOf(item);
     const affectedStopIds = affectedStopsOf(item);
-    return { routes, routeScope, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), routeIds: routes, routeRefs, routeScope, ...(effect ? { effect } : {}), ...(text(item.direction) ? { direction: text(item.direction) } : {}), ...(segment ? { segment } : {}), ...(shuttle ? { shuttle } : {}), ...(affectedStopIds ? { affectedStopIds } : {}), ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
+    return { routes, routeScope, active, disrupted, serviceAffecting, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), routeIds: routes, routeRefs, routeScope, ...(effect ? { effect } : {}), ...(text(item.direction) ? { direction: text(item.direction) } : {}), ...(segment ? { segment } : {}), ...(shuttle ? { shuttle } : {}), ...(affectedStopIds ? { affectedStopIds } : {}), ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
   }).filter((item) => item.active);
-  const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.disrupted && (item.routeScope === 'network' || item.routes.includes(line.id))).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
+  const lines = TTC_LINES.map((line) => {
+    const onLine = alerts.filter((item) => item.disrupted && (item.routeScope === 'network' || item.routes.includes(line.id)));
+    const serviceAlerts = onLine.filter((item) => item.serviceAffecting);
+    return { ...line, state: serviceAlerts.length ? 'disrupted' : 'good', alerts: onLine.map((item) => item.alert), serviceAlertCount: serviceAlerts.length, facilityAlertCount: onLine.length - serviceAlerts.length };
+  });
   return { state: 'live', fetchedAt: timestamp(fetchedAt), sourceUpdatedAtRaw, ...(sourceUpdatedAt ? { sourceUpdatedAt } : {}), sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };
 }
 

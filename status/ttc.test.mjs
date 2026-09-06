@@ -112,3 +112,48 @@ test('serves stale cache after a later fetch failure', async () => {
   const second = await getTtcStatus({ fetchImpl: async () => { throw new Error('offline'); }, now: now + 100000 });
   assert.equal(second.state, 'stale');
 });
+
+/**
+ * Shapes copied from the real TTC route-alert payload observed on 6 September 2026.
+ * On that day every alert touching lines 1, 2, 4, 5 and 6 was an escalator notice,
+ * and the interface reported the whole subway network disrupted.
+ */
+const webPayload = (alerts) => ({ lastUpdated: '2026-09-06T12:00:00Z', routeAlerts: alerts });
+const escalator = (route) => ({
+  id: 'esc-' + route, route, routeType: 'Escalator', effectDesc: 'Out of service',
+  headerText: 'Kennedy: Escalator 16D2E out of service from Line 2 platform to concourse.',
+  title: 'Escalator out of service', url: '',
+  activePeriod: { start: '2026-09-01T00:00:00Z', end: '0001-01-01T00:00:00Z' },
+});
+const subwayDelay = (route) => ({
+  id: 'delay-' + route, route, routeType: 'Subway', effectDesc: 'Delay',
+  headerText: 'Line 5 Eglinton: Delays eastbound at Mount Dennis station.',
+  title: 'Delays eastbound', url: '',
+  activePeriod: { start: '2026-09-06T11:00:00Z', end: '0001-01-01T00:00:00Z' },
+});
+
+test('an escalator notice alone never marks a line disrupted, but stays listed on it', () => {
+  const parsed = parseTtcWebAlerts(webPayload([escalator('1'), escalator('2')]), { fetchedAt: '2026-09-06T12:00:00Z', now: Date.parse('2026-09-06T12:00:00Z') });
+  const line1 = parsed.lines.find((line) => line.id === '1');
+  const line2 = parsed.lines.find((line) => line.id === '2');
+  assert.equal(line1.state, 'good');
+  assert.equal(line2.state, 'good');
+  assert.equal(line1.alerts.length, 1);
+  assert.equal(line1.facilityAlertCount, 1);
+  assert.equal(line1.serviceAlertCount, 0);
+});
+
+test('a published service delay still marks its line disrupted', () => {
+  const parsed = parseTtcWebAlerts(webPayload([escalator('5'), subwayDelay('5')]), { fetchedAt: '2026-09-06T12:00:00Z', now: Date.parse('2026-09-06T12:00:00Z') });
+  const line5 = parsed.lines.find((line) => line.id === '5');
+  assert.equal(line5.state, 'disrupted');
+  assert.equal(line5.serviceAlertCount, 1);
+  assert.equal(line5.facilityAlertCount, 1);
+  assert.equal(line5.alerts.length, 2);
+});
+
+test('a network-wide notice with no route type still counts as service affecting', () => {
+  const network = { id: 'net', route: '', routeType: '', effectDesc: 'Reduced service', headerText: 'TTC: Reduced overnight service.', title: 'Reduced', url: '', activePeriod: { start: '2026-09-06T11:00:00Z', end: '0001-01-01T00:00:00Z' } };
+  const parsed = parseTtcWebAlerts(webPayload([network]), { fetchedAt: '2026-09-06T12:00:00Z', now: Date.parse('2026-09-06T12:00:00Z') });
+  assert.equal(parsed.lines.every((line) => line.state === 'disrupted'), true);
+});

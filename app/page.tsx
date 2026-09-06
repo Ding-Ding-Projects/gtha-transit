@@ -824,9 +824,13 @@ export default function Home() {
         d > selectedDate &&
         dateGaps.every((a: any) => (a.activeTripsByDate?.[d] || 0) > 0),
     ) : undefined;
+  // A station escalator out of service is not a service disruption. A line with only
+  // facility notices reads as running, and says how many notices it still carries.
   const lineState = (line: Line) =>
     line.state === 'good'
-      ? t('No reported disruption', '未有通報事故')
+      ? line.facilityAlertCount
+        ? t(`Running · ${line.facilityAlertCount} facility notice${line.facilityAlertCount === 1 ? '' : 's'}`, `正常行駛 · ${line.facilityAlertCount} 項設施通告`)
+        : t('No reported disruption', '未有通報事故')
       : line.state === 'disrupted'
         ? t('Service alert', '服務提示')
         : t('Status unconfirmed', '狀態未確認');

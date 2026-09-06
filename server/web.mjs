@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { getTtcStatus } from '../status/ttc.mjs';
 import { createHistoryStore } from '../history/store.mjs';
 import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
+import { createRaceStore, LIMITS as RACE_LIMITS } from '../race/store.mjs';
 import { loadRegistry, RealtimeAggregator } from '../realtime/aggregator.mjs';
 import { getVehicles, getVehicleSnapshot, enrichItineraries } from '../vehicles/index.mjs';
 import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divisions.mjs';
@@ -20,6 +21,9 @@ const history = process.env.HISTORY_DIR
   : null;
 const vehicleSightings = process.env.HISTORY_DIR
   ? createVehicleSightingStore({ directory: process.env.HISTORY_DIR })
+  : null;
+const races = process.env.HISTORY_DIR
+  ? createRaceStore({ directory: process.env.HISTORY_DIR })
   : null;
 const divisionRegistry = await loadTtcDivisionRegistry();
 let collecting = false;
@@ -180,6 +184,29 @@ async function body(req) {
   }
   return Buffer.concat(parts);
 }
+/** A check-in may carry one bounded re-encoded photo, so it needs more room than a search. */
+async function raceBody(req) {
+  const parts = [];
+  let size = 0;
+  for await (const part of req) {
+    size += part.length;
+    if (size > 800000) throw Error('Request is too large.');
+    parts.push(part);
+  }
+  if (!size) return {};
+  const text = Buffer.concat(parts).toString('utf-8');
+  try {
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw Error('bad shape');
+    return parsed;
+  } catch {
+    throw Error('Request body is not valid JSON.');
+  }
+}
+const raceHeader = (req, name) => {
+  const value = req.headers[name];
+  return typeof value === 'string' ? value.slice(0, 200) : '';
+};
 async function bounded(res, max = 4 * 1024 * 1024) {
   const parts = [];
   let size = 0;
@@ -261,7 +288,17 @@ function placeExactPhraseIndex(queryTerms, candidateTerms) {
   }
   return -1;
 }
-function placeRank(place, queryTerms) {
+/** Great-circle metres between two published coordinates. */
+function placeMetres(left, right) {
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+  const dLat = toRadians(right.lat - left.lat);
+  const dLon = toRadians(right.lon - left.lon);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(left.lat)) * Math.cos(toRadians(right.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+/** Map pins for one station cluster within this radius; only the first is useful. */
+const PLACE_DUPLICATE_RADIUS_M = 90;
+function placeRank(place, queryTerms, published = false) {
   const nameTerms = placeTerms(place.name);
   const matches = queryTerms.map((_, index) => placeBestTermMatch(queryTerms, index, nameTerms));
   const allNameTermsMatch = matches.every(Boolean);
@@ -275,7 +312,9 @@ function placeRank(place, queryTerms) {
   const kind = String(place.kind ?? '').toLocaleLowerCase();
   const tier = exact ? 0 : allNameTermsExact && hub ? 1 : allNameTermsExact && kind === 'intersection' ? 2 : allNameTermsExact && phrasePositions.length ? 3 : allNameTermsExact ? 4 : allNameTermsMatch && kind === 'intersection' ? 5 : 6;
   const prefixCount = matches.filter((match) => match?.quality === 1).length;
-  return [tier, prefixCount, phraseIndex, nameTerms.length, nameTerms.join(' '), String(place.id ?? '')];
+  // Within one match tier, a stop the timetable actually publishes beats a bare map pin:
+  // it is the thing a passenger can board from, and it carries real route detail.
+  return [tier, published ? 0 : 1, prefixCount, phraseIndex, nameTerms.length, nameTerms.join(' '), String(place.id ?? '')];
 }
 function comparePlaceRanks(left, right) {
   for (let index = 0; index < left.length; index += 1) {
@@ -286,12 +325,14 @@ function comparePlaceRanks(left, right) {
 }
 function mergedPlaces(stops, mapPlaces, query) {
   const queryTerms = placeTerms(query);
+  const published = new Set(stops.filter((place) => place && typeof place === 'object'));
   const ranked = [...stops, ...mapPlaces]
     .filter((place) => place && typeof place === 'object')
-    .map((place) => ({ place, rank: placeRank(place, queryTerms) }))
+    .map((place) => ({ place, rank: placeRank(place, queryTerms, published.has(place)) }))
     .sort((left, right) => comparePlaceRanks(left.rank, right.rank));
   const ids = new Set();
   const locations = new Set();
+  const kept = [];
   const merged = ranked.filter(({ place }) => {
     const id = place.id == null ? '' : String(place.id);
     if (id && ids.has(id)) return false;
@@ -299,8 +340,14 @@ function mergedPlaces(stops, mapPlaces, query) {
     const hasLocation = place.lat != null && place.lon != null && Number.isFinite(lat) && Number.isFinite(lon);
     const location = hasLocation ? `${placeTerms(place.name).join(' ')}|${placeTerms(place.agency).join(' ')}|${lat}|${lon}` : null;
     if (location && locations.has(location)) return false;
+    // One station attracts several map pins with the same name a few metres apart.
+    // Keep the best-ranked one and drop its neighbours, so a search does not return
+    // the same station four times before reaching anything a passenger can board.
+    const name = placeTerms(place.name).join(' ');
+    if (hasLocation && name && kept.some((other) => other.name === name && placeMetres(other, { lat, lon }) <= PLACE_DUPLICATE_RADIUS_M)) return false;
     if (id) ids.add(id);
     if (location) locations.add(location);
+    if (hasLocation && name) kept.push({ name, lat, lon });
     return true;
   }).slice(0, 25).map(({ place }) => place);
   return withPlaceContext(merged, stops);
@@ -463,6 +510,60 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true, service: 'gtha-transit-web' });
     if (url.pathname === '/api/status/ttc' && req.method === 'GET')
       return send(res, 200, await getTtcStatus());
+    if (url.pathname === '/api/race' || url.pathname.startsWith('/api/race/')) {
+      if (!races) return send(res, 503, { error: 'Race rooms are unavailable on this deployment.' });
+      const client = process.env.TRUST_TUNNEL === '1'
+        ? String(req.headers['cf-connecting-ip'] || req.socket.remoteAddress).slice(0, 80)
+        : req.socket.remoteAddress;
+      if (req.method !== 'GET' && !allowed(client)) {
+        return send(res, 429, { error: 'Too many race requests. Please wait a minute.' });
+      }
+      const segments = url.pathname.split('/').filter(Boolean).slice(2);
+      const code = segments[0] ? decodeURIComponent(segments[0]).slice(0, 12) : '';
+      const action = segments[1] || '';
+      try {
+        if (url.pathname === '/api/race' && req.method === 'POST') {
+          const input = await raceBody(req);
+          return send(res, 201, races.create({ mode: input.mode, title: input.title, config: input.config, lifetimeMs: input.lifetimeMs }));
+        }
+        if (url.pathname === '/api/race' && req.method === 'GET') {
+          return send(res, 200, { limits: RACE_LIMITS });
+        }
+        if (!code) return send(res, 404, { error: 'That race route does not exist.' });
+        if (!action && req.method === 'GET') return send(res, 200, races.view(code));
+        if (action === 'photo' && req.method === 'GET') {
+          const found = races.photo(code, segments[2] || '');
+          if (!found) return send(res, 404, { error: 'That photo is not in this race.' });
+          res.writeHead(200, {
+            'content-type': found.mime,
+            'cache-control': 'no-store',
+            'content-length': found.bytes.length,
+            'content-security-policy': "default-src 'none'; sandbox",
+            'x-content-type-options': 'nosniff',
+          });
+          return res.end(found.bytes);
+        }
+        if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' });
+        const input = await raceBody(req);
+        const leader = raceHeader(req, 'x-race-leader');
+        const participant = raceHeader(req, 'x-race-participant');
+        const participantSecret = raceHeader(req, 'x-race-secret');
+        if (action === 'teams') return send(res, 201, races.addTeam(code, leader, { name: input.name }));
+        if (action === 'assign') return send(res, 200, races.assignRoutes(code, leader, input.assignments));
+        if (action === 'start') return send(res, 200, races.start(code, leader));
+        if (action === 'join') return send(res, 201, races.join(code, { name: input.name, teamId: input.teamId }));
+        if (action === 'sharing') return send(res, 200, races.setSharing(code, participant, participantSecret, input));
+        if (action === 'checkin') return send(res, 201, races.checkIn(code, participant, participantSecret, input));
+        return send(res, 404, { error: 'That race route does not exist.' });
+      } catch (error) {
+        const message = String(error?.message || 'That race request could not be completed.');
+        const status = /No race exists/.test(message) ? 404
+          : /leader|secret|not in this race/i.test(message) ? 403
+          : /expired/i.test(message) ? 410
+          : 400;
+        return send(res, status, { error: message });
+      }
+    }
     if (routes.has(url.pathname)) {
       if (
         !allowed(

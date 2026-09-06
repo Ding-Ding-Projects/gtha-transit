@@ -104,6 +104,8 @@ export type Line = {
   color: string;
   state: 'good' | 'disrupted' | 'unknown';
   alerts: Alert[];
+  serviceAlertCount?: number;
+  facilityAlertCount?: number;
 };
 export type TransitStatus = {
   state: 'live' | 'stale' | 'unavailable';
