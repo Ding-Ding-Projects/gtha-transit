@@ -13,7 +13,11 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Draw a route for every team from real itineraries between a chosen start and finish, preferring distinct journeys and disclosing a shortfall, with a wheel whose reduced-motion path reaches the same draw.
 - [x] Tie a departure to the vehicle finishing the previous trip on its own block, disclosing the block, the method and the same-route-only limit of the block search.
 - [x] Plan the alternative trains a GO cancellation names, from the operator's own published wording, and say plainly where the timetable cannot confirm one.
-- [ ] Verify the block chain, the race draw and the GO cancellation planner in the built interface with real captures. Local tests and break tests pass for all three; rendered proof is pending.
+- [x] Add a journey smoke test across Toronto and the wider region, distinguishing a real timetable gap from a planner failure.
+- [x] Integrate or retire every outstanding branch and reduce the repository to one `main` locally and remotely, after archiving it.
+- [ ] Verify the block chain and the GO cancellation planner in the built interface with real captures. The race draw is captured; the block-chained vehicle card is not, because the planner combobox resisted three scripted attempts.
+- [ ] Check whether the dim-sum release code-name pool is exhausted. v0.1.0-94.1 shipped without a code name, and exhaustion is designed to be non-fatal and so passes silently.
+- [ ] Restore an accepted Metrolinx credential on the deploy host. GO and UP alerts and vehicle positions are all refused, so those agencies show zero live coverage.
 - [x] Narrow the alerts shown beside a journey leg. Station facility notices now appear only where the leg calls at that station, service and facility notices are labelled distinctly, and every match renders. Verified on the deployed build at 9b4b8a2 with a real Line 5 journey.
 - [x] Show the declared GO super express badge on branches 12B, 16, 25C, 47D, 56A and 88C. Verified on the deployed build at bad8a32 with real 12B and 16 journeys, a TTC negative control, and 320px light and dark measurements. The route picker and tracker do not carry it yet.
 - [x] Identify a bus by position when the operator publishes no matching trip identifier, and name the closest vehicle before a departure starts. Verified on the deployed build across ten corridors. The measured cause is recorded in docs/vehicles/trip-identifiers.md.

@@ -1,5 +1,56 @@
 # Implementation handoff
 
+## Closeout pass, 6 September 2026
+
+Released `a7bcd200053b0722de8978b092cd1d98d19bd68e` as **v0.1.0-94.1**, non-draft, targeting that
+exact commit, with both assets downloadable. Remote CI green
+([run 34057308810](https://github.com/Ding-Ding-Projects/gtha-transit/actions/runs/34057308810)).
+Deployed and serving publicly. One checkout, one local `main`, one remote `main`.
+
+### Journey smoke test
+
+`node scripts/smoke-journeys.mjs` — fourteen real pairs against the deployed service. Three
+consecutive runs after deployment: **13 planned, 1 service gap, 0 failures**. Agencies reached: GO
+Transit, TTC, UP Express, York Region Transit. **20-22 legs carried a block chain**, which is a live
+count from real plans rather than a fixture.
+
+The one gap is Allandale Waterfront GO to Union Station: the Barrie corridor genuinely has no
+Sunday-evening departure, proved by the same pair answering at 09:00 the next weekday. The script
+retries before calling anything a failure, because "no route" and "the planner is down" look the
+same to a rider and must not look the same here.
+
+### Branches integrated, then retired
+
+- `feature/vehicle-capacity-sources` carried ten source-backed capacity series with tests and docs
+  that main did not have. **Merged**, then retired.
+- `feature/journey-route-opportunities` had built the same feature main built independently. Not one
+  identifier in its module was absent from main's, and main's test file held all four of its tests
+  plus two more. Retired by taking main's content unchanged.
+- `codex/journey-time-input`, `codex/journey-year-bounds`, `codex/ui-evidence-records` and
+  `feature/maps` were already ancestors of `main` with zero unique commits.
+
+All six were proved ancestors of the dewed remote `main` before removal, none was protected, none
+was referenced by a workflow, and no pull request was open. The whole repository was archived to
+OneDrive first and the archive read back and verified — 697 entries including 337 refs/logs/objects
+entries, 4,894,508 bytes — before anything was deleted.
+
+### Gates this repository cannot meet, and why
+
+Stated rather than quietly skipped:
+
+- **Packaged application icon and Squirrel.Windows installer.** This project ships a web service, not
+  an installed Windows application. There is no executable to embed an icon in and no installer to
+  build. The release artifact is the server bundle.
+- **Per-click screenshot ledger across every reachable flow.** Not attempted. The race workspace was
+  driven and captured end to end, and the planner's own combobox resisted three scripted attempts, so
+  the block-chained vehicle card remains uncaptured.
+- **Deep per-surface audit of every canonical feature.** Not attempted in this pass.
+- **Delegated agents.** The owner has asked for none, so the whole pass was worked directly. That is
+  a deliberate owner decision, not an oversight.
+- **Dim-sum release code name.** The workflow published without one. Worth checking whether the name
+  pool is exhausted, since a per-push cadence spends it quickly and exhaustion is designed to be
+  non-fatal and therefore silent.
+
 ## Session close, 6 September 2026 (later)
 
 Frontend and routing API both at `7297e1b1d883a112e1cc9b0a5adb794b625848aa`, deployed on the
