@@ -252,6 +252,10 @@ export async function enrichItineraries(itineraries, options = {}) {
     const onLeg = newest(positionCandidates(snapshot.vehicles, leg, agency, now));
     if (onLeg.length === 1) return { ...leg, vehicle: identify(onLeg[0]), vehicleAssignment: { state: 'matched', method: 'route-and-stop-position', disclosure: 'This publisher does not share a matching trip identifier. One vehicle on this route is reported at a stop on this leg while the leg is running.' } };
     if (onLeg.length > 1) return { ...leg, vehicleAssignment: { state: 'ambiguous', reason: 'Several vehicles on this route are reported at stops on this leg, so the exact one cannot be identified.', candidateCount: onLeg.length } };
+    // A departure that has not left yet has no vehicle on it, which is not a failure to find one.
+    if (now < start) {
+      return { ...leg, vehicleAssignment: { state: 'not-started', reason: 'This departure has not started yet, so no vehicle is running it.', minutesUntilDeparture: Math.max(0, Math.round((start - now) / 60000)) } };
+    }
     return { ...leg, vehicleAssignment: { state: 'no-match', reason: 'No fresh vehicle position has this exact trip identifier, and none is reported at a stop on this leg.' } };
   }) }));
   return Array.isArray(itineraries) ? enriched : { ...itineraries, itineraries: enriched };

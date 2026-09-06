@@ -111,10 +111,17 @@ test('two vehicles on this leg are reported as ambiguous rather than guessed', a
   assert.equal(result.vehicle, undefined);
 });
 
-test('a position is not used before the leg lead-in begins', async () => {
+test('a departure that has not left yet reports that, rather than a failed search', async () => {
   const early = await run([unit(onLeg)], { startTime: '2026-09-06T14:00:00.000Z', endTime: '2026-09-06T14:30:00.000Z' });
-  assert.equal(early.vehicleAssignment.state, 'no-match');
+  assert.equal(early.vehicleAssignment.state, 'not-started');
+  assert.equal(early.vehicleAssignment.minutesUntilDeparture, 40);
   assert.equal(early.vehicle, undefined);
+});
+
+test('a running departure with no candidate is still an honest no-match', async () => {
+  const running = await run([unit({ ...onLeg, lat: 43.95, lon: -79.3 })], { startTime: '2026-09-06T13:10:00.000Z', endTime: '2026-09-06T13:40:00.000Z' });
+  assert.equal(running.vehicleAssignment.state, 'no-match');
+  assert.equal(running.vehicle, undefined);
 });
 
 test('a leg that has already finished keeps its existing unavailable verdict', async () => {

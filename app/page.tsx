@@ -1577,10 +1577,15 @@ export default function Home() {
                                       </div>
                                     ) : (
                                       <p className="data-note">
-                                        {t(
-                                          'A vehicle has not been verified for this exact trip.',
-                                          '未能核實呢個指定班次嘅車輛。',
-                                        )}
+                                        {leg.vehicleAssignment?.state === 'not-started'
+                                          ? t('This departure has not started yet.', '呢班車仲未開出。')
+                                          : t(
+                                              'A vehicle has not been verified for this exact trip.',
+                                              '未能核實呢個指定班次嘅車輛。',
+                                            )}
+                                        {leg.vehicleAssignment?.state === 'not-started' && <small>{typeof leg.vehicleAssignment.minutesUntilDeparture === 'number'
+                                          ? t(`A vehicle is normally identified once the trip is running, about ${leg.vehicleAssignment.minutesUntilDeparture} min from now.`, `班次開出之後先會識別到車輛，大約 ${leg.vehicleAssignment.minutesUntilDeparture} 分鐘後。`)
+                                          : t('A vehicle is normally identified once the trip is running.', '班次開出之後先會識別到車輛。')}</small>}
                                         {leg.vehicleAssignment?.state === 'no-match' && <small>{t('Live positions did not report a vehicle with this trip ID, and none is reported at a stop on this leg. A vehicle on the same route may be running a different departure.', '即時位置未有呢個班次編號嘅配車，呢段行程嘅車站亦冇車輛回報。同路線車輛可能正行駛另一班次。')}</small>}
                                         {leg.vehicleAssignment?.state === 'ambiguous' && <small>{t('Several vehicles on this route are reported at stops on this leg, so the exact one cannot be identified.', '呢條路線有幾架車喺呢段行程嘅車站回報，未能確定係邊一架。')}</small>}
                                         {['stale', 'unavailable', 'error'].includes(leg.vehicleAssignment?.state || '') && <small>{t('A fresh assignment is unavailable for this departure. Check the live tracker for current observations.', '呢個出發班次暫未有最新配車資料，可到即時追蹤查看目前觀察。')}</small>}

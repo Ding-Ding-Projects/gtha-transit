@@ -1733,3 +1733,55 @@ select {
   font-size: 11px;
   color: inherit;
 }
+
+/* Are we there yet, and the stops still ahead. */
+.live-follower__arrival h3,
+.live-follower__ahead h3 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.live-follower__arrival-answer {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.live-follower__arrival-answer--yes { color: var(--primary); }
+.live-follower__arrival-answer--nearly { color: var(--alert); }
+.live-follower__arrival-detail {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+.live-follower__ahead-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.live-follower__ahead-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--surface2);
+  font-size: 13px;
+}
+.live-follower__ahead-destination {
+  outline: 2px solid var(--primary);
+}
+.live-follower__ahead-name { min-width: 0; }
+.live-follower__ahead-when {
+  flex: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+.live-follower__ahead-when small {
+  display: block;
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--muted);
+}

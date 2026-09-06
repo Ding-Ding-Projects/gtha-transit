@@ -15,6 +15,7 @@ import {
 import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import type { Itinerary } from '../lib/types';
 import { qualifiedStopId, samePublishedStop } from '../lib/stop-identity';
+import { areWeThereYet, currentLeg, upcomingStops } from '../lib/upcoming-stops';
 import {
   buildTripStopTimeline,
   createBrowserLocationWatch,
@@ -416,6 +417,7 @@ export default function LiveFollower({
   const estimatedStop = locationEstimate
     ? previewTimelineStop(timeline, locationEstimate.nextIndex)
     : null;
+
   const nextStop: TripProgressStop | null =
     publisherNext?.stop || estimatedStop || previewStop;
   const nextStopTitle = publisherNext
@@ -431,6 +433,38 @@ export default function LiveFollower({
     : mode === 'trip' && nextStop
       ? stopName(nextStop.place, t('Unnamed scheduled stop', '未命名嘅預定站點'))
       : t('Not supplied', '未有提供');
+  // Minutes come from the times the publisher supplied for this leg's own stops.
+  // A stop with no published time is listed with none; nothing is interpolated.
+  const ridingLeg = useMemo(() => currentLeg(journey, now), [journey, now]);
+  const ridingIndex = useMemo(() => {
+    if (!ridingLeg) return 0;
+    const names = [ridingLeg.from, ...(ridingLeg.intermediateStops || []), ridingLeg.to]
+      .map((stop) => (stop?.name || '').trim().toLowerCase());
+    const target = (nextStop?.place?.name || '').trim().toLowerCase();
+    const found = target ? names.indexOf(target) : -1;
+    return found >= 0 ? found : 0;
+  }, [ridingLeg, nextStop]);
+  const metresToDestination = useMemo(() => {
+    const destination = ridingLeg?.to;
+    if (!localPosition || locationTracking !== 'tracking') return null;
+    const lat = Number(destination?.lat);
+    const lon = Number(destination?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+    const dLat = toRadians(lat - localPosition.lat);
+    const dLon = toRadians(lon - localPosition.lon);
+    const a = Math.sin(dLat / 2) ** 2
+      + Math.cos(toRadians(localPosition.lat)) * Math.cos(toRadians(lat)) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(a)));
+  }, [localPosition, locationTracking, ridingLeg]);
+  const stopsAhead = useMemo(
+    () => upcomingStops({ leg: ridingLeg, currentIndex: ridingIndex, now, limit: 6 }),
+    [now, ridingIndex, ridingLeg],
+  );
+  const arrival = useMemo(
+    () => areWeThereYet({ leg: ridingLeg, currentIndex: ridingIndex, now, metresToDestination }),
+    [metresToDestination, now, ridingIndex, ridingLeg],
+  );
   const nextStopLabel = publisherNext
     ? t('Publisher-reported next stop', '來源通報嘅下一站')
     : estimatedStop
@@ -871,6 +905,67 @@ export default function LiveFollower({
         <strong>{nextStopTitle}</strong>
         <p>{nextStopDescription}</p>
       </section>
+
+      <section className="live-follower__arrival" aria-labelledby="live-follower-arrival-heading">
+        <h3 id="live-follower-arrival-heading">{t('Are we there yet?', '到咗未？')}</h3>
+        <p className={`live-follower__arrival-answer live-follower__arrival-answer--${arrival.answer}`}>
+          {arrival.answer === 'yes'
+            ? t('Yes. This is where you get off.', '到喇，就係喺度落車。')
+            : arrival.answer === 'nearly'
+              ? t('Nearly. Get ready to get off.', '就快到，準備落車。')
+              : arrival.answer === 'not-yet'
+                ? t('Not yet.', '仲未到。')
+                : t('It cannot be told from what has been published.', '根據已公布嘅資料未能判斷。')}
+        </p>
+        {arrival.destinationName && (
+          <p className="live-follower__arrival-detail">
+            {t('Getting off at', '落車站')} <b>{arrival.destinationName}</b>
+            {arrival.stopsRemaining !== null && arrival.answer !== 'yes' && (
+              <> · {arrival.stopsRemaining === 1
+                ? t('1 stop to go', '仲有 1 個站')
+                : t(`${arrival.stopsRemaining} stops to go`, `仲有 ${arrival.stopsRemaining} 個站`)}</>
+            )}
+            {arrival.minutesAway !== null && arrival.minutesAway > 0 && (
+              <> · {t(`about ${arrival.minutesAway} min`, `大約 ${arrival.minutesAway} 分鐘`)}</>
+            )}
+          </p>
+        )}
+        <p className="data-note">
+          {metresToDestination === null
+            ? t('Counted from the published stop times for this trip. It is not a live arrival prediction.', '根據呢程行程已公布嘅時間計算，並非即時到站預測。')
+            : t(`Measured ${Math.round(metresToDestination)} m from your device to the alighting stop, alongside the published stop times.`, `由你部裝置量到落車站 ${Math.round(metresToDestination)} 米，連同已公布嘅時間一齊計算。`)}
+        </p>
+      </section>
+
+      {stopsAhead.length > 1 && (
+        <section className="live-follower__ahead" aria-labelledby="live-follower-ahead-heading">
+          <h3 id="live-follower-ahead-heading">{t('Stops ahead', '之後嘅車站')}</h3>
+          <ol className="live-follower__ahead-list">
+            {stopsAhead.map((stop) => (
+              <li key={`${stop.index}-${stop.name}`} className={stop.destination ? 'live-follower__ahead-destination' : undefined}>
+                <span className="live-follower__ahead-name">
+                  {stop.name || t('Unnamed scheduled stop', '未命名嘅預定站點')}
+                  {stop.destination && <b> · {t('get off here', '喺度落車')}</b>}
+                </span>
+                <span className="live-follower__ahead-when">
+                  {stop.minutesAway === null
+                    ? t('No published time', '未有公布時間')
+                    : stop.minutesAway <= 0
+                      ? t('now', '而家')
+                      : stop.minutesAway === 1
+                        ? t('1 min', '1 分鐘')
+                        : t(`${stop.minutesAway} min`, `${stop.minutesAway} 分鐘`)}
+                  {stop.basis === 'estimated' && <small>{t('live estimate', '即時預計')}</small>}
+                  {stop.basis === 'scheduled' && <small>{t('timetable', '時間表')}</small>}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p className="data-note">
+            {t('Times are the publisher own scheduled or estimated stop times. A stop with none is shown without a time rather than guessed.', '時間係來源公布嘅預定或預計到站時間。冇公布時間嘅車站唔會估，直接顯示冇時間。')}
+          </p>
+        </section>
+      )}
 
       {mode === 'trip' && (
         <section className="live-follower__preview" aria-labelledby="live-follower-preview-heading">

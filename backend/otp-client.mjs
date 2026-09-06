@@ -2,7 +2,7 @@ const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanL
   planConnection(origin:$origin,destination:$destination,via:$via,dateTime:$dateTime,first:$first,modes:$modes,preferences:$preferences) {
     edges { node { start end duration walkDistance numberOfTransfers legs {
       mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } } to { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } }
-      intermediatePlaces { name lat lon stop { gtfsId locationType parentStation { gtfsId } } }
+      intermediatePlaces { name lat lon stop { gtfsId locationType parentStation { gtfsId } } arrival { scheduledTime estimated { time delay } } departure { scheduledTime estimated { time delay } } }
       route { gtfsId shortName longName mode agency { gtfsId name } }
       trip { gtfsId }
       legGeometry { points }
@@ -72,6 +72,19 @@ export function rankItineraries(itineraries, preference, arriveBy) {
   const key = (item) => preference === "transfers" ? [item.transfers, timing(item), item.duration] : preference === "walking" ? [item.walkDistance, timing(item), item.duration] : [timing(item), item.duration];
   return itineraries.sort((left, right) => { const a = key(left); const b = key(right); for (let index = 0; index < a.length; index += 1) { if (a[index] !== b[index]) return a[index] - b[index]; } return String(left.id).localeCompare(String(right.id)); });
 }
+/** One published stop time. Absent fields stay absent rather than becoming zero. */
+function stopTime(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const scheduled = safeText(raw.scheduledTime);
+  const estimated = raw.estimated && typeof raw.estimated === "object" ? safeText(raw.estimated.time) : null;
+  const delay = raw.estimated && typeof raw.estimated === "object" ? finiteNumber(raw.estimated.delay) : null;
+  if (!scheduled && !estimated) return null;
+  return {
+    ...(scheduled ? { scheduledTime: scheduled } : {}),
+    ...(estimated ? { estimatedTime: estimated } : {}),
+    ...(delay === null ? {} : { delaySeconds: delay }),
+  };
+}
 function point(raw) {
   if (!raw || finiteNumber(raw.lat) === null || finiteNumber(raw.lon) === null) return null;
   const stopId = safeText(raw.stop?.gtfsId);
@@ -84,7 +97,11 @@ function point(raw) {
   return {
     name: String(raw.name ?? "").slice(0, 200), lat: finiteNumber(raw.lat), lon: finiteNumber(raw.lon),
     ...(id ? { id } : {}), ...(stopId ? { stopId } : {}), ...(stationId ? { stationId } : {}),
-    ...(agencyFeedId ? { agencyFeedId } : {}), ...(locationType ? { locationType } : {})
+    ...(agencyFeedId ? { agencyFeedId } : {}), ...(locationType ? { locationType } : {}),
+    // Published stop times, exactly as the schedule gives them. An estimate appears
+    // only where the publisher supplied one; nothing is interpolated between stops.
+    ...(stopTime(raw.arrival) ? { arrival: stopTime(raw.arrival) } : {}),
+    ...(stopTime(raw.departure) ? { departure: stopTime(raw.departure) } : {})
   };
 }
 function endpoint(raw) {

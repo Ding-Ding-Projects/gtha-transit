@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Show the stops still ahead with the minutes to each while following a trip, and answer whether the rider has arrived. Minutes come from the stop times the routing engine publishes for the trip, using a live estimate where one exists and the timetable otherwise; a stop with no published time is shown without one rather than interpolated.
+
+- Say that a departure has not started yet, instead of reporting it as a vehicle that could not be verified. Every unmatched leg checked on a live corridor was simply a bus that had not left.
+
 - Build the travel date and time field value from the formatter own parts instead of replacing one space in its rendered string, and read the Toronto offset from whatever shape the browser reports, deriving it from the zone clock when the browser does not support a long offset name. Both paths previously assumed behaviour that not every browser provides.
 
 - Stop a station escalator notice from marking a whole subway line disrupted. A line state now follows service-affecting alerts only; facility notices stay listed and are counted separately, and the line reads as running with the notice count beside it.
