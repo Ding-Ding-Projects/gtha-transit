@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Add directly reviewed CPTDB Milton fleet records, preserving actual build years and the distinct electric conversion of unit 1701.
+
 - Add 72 sourced regional fleet series for MiWay, Brampton, Durham and YRT; preserve YRT electric prefixes and distinguish external roster evidence from CPTDB search destinations. Keep missing capacity, current roster status and image permissions unconfirmed.
 
 - Replace the tall nested vehicle-preference panel with a dedicated responsive dialog, staged changes, exclusive preference modes, searchable manufacturer/model choices and immediate unknown-assignment explanations. Give TTC garage preferences a separate visible entry.

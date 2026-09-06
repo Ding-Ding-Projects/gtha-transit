@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Direct browser fleet research
+
+The approved isolated browser route now permits CPTDB-created iframe targets alongside one exact top-level page. Nine agency pages yielded structured tables with revision links; Durham remained unavailable in this attempt. Added 11 Milton conventional-fleet records from revision 857419 and verified the separate propulsion history of 1701/1702 against revision 804140. All 24 focused regional/vehicle tests pass. Other extracted tables remain unreviewed research, not claimed shipped coverage. No image rights or standing capacity were invented.
+
 ## Regional fleet expansion
 
 Added 72 published manufacturer/model/year series: MiWay 16, Brampton 19, Durham 20 and YRT 17. The matcher preserves YRT electric prefixes and keeps external roster provenance separate from CPTDB search links. The source is the first-hand Barp.ca photo roster, which explicitly is not a complete active fleet. No image reuse licence or standing capacity was invented. The 23 focused regional/vehicle tests pass. All-agency research remains incomplete, with explicit gaps and source leads in docs/vehicles/regional-research.md. This change affects the frontend's vehicle service and preference catalogs; no routing graph rebuild is required.

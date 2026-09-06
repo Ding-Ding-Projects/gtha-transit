@@ -1,5 +1,9 @@
 # Regional fleet research
 
+Direct isolated-browser research subsequently succeeded for MiWay, Burlington, HSR, Oakville, Milton, YRT, Brampton, GO and UP. The owner authorized page-created iframe targets while retaining one exact top-level page. Browser-extracted table records retain revision links privately; extracting a table does not make its every row reviewed. Durham did not yield a usable table in that attempt.
+
+Eleven Milton conventional-fleet records are now drawn from [CPTDB revision 857419](https://cptdb.ca/wiki/index.php?title=Milton_Transit&oldid=857419). Fleet numbers are not build years: 2401-2407 are recorded as 2025 and 2001 as 2021. [Milton 1701-1702](https://cptdb.ca/wiki/index.php?title=Milton_Transit_1701-1702&oldid=804140) separately confirms the 2024 electric conversion of 1701; 1702 remains diesel. Missing standing capacity and photo permission remain unconfirmed. Other agency tables need careful range/exception review before import.
+
 Research checked September 6, 2026. Published manufacturer/model/year facts are separate from live position, active fleet membership, exact assignment and image permission. The registry now includes published series for MiWay, Brampton, Durham and YRT. Source records are linked independently from CPTDB search destinations. YRT electric prefixes remain part of fleet identity.
 
 | Agency | Current research state | Source / remaining work |
