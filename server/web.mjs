@@ -508,6 +508,38 @@ const server = http.createServer(async (req, res) => {
       return send(res, 414, { error: 'Request URL is too long.' });
     if (url.pathname === '/health')
       return send(res, 200, { ok: true, service: 'gtha-transit-web' });
+    // Separate from /health on purpose. /health answers whether this process is
+    // alive, and the container's own check reads it; making it fail when a private
+    // origin is down would restart a frontend that is working perfectly. This
+    // reports the private origins so the failure is visible before a rider finds it.
+    if (url.pathname === '/api/dependencies' && req.method === 'GET') {
+      const probe = async (name, origin, path) => {
+        const startedAt = Date.now();
+        try {
+          const response = await fetch(origin + path, {
+            signal: AbortSignal.timeout(4000),
+            redirect: 'error',
+          });
+          return { name, state: response.ok ? 'available' : 'unavailable', status: response.status, millis: Date.now() - startedAt };
+        } catch {
+          return { name, state: 'unreachable', millis: Date.now() - startedAt };
+        }
+      };
+      const checked = await Promise.all([
+        probe('routing', routing, '/health'),
+        probe('maps', maps, '/map-info'),
+      ]);
+      const degraded = checked.filter((entry) => entry.state !== 'available');
+      return send(res, 200, {
+        service: 'gtha-transit-web',
+        checkedAt: new Date().toISOString(),
+        state: degraded.length ? 'degraded' : 'ready',
+        dependencies: checked,
+        note: degraded.length
+          ? 'A private origin did not answer. Journey planning or maps will fail until it does.'
+          : 'Every private origin answered. This does not certify feed coverage or public DNS.',
+      });
+    }
     if (url.pathname === '/api/status/ttc' && req.method === 'GET')
       return send(res, 200, await getTtcStatus());
     if (url.pathname === '/api/race' || url.pathname.startsWith('/api/race/')) {
