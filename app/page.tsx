@@ -1563,6 +1563,9 @@ export default function Home() {
                                           'A vehicle has not been verified for this exact trip.',
                                           '未能核實呢個指定班次嘅車輛。',
                                         )}
+                                        {leg.vehicleAssignment?.state === 'no-match' && <small>{t('Live positions did not report a vehicle with this trip ID. A vehicle on the same route may be running a different departure.', '即時位置未有呢個班次編號嘅配車，同路線車輛可能正行駛另一班次。')}</small>}
+                                        {['stale', 'unavailable', 'error'].includes(leg.vehicleAssignment?.state || '') && <small>{t('A fresh assignment is unavailable for this departure. Check the live tracker for current observations.', '呢個出發班次暫未有最新配車資料，可到即時追蹤查看目前觀察。')}</small>}
+                                        <button type="button" className="text-button" onClick={() => setTab('vehicles')}>{t('Open live vehicle tracker', '開啟即時車輛追蹤')}</button>
                                       </p>
                                     ))}
                                   {leg.mode !== 'WALK' && (

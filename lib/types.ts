@@ -21,6 +21,7 @@ export type Place = {
   washroom?: WashroomInfo | null;
 };
 export type Leg = {
+  vehicleAssignment?: { state?: string; reason?: string; method?: string };
   routeDivisionOpportunity?: { state: string; reason?: string; routeId?: string; vehicleCount?: number; checkedAt?: number; validUntil?: number; vehicleIds?: string[]; fleetNumbers?: string[]; observations?: { id: string; fleetNumber: string; validUntil: number }[]; truncated?: boolean; source?: { validFrom?: string; validThrough?: string }; disclosure?: string };
   vehicleDivision?: { state: string; reason?: string; checkedAt?: number; validUntil?: number; homeGarageName?: string; assignedGarageNames?: string[]; source?: { validFrom?: string; validThrough?: string; publisherPage?: string } };
   tripId?: string;

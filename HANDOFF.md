@@ -1,5 +1,9 @@
 # Implementation handoff
 
+## Bus assignment reproduction
+
+A current Warden/Steeles to Victoria Park/Eglinton probe returned TTC route 68 with planned trip `50723818`; the fresh TTC vehicle snapshot included fleet 3201 on route 68 with trip `77311070`. This confirms a timetable/live identifier mismatch for the reported bus journey, not a dropped display value. Route equality alone does not establish the assigned departure. The UI now explains exact-ID no-match and offers the live tracker, but the identifier mapping itself remains unresolved. The preceding place-context run passed its three focused tests and five HTTP checks; the separate division endpoint check failed its expected MtD garage evidence and must not be reported green.
+
 ## Contextual place suggestions
 
 The Warden report exposed map results without route data ahead of route-rich TTC platforms. The frontend service now adds explicitly nearby transit context only from stops within 250 metres in the same search response, retaining exact destination identity. Suggestion rendering distinguishes timetable service from nearby routes, shows straight-line distance/stop name, localizes place-specific types and uses published address/district/city when supplied. No location-name-only route inference or invented opening hours is used. Built interaction verification remains pending.
