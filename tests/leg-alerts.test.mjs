@@ -158,3 +158,69 @@ test('station names are read from published stop names and alert subjects only',
 test('the same alert is never attached twice to one leg', () => {
   assert.equal(selectLegAlerts({ alerts: [line5Delay, line5Delay], leg: line5Leg }).length, 1);
 });
+
+/**
+ * Shape copied from the real TTC route-alert payload observed on 6 September 2026:
+ * a "No Service" effect, the segment ends the publisher named, and its own complete
+ * list of affected stop identifiers. Nothing about the closure is derived.
+ */
+const spadinaClosure = {
+  id: '74849',
+  title: '510 Spadina: No service between Queens Quay Loop at Lower Spadina Ave and Union Station Streetcar Platform daily from 9:30 a.m. to 11:59 p.m.',
+  description: 'No service between Queens Quay Loop and Union Station Streetcar Platform',
+  routeIds: ['510'],
+  routeRefs: [{ routeId: '510', routeType: 'Streetcar' }],
+  routeScope: 'routes',
+  effect: 'No Service',
+  direction: 'Both ways',
+  segment: { startName: 'Queens Quay Loop at Lower Spadina Ave', endName: 'Union Station Streetcar Platform', startId: '10927', endId: '10935' },
+  affectedStopIds: ['10927', '15331', '15332', '10945', '10935', '6864', '15333', '10946'],
+  activeFrom: '2026-09-06T09:30:00Z',
+  activeTo: '2026-09-06T23:59:00Z',
+};
+
+const spadinaLeg = {
+  mode: 'TRAM',
+  route: '510',
+  agency: 'TTC',
+  from: { stopId: 'ttc:10927', name: 'Queens Quay Loop at Lower Spadina Ave' },
+  intermediateStops: [{ stopId: 'ttc:10945', name: 'Queens Quay at Rees St' }],
+  to: { stopId: 'ttc:10935', name: 'Union Station Streetcar Platform' },
+  startTime: '2026-09-06T10:00:00Z',
+  endTime: '2026-09-06T10:20:00Z',
+};
+
+test('a confirmed closure reaches a leg through the stops the publisher listed', () => {
+  const selected = selectLegAlerts({ alerts: [spadinaClosure], leg: spadinaLeg });
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].kind, 'closure');
+  // Reported in the publisher's own listed order, not the leg's.
+  assert.deepEqual(selected[0].affectedStops, [
+    'Queens Quay Loop at Lower Spadina Ave',
+    'Queens Quay at Rees St',
+    'Union Station Streetcar Platform',
+  ]);
+});
+
+test('a closure on the same route whose listed stops this leg never calls at is not shown', () => {
+  const elsewhere = { ...spadinaClosure, id: 'elsewhere', affectedStopIds: ['99991', '99992'] };
+  assert.deepEqual(selectLegAlerts({ alerts: [elsewhere], leg: spadinaLeg }), []);
+});
+
+test('a closure outside the leg time window is not shown', () => {
+  const overnight = { ...spadinaClosure, id: 'overnight', activeFrom: '2026-09-06T20:00:00Z', activeTo: '2026-09-06T23:59:00Z' };
+  assert.deepEqual(selectLegAlerts({ alerts: [overnight], leg: spadinaLeg }), []);
+});
+
+test('a closure with no listed stops is never attached by route alone', () => {
+  const unscoped = { ...spadinaClosure, id: 'unscoped', affectedStopIds: undefined };
+  assert.deepEqual(selectLegAlerts({ alerts: [unscoped], leg: spadinaLeg }), []);
+});
+
+test('official shuttle details are carried through untouched, and absence stays absent', () => {
+  assert.equal(spadinaClosure.shuttle, undefined);
+  const shuttled = { ...spadinaClosure, id: 'shuttled', shuttle: { type: 'Shuttle buses', start: 'Union Station', end: 'Queens Quay Loop' } };
+  const selected = selectLegAlerts({ alerts: [shuttled], leg: spadinaLeg });
+  assert.equal(selected[0].alert.shuttle.type, 'Shuttle buses');
+  assert.equal(selected[0].alert.shuttle.start, 'Union Station');
+});

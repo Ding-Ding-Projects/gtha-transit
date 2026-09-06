@@ -1611,19 +1611,39 @@ export default function Home() {
                                       {selectLegAlerts({
                                         alerts: status?.alerts,
                                         leg,
-                                      }).map(({ alert, kind }) => (
+                                      }).map(({ alert, kind, affectedStops }) => (
                                         <p
-                                          className={`inline-alert${kind === 'facility' ? ' inline-alert-facility' : ''}`}
+                                          className={`inline-alert${kind === 'facility' ? ' inline-alert-facility' : ''}${kind === 'closure' ? ' inline-alert-closure' : ''}`}
                                           key={alert.id}
                                         >
                                           <TriangleAlert size={14} />
                                           <span>
                                             <b>
-                                              {kind === 'facility'
-                                                ? t('Station facility', '車站設施')
-                                                : t('Service alert', '服務提示')}
+                                              {kind === 'closure'
+                                                ? t('No service', '停止服務')
+                                                : kind === 'facility'
+                                                  ? t('Station facility', '車站設施')
+                                                  : t('Service alert', '服務提示')}
                                             </b>{' '}
                                             {alert.title}
+                                            {kind === 'closure' && affectedStops?.length ? (
+                                              <small>
+                                                {t('Stops on this journey inside the closure: ', '呢程行程受影響嘅車站：')}
+                                                {affectedStops.join(' · ')}
+                                              </small>
+                                            ) : null}
+                                            {kind === 'closure' && alert.shuttle ? (
+                                              <small>
+                                                {t('Official shuttle: ', '官方接駁：')}
+                                                {[alert.shuttle.type, alert.shuttle.start, alert.shuttle.end].filter(Boolean).join(' · ')}
+                                              </small>
+                                            ) : null}
+                                            {kind === 'closure' && !alert.shuttle ? (
+                                              <small>{t('The TTC has not announced a shuttle for this closure.', 'TTC 未有公布呢次停止服務嘅接駁安排。')}</small>
+                                            ) : null}
+                                            {kind === 'closure' && alert.url ? (
+                                              <a href={safeUrl(alert.url)} target="_blank" rel="noreferrer">{t('Read the official notice', '查閱官方通告')}</a>
+                                            ) : null}
                                           </span>
                                         </p>
                                       ))}

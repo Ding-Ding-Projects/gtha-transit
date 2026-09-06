@@ -29,14 +29,24 @@ const TRANSIT_ROUTE_TYPES = new Set([
   '12',
 ]);
 
-export type LegAlertKind = 'service' | 'facility';
+export type LegAlertKind = 'closure' | 'service' | 'facility';
 
 export type LegAlert = {
   alert: Alert;
   kind: LegAlertKind;
   /** For a facility notice, the station the publisher named in its own title. */
   station?: string;
+  /** For a closure, the stops of this leg the publisher listed as affected. */
+  affectedStops?: string[];
 };
+
+/** The publisher's own words for a segment carrying no service at all. */
+const CLOSURE_EFFECTS = new Set(['no service']);
+
+/** True when the publisher declared this alert a full loss of service. */
+export function isClosure(alert: Alert): boolean {
+  return CLOSURE_EFFECTS.has(lower(alert.effect));
+}
 
 const lower = (value: string | number | undefined) =>
   (typeof value === 'number' ? String(value) : (value ?? '')).trim().toLowerCase();
@@ -90,6 +100,27 @@ function overlapsLeg(alert: Alert, legStart?: number, legEnd?: number): boolean 
   return true;
 }
 
+/** Bare stop identity, ignoring only a known feed alias. */
+function bareStop(value: string | undefined): string {
+  const raw = (value ?? '').trim();
+  const separator = raw.indexOf(':');
+  return separator > 0 ? raw.slice(separator + 1) : raw;
+}
+
+function legStopIds(leg: {
+  from?: Place;
+  to?: Place;
+  intermediateStops?: Place[] | null;
+}): Map<string, string> {
+  const stops = [leg.from, leg.to, ...(leg.intermediateStops || [])];
+  const found = new Map<string, string>();
+  for (const stop of stops) {
+    const id = bareStop(stop?.stopId ?? stop?.id);
+    if (id) found.set(id, stop?.name ?? id);
+  }
+  return found;
+}
+
 function legStations(leg: {
   from?: Place;
   to?: Place;
@@ -134,6 +165,16 @@ export function selectLegAlerts(options: {
     const network = alert.routeScope === 'network';
     if (!network && !(alert.routeIds || []).some((id) => String(id ?? '') === route)) continue;
     if (!overlapsLeg(alert, legStart, legEnd)) continue;
+    if (isClosure(alert)) {
+      // A closure reaches a leg only through the stops the publisher listed itself.
+      const listed = alert.affectedStopIds || [];
+      const stopIds = legStopIds(leg);
+      const affected = listed.map(bareStop).filter((id) => stopIds.has(id)).map((id) => stopIds.get(id) as string);
+      if (!affected.length) continue;
+      seen.add(alert.id);
+      selected.push({ alert, kind: 'closure', affectedStops: [...new Set(affected)] });
+      continue;
+    }
     const kind = network ? 'service' : alertKind(alert, route);
     if (kind === 'facility') {
       const station = alertSubject(alert.title);

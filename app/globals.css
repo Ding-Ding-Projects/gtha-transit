@@ -1715,3 +1715,21 @@ select {
   color: var(--muted);
   line-height: 1.6;
 }
+
+/* A confirmed loss of service on this leg. Stronger than an ordinary alert. */
+.inline-alert-closure {
+  border: 2px solid var(--alert);
+  font-weight: 500;
+}
+.inline-alert small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.inline-alert a {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: inherit;
+}

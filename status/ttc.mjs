@@ -124,6 +124,35 @@ function staleTtcStatus(value) {
   return { ...value, state: 'stale', lines: unknownLines() };
 }
 
+/** The exact stops the publisher named as the ends of a closed or diverted segment. */
+function segmentOf(item) {
+  const startName = text(item.stopStart);
+  const endName = text(item.stopEnd);
+  const startId = text(item.stopStartId);
+  const endId = text(item.stopEndId);
+  if (!startName && !endName && !startId && !endId) return undefined;
+  return { ...(startName ? { startName } : {}), ...(endName ? { endName } : {}), ...(startId ? { startId } : {}), ...(endId ? { endId } : {}) };
+}
+
+const MAX_AFFECTED_STOPS = 400;
+
+/** Every stop the publisher itself lists as affected. Bounded, and never extended. */
+function affectedStopsOf(item) {
+  if (!Array.isArray(item.stops)) return undefined;
+  if (item.stops.length > MAX_AFFECTED_STOPS) throw new Error('TTC web alert affected stop count exceeds the safety bound');
+  const ids = [...new Set(item.stops.map((stop) => text(stop)).filter(Boolean))];
+  return ids.length ? ids : undefined;
+}
+
+/** Officially announced shuttle service only. An absent field stays absent. */
+function shuttleOf(item) {
+  const type = text(item.shuttleType);
+  const start = text(item.shuttleStart);
+  const end = text(item.shuttleEnd);
+  if (!type && !start && !end) return undefined;
+  return { ...(type ? { type } : {}), ...(start ? { start } : {}), ...(end ? { end } : {}) };
+}
+
 export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(), now = Date.now() } = {}) {
   if (!payload || typeof payload !== 'object' || !Array.isArray(payload.routeAlerts) || typeof payload.lastUpdated !== 'string') throw new Error('TTC web alert payload is incomplete');
   if (payload.routeAlerts.length > MAX_WEB_ALERTS) throw new Error('TTC web alert count exceeds the safety bound');
@@ -145,7 +174,12 @@ export function parseTtcWebAlerts(payload, { fetchedAt = new Date().toISOString(
     const active = (!start || Date.parse(start) <= now) && (!end || Date.parse(end) >= now);
     const effect = text(item.effectDesc);
     const disrupted = !/^regular service(?:\s|$)/i.test(effect);
-    return { routes, routeScope, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), routeIds: routes, routeRefs, routeScope, ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
+    // The publisher names the closed segment and any official shuttle itself. Both are
+    // retained verbatim; nothing about a shuttle stop, time or vehicle is ever derived.
+    const segment = segmentOf(item);
+    const shuttle = shuttleOf(item);
+    const affectedStopIds = affectedStopsOf(item);
+    return { routes, routeScope, active, disrupted, alert: { id: text(item.id) || `ttc-web-${routes.join('-') || 'network'}`, title: text(item.headerText || item.title) || 'TTC service alert', description: text(item.title || effect), url: /^https:\/\//i.test(item.url ?? '') ? text(item.url) : 'https://www.ttc.ca/service-alerts', updatedAt: timestamp(item.lastUpdated) || sourceUpdatedAt || timestamp(fetchedAt), routeIds: routes, routeRefs, routeScope, ...(effect ? { effect } : {}), ...(text(item.direction) ? { direction: text(item.direction) } : {}), ...(segment ? { segment } : {}), ...(shuttle ? { shuttle } : {}), ...(affectedStopIds ? { affectedStopIds } : {}), ...(start ? { activeFrom: start } : {}), ...(end ? { activeTo: end } : {}) } };
   }).filter((item) => item.active);
   const lines = TTC_LINES.map((line) => { const lineAlerts = alerts.filter((item) => item.disrupted && (item.routeScope === 'network' || item.routes.includes(line.id))).map((item) => item.alert); return { ...line, state: lineAlerts.length ? 'disrupted' : 'good', alerts: lineAlerts }; });
   return { state: 'live', fetchedAt: timestamp(fetchedAt), sourceUpdatedAtRaw, ...(sourceUpdatedAt ? { sourceUpdatedAt } : {}), sourceUrl: TTC_WEB_ALERTS_URL, lines, alerts: alerts.map((item) => item.alert) };

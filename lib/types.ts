@@ -92,6 +92,11 @@ export type Alert = {
   updatedAt?: string;
   activeFrom?: string;
   activeTo?: string;
+  effect?: string;
+  direction?: string;
+  segment?: { startName?: string; endName?: string; startId?: string; endId?: string };
+  shuttle?: { type?: string; start?: string; end?: string };
+  affectedStopIds?: string[];
 };
 export type Line = {
   id: string;
