@@ -4,6 +4,9 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 ## Current delivery priorities
 
+- [ ] Resume the September 6 handoff at the top of HANDOFF.md. Implement the newly requested transit race planner; no race implementation exists yet.
+- [ ] Complete closure/shuttle integration, exact bus assignment mapping and the remaining rendered verification. Preserve the distinction between deployed code and verified behavior.
+
 - [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.
 - [ ] Refresh the expired TTC garage source from a new official publication. Do not extend the old September 5 validity date or hide the unknown-evidence state.
 

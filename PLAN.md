@@ -1,5 +1,16 @@
 # GTHA Transit delivery plan
 
+## Newly requested transit race planner
+
+- [ ] Select teams and common start/finish locations using real place search.
+- [ ] Generate real routes for the teams, with optional ordered meetup locations.
+- [ ] Assign routes through an accessible random wheel with a reduced-motion equivalent.
+- [ ] Provide leader joining, explicit race-scoped GPS sharing, stop-sharing and actual check-ins.
+- [ ] Distinguish predicted arrivals from observed check-ins and disclose insufficient distinct routes.
+- [ ] Verify privacy, room authorization, expiry, disconnect/rejoin, persistence and narrow-screen operation before claiming multiplayer completion.
+
+No implementation started before the owner requested handoff.
+
 This is the durable scope record for the owner's transit-planner requests. It is updated during implementation. A checked item means the stated outcome was verified, not merely that code was written. See [ROADMAP.md](ROADMAP.md) for delivery tracking and [HANDOFF.md](HANDOFF.md) for operational evidence.
 
 ## Product and deployment

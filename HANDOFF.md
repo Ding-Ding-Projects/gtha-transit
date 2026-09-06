@@ -1,5 +1,36 @@
 # Implementation handoff
 
+## Resume here: owner-requested handoff, September 6, 2026
+
+Implementation has stopped at the owner's request. No race-planner implementation was started. The primary checkout is on main; latest implementation commit is `9d1ac6ef1c9758cde7c8967f487c2dba1ff24c5d`. Earlier sections below are historical evidence, not alternative current deployment claims.
+
+Current frontend: `9531de6afb1e667c44bb7d9a3010e261571198c5`, built `2026-09-06T04:21:28.081Z`, public version independently checked. Current routing API image: `gtha-transit-api:9d1ac6e`, running. That API image is an incremental layer over `gtha-transit-api:6d51bd3`, replacing only `otp-client.mjs` and `required-line.mjs`; it is not a full rebuild of every source file. Routing graph and map service were not replaced.
+
+### Next work, in priority order
+
+1. Implement the requested transit race planner: teams, common A-to-B locations, optional multiple meetups, route assignment wheel, leader joining and explicit per-race GPS sharing with stop-sharing controls. Use real routing results and separate planned arrivals from actual check-ins. The optional question whether teams must receive different routes has no recorded answer; prefer distinct routes when available and disclose insufficient alternatives. No race UI, sessions, persistence, GPS sharing or tests exist yet.
+2. Implement confirmed subway/light-rail closure handling in routing and officially announced shuttle guidance. Never invent shuttle stops, times or exact vehicles. Fix unrelated line-level facility alerts, including the Kennedy escalator notice shown on a Line 5 leg. Current code simply chooses a line's first alert.
+3. Repair bus schedule/live trip-ID matching. Reproduction: route 68 planned trip `50723818`, live fleet 3201 on route 68 with trip `77311070`. The new explanation/tracker link is not the mapping fix; do not assign a bus by route equality alone.
+4. Verify the next-stop name repair in the built follower. Agency-qualified IDs and exact stop-index name lookup are implemented, with cancellation/deadline and nine focused tests. Vehicle-only and journey simulation require actual rendered checks.
+5. Verify contextual place suggestions. Warden map station now receives explicitly nearby route data without moving the destination; the distant same-name location remains separate. Three focused tests pass. Address/landmark context remains limited to published source fields.
+6. Continue all-agency fleet details/photo/capacity research. 72 Barp.ca series plus 11 directly reviewed Milton records are implemented. Browser-extracted CPTDB tables for nine agencies are retained privately and mostly unreviewed. Punctuated Burlington fleet numbers require exact parsing; build year must not be inferred from fleet number. Standing capacity and photo reuse rights remain incomplete.
+7. Refresh expired TTC garage evidence from a new official source. The current document ended September 5. The HTTP test expecting MtD now fails correctly against expired evidence; never extend the source validity without publication proof.
+8. Verify the deployed vehicle chooser, staged cancellation/apply, nested search stars and narrow footer/recovery focus. Complete the wider language/theme/scale and physical-device evidence separately.
+
+### Latest decisive evidence
+
+- Required-line generated anchors now use OTP passThrough; user destinations retain visit semantics. Four focused OTP tests pass, including staying aboard and rejecting reversed anchor order.
+- Live Golden Mile to Eglinton at September 6 09:00 Toronto with required route TTC 5 returned seven options. The first has WALK, one continuous TRAM route 5 trip `ttc-next:134935404`, WALK. No Sunnybrook Park reboarding step occurred. This is a bounded API check, not complete UI or all-route evidence.
+- Regional fleet full suite passed 217 tests before the later small repairs; it is not a current full-suite verdict. Milton followup passed 24 focused fleet tests. Follower repair passed type checking plus nine focused tests.
+- Place-context plus HTTP run passed eight tests and failed one garage-evidence test. Whole-page lint previously retained 33 findings. Neither result is green.
+- Capture helper has 29 tests and honestly validates record consistency only. Older untimed captures and retained browser profiles must not be promoted with fabricated timing or cleanup proof.
+
+### Continuation constraints
+
+The owner explicitly requested no more delegated agents; continue directly unless they change that request. Use the isolated cheap Lowlevel browser route. For CPTDB research only, the owner explicitly allowed page-created iframe targets alongside one exact top-level page; unrelated pages, workers and extensions remain disallowed. Do not copy this research exception into production UI audit claims. Private retained browser profiles and raw research belong outside this public repository. Do not delete existing worktrees merely because they look old or merged; ownership and preservation must be checked. No task-owned cleanup was performed during this preservation handoff.
+
+Open task issues: #1 for planner/UI and #3 for source/live fleet gaps. No whole-goal completion is claimed. Public wiki endpoint and authenticated Status Hub limitations remain as recorded below.
+
 ## Required-line unnecessary transfer repair
 
 Internal required-line anchors were encoded as OTP visit points, which explicitly require boarding/alighting. They now use passThrough stop identities; completion verifies the ordered stop occurrences including intermediate stops. User-created destinations retain physical visit semantics. The Sunnybrook Park Line 5 report motivated this repair. Real backend verification is still required. Closure-aware planning and official shuttle notices are newly recorded requirements; current whole-line alert attachment can show unrelated facility notices and must be narrowed before claiming accurate leg alerts.
