@@ -6,6 +6,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 
 - [ ] Resume the September 6 handoff at the top of HANDOFF.md. Implement the newly requested transit race planner; no race implementation exists yet.
 - [x] Narrow the alerts shown beside a journey leg. Station facility notices now appear only where the leg calls at that station, service and facility notices are labelled distinctly, and every match renders. Verified on the deployed build at 9b4b8a2 with a real Line 5 journey.
+- [ ] Show the declared GO super express badge on branches 12B, 16, 25C, 47D, 56A and 88C. Implemented and locally tested; rendered verification on the deployed build is pending.
 - [ ] Complete closure/shuttle integration, exact bus assignment mapping and the remaining rendered verification. Preserve the distinction between deployed code and verified behavior.
 
 - [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.

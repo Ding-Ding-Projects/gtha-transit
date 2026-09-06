@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Label GO Transit branches 12B, 16, 25C, 47D, 56A and 88C as super express on a journey leg, with an original badge. The branch is read from the prefix GO publishes at the head of the headsign, because its route catalog carries numeric routes only. The classification is declared by this project rather than published by GO, and every badge says so.
+
 - Show only the alerts that apply to a journey leg. A station facility notice, such as an escalator out of service, now appears beside a leg only when the leg calls at that station, service disruptions and facility notices are labelled distinctly, and every matching alert is shown instead of the first entry of a line.
 
 - Resolve follower next-stop names from agency-qualified publisher IDs and the exact stop index instead of displaying only a numeric identifier when no journey timeline is present.

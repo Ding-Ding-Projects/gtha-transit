@@ -51,6 +51,8 @@ import { rideMetrics, kilometres } from '../lib/ride-metrics';
 import { journeyWaits } from '../lib/journey-waits';
 import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-groups';
 import { selectLegAlerts } from '../lib/leg-alerts';
+import { superExpressFor } from '../lib/go-express';
+import SuperExpressBadge from '../components/super-express-badge';
 import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
 import {
   resolveTorontoTime,
@@ -1417,6 +1419,10 @@ export default function Home() {
                                       : leg.route +
                                         ' · ' +
                                         (leg.headsign || leg.to.name)}
+                                    {(() => {
+                                      const express = superExpressFor(leg);
+                                      return express ? <SuperExpressBadge match={express} t={t} /> : null;
+                                    })()}
                                   </strong>
                                   <p>
                                     {leg.mode === 'WALK'
