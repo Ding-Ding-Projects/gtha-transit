@@ -84,9 +84,8 @@ proven page target.
 
 | Tuple | Result |
 | --- | --- |
-| 9 destinations × 3 widths (320, 390, 1440) × 2 themes = 45 screens | 0 undersized targets, 0 unnamed controls, 0 horizontal overflow |
+| 9 destinations × 3 widths (320, 390, 1440) × 3 languages × 2 themes = **162 screens**, against the deployed public build | 0 undersized targets, 0 unnamed controls, 0 clipped text, 0 horizontal overflow |
 | Display scales 100%, 150%, 200% at 1440 | no overflow, no new clipping |
-| 3 languages × 3 widths (320, 390, 1440) | 0 clipped text in our own surfaces |
 | Contrast, 16 text pairs × 2 themes | every pair at or above 4.5:1, enforced by the generator |
 
 ## Bilingual, and what it changed
@@ -103,6 +102,21 @@ Measuring it found two real problems and confirmed one non-problem:
   common height - 68px in bilingual, 56px otherwise.
 - The **navigation labels never clipped**, in any language or width, including
   "Vehicles · 車輛".
+
+## Measuring it correctly was most of the work
+
+The audit over-reported three times, and each time "fixing" what it found would
+have been a change to correct code:
+
+| Reported | Actually |
+| --- | --- |
+| 52 undersized targets on one screen | 3. The other 49 were inline links in sentences, which WCAG 2.5.8 exempts because their height comes from the text around them. |
+| 8 clipped elements on the planner | Mostly the map library's own attribution, and a label with a deliberate ellipsis beside the value it labels. |
+| 24 clipped elements across the deployed build | 0. All of them were `.sr-only` text, clipped to 1px on purpose so it is announced but not seen. |
+
+An audit that does not know the platform's own idioms manufactures work. Every
+exemption is now written down with its reason rather than carried in someone's
+head.
 
 ## Not yet done
 
