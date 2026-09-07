@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Build the web service as a container image in the release workflow and push it to the registry, so a host deploys by pulling rather than by rebuilding from a source tarball. The release notes carry the image digest, because a tag can be repointed later and a digest cannot. Only the web service is published: the routing API needs about 48 MB of generated stop, route and pattern indexes that this repository carries as placeholders, so a runner cannot build a working one, and an image that starts and answers nothing is worse than no image.
+
 - Read the Metrolinx feeds correctly. Every feed path carries `Gtfs.proto`; the GO paths asked for `Gtfs`, which is not a missing endpoint but a 200 answering with the same data as JSON, so the wrong URL failed as an unreadable payload and was reported as the operator refusing the request. The proxy now checks a body begins like a feed before caching it, so that mistake can never again wear another fault's clothes. Separately, a credential present but unreadable is no longer reported as absent. GO now reports 39 service alerts and 123 live vehicles.
 
 - Show a cancellation whose advice is written as prose rather than as a list of trains. The first real one to arrive said to board a GO bus at Stratford GO calling at Kitchener and Guelph Central; nothing plannable can be read out of that without inventing stations, so the sentence is carried whole. Returning nothing for it would have left a live disruption reading as though nothing were published.

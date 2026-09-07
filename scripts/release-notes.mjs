@@ -12,4 +12,13 @@ try{
   }
 }catch{codeName='';}
 
-writeFileSync('dist/release-notes.md',`# GTHA Transit ${process.env.TAG}\n\n${codeName}A standalone web server bundle built from [${sha}](https://github.com/Ding-Ding-Projects/gtha-transit/commit/${sha}). It requires Node.js 24.19.0 and separately configured routing and map services. Run npm start after extraction.\n\nThis workflow built and packaged the frontend. It ran no tests, lint, runtime interaction, or deployment checks. Public DNS is configured separately by the owner. Availability of an archive does not certify eleven-agency coverage or a public deployment.\n\nBuild started: ${start}\nPackage completed: ${finish}\nBuild and packaging duration: ${duration}\n\nFinal publication timing is available in the workflow run; the timestamps above stop before publication.\n\n${readFileSync('dist/line-counts.md','utf8')}\n\n## 廣東話\n\n呢個獨立網頁服務套件由上面列明嘅提交建置，需要 Node.js 24.19.0 及另外設定嘅路線同地圖服務。解壓後執行 npm start。流程只建置同打包，無執行測試或部署驗證。公開 DNS 由擁有人另外設定。\n`);
+// The container image, when one was built and pushed. Its digest names the exact
+// bytes, so a reader can pull those rather than a tag that could move later.
+let imageSection='';
+try{
+  const built=JSON.parse(readFileSync('dist/image.json','utf8'));
+  if(built&&built.image&&built.digest){
+    imageSection=`\n## Container image\n\nBuilt by this workflow from the commit above and pushed to the GitHub Container Registry.\n\n\`\`\`\ndocker pull ${built.image}:${built.tag}\n\`\`\`\n\nDigest: \`${built.digest}\`\n\nOnly the web service is published as an image. The routing API needs generated stop, route and pattern indexes that this repository carries as placeholders, so a runner cannot build a working one.\n`;
+  }
+}catch{imageSection='';}
+writeFileSync('dist/release-notes.md',`# GTHA Transit ${process.env.TAG}\n\n${codeName}A standalone web server bundle built from [${sha}](https://github.com/Ding-Ding-Projects/gtha-transit/commit/${sha}). It requires Node.js 24.19.0 and separately configured routing and map services. Run npm start after extraction.\n\nThis workflow built and packaged the frontend. It ran no tests, lint, runtime interaction, or deployment checks. Public DNS is configured separately by the owner. Availability of an archive does not certify eleven-agency coverage or a public deployment.\n\nBuild started: ${start}\nPackage completed: ${finish}\nBuild and packaging duration: ${duration}\n\nFinal publication timing is available in the workflow run; the timestamps above stop before publication.\n${imageSection}\n${readFileSync('dist/line-counts.md','utf8')}\n\n## 廣東話\n\n呢個獨立網頁服務套件由上面列明嘅提交建置，需要 Node.js 24.19.0 及另外設定嘅路線同地圖服務。解壓後執行 npm start。流程只建置同打包，無執行測試或部署驗證。公開 DNS 由擁有人另外設定。\n`);

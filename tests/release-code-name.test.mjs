@@ -21,13 +21,14 @@ const notesScript = path.join(root, 'scripts', 'release-notes.mjs');
 const workflow = readFileSync(path.join(root, '.github', 'workflows', 'release.yml'), 'utf8');
 
 /** Run the notes builder in its own directory, with or without a chosen dish. */
-function buildNotes(dish) {
+function buildNotes(dish, image) {
   const workspace = mkdtempSync(path.join(tmpdir(), 'notes-'));
   const started = path.join(workspace, 'workflow-started');
   writeFileSync(started, '2026-09-06T20:00:00Z\n');
   mkdirSync(path.join(workspace, 'dist'));
   writeFileSync(path.join(workspace, 'dist', 'line-counts.md'), '| Category | Total lines |\n|---|---:|\n| Source | 1 |\n');
   if (dish) writeFileSync(path.join(workspace, 'dist', 'dim-sum.json'), JSON.stringify(dish));
+  if (image) writeFileSync(path.join(workspace, 'dist', 'image.json'), JSON.stringify(image));
   // The builder reads an absolute /tmp path in CI; point it at this workspace.
   const source = readFileSync(notesScript, 'utf8').replace("'/tmp/workflow-started'", JSON.stringify(started));
   const script = path.join(workspace, 'release-notes.mjs');
@@ -80,4 +81,63 @@ test('the workflow attaches the photo and never fails the release over a code na
   // The chosen photo joins the release assets under its catalog filename.
   assert.match(workflow, /ASSETS="\$ASSETS dist\/\$PHOTO_FILE"/);
   assert.match(workflow, /gh release create "\$TAG" \$ASSETS/);
+});
+
+/**
+ * The container image.
+ *
+ * The workflow builds it from the same commit the release is cut from, so a host
+ * deploys by pulling rather than by rebuilding a source tarball. The digest goes
+ * into the notes because a tag can be moved later and a digest cannot.
+ *
+ * Only the web service is published. The routing API needs generated stop, route
+ * and pattern indexes that this repository carries as placeholders, so a runner
+ * cannot build a working one, and claiming otherwise would ship an image that
+ * starts and answers nothing.
+ */
+
+const IMAGE = {
+  image: 'ghcr.io/ding-ding-projects/gtha-transit-web',
+  tag: 'v0.1.0-test.1',
+  digest: 'ghcr.io/ding-ding-projects/gtha-transit-web@sha256:' + 'a'.repeat(64),
+};
+
+test('a published image reaches the notes with its digest and a pull command', () => {
+  const notes = buildNotes(null, IMAGE);
+  assert.match(notes, /^## Container image$/m);
+  assert.ok(notes.includes(`docker pull ${IMAGE.image}:${IMAGE.tag}`), 'the pull command names image and tag');
+  // Labelled as a digest, not merely present: a reader has to know that this
+  // string is the one thing about the image that cannot be moved later.
+  assert.ok(notes.includes('Digest: `' + IMAGE.digest + '`'), 'the digest must be labelled as one');
+  assert.match(notes, /routing API needs generated stop, route and pattern indexes/);
+});
+
+test('no image built means no image section invented', () => {
+  const notes = buildNotes(null, null);
+  assert.ok(!notes.includes('## Container image'), 'nothing is claimed about an image that was not built');
+  assert.match(notes, /^# GTHA Transit v0\.1\.0-test\.1$/m);
+});
+
+test('a half-written image record is not treated as a published image', () => {
+  assert.ok(!buildNotes(null, { image: IMAGE.image }).includes('## Container image'));
+  assert.ok(!buildNotes(null, { digest: IMAGE.digest }).includes('## Container image'));
+});
+
+test('the workflow builds the image before the release, and pushes by digest-bearing tags', () => {
+  assert.ok(
+    workflow.indexOf('Build and publish the web container image') < workflow.indexOf('Publish unique release'),
+    'the image must be built first so its digest can go into the notes',
+  );
+  assert.match(workflow, /packages: write/);
+  assert.match(workflow, /ghcr\.io\/\$OWNER\/gtha-transit-web/);
+  assert.match(workflow, /docker build --build-arg SOURCE_COMMIT="\$GITHUB_SHA"/);
+  assert.match(workflow, /for reference in "\$GITHUB_SHA" "\$TAG" latest; do docker push/);
+  assert.match(workflow, /RepoDigests/);
+  // The credential goes in on stdin, never in an argument.
+  assert.match(workflow, /printf '%s' "\$GH_TOKEN" \| docker login ghcr\.io/);
+  assert.ok(!/--password [^-]/.test(workflow), 'a credential must never be a command argument');
+});
+
+test('the routing API image is not claimed to be buildable by the runner', () => {
+  assert.ok(!/gtha-transit-api/.test(workflow), 'the workflow must not publish an API image it cannot build');
 });

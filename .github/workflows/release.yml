@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  packages: write
 jobs:
   release:
     runs-on: ubuntu-24.04
@@ -25,6 +26,27 @@ jobs:
           npm run build
           node scripts/package-release.mjs
           node scripts/count-lines.mjs > dist/line-counts.md
+      - name: Build and publish the web container image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Built from the same commit the release is cut from, so a host deploys by
+          # pulling rather than by rebuilding from a source tarball. Only the web
+          # service is published: the routing API needs generated stop, route and
+          # pattern indexes that this repository carries as placeholders, so a runner
+          # cannot build a working one.
+          TAG="v0.1.0-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          OWNER=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/$OWNER/gtha-transit-web"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build --build-arg SOURCE_COMMIT="$GITHUB_SHA" -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:$TAG" -t "$IMAGE:latest" .
+          for reference in "$GITHUB_SHA" "$TAG" latest; do docker push "$IMAGE:$reference"; done
+          # The digest names the exact bytes that were pushed, so the release can
+          # point at them rather than at a tag anyone could move later.
+          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")
+          node -e 'require("fs").writeFileSync("dist/image.json", JSON.stringify({ image: process.argv[1], tag: process.argv[2], digest: process.argv[3] }))' "$IMAGE" "$TAG" "$DIGEST"
+          echo "Published $DIGEST"
+
       - name: Publish unique release
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
