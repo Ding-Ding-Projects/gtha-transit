@@ -96,10 +96,15 @@ TTC allocation source whose `validThrough` is 2026-09-05.
 - **The block-chained vehicle card is not yet captured.** The API proof above is real and the
   render strings are present in the publicly served bundle, but the planner's combobox resisted
   three scripted attempts and no capture of the rendered card exists. Treat it as unproven.
-- **GO cancellations cannot be verified against real alerts.** The Metrolinx feed refuses the
-  request with the credential currently on the host — GO **vehicles** are refused too, so this is
-  not specific to alerts and is not caused by this change. The panel correctly reports the feed as
-  unavailable rather than showing calm, and that honest state is what was observed.
+- **GO and UP are live.** The Metrolinx feed was never refusing the credential. Two faults hid behind
+  one message: the GO paths asked for `/V1/Gtfs/Feed/...` where every feed path carries
+  `/V1/Gtfs.proto/Feed/...`, and the bare spelling answers 200 with JSON that the protobuf reader
+  rejects; and the credential file was owned by uid 1000 at mode 0600 while the container runs as
+  uid 0 with `cap_drop: ALL`, so without `CAP_DAC_OVERRIDE` root could not read it either. With both
+  corrected: 39 GO service alerts, 123 live GO vehicles, UP live. The first real cancellation to
+  arrive writes its advice as prose rather than naming trains, and the panel now shows that wording
+  whole with an honest note that no journey could be looked up for it. Verified rendered on the
+  built site at `afbcc85`.
 
 ## Session close, 6 September 2026
 

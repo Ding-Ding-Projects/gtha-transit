@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Read the Metrolinx feeds correctly. Every feed path carries `Gtfs.proto`; the GO paths asked for `Gtfs`, which is not a missing endpoint but a 200 answering with the same data as JSON, so the wrong URL failed as an unreadable payload and was reported as the operator refusing the request. The proxy now checks a body begins like a feed before caching it, so that mistake can never again wear another fault's clothes. Separately, a credential present but unreadable is no longer reported as absent. GO now reports 39 service alerts and 123 live vehicles.
+
+- Show a cancellation whose advice is written as prose rather than as a list of trains. The first real one to arrive said to board a GO bus at Stratford GO calling at Kitchener and Guelph Central; nothing plannable can be read out of that without inventing stations, so the sentence is carried whole. Returning nothing for it would have left a live disruption reading as though nothing were published.
+
 - Give every release its dim sum code name and the photo that goes with it. The workflow had no code-name step at all, so every release so far carried a version and nothing beside it. The picker walks the public catalog, skips every dish this project has already used by reading its own release bodies, checks the photo is genuinely published, verifies its PNG signature and attaches it. A code name can never block a release: when none can be resolved the step warns and the notes carry the version alone.
 
 - Add a journey smoke test across Toronto and the wider region, and teach it the difference between a corridor with no departure at this hour and a planner that is down. Those look the same to a rider and must not look the same here.

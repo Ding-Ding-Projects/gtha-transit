@@ -17,7 +17,9 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Integrate or retire every outstanding branch and reduce the repository to one `main` locally and remotely, after archiving it.
 - [ ] Verify the block chain and the GO cancellation planner in the built interface with real captures. The race draw is captured; the block-chained vehicle card is not, because the planner combobox resisted three scripted attempts.
 - [x] Wire the dim-sum release code name and photo into the release workflow. It had never been wired at all rather than being exhausted; v0.1.0-96.1 is the first release to carry one.
-- [ ] Restore an accepted Metrolinx credential on the deploy host. GO and UP alerts and vehicle positions are all refused, so those agencies show zero live coverage.
+- [x] Fix the Metrolinx feeds. The credential was never the problem: the GO paths were missing `.proto`
+      and answered 200 with JSON, and the credential file was unreadable to a container that drops every
+      capability. GO now reports 39 alerts and 123 live vehicles, UP is live.
 - [x] Narrow the alerts shown beside a journey leg. Station facility notices now appear only where the leg calls at that station, service and facility notices are labelled distinctly, and every match renders. Verified on the deployed build at 9b4b8a2 with a real Line 5 journey.
 - [x] Show the declared GO super express badge on branches 12B, 16, 25C, 47D, 56A and 88C. Verified on the deployed build at bad8a32 with real 12B and 16 journeys, a TTC negative control, and 320px light and dark measurements. The route picker and tracker do not carry it yet.
 - [x] Identify a bus by position when the operator publishes no matching trip identifier, and name the closest vehicle before a departure starts. Verified on the deployed build across ten corridors. The measured cause is recorded in docs/vehicles/trip-identifiers.md.
