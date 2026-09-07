@@ -1,5 +1,64 @@
 # Implementation handoff
 
+## Preservation closeout, 7 September 2026
+
+Requested early, with allowance remaining. Everything in flight is committed and
+on the hui at `e03ca1c81c738e7e2534835e1f3c3666990f96b1`; the tree is clean, local
+and remote agree, and there are no worktrees or stashes.
+
+### What landed in this pass
+
+- **A Material Design 3 token layer**, generated from the project's own teal and
+  lime. 34 colour roles per theme, a type scale, a shape scale, six elevation
+  levels, state layers and motion. Contrast is enforced by the generator: 16 text
+  pairs in both themes, all at or above 4.5:1, and a failure stops the build.
+  Tones are solved in OKLCH rather than HCT and the difference is written down.
+- **Navigation rebuilt from scratch**: four destinations and a More, an 80px rail
+  on desktop and a bottom bar on mobile, one list feeding both.
+- **The composer decluttered** from eighteen stacked controls to four plus two
+  disclosures whose summaries say what is set inside them.
+- **A minimum target size as a system rule**, including the map library's own
+  controls, with the inline-link exemption named and reasoned.
+- **A per-click interaction ledger**: 37 clicks over ten surfaces from a
+  hand-written inventory, one capture after each, all passing, no console
+  exceptions, every row bound to commit, artifact hash, viewport, scale, theme,
+  expected and observed state, and a privacy verdict.
+
+### Verified
+
+162 screens against the deployed public build - nine destinations, three widths,
+three languages, both themes - with no undersized targets, no unnamed controls, no
+clipped text and no horizontal overflow. Release `v0.1.0-108.1`, code name
+`Crab Roe Siu Mai · 蟹籽燒賣`, targeting `72b218c5`, CI green.
+
+### Cleanup
+
+The repository had nothing to delete: one `main` locally and remotely, no
+worktrees, no stashes. What was removed was task-owned deploy residue after the
+whole repository was archived to OneDrive and the archive read back and verified
+(900 entries, 528 under refs/logs/objects, 5,389,330 bytes):
+
+| | Before | After |
+| --- | ---: | ---: |
+| Build directories on the deploy host | 1 | 0 |
+| Release tarballs | 48 | 3 |
+| `gtha-transit-*` images | 85 | 2 (both running) |
+| Host disk used | 47,195M | 46,091M |
+| Session scratch on the workstation | 625M | 55M |
+
+### Still open
+
+- **The deep per-surface feature audit** was not built. The interaction ledger
+  covers what a person can press; it does not enumerate every canonical feature
+  against implementation, documentation, localised copy, test and capture.
+- **The ledger runs at one tuple** - 1440px, light, 100%. It is parameterised for
+  width, scale and theme, so the remaining tuples are a matter of running it.
+- **Lint sits at 133 findings**, up two from the session baseline; both additions
+  are the `react-compiler` class already pervasive in this codebase.
+- **The routing host still carries a leftover `backend-api-1`** that fails on a
+  port conflict because that service moved during co-location, and OTP's realtime
+  updaters resolve it by name and log `UnknownHostException: api`.
+
 ## Outage, 7 September 2026
 
 **OpenTripPlanner on the routing host was stopped for about seven hours** and the
