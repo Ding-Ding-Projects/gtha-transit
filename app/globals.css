@@ -443,6 +443,101 @@ select {
   font-size: 12px;
   padding: 9px 5px;
 }
+/* The when row.
+
+   Most trips are "now", so the date, time, mode and preset controls sit behind a
+   row that already answers the question they exist to set. It uses the same
+   anatomy as the options group below, because two disclosures that behave
+   differently are two things to learn rather than one. */
+.trip-when {
+  margin: 4px 0 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-low);
+  overflow: hidden;
+}
+.trip-when > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font: var(--md-sys-typescale-label-large);
+  color: var(--md-sys-color-on-surface);
+  list-style: none;
+}
+.trip-when > summary::-webkit-details-marker { display: none; }
+.trip-when > summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.trip-when > summary:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
+.trip-when__label { flex: none; }
+.trip-when__summary {
+  flex: 1;
+  min-width: 0;
+  font: var(--md-sys-typescale-body-medium);
+  color: var(--md-sys-color-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.trip-when > summary > svg:last-child { flex: none; transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard); }
+.trip-when[open] > summary > svg:last-child { transform: rotate(90deg); }
+.trip-when[open] > summary { border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.trip-when > .journey-time { margin: 0; padding: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .trip-when > summary > svg:last-child { transition: none; }
+}
+
+/* One options group, not three stacked disclosures.
+
+   Its summary carries a live description of what is set inside, so the panel only
+   has to be opened to change something rather than to find out what it holds. A
+   closed disclosure that tells you nothing is just a hidden control. */
+.trip-options {
+  margin: 16px 0 20px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-low);
+  overflow: hidden;
+}
+.trip-options > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font: var(--md-sys-typescale-label-large);
+  color: var(--md-sys-color-on-surface);
+  list-style: none;
+}
+.trip-options > summary::-webkit-details-marker { display: none; }
+.trip-options > summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.trip-options > summary:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
+.trip-options__label { flex: none; }
+.trip-options__summary {
+  flex: 1;
+  min-width: 0;
+  font: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.trip-options > summary > svg:last-child { flex: none; transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard); }
+.trip-options[open] > summary > svg:last-child { transform: rotate(90deg); }
+.trip-options[open] > summary { border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.trip-options__body { padding: 4px 16px 16px; display: grid; gap: 4px; }
+/* The panels inside are grouped by the wrapper, so they drop their own boxes
+   rather than nesting three borders deep. */
+.trip-options__body > .options,
+.trip-options__body > .journey-division-options { border: 0; margin: 0; padding: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .trip-options > summary > svg:last-child { transition: none; }
+}
+
 .options {
   border-bottom: 1px solid var(--border);
   margin: 14px 0 22px;

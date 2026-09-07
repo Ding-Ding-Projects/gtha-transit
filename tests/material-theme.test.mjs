@@ -1,0 +1,124 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { contrastReport } from '../scripts/design/build-material-theme.mjs';
+
+/**
+ * The design system, and the guards that keep it one.
+ *
+ * Before this the interface had no system underneath it: seventeen corner radii,
+ * eighteen font sizes and four shadows, each invented by whichever component
+ * needed one, and no Material tokens at all. These assertions exist so that
+ * cannot quietly happen again - a component that needs a value it cannot find in
+ * a scale is a component that will invent one.
+ */
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '..');
+const theme = readFileSync(path.join(root, 'app', 'material-theme.css'), 'utf8');
+const shell = readFileSync(path.join(root, 'app', 'shell.css'), 'utf8');
+const workspace = readFileSync(path.join(root, 'app', 'workspace.css'), 'utf8');
+const layout = readFileSync(path.join(root, 'app', 'layout.tsx'), 'utf8');
+const navigation = readFileSync(path.join(root, 'components', 'workspace-navigation.tsx'), 'utf8');
+
+/** The roles anything drawn on this interface is allowed to use. */
+const REQUIRED_ROLES = [
+  'primary', 'on-primary', 'primary-container', 'on-primary-container',
+  'secondary', 'on-secondary', 'secondary-container', 'on-secondary-container',
+  'tertiary', 'on-tertiary', 'tertiary-container', 'on-tertiary-container',
+  'error', 'on-error', 'error-container', 'on-error-container',
+  'surface', 'on-surface', 'surface-variant', 'on-surface-variant',
+  'surface-container-lowest', 'surface-container-low', 'surface-container',
+  'surface-container-high', 'surface-container-highest',
+  'inverse-surface', 'inverse-on-surface', 'inverse-primary',
+  'outline', 'outline-variant', 'scrim', 'shadow',
+];
+
+test('every colour role exists in both themes', () => {
+  const light = theme.slice(theme.indexOf(':root'), theme.indexOf("html[data-theme='dark']"));
+  const dark = theme.slice(theme.indexOf("html[data-theme='dark']"));
+  for (const role of REQUIRED_ROLES) {
+    assert.match(light, new RegExp(`--md-sys-color-${role}:\\s*#[0-9a-f]{6};`), `light is missing ${role}`);
+    assert.match(dark, new RegExp(`--md-sys-color-${role}:\\s*#[0-9a-f]{6};`), `dark is missing ${role}`);
+  }
+});
+
+test('every text pair meets the 4.5:1 minimum in both themes', () => {
+  assert.deepEqual(contrastReport(), [], 'a theme nobody can read is not a theme');
+});
+
+test('the type, shape, elevation, state and motion scales are all present', () => {
+  for (const size of ['display-large', 'headline-small', 'title-medium', 'body-medium', 'label-large', 'label-medium']) {
+    assert.match(theme, new RegExp(`--md-sys-typescale-${size}:`), `missing type step ${size}`);
+  }
+  for (const corner of ['none', 'extra-small', 'small', 'medium', 'large', 'extra-large', 'full']) {
+    assert.match(theme, new RegExp(`--md-sys-shape-corner-${corner}:`), `missing shape step ${corner}`);
+  }
+  for (let level = 0; level <= 5; level += 1) {
+    assert.match(theme, new RegExp(`--md-sys-elevation-level${level}:`), `missing elevation level ${level}`);
+  }
+  assert.match(theme, /--md-sys-state-hover-opacity:/);
+  assert.match(theme, /--md-sys-motion-easing-standard:/);
+});
+
+test('the legacy names still resolve, so an untouched rule still reads the system', () => {
+  // Without this every rule would have to be rewritten in one commit to gain
+  // anything. With it there is one source of truth either way.
+  for (const legacy of ['--bg', '--surface', '--surface2', '--text', '--muted', '--border', '--primary', '--shadow']) {
+    assert.match(theme, new RegExp(`\\${legacy}: var\\(--md-sys-`), `${legacy} must map onto a role`);
+  }
+});
+
+test('nothing outside the generated theme hard-codes the palette', () => {
+  // The shell describes a navigation surface that is brand ink rather than a
+  // role, and says so. Everything else reads a token.
+  const hexes = [...shell.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((match) => match[0]);
+  assert.deepEqual(hexes, [], 'the shell must not name a colour directly');
+  const workspaceHexes = [...workspace.matchAll(/--(?:bg|surface2?|text|muted|border|primary):\s*#/g)];
+  assert.deepEqual(workspaceHexes.map((m) => m[0]), [], 'the palette lives in the generated theme');
+});
+
+test('the generated theme is committed exactly as the generator produces it', () => {
+  // A hand-edited generated file drifts from its source the moment anyone runs
+  // the generator again, and the edit is lost without a word.
+  execFileSync(process.execPath, [path.join(root, 'scripts', 'design', 'build-material-theme.mjs'), '--check'], { cwd: root });
+});
+
+test('the design system loads before every stylesheet that reads it', () => {
+  const themeAt = layout.indexOf("import './material-theme.css'");
+  assert.ok(themeAt >= 0, 'the theme must be imported');
+  for (const sheet of ['globals.css', 'workspace.css', 'shell.css']) {
+    assert.ok(themeAt < layout.indexOf(`import './${sheet}'`), `${sheet} must load after the theme`);
+  }
+  // The shell owns the navigation, so it wins over anything older.
+  assert.ok(layout.indexOf("import './shell.css'") > layout.indexOf("import './workspace.css'"));
+});
+
+test('navigation carries four destinations and a More, in one list', () => {
+  const primary = navigation.slice(navigation.indexOf('const primary'), navigation.indexOf('const secondary'));
+  const ids = [...primary.matchAll(/id: '([a-z]+)'/g)].map((match) => match[1]);
+  assert.deepEqual(ids, ['plan', 'status', 'vehicles', 'saved'], 'four destinations earn a permanent place');
+  assert.match(navigation, /aria-haspopup="dialog"/, 'the rest live behind one More target');
+  // One list feeding both the rail and the bar, so they cannot drift apart.
+  assert.equal(navigation.match(/const primary = \[/g)?.length, 1);
+});
+
+test('the rail is the Material width, and the bar appears below the Material breakpoint', () => {
+  assert.match(shell, /@media \(min-width: 905px\)/, 'the rail appears at the medium window class');
+  assert.match(shell, /--workspace-rail: 80px/, 'the rail is 80px, not the old 216px');
+  assert.match(shell, /@media \(max-width: 904px\)/, 'below it the destinations move to a bottom bar');
+  assert.match(shell, /padding-bottom: env\(safe-area-inset-bottom/, 'the bar clears the home indicator');
+  assert.match(shell, /prefers-reduced-motion/, 'the indicator transition is opt-out');
+});
+
+test('no rule from the replaced navigation survives', () => {
+  // A scratch redesign that leaves the old rules in place is two navigations
+  // fighting over specificity, which is how the bar collapsed to one pixel.
+  for (const dead of ['transit-navigation', 'navigation-caption', 'navigation-footer', 'nav-primary', 'nav-secondary']) {
+    assert.ok(!workspace.includes(dead), `workspace.css still carries ${dead}`);
+    assert.ok(!navigation.includes(dead), `the component still carries ${dead}`);
+  }
+});

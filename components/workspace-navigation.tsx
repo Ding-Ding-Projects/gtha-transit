@@ -3,7 +3,23 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, Bookmark, BusFront, ChartNoAxesCombined, CircleHelp, Flag, History, Menu, Moon, Route, Settings, Sun, TrainFront, X } from 'lucide-react';
+import {
+  ArrowUpRight, Bookmark, BusFront, ChartNoAxesCombined, CircleHelp, Flag, History,
+  Menu, Moon, Route, Settings, Sun, TrainFront, X,
+} from 'lucide-react';
+
+/**
+ * Navigation: a rail on desktop, a bar on mobile, four destinations either way.
+ *
+ * Nine destinations in one list meant nine things to read before choosing one,
+ * and the three that matter were buried among six that do not. Four are primary
+ * because four is what people actually reach for; the rest live behind More,
+ * which is one target rather than six.
+ *
+ * The rail and the bar are the same component and the same list. Two navigations
+ * that drift apart is the failure this avoids: a destination added here appears
+ * in both, or in neither.
+ */
 
 type Props = {
   active: string;
@@ -17,51 +33,114 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
   const [moreOpen, setMoreOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
-  const destinations = [
-    { id: 'plan', label: t('Plan a trip', '規劃行程'), icon: Route, primary: true },
-    { id: 'vehicles', label: t('Vehicles', '車輛'), icon: BusFront, primary: true },
-    { id: 'status', label: t('Live TTC', '即時 TTC'), icon: TrainFront, primary: true },
+
+  /** The four that earn a permanent place, and everything else. */
+  const primary = [
+    { id: 'plan', label: t('Plan', '規劃'), icon: Route },
+    { id: 'status', label: t('Live', '即時'), icon: TrainFront },
+    { id: 'vehicles', label: t('Vehicles', '車輛'), icon: BusFront },
+    { id: 'saved', label: t('Saved', '已儲存'), icon: Bookmark },
+  ];
+  const secondary = [
     { id: 'race', label: t('Race', '比賽'), icon: Flag },
     { id: 'divisions', label: t('Out of division', '跨車廠'), icon: ChartNoAxesCombined },
     { id: 'history', label: t('History', '歷史'), icon: History },
-    { id: 'saved', label: t('Saved trips', '已儲存行程'), icon: Bookmark },
     { id: 'coverage', label: t('Our region', '服務範圍'), icon: CircleHelp },
     { id: 'settings', label: t('Settings', '設定'), icon: Settings },
   ];
-  useEffect(() => {
-    if (moreOpen) dialog.current?.showModal();
-  }, [moreOpen]);
+  const inMore = secondary.some((item) => item.id === active);
+
+  useEffect(() => { if (moreOpen) dialog.current?.showModal(); }, [moreOpen]);
   const closeMore = () => { dialog.current?.close(); setMoreOpen(false); moreButton.current?.focus(); };
   const navigate = (id: string) => {
     if (moreOpen) closeMore();
     onChange(id);
     requestAnimationFrame(() => document.getElementById('workspace-heading')?.focus());
   };
+
+  /**
+   * One destination target.
+   *
+   * The active indicator is a shape behind the icon rather than a colour change
+   * alone, so which destination is current does not depend on seeing a hue.
+   */
+  const destination = ({ id, label, icon: Icon }: { id: string; label: string; icon: typeof Route }) => (
+    <button
+      key={id}
+      type="button"
+      className={`m3-nav__item${active === id ? ' is-active' : ''}`}
+      onClick={() => navigate(id)}
+      aria-current={active === id ? 'page' : undefined}
+    >
+      <span className="m3-nav__indicator">
+        <Icon size={22} aria-hidden="true" />
+        {id === 'status' && <span className="m3-nav__badge" aria-hidden="true" />}
+      </span>
+      <span className="m3-nav__label">{label}</span>
+    </button>
+  );
+
   return <>
-    <header className="topbar transit-navigation">
-      <Link href="/" className="brand" aria-label="GTHA Transit">
-        <Image unoptimized src="/logo.svg" alt="" width={40} height={40} />
-        <span>GTHA<span className="brand-light">transit</span><small>{t('A CONNECTED REGION', '連繫整個地區')}</small></span>
+    <header className="m3-nav" aria-label={t('Main navigation', '主要導覽')}>
+      <Link href="/" className="m3-nav__brand" aria-label="GTHA Transit">
+        <Image unoptimized src="/logo.svg" alt="" width={36} height={36} />
+        <span className="m3-nav__brand-text">GTHA<span className="brand-light">transit</span></span>
       </Link>
-      <span className="navigation-caption">{t('YOUR WORKSPACE', '你嘅工作區')}</span>
-      <nav aria-label={t('Main navigation', '主要導覽')}>
-        {destinations.map(({ id, label, icon: Icon, primary }) => <button key={id} type="button" className={`${active === id ? 'active ' : ''}${primary ? 'nav-primary' : 'nav-secondary'}`} onClick={() => navigate(id)} aria-current={active === id ? 'page' : undefined}>
-          <Icon size={21} aria-hidden="true" /><span>{label}</span>{id === 'status' && <span className="live-dot" aria-hidden="true" />}
-        </button>)}
-        <button ref={moreButton} type="button" className={`nav-more ${!destinations.find(item => item.id === active)?.primary ? 'active' : ''}`} aria-haspopup="dialog" aria-expanded={moreOpen} onClick={() => setMoreOpen(true)}><Menu size={21} aria-hidden="true" /><span>{t('More', '更多')}</span></button>
+
+      <nav className="m3-nav__items" aria-label={t('Destinations', '目的地')}>
+        {primary.map(destination)}
+        <button
+          ref={moreButton}
+          type="button"
+          className={`m3-nav__item${inMore ? ' is-active' : ''}`}
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen(true)}
+        >
+          <span className="m3-nav__indicator"><Menu size={22} aria-hidden="true" /></span>
+          <span className="m3-nav__label">{t('More', '更多')}</span>
+        </button>
       </nav>
-      <div className="navigation-footer">
-        <p>{t('One region. Every connection.', '一個地區，接通每一程。')}</p>
-        <a href="https://github.com/Ding-Ding-Projects/gtha-transit" target="_blank" rel="noreferrer">{t('Independent & open source', '獨立開源')}<ArrowUpRight size={14} aria-hidden="true" /></a>
-      </div>
-      <div className="header-actions">
-        <button type="button" className="icon-button" onClick={onTheme} aria-label={t('Switch colour theme', '切換色彩主題')}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
-        <span>{dark ? t('Dark appearance', '深色外觀') : t('Light appearance', '淺色外觀')}</span>
+
+      <div className="m3-nav__tail">
+        <button
+          type="button"
+          className="m3-nav__theme"
+          onClick={onTheme}
+          aria-label={dark ? t('Switch to light appearance', '切換淺色外觀') : t('Switch to dark appearance', '切換深色外觀')}
+        >
+          {dark ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
+        </button>
       </div>
     </header>
-    {moreOpen && <dialog ref={dialog} className="navigation-dialog" aria-label={t('More destinations', '更多目的地')} onCancel={closeMore} onClose={() => setMoreOpen(false)}>
-      <header><div><span className="eyebrow">GTHA TRANSIT</span><h2>{t('Your workspace', '你嘅工作區')}</h2></div><button type="button" className="icon-button" aria-label={t('Close navigation', '關閉導覽')} onClick={closeMore}><X size={20} /></button></header>
-      <div className="navigation-destinations">{destinations.filter(item => !item.primary).map(({ id, label, icon: Icon }) => <button type="button" key={id} aria-current={active === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={22} aria-hidden="true" /><span>{label}</span><ArrowUpRight size={17} aria-hidden="true" /></button>)}</div>
-    </dialog>}
+
+    <dialog ref={dialog} className="m3-more" onClose={() => setMoreOpen(false)} aria-label={t('More destinations', '更多目的地')}>
+      <div className="m3-more__head">
+        <h2>{t('More', '更多')}</h2>
+        <button type="button" className="m3-more__close" onClick={closeMore} aria-label={t('Close', '關閉')}>
+          <X size={20} aria-hidden="true" />
+        </button>
+      </div>
+      <div className="m3-more__items">
+        {secondary.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`m3-more__item${active === id ? ' is-active' : ''}`}
+            onClick={() => navigate(id)}
+            aria-current={active === id ? 'page' : undefined}
+          >
+            <Icon size={20} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="m3-more__foot">
+        <p>{t('One region. Every connection.', '一個地區，接通每一程。')}</p>
+        <a href="https://github.com/Ding-Ding-Projects/gtha-transit" target="_blank" rel="noreferrer">
+          {t('Independent & open source', '獨立開源')}<ArrowUpRight size={14} aria-hidden="true" />
+        </a>
+      </div>
+    </dialog>
   </>;
 }

@@ -25,6 +25,7 @@ import {
   Accessibility,
   ExternalLink,
   Info,
+  CalendarDays,
 } from 'lucide-react';
 import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
@@ -347,6 +348,22 @@ export default function Home() {
     },
     [lang, funEn, funZh],
   );
+  /**
+   * What the collapsed time row says.
+   *
+   * An empty value means the planner will use the current moment, and saying
+   * "Now" is more honest than showing a blank where a date should be. A chosen
+   * time is shown as the operator's own local day and clock.
+   */
+  const whenSummary = (() => {
+    if (!when) return t('Now', '而家');
+    const at = Date.parse(travelTime.instant || when);
+    if (!Number.isFinite(at)) return when;
+    return new Intl.DateTimeFormat(lang === 'zh' ? 'zh-HK' : 'en-CA', {
+      timeZone: 'America/Toronto', weekday: 'short', day: 'numeric', month: 'short',
+      hour: 'numeric', minute: '2-digit', hour12: false,
+    }).format(new Date(at));
+  })();
   const translate = t;
   const narrate = (category: string, en: string, zh: string, critical = false) =>
     narrator.announce({ category, en: copyAt(en, 'en', funEn), zh: copyAt(zh, 'zh', funZh), critical });
@@ -903,14 +920,34 @@ export default function Home() {
               <LocateFixed size={16} />
               {t('Use my location', '使用目前位置')}
             </button>
-            <JourneyTimeControls value={when} instant={travelTime.instant} arriveBy={arriveBy}
-              onChange={setWhen} onModeChange={setArriveBy} t={t} />
-            <details className="options">
+            {/* Most trips are "now", so the whole date and time block sits behind a
+                row that already says when you are leaving. Opening it is for the
+                trips that are not now. */}
+            <details className="trip-when">
               <summary>
-                <Settings size={16} />
-                {t('Journey preferences', '行程偏好')}
-                <ChevronRight size={16} />
+                <CalendarDays size={16} aria-hidden="true" />
+                <span className="trip-when__label">{arriveBy ? t('Arrive by', '到達時間') : t('Leaving', '出發時間')}</span>
+                <span className="trip-when__summary">{whenSummary}</span>
+                <ChevronRight size={16} aria-hidden="true" />
               </summary>
+              <JourneyTimeControls value={when} instant={travelTime.instant} arriveBy={arriveBy}
+                onChange={setWhen} onModeChange={setArriveBy} t={t} />
+            </details>
+            {/* One place for everything that is not from, to and when. The summary
+                says what is set inside it, so nobody has to open it to find out. */}
+            <details className="trip-options">
+              <summary>
+                <Settings size={16} aria-hidden="true" />
+                <span className="trip-options__label">{t('Trip options', '行程選項')}</span>
+                <span className="trip-options__summary">{[
+                  preference === 'fastest' ? t('Fastest', '最快') : preference === 'transfers' ? t('Fewer transfers', '少轉車') : preference === 'walking' ? t('Less walking', '少步行') : t('Less waiting', '少等候'),
+                  ...(wheelchair ? [t('Step-free', '無障礙')] : []),
+                  ...(requiredRoute ? [t('Required route', '必經路線')] : []),
+                  ...(preferDivision ? [t('Garage preference', '車廠偏好')] : []),
+                ].join(' · ')}</span>
+                <ChevronRight size={16} aria-hidden="true" />
+              </summary>
+              <div className="trip-options__body">
               <section className="required-route-control" aria-label={t('Include a route in this trip', '行程必須包括路線')}>
                 <h3>{t('A route you want to ride', '你想乘搭嘅路線')}</h3>
                 <p className="data-note">{t('Take a detour to actually ride this route. Connections may take longer. Results must include a transit leg on your selected route.', '繞路實際乘搭此路線，接駁可能較長。結果必須包括所選路線嘅乘車路段。')}</p>
@@ -969,13 +1006,14 @@ export default function Home() {
                   '無障礙資料視乎供應來源，未必包括升降機狀況或未通報障礙。',
                 )}
               </small>
-            </details>
             <JourneyVehiclePreferencesPanel criteria={vehicleCriteria} options={vehicleOptions} verifiedFleetFacts={[...TTC_FLEET_RANGES, ...Object.values(OTHER_FLEET_RANGES).flat()]} excludedCount={vehicleResult.excluded.length} onCriteriaChange={setVehicleCriteria} onOptionsChange={setVehicleOptions} t={t} />
             <details className="journey-division-options">
               <summary><TrainFront size={16} aria-hidden="true" />{t('TTC garage preference', 'TTC 車廠偏好')}{preferDivision ? t(' · Active', ' · 已啟用') : ''}</summary>
               <label className="journey-division-choice"><input type="checkbox" checked={preferDivision} onChange={event => setPreferDivision(event.target.checked)} /><span><strong>{t('Prefer out-of-division vehicles', '優先乘搭跨車廠車輛')}</strong><small>{t('Promote current TTC opportunities while keeping every unconfirmed option available. Choose which evidence to use below.', '優先顯示目前 TTC 乘車機會，同時保留所有未確認行程。請在下方選擇資料依據。')}</small></span></label>
               {preferDivision && <fieldset className="journey-division-modes"><legend>{t('Preference evidence', '偏好資料依據')}</legend><button type="button" className="pill" aria-pressed={divisionMode === 'route'} onClick={() => setDivisionMode('route')}>{t('Current route observations', '目前路線觀察')}</button><button type="button" className="pill" aria-pressed={divisionMode === 'exact'} onClick={() => setDivisionMode('exact')}>{t('Exact assigned trip', '確實編配班次')}</button><p className="data-note">{divisionMode === 'route' ? t('A route currently reports an out-of-division vehicle. This does not identify the vehicle for your departure. Observations expire automatically.', '路線目前通報有跨車廠車輛，但未能確認你班次嘅車輛。觀察資料會自動過期。') : t('Requires a fresh, exact vehicle assignment for your trip. Assignments can change before boarding.', '需要你班次嘅最新精確車輛編配。上車前編配可能改變。')}</p></fieldset>}
               {preferDivision && planned && <p className="data-note" role="status">{divisionResult.matched ? t(`${divisionResult.matched} options have verified out-of-division evidence.`, `${divisionResult.matched} 個行程有已核實跨車廠資料。`) : t('No returned option has verified out-of-division evidence. The existing options remain in order.', '返回嘅行程未有已核實跨車廠資料。現有選項保持次序。')}</p>}
+            </details>
+              </div>
             </details>
             <button className="primary" disabled={loading} type="submit">
               {loading ? (

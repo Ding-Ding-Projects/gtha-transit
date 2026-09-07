@@ -1,0 +1,180 @@
+/* The shell: a Material navigation rail on desktop, a navigation bar on mobile.
+
+   This replaces a 216px list of nine destinations. The rail is 80px, which is
+   the Material width and gives the content back 136px; the four destinations
+   that earned a permanent place sit in it, and the rest are one target away.
+
+   Everything here reads a design-system role. Nothing in this file names a
+   colour, a radius or a font size directly. */
+
+.m3-nav {
+  position: fixed;
+  z-index: 1400;
+  background: var(--nav-bg);
+  color: var(--nav-text);
+  display: flex;
+  border: 0;
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------- desktop -- */
+/* Material's own breakpoint: the rail appears at the medium window class. */
+@media (min-width: 905px) {
+  :root { --workspace-rail: 80px; }
+  .m3-nav {
+    inset: 0 auto 0 0;
+    width: var(--workspace-rail);
+    height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 16px;
+    gap: 8px;
+  }
+  .m3-nav__brand { margin-bottom: 12px; }
+  .m3-nav__brand-text { display: none; }
+  .m3-nav__items { flex-direction: column; gap: 4px; width: 100%; }
+  .m3-nav__tail { margin-top: auto; }
+}
+
+/* ----------------------------------------------------------------- mobile -- */
+/* Below the rail breakpoint the destinations move to the bottom, where a thumb
+   reaches them, and the brand moves to a slim top bar. */
+@media (max-width: 904px) {
+  :root { --workspace-rail: 0px; }
+  .m3-nav {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    border-top: 1px solid color-mix(in srgb, var(--nav-text) 14%, transparent);
+  }
+  /* The brand belongs at the top of the page, not in a thumb bar. */
+  .m3-nav__brand { position: fixed; inset: 0 auto auto 0; height: 56px; padding: 0 16px; display: flex; align-items: center; gap: 10px; background: var(--nav-bg); width: 100%; z-index: 1; }
+  .m3-nav__items { flex: 1; justify-content: space-around; }
+  .m3-nav__tail { position: fixed; inset: 8px 8px auto auto; z-index: 2; }
+  .m3-nav__label { font: var(--md-sys-typescale-label-medium); }
+}
+
+/* ------------------------------------------------------------------ parts -- */
+
+.m3-nav__brand { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; border-radius: var(--md-sys-shape-corner-medium); }
+.m3-nav__brand:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: 3px; }
+.m3-nav__brand-text { font: var(--md-sys-typescale-title-medium); letter-spacing: -.3px; }
+.m3-nav__brand-text .brand-light { font-weight: 400; margin-left: 4px; }
+
+.m3-nav__items { display: flex; }
+
+/* One destination. Icon in an indicator, label beneath it, whole thing a target. */
+.m3-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 10px;
+  min-width: 56px;
+  min-height: 56px;
+  flex: 1 1 auto;
+  border: 0;
+  background: none;
+  color: var(--nav-muted);
+  cursor: pointer;
+}
+.m3-nav__item:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: -3px; border-radius: var(--md-sys-shape-corner-medium); }
+
+/* The active indicator is a shape, so the current destination does not depend on
+   seeing a colour. */
+.m3-nav__indicator {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  transition: background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+.m3-nav__item:hover .m3-nav__indicator { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.m3-nav__item.is-active { color: var(--nav-text); }
+.m3-nav__item.is-active .m3-nav__indicator { background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+.m3-nav__label { font: var(--md-sys-typescale-label-medium); text-align: center; }
+
+/* A live feed has something to say. It is a dot beside an icon that already has
+   a text label, never the only thing carrying the meaning. */
+.m3-nav__badge {
+  position: absolute;
+  top: 2px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-tertiary-container);
+  outline: 2px solid var(--nav-bg);
+}
+.m3-nav__item.is-active .m3-nav__badge { background: var(--md-sys-color-on-tertiary-container); }
+
+.m3-nav__theme {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--nav-muted);
+  cursor: pointer;
+}
+.m3-nav__theme:hover { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); color: var(--nav-text); }
+.m3-nav__theme:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------- more -- */
+
+.m3-more {
+  border: 0;
+  padding: 0;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(640px, calc(100dvh - 64px));
+  overflow: auto;
+}
+.m3-more::backdrop { background: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent); }
+.m3-more__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 20px 8px; }
+.m3-more__head h2 { margin: 0; font: var(--md-sys-typescale-headline-small); }
+.m3-more__close {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: var(--md-sys-shape-corner-full);
+  background: none; color: var(--md-sys-color-on-surface-variant); cursor: pointer;
+}
+.m3-more__close:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.m3-more__close:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.m3-more__items { display: grid; gap: 4px; padding: 4px 12px 12px; }
+.m3-more__item {
+  display: flex; align-items: center; gap: 16px;
+  min-height: 56px; padding: 8px 16px;
+  border: 0; border-radius: var(--md-sys-shape-corner-full);
+  background: none; color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large); text-align: left; cursor: pointer;
+}
+.m3-more__item:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.m3-more__item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
+.m3-more__item.is-active { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+.m3-more__foot { padding: 8px 20px 20px; display: grid; gap: 6px; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.m3-more__foot p { margin: 0; }
+.m3-more__foot a { display: inline-flex; align-items: center; gap: 4px; color: var(--md-sys-color-primary); }
+
+/* ------------------------------------------------------------------ shell -- */
+
+.shell { padding-left: var(--workspace-rail); }
+@media (max-width: 904px) {
+  /* Room for the top brand bar and the bottom destination bar. */
+  .shell { padding-top: 56px; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m3-nav__indicator { transition: none; }
+}

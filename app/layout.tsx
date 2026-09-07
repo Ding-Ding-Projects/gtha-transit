@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+// The design system loads first, so every stylesheet after it reads from the
+// same roles rather than from a colour somebody typed in.
+import './material-theme.css';
 import './globals.css';
 import './map-controls.css';
 import './transit-interface.css';
@@ -6,6 +9,8 @@ import './workspace.css';
 import './settings-workspace.css';
 import './journey-time.css';
 import './vehicle-preferences.css';
+// The shell loads last so its navigation rules win over the old workspace ones.
+import './shell.css';
 export const metadata: Metadata = {
   title: 'GTHA Transit | Your next connection',
   description:

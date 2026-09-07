@@ -2,6 +2,14 @@
 
 ## 0.1.0, unreleased
 
+- Give the interface a design system. It had none: seventeen corner radii, eighteen font sizes, four shadows and no Material tokens, each value invented by whichever component needed one. There are now 34 colour roles per theme generated from the project's own teal and lime, a type scale, a shape scale, six elevation levels, state layers and motion tokens. Every text pair is contrast-checked at 4.5:1 in both themes and a failure stops the build. The legacy names map onto the roles, so a rule nobody has touched still renders from the system.
+
+- Rebuild navigation from scratch. Nine destinations in one list meant nine things to read before choosing one; four now earn a permanent place and the rest sit behind a single More. It is a Material navigation rail on desktop at the standard 80px, which gives the content back 136px, and a bottom bar on mobile where a thumb reaches it. One list feeds both, so they cannot drift apart, and the active indicator is a shape rather than a colour alone.
+
+- Collapse the trip composer. Eighteen stacked controls became four and two disclosures: the date, time, mode and presets sit behind a row that already says when you are leaving, and the journey, vehicle and garage panels became one options group whose summary says what is set inside it. A closed disclosure that tells you nothing is just a hidden control.
+
+- Stop the line-status strip wrapping into ragged rows. At a 130px basis every line name longer than one word broke across two lines. Names are data and cannot be shortened, so the row scrolls instead: five cards, one height, no wrapping, and no horizontal overflow at any width.
+
 - Build the web service as a container image in the release workflow and push it to the registry, so a host deploys by pulling rather than by rebuilding from a source tarball. The release notes carry the image digest, because a tag can be repointed later and a digest cannot. Only the web service is published: the routing API needs about 48 MB of generated stop, route and pattern indexes that this repository carries as placeholders, so a runner cannot build a working one, and an image that starts and answers nothing is worse than no image.
 
 - Read the Metrolinx feeds correctly. Every feed path carries `Gtfs.proto`; the GO paths asked for `Gtfs`, which is not a missing endpoint but a 200 answering with the same data as JSON, so the wrong URL failed as an unreadable payload and was reported as the operator refusing the request. The proxy now checks a body begins like a feed before caching it, so that mistake can never again wear another fault's clothes. Separately, a credential present but unreadable is no longer reported as absent. GO now reports 39 service alerts and 123 live vehicles.
