@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Stop bilingual mode truncating the answer. The when and options rows were clipping their value rather than their label, so "Mon, Sep 7, 13:00" read as "Mon, Sep 7, 1..."; the label is only context and now gives way first, and below 420px the two stack instead of competing. The line-status cards were clipping their status, which in bilingual is twice as long and fits no card width, so it wraps and the cards stretch to a common height. Across three languages and three widths there is now no clipped text in any surface this project owns.
+
 - Make a minimum target size a rule of the design system rather than a decision each component makes for itself. Chasing it control by control is how the interface came to have icon buttons at 36px, pills at 42px and map controls at 30px: each reasonable on its own, none of them big enough. Across 45 screens - nine destinations, three widths, both themes - there are now no undersized targets, no unnamed controls and no horizontal overflow.
 
 - Correct how that was being measured. Counting inline links as failures reported 52 on one screen where there were three; WCAG exempts a link whose height is set by the text around it, and "fixing" the other 49 would have been 49 wrong changes. Every exemption from the minimum is now a named selector with a written reason, because an exemption nobody reasoned about is a hole nobody decided on.

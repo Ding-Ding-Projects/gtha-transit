@@ -476,9 +476,14 @@ select {
 .trip-when > summary::-webkit-details-marker { display: none; }
 .trip-when > summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
 .trip-when > summary:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
-.trip-when__label { flex: none; }
+/* In bilingual mode the label is twice as long and was squeezing the value out of
+   the row, so "Mon, Sep 7, 13:00" became "Mon, Sep 7, 1...". The value is the
+   answer and the label is only context, so the label gives way first. */
+.trip-when__label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trip-when__summary {
-  flex: 1;
+  flex: 1 0 auto;
+  /* The value keeps its width; the label beside it gives way instead. */
+  flex: 1 0 auto;
   min-width: 0;
   font: var(--md-sys-typescale-body-medium);
   color: var(--md-sys-color-on-surface);
@@ -521,9 +526,14 @@ select {
 .trip-options > summary::-webkit-details-marker { display: none; }
 .trip-options > summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
 .trip-options > summary:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
-.trip-options__label { flex: none; }
+/* In bilingual mode the label is twice as long and was squeezing the value out of
+   the row, so "Mon, Sep 7, 13:00" became "Mon, Sep 7, 1...". The value is the
+   answer and the label is only context, so the label gives way first. */
+.trip-options__label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trip-options__summary {
-  flex: 1;
+  flex: 1 0 auto;
+  /* The value keeps its width; the label beside it gives way instead. */
+  flex: 1 0 auto;
   min-width: 0;
   font: var(--md-sys-typescale-body-small);
   color: var(--md-sys-color-on-surface-variant);
@@ -2068,4 +2078,22 @@ select {
   height: 44px;
   line-height: 44px;
   font-size: 20px;
+}
+
+/* Below this the row cannot hold a bilingual label and its value side by side, so
+   they stack. Truncating the value would hide the answer the row exists to give. */
+@media (max-width: 420px) {
+  .trip-when > summary,
+  .trip-options > summary {
+    flex-wrap: wrap;
+    row-gap: 2px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .trip-when__summary,
+  .trip-options__summary {
+    flex: 1 1 100%;
+    order: 3;
+    text-align: left;
+  }
 }

@@ -93,12 +93,18 @@ html[data-theme='dark'] .primary { color: var(--bg); }
    this the five line cards add up to their own width and drag the whole page wider
    than the window, which reads as a broken layout rather than a scrollable rail. */
 .status-rail .mini-lines { min-width: 0; max-width: 100%; display: flex; flex: 1 1 100%; flex-wrap: nowrap; gap: 8px; margin: 0; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin; padding-bottom: 4px; }
-.status-rail .mini-lines button { display: flex; gap: 10px; align-items: center; border: 0; padding: 10px 12px; background: var(--md-sys-color-surface-container-high); border-radius: var(--md-sys-shape-corner-medium); min-height: 56px; flex: 0 0 auto; min-width: 208px; scroll-snap-align: start; }
+.status-rail .mini-lines button { display: flex; gap: 10px; align-items: center; border: 0; padding: 10px 12px; background: var(--md-sys-color-surface-container-high); border-radius: var(--md-sys-shape-corner-medium); min-height: 56px; flex: 0 0 auto; min-width: 232px; scroll-snap-align: start; }
 .status-rail .mini-lines button > span:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
 /* 208px because "Running - 11 facility notices" needs about 188px beside the line
    badge, and a status truncated to "Running - 1..." is a fact turned into noise.
    The rail scrolls, so width costs nothing but a little scrolling. */
-.status-rail .mini-lines button strong, .status-rail .mini-lines button small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+/* The name stays on one line, because a route name is short and recognisable at a
+   glance. The status wraps instead of truncating: in bilingual mode it is twice
+   as long and no card width holds it, and "Running - 1..." is a fact turned into
+   noise. Cards stretch to the tallest so the row still reads as a row. */
+.status-rail .mini-lines { align-items: stretch; }
+.status-rail .mini-lines button strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.status-rail .mini-lines button small { white-space: normal; display: block; line-height: 1.35; }
 .mini-lines button strong { font-size: 11px; }
 .mini-lines button small { font-size: 10px; }
 .status-rail .rail-link { width: auto; margin: 0; min-height: 44px; font-size: 11px; }

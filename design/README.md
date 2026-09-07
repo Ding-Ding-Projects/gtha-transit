@@ -86,16 +86,30 @@ proven page target.
 | --- | --- |
 | 9 destinations × 3 widths (320, 390, 1440) × 2 themes = 45 screens | 0 undersized targets, 0 unnamed controls, 0 horizontal overflow |
 | Display scales 100%, 150%, 200% at 1440 | no overflow, no new clipping |
+| 3 languages × 3 widths (320, 390, 1440) | 0 clipped text in our own surfaces |
 | Contrast, 16 text pairs × 2 themes | every pair at or above 4.5:1, enforced by the generator |
+
+## Bilingual, and what it changed
+
+Bilingual mode produces the longest strings and is where clipping appears first.
+Measuring it found two real problems and confirmed one non-problem:
+
+- The **when and options rows truncated their value** rather than their label, so
+  "Mon, Sep 7, 13:00" became "Mon, Sep 7, 1...". The value is the answer and the
+  label is only context, so the label gives way first now, and below 420px the two
+  stack rather than compete.
+- The **line-status cards truncated their status**. In bilingual it is twice as
+  long and no card width holds it, so the status wraps and the cards stretch to a
+  common height - 68px in bilingual, 56px otherwise.
+- The **navigation labels never clipped**, in any language or width, including
+  "Vehicles · 車輛".
 
 ## Not yet done
 
-- The results area is unchanged. The right column is empty until a trip is
-  planned, and that space should carry something.
-- Bilingual mode was not measured in this pass. It produces the longest labels,
-  so it is where clipping would appear first.
 - No per-click interaction ledger. Screens were audited and captured, not driven
   control by control.
+- The results area is where the next pass should go: on desktop the right column
+  is a map and then nothing until a journey is planned.
 
 Suggested articles: [interface verification](../docs/interface/ui-verification.md),
 [the journey smoke test](../docs/verification/journey-smoke-test.md).
