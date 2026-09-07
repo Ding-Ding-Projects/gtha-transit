@@ -122,3 +122,58 @@ test('no rule from the replaced navigation survives', () => {
     assert.ok(!navigation.includes(dead), `the component still carries ${dead}`);
   }
 });
+
+test('a minimum target size is a system rule, not a per-component decision', () => {
+  // Chasing this control by control is how the interface ended up with icon
+  // buttons at 36px, pills at 42px and map controls at 30px - each reasonable
+  // alone, none of them big enough.
+  assert.match(shell, /:where\(button, summary, select, \[role='button'\], \[role='tab'\]\) \{\s*min-height: 44px;\s*min-width: 44px;/);
+  assert.match(shell, /input:not\(\[type='checkbox'\]\)/, 'a text input is a target too');
+  assert.match(shell, /:where\(label\):has\(> :where\(input\[type='checkbox'\], input\[type='radio'\]\)\)/, 'the label around a checkbox is the real target');
+  assert.match(shell, /leaflet-bar a \{\s*width: 44px;/, 'a third-party default is not an exemption');
+  assert.match(shell, /is-inline-target/, 'a deliberately inline control can say so');
+});
+
+test('the target rule records why an inline link is exempt', () => {
+  // Measuring without the exemption reported 52 failures on one screen where
+  // there were three, and "fixing" the 49 would have been 49 wrong changes.
+  assert.match(shell, /WCAG 2\.5\.8/);
+  assert.match(shell, /inline link inside a sentence/);
+});
+
+/**
+ * Rules allowed to set a minimum below 44px, and why.
+ *
+ * A hand-written list, because a rule alone cannot tell a control from a label:
+ * it would pass on a file with no minimums at all, and fail on a badge that was
+ * never a target. Each entry is a decision someone made on purpose.
+ */
+const NOT_TARGETS = [
+  ['.route-picker-badge', 'a route badge is a label, not something you press'],
+];
+
+test('no stylesheet still sets an interactive minimum below 44px', () => {
+  // The 40px minimums were everywhere and each looked fine in isolation.
+  for (const [name, css] of [['globals', readFileSync(path.join(root, 'app', 'globals.css'), 'utf8')],
+                             ['workspace', workspace],
+                             ['shell', shell]]) {
+    const offenders = css.split(/\r?\n/)
+      .filter((line) => {
+        const match = /min-height:\s*(\d+)px/.exec(line);
+        if (!match) return false;
+        const value = Number(match[1]);
+        if (value < 24 || value >= 44) return false;
+        return !NOT_TARGETS.some(([selector]) => line.includes(selector));
+      })
+      .map((line) => line.trim().slice(0, 60));
+    assert.deepEqual(offenders, [], `${name}.css sets an interactive minimum below 44px`);
+  }
+});
+
+test('every exemption from the target minimum is named and reasoned', () => {
+  // An exemption nobody wrote a reason for is a hole nobody decided on.
+  for (const [selector, reason] of NOT_TARGETS) {
+    assert.ok(selector.startsWith('.'), 'an exemption names an exact selector');
+    assert.ok(reason.length > 20, `${selector} needs a reason, not a shrug`);
+  }
+});

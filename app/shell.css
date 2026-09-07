@@ -178,3 +178,41 @@
 @media (prefers-reduced-motion: reduce) {
   .m3-nav__indicator { transition: none; }
 }
+
+/* ---------------------------------------------------------------- targets -- */
+/* Every control is at least a fingertip.
+ *
+ * Chasing this control by control is how the interface ended up with icon
+ * buttons at 36px, pills at 42px and map controls at 30px, each perfectly
+ * reasonable on its own and none of them big enough. One rule, in the design
+ * system, is the only version that holds.
+ *
+ * The documented exemption is an inline link inside a sentence: its height is set
+ * by the text around it, and WCAG 2.5.8 names that case explicitly. Measuring
+ * without that exemption reported fifty-two failures on one screen where there
+ * were three.
+ */
+:where(button, summary, select, [role='button'], [role='tab']) {
+  min-height: 44px;
+  min-width: 44px;
+}
+:where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden'])) {
+  min-height: 44px;
+}
+/* A checkbox is drawn small on purpose; the label around it is the real target. */
+:where(label):has(> :where(input[type='checkbox'], input[type='radio'])) {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+/* Leaflet ships its zoom controls at 30px. A third-party default is not a reason
+   for a control to be smaller than a fingertip. */
+.leaflet-touch .leaflet-bar a,
+.leaflet-container .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+}
+/* An element that is deliberately inline, and sized by its text, says so. */
+:where(.is-inline-target) { min-height: 0; min-width: 0; }

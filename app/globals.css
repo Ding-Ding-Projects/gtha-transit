@@ -265,9 +265,11 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  min-width: 40px;
-  border-radius: 50%;
+  /* An icon button carries no text to widen it, so it is the one control most
+     likely to end up under the minimum. 44px in both directions, always. */
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: var(--md-sys-shape-corner-full);
   background: var(--surface2);
 }
 .workspace {
@@ -341,12 +343,16 @@ select {
   width: 100%;
   font-size: 14px;
   padding: 4px 0;
-  min-height: 30px;
+  min-height: 44px;
   text-overflow: ellipsis;
 }
 .input-line .icon-button {
-  min-width: 30px;
-  min-height: 30px;
+  /* Inside a field this button carries no text to widen it, and the field is a
+     flex row that would happily shrink it below its own minimum. It is still a
+     target, so it does not shrink. */
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
   background: none;
 }
 .input-line input::placeholder {
@@ -360,9 +366,9 @@ select {
   z-index: 3;
   border: 1px solid var(--border);
   background: var(--surface2);
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  border-radius: var(--md-sys-shape-corner-full);
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
 }
@@ -411,7 +417,7 @@ select {
   font-size: 13px;
   font-weight: 650;
   color: var(--primary);
-  min-height: 40px;
+  min-height: 44px;
 }
 .locate {
   margin: 5px 0 18px;
@@ -549,7 +555,7 @@ select {
   gap: 8px;
   font-size: 13px;
   font-weight: 650;
-  min-height: 36px;
+  min-height: 44px;
   cursor: pointer;
 }
 .options summary svg:last-child {
@@ -649,9 +655,11 @@ select {
   padding: 9px 13px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 30px;
-  font-size: 12px;
-  min-height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-medium);
+  /* 44px, because a target smaller than a fingertip is a target people miss. */
+  min-height: 44px;
+  min-width: 44px;
   flex-shrink: 0;
 }
 .map-wrap {
@@ -1025,6 +1033,18 @@ select {
   white-space: pre-wrap;
 }
 .alert-card a,
+/* A link on its own line is a target and needs a target's size. An inline link
+   inside a sentence is not: its height is set by the text around it, and WCAG
+   exempts it for exactly that reason. Only the standalone ones are padded. */
+.source-link,
+.page-panel > a:not([class]),
+.content-heading + a:not([class]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 0;
+}
 .source-link {
   font-size: 12px;
 }
@@ -1181,7 +1201,7 @@ select {
   display: flex;
   align-items: center;
   gap: 5px;
-  min-height: 35px;
+  min-height: 44px;
   color: var(--primary);
   font-size: 12px;
 }
@@ -1375,8 +1395,8 @@ select {
 .toast button {
   color: #fff;
   display: flex;
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
 }
@@ -1712,7 +1732,7 @@ select {
 .narrator-privacy-note svg { vertical-align: middle; margin-right: 6px; }
 .regex-workbench { min-width: 0; position: relative; }
 .regex-workbench__input-line { display: flex; align-items: center; gap: 8px; min-height: 48px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); padding: 5px 10px; }
-.regex-workbench__input-line input { border: 0; background: transparent; min-width: 0; width: 100%; color: var(--text); min-height: 40px; }
+.regex-workbench__input-line input { border: 0; background: transparent; min-width: 0; width: 100%; color: var(--text); min-height: 44px; }
 .regex-workbench__clear { display:grid; place-items:center; flex:0 0 44px; width:44px; min-height:44px; border-radius:50%; background:var(--surface2); color:var(--text); }
 .regex-workbench__input-line input::-webkit-search-cancel-button { -webkit-appearance:none; }
 .regex-workbench__trigger { display: grid; place-items: center; flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 0; border-radius: 50%; color: var(--primary); background: var(--surface2); }
@@ -2039,4 +2059,13 @@ select {
   display: block;
   margin-top: 3px;
   color: var(--muted);
+}
+
+/* Leaflet ships its zoom controls at 30px. They are targets like any other, and a
+   third-party default is not a reason for one to be smaller than a fingertip. */
+.leaflet-container .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
 }

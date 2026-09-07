@@ -2,6 +2,14 @@
 
 ## 0.1.0, unreleased
 
+- Make a minimum target size a rule of the design system rather than a decision each component makes for itself. Chasing it control by control is how the interface came to have icon buttons at 36px, pills at 42px and map controls at 30px: each reasonable on its own, none of them big enough. Across 45 screens - nine destinations, three widths, both themes - there are now no undersized targets, no unnamed controls and no horizontal overflow.
+
+- Correct how that was being measured. Counting inline links as failures reported 52 on one screen where there were three; WCAG exempts a link whose height is set by the text around it, and "fixing" the other 49 would have been 49 wrong changes. Every exemption from the minimum is now a named selector with a written reason, because an exemption nobody reasoned about is a hole nobody decided on.
+
+- Give the race destination a heading. It had none, so moving to it announced nothing.
+
+- Widen the line-status cards so their status fits. "Running · 11 facility notices" was truncated to "Running · 1...", which turns a fact into noise. The rail scrolls, so the width costs only a little scrolling.
+
 - Give the interface a design system. It had none: seventeen corner radii, eighteen font sizes, four shadows and no Material tokens, each value invented by whichever component needed one. There are now 34 colour roles per theme generated from the project's own teal and lime, a type scale, a shape scale, six elevation levels, state layers and motion tokens. Every text pair is contrast-checked at 4.5:1 in both themes and a failure stops the build. The legacy names map onto the roles, so a rule nobody has touched still renders from the system.
 
 - Rebuild navigation from scratch. Nine destinations in one list meant nine things to read before choosing one; four now earn a permanent place and the rest sit behind a single More. It is a Material navigation rail on desktop at the standard 80px, which gives the content back 136px, and a bottom bar on mobile where a thumb reaches it. One list feeds both, so they cannot drift apart, and the active indicator is a shape rather than a colour alone.

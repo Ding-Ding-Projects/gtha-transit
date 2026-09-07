@@ -55,7 +55,7 @@
   }
   .topbar nav button {
     white-space: normal;
-    min-height: 40px;
+    min-height: 44px;
     max-width: 100%;
     text-align: left;
   }
@@ -242,13 +242,13 @@
   background: var(--surface);
   padding: 8px;
   border-radius: 6px;
-  min-height: 40px;
+  min-height: 44px;
 }
 .coordinate-picker button {
   border-radius: 7px;
   background: var(--primary);
   color: var(--surface);
-  min-height: 40px;
+  min-height: 44px;
   padding: 7px 10px;
   font-size: 12px;
 }
@@ -283,8 +283,8 @@
     min-height: 44px;
   }
   .input-line .icon-button {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .suggestions button {
     min-height: 48px;
