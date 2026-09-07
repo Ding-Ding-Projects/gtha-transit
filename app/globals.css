@@ -1804,6 +1804,7 @@ select {
 .go-alternatives { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .go-alternatives > li { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
 .go-alternatives small { font-size: 12.5px; opacity: 0.85; }
+.go-advice { margin: 0; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
 .go-planned { color: var(--good, inherit); }
 .go-unconfirmed { color: var(--warn, inherit); }
 .race-card {

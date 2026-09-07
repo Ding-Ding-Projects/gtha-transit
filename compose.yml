@@ -22,6 +22,27 @@ services:
     volumes: [disruption-history:/data/history]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+  api:
+    image: gtha-transit-api:${API_TAG:?Set the routing API image tag}
+    container_name: gtha-transit-api
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp:size=16m]
+    cpus: 1.0
+    environment:
+      OTP_URL: ${OTP_URL:?Set the OpenTripPlanner origin}
+      METROLINX_KEY_FILE: /run/secrets/metrolinx-api-key
+    volumes:
+      - ./api/runtime/feeds/manifest.json:/data/feeds/manifest.json:ro
+      - ./api/runtime/otp/graph-provenance.json:/data/graph-provenance.json:ro
+      # The container runs as uid 0 with every capability dropped, so it has no
+      # CAP_DAC_OVERRIDE. The credential file must therefore be owned by uid 0 for
+      # the proxy to read it; a 0600 file owned by anyone else fails with EACCES
+      # and looks exactly like a missing key.
+      - ./api/runtime/secrets:/run/secrets:ro
+    networks: [tunnel]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
 networks:
   tunnel:
     external: true

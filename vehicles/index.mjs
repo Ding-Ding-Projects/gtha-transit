@@ -7,8 +7,8 @@ export const VEHICLE_FEEDS = Object.freeze({
   miway: { name: 'MiWay', url: 'https://www.miapp.ca/GTFS_RT/Vehicle/VehiclePositions.pb' },
   burlington: { name: 'Burlington Transit', url: 'https://opendata.burlington.ca/gtfs-rt/GTFS_VehiclePositions.pb' },
   hsr: { name: 'Hamilton Street Railway', url: 'https://opendata.hamilton.ca/GTFS-RT/GTFS_VehiclePositions.pb' },
-  go: { name: 'GO Transit', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs/Feed/VehiclePosition', proxyAgency: 'go' },
-  up: { name: 'UP Express', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs/Feed/VehiclePosition', proxyAgency: 'up' },
+  go: { name: 'GO Transit', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs.proto/Feed/VehiclePosition', proxyAgency: 'go' },
+  up: { name: 'UP Express', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/VehiclePosition', proxyAgency: 'up' },
 });
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_ENTITIES = 10_000;

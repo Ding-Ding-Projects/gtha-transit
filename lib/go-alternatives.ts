@@ -45,16 +45,44 @@ export type GoCancellation = {
   alternatives: GoJourney[];
   /** Lines that look like options but do not match the published form. */
   unparsed: string[];
+  /**
+   * The publisher's own advice, kept whole.
+   *
+   * Some cancellations are written as prose rather than a list of trains: "board
+   * a GO bus at Stratford GO, making stops at Kitchener GO and Guelph Central GO".
+   * Nothing plannable can be read out of that without inventing stations, so the
+   * sentence is carried as it was written and shown instead of nothing.
+   */
+  advice: string;
   serviceDate: string | null;
 };
 
-const JOURNEY = /^(.+?)\s+(\d{1,2}:\d{2})\s*[-–—]\s*(.+?)\s+(\d{1,2}:\d{2})$/;
+const JOURNEY = /^(.+?)\s+(\d{1,2}:\d{2})\s*[-–—]\s*(.+?)\s+(\d{1,2}:\d{2})[.]?$/;
 const OPTION = /^By\s+([^:]{1,40}):\s*(.+)$/i;
 const CANCELLED_TITLE = /^\s*(?:train|trip|bus)\s+cancell?ed\s*[-–—]\s*(.+)$/i;
 const OPTIONS_HEADING = /consider the following/i;
+/** The footer every GO alert ends with; it is not advice and is not shown. */
+const SUBSCRIPTION = /Subscribe to On [Tt]he GO alerts|Sign up for On The GO alerts/i;
 const MAX_ALTERNATIVES = 8;
 
 const tidy = (value: unknown): string => (typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
+
+/**
+ * The publisher's advice, with the boilerplate removed.
+ *
+ * A GO alert is often one long line rather than a list, so this works sentence by
+ * sentence instead of line by line: dropping a whole line would take the advice
+ * with the footer it happens to share a line with. Only the subscription footer,
+ * the options heading and a named-train option are removed; every other sentence
+ * is kept exactly as written.
+ */
+function adviceFrom(lines: string[]): string {
+  const sentences = lines.join(' ').split(/(?<=[.!?])\s+/).map(tidy).filter(Boolean);
+  return sentences
+    .filter((sentence) => !SUBSCRIPTION.test(sentence) && !OPTIONS_HEADING.test(sentence) && !OPTION.test(sentence))
+    .join(' ')
+    .trim();
+}
 
 /** A published `HH:MM` in 24-hour form, or null. */
 function wallTime(value: string): string | null {
@@ -147,13 +175,18 @@ export function parseCancellation(alert: {
     seen.add(key);
     alternatives.push(resolveTimes(journey, serviceDate, toIso));
   }
-  if (!alternatives.length && !unparsed.length) return null;
+  // A cancellation with no named train is still a cancellation. Returning null
+  // here would leave a live disruption showing as "nothing is published", which
+  // is the one thing an empty state must never mean.
+  const advice = adviceFrom(lines);
+  if (!alternatives.length && !unparsed.length && !advice) return null;
   return {
     alertId: tidy(alert?.id),
     title,
     cancelled: cancelled ? resolveTimes(cancelled, serviceDate, toIso) : null,
     alternatives,
     unparsed,
+    advice,
     serviceDate,
   };
 }

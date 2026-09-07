@@ -110,8 +110,28 @@ test('without a service date the published times stand alone, unresolved', () =>
 });
 
 test('an ordinary service alert is never dressed up as a cancellation', () => {
-  assert.equal(parseCancellation({ title: 'Elevator out of service at Union Station', description: 'By GO train: Union Station 14:54 - Aurora GO 15:44' }), null);
-  assert.equal(parseCancellation({ title: 'Train cancelled - Aurora GO 16:55 - Union Station 17:46', description: 'No options were published.' }), null);
+  // The title decides. A facility notice that happens to contain an option line
+  // is not a cancellation, however the description reads.
+  assert.equal(parseCancellation({ title: 'Elevator out of service at Union Station', description: 'By GO train: Union Station 14:54 - Aurora GO 15:44' }, torontoIso), null);
+});
+
+test('a cancellation with nothing at all in its description parses to nothing', () => {
+  assert.equal(parseCancellation({ title: 'Train cancelled - Aurora GO 16:55 - Union Station 17:46', description: '' }, torontoIso), null);
+  // The subscription footer alone is boilerplate, not advice.
+  assert.equal(parseCancellation({
+    title: 'Train cancelled - Aurora GO 16:55 - Union Station 17:46',
+    description: 'Subscribe to On the GO alerts and receive customized, real-time alerts.',
+  }, torontoIso), null);
+});
+
+test('a cancellation whose description is only prose is kept, because it is still a disruption', () => {
+  const parsed = parseCancellation({
+    title: 'Train cancelled - Aurora GO 16:55 - Union Station 17:46',
+    description: 'No alternative service is available for this trip.',
+  }, torontoIso);
+  assert.notEqual(parsed, null);
+  assert.equal(parsed.advice, 'No alternative service is available for this trip.');
+  assert.deepEqual(parsed.alternatives, []);
 });
 
 test('an option in an unrecognised form is kept as text, with no journey invented', () => {
@@ -137,4 +157,59 @@ test('several alerts each yield their own cancellation', () => {
   assert.equal(found.length, 2);
   assert.deepEqual(found.map((entry) => entry.alternatives.length), [2, 2]);
   assert.equal(found[1].cancelled.to, 'Aurora GO');
+});
+
+/**
+ * A real alert taken from the live GO feed on 6 September 2026. It writes its
+ * advice as prose rather than naming trains, which is the shape the structured
+ * parser cannot read - and returning nothing for it would leave a live
+ * disruption showing as "nothing is published".
+ */
+const STRATFORD = {
+  id: 'go-live-1',
+  title: 'Train cancelled - Stratford GO 18:16 - Union Station 20:45',
+  description: 'The Stratford GO 18:16 - Union Station 20:45 train is cancelled due to crew constraints. Customers can board a GO bus at Stratford GO, making stops at Kitchener GO and Guelph Central GO to Mount Pleasant GO with GO train connections to Union Station. Subscribe to On the GO alerts and receive customized, real-time alerts for schedule changes, construction updates and more. Sign up for On The GO alerts here.',
+  activeFrom: '2026-09-06T20:16:00.000Z',
+  updatedAt: '2026-09-07T00:52:41.000Z',
+};
+
+test('a cancellation written as prose is still reported, with the wording kept whole', () => {
+  const parsed = parseCancellation(STRATFORD, torontoIso);
+  assert.notEqual(parsed, null, 'a live cancellation must never parse to nothing');
+  assert.equal(parsed.cancelled.from, 'Stratford GO');
+  assert.equal(parsed.cancelled.departs, '18:16');
+  assert.deepEqual(parsed.alternatives, []);
+  assert.deepEqual(parsed.unparsed, []);
+  assert.match(parsed.advice, /board a GO bus at Stratford GO/);
+  assert.match(parsed.advice, /Mount Pleasant GO/);
+});
+
+test('the subscription footer is not kept as advice', () => {
+  const parsed = parseCancellation(STRATFORD, torontoIso);
+  assert.equal(/Subscribe to On the GO alerts/i.test(parsed.advice), false);
+  assert.equal(/Sign up for On The GO alerts/i.test(parsed.advice), false);
+});
+
+test('advice is not invented for an alert that names its trains', () => {
+  const parsed = parseCancellation(AURORA, torontoIso);
+  assert.equal(parsed.alternatives.length, 2);
+  assert.equal(/By GO train/.test(parsed.advice), false, 'a named option is never repeated as prose');
+});
+
+test('a named option that ends its own sentence is still not repeated as advice', () => {
+  // The option lines in the live feed run into the footer, so this fixture ends
+  // the option with a full stop: it must be dropped for being an option, not for
+  // sharing a sentence with the subscription footer.
+  const parsed = parseCancellation({
+    ...AURORA,
+    description: [
+      'The 16:55 train has been cancelled.',
+      'Please consider the following train options.',
+      'By GO train: Aurora GO 15:55 - Union Station 16:46.',
+      'Travel time may be longer than usual.',
+    ].join(String.fromCharCode(10)),
+  }, torontoIso);
+  assert.equal(parsed.alternatives.length, 1);
+  assert.equal(/By GO train/.test(parsed.advice), false, 'the option must be dropped for being an option');
+  assert.match(parsed.advice, /Travel time may be longer than usual/);
 });

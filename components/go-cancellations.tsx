@@ -176,6 +176,16 @@ export default function GoCancellations({ t }: Props) {
                 `已取消：${cancellation.cancelled.from} ${cancellation.cancelled.departs} 開往 ${cancellation.cancelled.to} ${cancellation.cancelled.arrives}。`,
               )}</p>
             )}
+            {cancellation.advice && cancellation.alternatives.length === 0 && cancellation.unparsed.length === 0 && (
+              <p className="go-advice">
+                {/* The operator's own sentence, whole. Nothing is read out of it. */}
+                {cancellation.advice}
+                <small className="go-unconfirmed">{t(
+                  'This alert describes what to do in prose rather than naming trains, so no journey could be looked up for it. Follow the operator wording above.',
+                  '呢個通告係用文字講點做，冇列明邊班車，所以搵唔到對應行程。請跟返上面營運商嘅講法。',
+                )}</small>
+              </p>
+            )}
             <ul className="go-alternatives">
               {cancellation.alternatives.map((journey) => {
                 const plan = plans[key(cancellation, journey)];
