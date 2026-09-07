@@ -1,0 +1,1461 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-07T17:52:28.421Z",
+  "url": "https://toronto-transit.org/",
+  "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+  "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+  "viewportWidth": 390,
+  "displayScale": 1,
+  "theme": "dark",
+  "inventorySteps": 37,
+  "recordedRows": 37,
+  "counts": {
+    "pass": 37
+  },
+  "consoleErrors": [],
+  "rows": [
+    {
+      "sequence": 1,
+      "surface": "plan",
+      "step": "plan.open",
+      "describe": "the journey composer is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Plan"
+      },
+      "expected": ".place-field input",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/001-plan.open-390-dark.png",
+      "screenshotSha256": "8a0cb8a9a55cc26e6b99b1b3e4ba3731a064d88af22e4fb2ec1fa3e13921f2cc",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 2,
+      "surface": "plan",
+      "step": "plan.from",
+      "describe": "typing an origin offers published places",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".suggestions button",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/002-plan.from-390-dark.png",
+      "screenshotSha256": "65807eced23faf02a8b01af83c80b70171ec6dbe65a45642f098498d7a56c106",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 3,
+      "surface": "plan",
+      "step": "plan.from.choose",
+      "describe": "choosing a place fills the field",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Union StationMap locationNearby transit · 59 m straight-line"
+      },
+      "expected": ".place-field .selected-place-name, .place-field input",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/003-plan.from.choose-390-dark.png",
+      "screenshotSha256": "05c68005e1f66d3c92c82b1ff1aeecd0e09c030335c485fee3a338bc42fd5467",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 4,
+      "surface": "plan",
+      "step": "plan.reverse",
+      "describe": "the trip can be reversed",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Reverse trip"
+      },
+      "expected": ".place-field input",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/004-plan.reverse-390-dark.png",
+      "screenshotSha256": "4b9e506b113ac90e8b6b66f3a2dccd127b793735afb6e7d4ec166f6a7e1cb7ce",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 5,
+      "surface": "plan",
+      "step": "plan.when.open",
+      "describe": "the when row opens its date and time controls",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "LeavingMon, Sep 7, 13:52"
+      },
+      "expected": ".trip-when[open] .journey-time",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/005-plan.when.open-390-dark.png",
+      "screenshotSha256": "f309be61446071e23ba80d33844246d8e91756e56c2bbd942952f18f82f642bc",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 6,
+      "surface": "plan",
+      "step": "plan.when.close",
+      "describe": "and closes again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "LeavingMon, Sep 7, 13:52"
+      },
+      "expected": ".trip-when:not([open])",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/006-plan.when.close-390-dark.png",
+      "screenshotSha256": "4b9e506b113ac90e8b6b66f3a2dccd127b793735afb6e7d4ec166f6a7e1cb7ce",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 7,
+      "surface": "plan",
+      "step": "plan.options.open",
+      "describe": "trip options opens its preferences",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "Trip optionsFastest"
+      },
+      "expected": ".trip-options[open] .journey-priority",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/007-plan.options.open-390-dark.png",
+      "screenshotSha256": "6730558f4b0e21fd9b4c088139f2f9fdd80c9aeda5b69ca28e74ad14e093e1bf",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 8,
+      "surface": "plan",
+      "step": "plan.options.priority",
+      "describe": "a journey priority can be chosen",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Fewer transfers"
+      },
+      "expected": ".journey-priority button[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/008-plan.options.priority-390-dark.png",
+      "screenshotSha256": "7ece31bbaa0acc87f3a8822639ed040465522565dc31e9a4471c9595155f7046",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 9,
+      "surface": "plan",
+      "step": "plan.options.close",
+      "describe": "and closes again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "Trip optionsFewer transfers"
+      },
+      "expected": ".trip-options:not([open])",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/009-plan.options.close-390-dark.png",
+      "screenshotSha256": "969bf455f3480221e6a12a4a5bb6cb01f04fbbcfb2dcf7d95223658abfca2716",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 10,
+      "surface": "plan",
+      "step": "plan.intermediate",
+      "describe": "an intermediate stop can be added",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Add intermediate stop"
+      },
+      "expected": ".place-field",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/010-plan.intermediate-390-dark.png",
+      "screenshotSha256": "8a1afbe5946a5b9df405a6cc4ffe5b86720fe5445ebd001a07203b01084c05af",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 11,
+      "surface": "plan",
+      "step": "plan.map.toggle",
+      "describe": "the map can be hidden",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Hide map"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/011-plan.map.toggle-390-dark.png",
+      "screenshotSha256": "754949259ab472755a5cdbe80ac2b0608985334b85070fdef26feca87c729bae",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 12,
+      "surface": "status",
+      "step": "status.open",
+      "describe": "the live network surface is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Live"
+      },
+      "expected": ".mini-lines button, .page-panel",
+      "before": {
+        "destination": "Plan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/012-status.open-390-dark.png",
+      "screenshotSha256": "1391f6447d1c7516ed7bb4bbe51cbd59d2595615375c281a998758db20a52005",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 13,
+      "surface": "status",
+      "step": "status.line",
+      "describe": "a line card opens its detail",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Yonge-University"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/013-status.line-390-dark.png",
+      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 14,
+      "surface": "status",
+      "step": "status.group",
+      "describe": "an alert group expands",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Bus routes"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/014-status.group-390-dark.png",
+      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 15,
+      "surface": "status",
+      "step": "status.go.refresh",
+      "describe": "the GO panel can be re-read",
+      "optional": true,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Check again"
+      },
+      "expected": ".go-cancellations",
+      "before": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/015-status.go.refresh-390-dark.png",
+      "screenshotSha256": "5b264b430e9d025f237fd052974cd51b7eaa5a0368bbe0bf3595dbf4f8869802",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 16,
+      "surface": "status",
+      "step": "status.refresh",
+      "describe": "live status can be refreshed",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Refresh"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/016-status.refresh-390-dark.png",
+      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 17,
+      "surface": "vehicles",
+      "step": "vehicles.open",
+      "describe": "the vehicle tracker is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Vehicles"
+      },
+      "expected": ".tracker, main",
+      "before": {
+        "destination": "Live",
+        "heading": "The network, right now",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/017-vehicles.open-390-dark.png",
+      "screenshotSha256": "85f1e552760dba1ca94cbd89aa56d83d7a23270db0a32045e33e73ce965b68ec",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 18,
+      "surface": "vehicles",
+      "step": "vehicles.search",
+      "describe": "the fleet can be searched",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/018-vehicles.search-390-dark.png",
+      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 19,
+      "surface": "vehicles",
+      "step": "vehicles.filters",
+      "describe": "fleet filters open",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "Fleet filtersCompany, model and year"
+      },
+      "expected": ".fleet-filter-panel[open]",
+      "before": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/019-vehicles.filters-390-dark.png",
+      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 20,
+      "surface": "vehicles",
+      "step": "vehicles.filters.close",
+      "describe": "and close again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "summary",
+        "name": "Fleet filtersCompany, model and year"
+      },
+      "expected": ".fleet-filter-panel:not([open])",
+      "before": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/020-vehicles.filters.close-390-dark.png",
+      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 21,
+      "surface": "vehicles",
+      "step": "vehicles.route",
+      "describe": "the agency and route picker opens",
+      "optional": true,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Choose agency & routeTTC · All routes"
+      },
+      "expected": "dialog[open], .guided-route-picker",
+      "before": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "h1"
+      },
+      "after": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/021-vehicles.route-390-dark.png",
+      "screenshotSha256": "de22fff8da7cf100fc48e17a1a4610432489fbc4a01b14b3d00087505db938ff",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 22,
+      "surface": "saved",
+      "step": "saved.open",
+      "describe": "saved trips shows its state",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Saved"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "Vehicles",
+        "heading": "Find your next ride",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "Saved",
+        "heading": "Ready when you are",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/022-saved.open-390-dark.png",
+      "screenshotSha256": "c6e841b4ed93ff56324306edb7d3205cb87977ae0e123abaafe04e8298473245",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 23,
+      "surface": "race",
+      "step": "race.open",
+      "describe": "the race workspace is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Race"
+      },
+      "expected": ".race-workspace",
+      "before": {
+        "destination": "Saved",
+        "heading": "Ready when you are",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/023-race.open-390-dark.png",
+      "screenshotSha256": "a80e6d0d1629ac742fa1185f5070d726cff39451ff8d8448e9fde7d00510b3a0",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 24,
+      "surface": "race",
+      "step": "race.mode",
+      "describe": "a challenge type can be chosen",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".race-modes",
+      "before": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/024-race.mode-390-dark.png",
+      "screenshotSha256": "a80e6d0d1629ac742fa1185f5070d726cff39451ff8d8448e9fde7d00510b3a0",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 25,
+      "surface": "race",
+      "step": "race.title",
+      "describe": "a race can be named",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": "#race-title",
+      "before": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/025-race.title-390-dark.png",
+      "screenshotSha256": "bf9ddc239d751202ec8b44237e6d44063944cbd153ec0fe2eb0ed3e7e2556314",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 26,
+      "surface": "race",
+      "step": "race.code",
+      "describe": "a join code can be entered",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": "#race-code",
+      "before": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/026-race.code-390-dark.png",
+      "screenshotSha256": "03875dbb91ac88938e56d31dc8de352dc2e13eba0675399824384ed058a122ee",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 27,
+      "surface": "divisions",
+      "step": "divisions.open",
+      "describe": "the division surface is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Out of division"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "More",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/027-divisions.open-390-dark.png",
+      "screenshotSha256": "a3015fed0b6b21277c7fa29ad285c01ff7dab572429d9915121e0506f26a5077",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 28,
+      "surface": "history",
+      "step": "history.open",
+      "describe": "the service record is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "History"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "More",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "The service record",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/028-history.open-390-dark.png",
+      "screenshotSha256": "3ccbf10ffe274452021ba6efc4f14fe8e929b176926833edf4467a51b4905428",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 29,
+      "surface": "history",
+      "step": "history.preset",
+      "describe": "a date preset can be applied",
+      "optional": true,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Today"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "More",
+        "heading": "The service record",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "The service record",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/029-history.preset-390-dark.png",
+      "screenshotSha256": "4fcf21e3068ebc80296508870cf770beb6ee3c7f34c22b0ebc306e8388d202d9",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 30,
+      "surface": "coverage",
+      "step": "coverage.open",
+      "describe": "the coverage surface is present",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Our region"
+      },
+      "expected": "main",
+      "before": {
+        "destination": "More",
+        "heading": "The service record",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Across the whole region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/030-coverage.open-390-dark.png",
+      "screenshotSha256": "310295224822bc651a61298c3c1e1ba2c90fe980f0bf22ffefd51c42b8825d86",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 31,
+      "surface": "settings",
+      "step": "settings.open",
+      "describe": "settings is present with its tab strip",
+      "optional": false,
+      "inputMethod": "pointer:navigation",
+      "target": {
+        "tag": "button",
+        "name": "Settings"
+      },
+      "expected": ".settings-tab-strip",
+      "before": {
+        "destination": "More",
+        "heading": "Across the whole region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/031-settings.open-390-dark.png",
+      "screenshotSha256": "300244a2ef683a450a5896b6fe510be39accd39d005aede5744ab41be8e304cf",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 32,
+      "surface": "settings",
+      "step": "settings.tab.language",
+      "describe": "a settings tab can be selected",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Language"
+      },
+      "expected": ".settings-tab-strip [data-slot=\"tabs-trigger\"][aria-selected=\"true\"]",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/032-settings.tab.language-390-dark.png",
+      "screenshotSha256": "df6faa9c0bc17733168902a0e5e29e1760a38afd074fa61126d1eefb2231af79",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 33,
+      "surface": "settings",
+      "step": "settings.tab.first",
+      "describe": "and the first tab selected again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Appearance"
+      },
+      "expected": ".settings-tab-strip [data-slot=\"tabs-trigger\"][aria-selected=\"true\"]",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/033-settings.tab.first-390-dark.png",
+      "screenshotSha256": "4682391dad5353dc2f7542dd70ea16d2125e1ff98c35dcf0343a669a6c9e90e6",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 34,
+      "surface": "navigation",
+      "step": "nav.more.open",
+      "describe": "More opens its dialog",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "More"
+      },
+      "expected": ".m3-more[open]",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "button"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/034-nav.more.open-390-dark.png",
+      "screenshotSha256": "d3c9166fbaa7deb97427892546276176023024526ee2a28d2a987d80a2186346",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 35,
+      "surface": "navigation",
+      "step": "nav.more.close",
+      "describe": "and closes, returning focus",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Close"
+      },
+      "expected": ".m3-more:not([open])",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "button"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/035-nav.more.close-390-dark.png",
+      "screenshotSha256": "300244a2ef683a450a5896b6fe510be39accd39d005aede5744ab41be8e304cf",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 36,
+      "surface": "navigation",
+      "step": "nav.theme",
+      "describe": "the colour theme can be switched",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Switch to dark appearance"
+      },
+      "expected": "html[data-theme]",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/036-nav.theme-390-dark.png",
+      "screenshotSha256": "244fb2eb3cea19f4b7020aa5fb132a0d164b7e4277a66827ac13233fa4bcf2a8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 37,
+      "surface": "navigation",
+      "step": "nav.theme.back",
+      "describe": "and switched back",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Switch to light appearance"
+      },
+      "expected": "html[data-theme]",
+      "before": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "More",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "outcome": "pass",
+      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
+      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark/037-nav.theme.back-390-dark.png",
+      "screenshotSha256": "fdbc8949719de48418bcb2c577563c2acb34dc8aed9c2c6b5fd82561793f17d3",
+      "privacy": "clean"
+    }
+  ]
+}

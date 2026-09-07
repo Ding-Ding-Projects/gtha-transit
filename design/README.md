@@ -118,10 +118,31 @@ An audit that does not know the platform's own idioms manufactures work. Every
 exemption is now written down with its reason rather than carried in someone's
 head.
 
+## Driven, not just captured
+
+`scripts/ui-evidence/interaction-ledger.mjs` walks a hand-written inventory of 37
+steps across ten surfaces and keeps a receipt for every click: a bounded semantic
+poll on the expected state, an assertion, a privacy check, then a capture, before
+the next click.
+
+| Tuple | Result |
+| --- | --- |
+| 1440 px light, 1440 px dark, 390 px light, 390 px dark | **37/37 each, 148 clicks, 0 console exceptions, 0 privacy findings** |
+
+Every row binds to the source commit, the built artifact's hash, the viewport, the
+scale, the theme, the expected and observed state, and the capture's own SHA-256.
+All four tuples must name the same commit, or the guard goes red: four runs at
+four commits are four unrelated facts rather than one verdict.
+
+The complete feature audit lives in `docs/interface/feature-audit.json`: 31
+features, 6 present, 6 partial, 15 absent and 4 not applicable, each with its
+evidence or its reason.
+
 ## Not yet done
 
-- No per-click interaction ledger. Screens were audited and captured, not driven
-  control by control.
+- The ledger runs at four tuples (1440 and 390 px, light and dark). The 150 and
+  200 per cent display scales were checked for overflow and clipping but not
+  driven click by click.
 - The **empty state** is a map, a sentence about what the service does and three
   feature lines. Once a journey is planned that column carries the route on the
   map, an option count, save/share/export and the journey cards, which reads well.

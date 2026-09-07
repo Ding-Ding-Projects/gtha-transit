@@ -18,7 +18,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/copy.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "note": "Verified across 162 screens in all three modes with no clipped text."
     },
     {
@@ -31,7 +31,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/copy.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json"
+      "capture": "docs/interface/ledger/1440-light-1x.json"
     },
     {
       "id": "narrator",
@@ -43,7 +43,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/narrator.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "missing": "No per-language voice picker. The contract asks for one selection per narrated language, with the platform's own voice list, rate and pitch, and an honest state when a chosen voice is not installed."
     },
     {
@@ -55,7 +55,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/search-workbench.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "missing": "Not present on every dropdown and right-click menu, which the contract requires without exemption for short menus."
     },
     {
@@ -80,7 +80,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/history-store.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "missing": "Disruption history is recorded and browsable; there is no Git-backed per-record history with diff, restore and retention."
     },
     {
@@ -93,7 +93,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/web-server.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "missing": "History exports; journey export covers a subset of the listed formats."
     },
     {
@@ -106,7 +106,7 @@
       ],
       "documentation": "design/README.md",
       "test": "tests/material-theme.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "note": "162 screens: 0 undersized targets, 0 unnamed controls. Contrast enforced by the theme generator at 4.5:1."
     },
     {
@@ -119,7 +119,7 @@
       ],
       "documentation": "design/README.md",
       "test": "tests/material-theme.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "note": "320, 390 and 1440 px at 100, 150 and 200 per cent: no horizontal overflow."
     },
     {
@@ -132,7 +132,7 @@
       ],
       "documentation": "design/README.md",
       "test": "tests/material-theme.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json"
+      "capture": "docs/interface/ledger/1440-light-1x.json"
     },
     {
       "id": "tabbed-navigation",
@@ -338,7 +338,7 @@
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/place-context.test.mjs",
-      "capture": "docs/interface/interaction-ledger.json",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
       "note": "Places, agencies, routes and race endpoints all come from published data through pickers."
     },
     {

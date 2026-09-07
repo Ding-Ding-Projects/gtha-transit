@@ -38,13 +38,15 @@ const argument = (flag, fallback = null) => {
 const ENDPOINT = argument('--endpoint');
 const URL_UNDER_TEST = argument('--url');
 const COMMIT = argument('--commit');
-const OUT = argument('--out', 'docs/interface/interaction-ledger.json');
+/* One file per tuple. A single file would mean the last run silently replaced
+   the evidence for every other viewport, theme and scale. */
+const OUT = argument('--out', null);
 const SHOTS = argument('--shots');
 const WIDTH = Number(argument('--width', '1440'));
 const SCALE = Number(argument('--scale', '1'));
 const THEME = argument('--theme', 'light');
 
-for (const [name, value] of [['--endpoint', ENDPOINT], ['--url', URL_UNDER_TEST], ['--commit', COMMIT], ['--shots', SHOTS]]) {
+for (const [name, value] of [['--endpoint', ENDPOINT], ['--url', URL_UNDER_TEST], ['--commit', COMMIT], ['--shots', SHOTS], ['--out', OUT]]) {
   if (!value) { console.error(`${name} is required`); process.exit(2); }
 }
 if (!/^[0-9a-f]{40}$/.test(COMMIT)) { console.error('--commit must be a full sha'); process.exit(2); }

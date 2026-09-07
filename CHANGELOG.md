@@ -2,6 +2,10 @@
 
 ## 0.1.0, unreleased
 
+- Drive the built interface and keep a receipt for every click. A hand-written inventory of 37 steps across ten surfaces, run at four tuples - 1440 and 390 px, light and dark - for 148 clicks with a capture after each, all passing, no console exceptions and no privacy findings. Every row binds to the source commit, the artifact hash, the viewport, the scale, the theme, the expected and observed state, and the capture's own hash. All four tuples must name the same commit, because four runs at four commits are four unrelated facts rather than one verdict.
+
+- Audit every canonical feature and record the absent ones. Thirty-one features: six present, six partial, fifteen absent and four not applicable, each with its evidence or its reason. The audit does not assert that every feature exists, because a permanently red guard tells nobody what to do; it asserts that none can be silently absent, and that a row claiming something ships points at the file that ships it.
+
 - Stop bilingual mode truncating the answer. The when and options rows were clipping their value rather than their label, so "Mon, Sep 7, 13:00" read as "Mon, Sep 7, 1..."; the label is only context and now gives way first, and below 420px the two stack instead of competing. The line-status cards were clipping their status, which in bilingual is twice as long and fits no card width, so it wraps and the cards stretch to a common height. Across three languages and three widths there is now no clipped text in any surface this project owns.
 
 - Make a minimum target size a rule of the design system rather than a decision each component makes for itself. Chasing it control by control is how the interface came to have icon buttons at 36px, pills at 42px and map controls at 30px: each reasonable on its own, none of them big enough. Across 45 screens - nine destinations, three widths, both themes - there are now no undersized targets, no unnamed controls and no horizontal overflow.
