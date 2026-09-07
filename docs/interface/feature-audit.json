@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "purpose": "A hand-written, fail-closed record of every canonical feature this project is measured against, with its real status and the evidence behind it. A feature that is absent is recorded as absent with a reason; it is never left out, because a row that does not exist is a gap nobody decided on.",
+  "verdicts": {
+    "present": "Shipped, with implementation, documentation and a focused test named below.",
+    "partial": "Some of it ships. What is missing is stated in `missing`.",
+    "absent": "Not built. The reason is stated in `reason`, and it is a known gap rather than an oversight.",
+    "not-applicable": "Cannot apply to this project, with the exact reason. Never used for convenience."
+  },
+  "features": [
+    {
+      "id": "language-modes",
+      "name": "English, Cantonese and bilingual modes",
+      "verdict": "present",
+      "implementation": [
+        "app/page.tsx",
+        "components/settings-workspace.tsx"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/copy.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "note": "Verified across 162 screens in all three modes with no clipped text."
+    },
+    {
+      "id": "funny-levels",
+      "name": "Per-language funny-level sliders, 1 to 5",
+      "verdict": "present",
+      "implementation": [
+        "components/settings-workspace.tsx",
+        "lib/copy.ts"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/copy.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json"
+    },
+    {
+      "id": "narrator",
+      "name": "Spoken narrator with language choice",
+      "verdict": "partial",
+      "implementation": [
+        "components/settings-workspace.tsx",
+        "lib/narrator.ts"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/narrator.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "missing": "No per-language voice picker. The contract asks for one selection per narrated language, with the platform's own voice list, rate and pitch, and an honest state when a chosen voice is not installed."
+    },
+    {
+      "id": "regex-builder",
+      "name": "Super-advanced regex builder beside every search",
+      "verdict": "partial",
+      "implementation": [
+        "components/search-workbench.tsx"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/search-workbench.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "missing": "Not present on every dropdown and right-click menu, which the contract requires without exemption for short menus."
+    },
+    {
+      "id": "notifications",
+      "name": "Non-blocking notifications with a reviewable centre",
+      "verdict": "partial",
+      "implementation": [
+        "components/ui/toast.tsx"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": null,
+      "capture": null,
+      "missing": "No notification centre, so a notification that has been dismissed cannot be reviewed again. No focused test covers the toast surface."
+    },
+    {
+      "id": "local-history",
+      "name": "Local version history for user-owned records",
+      "verdict": "partial",
+      "implementation": [
+        "history/store.mjs",
+        "history/vehicle-sightings.mjs"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/history-store.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "missing": "Disruption history is recorded and browsable; there is no Git-backed per-record history with diff, restore and retention."
+    },
+    {
+      "id": "exports",
+      "name": "Export in every format that can carry the data",
+      "verdict": "partial",
+      "implementation": [
+        "app/page.tsx",
+        "server/web.mjs"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/web-server.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "missing": "History exports; journey export covers a subset of the listed formats."
+    },
+    {
+      "id": "accessibility",
+      "name": "Keyboard operation, names, contrast, targets, reduced motion",
+      "verdict": "present",
+      "implementation": [
+        "app/shell.css",
+        "app/material-theme.css"
+      ],
+      "documentation": "design/README.md",
+      "test": "tests/material-theme.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "note": "162 screens: 0 undersized targets, 0 unnamed controls. Contrast enforced by the theme generator at 4.5:1."
+    },
+    {
+      "id": "responsive-sizing",
+      "name": "Narrow widths and display scales without clipping",
+      "verdict": "present",
+      "implementation": [
+        "app/shell.css",
+        "app/workspace.css"
+      ],
+      "documentation": "design/README.md",
+      "test": "tests/material-theme.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "note": "320, 390 and 1440 px at 100, 150 and 200 per cent: no horizontal overflow."
+    },
+    {
+      "id": "material-design-3",
+      "name": "Material Design 3 tokens, type, shape, elevation, state, motion",
+      "verdict": "present",
+      "implementation": [
+        "app/material-theme.css",
+        "scripts/design/build-material-theme.mjs"
+      ],
+      "documentation": "design/README.md",
+      "test": "tests/material-theme.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json"
+    },
+    {
+      "id": "tabbed-navigation",
+      "name": "Browser-style tabs with overflow, pinning, grouping and four searches",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Navigation is a Material rail and bar with four destinations and a More dialog. The tab contract, including pinning, grouping and the four tab searches, is not built."
+    },
+    {
+      "id": "command-palette",
+      "name": "Ctrl+Shift+F command palette that teleports to the exact element",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. With four destinations and a More dialog there is less to search than the contract assumes, but the contract covers every setting and control too, so this is a real gap rather than a size argument."
+    },
+    {
+      "id": "appearance-editor",
+      "name": "Per-element appearance editor with Word-depth typography and an infinite colour picker",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. Appearance is theme and language only."
+    },
+    {
+      "id": "toy-locks",
+      "name": "Per-element toy locks with six credential policies, and Support Tickets",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. Nothing here holds anything a person would want to put a speed bump in front of: no account, no saved credential, no private record beyond a locally stored trip."
+    },
+    {
+      "id": "unlock-ladder",
+      "name": "The unlock ladder on a surface that can lock a visitor out",
+      "verdict": "not-applicable",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Nothing here authenticates a visitor or locks one out. There is no account, no sign-in and no lockout, so there is no wait for a ladder to shorten. It becomes applicable the moment any surface can refuse entry."
+    },
+    {
+      "id": "adhd-modes",
+      "name": "Focus, low stimulation, time awareness, one thing at a time, momentum",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. This is a genuine gap: a journey planner is exactly the kind of surface where time awareness and one-thing-at-a-time would help, so the absence is an omission rather than a poor fit."
+    },
+    {
+      "id": "school-mode",
+      "name": "Universal renamable School mode with a shared unlock credential",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. It depends on a shared application-data record and a credential store that a browser-only surface does not have, so shipping it would need a different persistence story first."
+    },
+    {
+      "id": "personal-vocabulary-upload",
+      "name": "Local personal-vocabulary JSON upload control",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. No control is shown, and no built-in mappings ship, so the surface renders its original wording."
+    },
+    {
+      "id": "bulk-actions",
+      "name": "Multi-select and bulk actions on every list",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. The lists here are read-only observations - vehicles, alerts, history records - so there is no action to apply to a selection yet. It becomes a gap the moment a list holds something a person owns."
+    },
+    {
+      "id": "changelog-viewer",
+      "name": "In-app changelog with a date picker and commit links",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built in the app. CHANGELOG.md and the release notes carry the record."
+    },
+    {
+      "id": "dim-sum-surprise",
+      "name": "Ten per cent chance of a dim sum dish at startup",
+      "verdict": "absent",
+      "implementation": [
+        "scripts/dim-sum-code-name.mjs"
+      ],
+      "documentation": "docs/deployment/container-images.md",
+      "test": "tests/release-code-name.test.mjs",
+      "capture": null,
+      "reason": "Release code names and their photos ship. The in-app startup surprise is not built."
+    },
+    {
+      "id": "app-logo-customization",
+      "name": "Logo presets and a bounded local custom upload",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. The shipped mark is fixed."
+    },
+    {
+      "id": "file-converter",
+      "name": "Categorised local file converter with bundled adapters",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. Nothing in this project produces or accepts a file a person would convert; its exports are text and its inputs are published feeds."
+    },
+    {
+      "id": "ollama-manager",
+      "name": "Local Ollama suite manager",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. There is no model, no inference and no local runtime anywhere in this project, so there is nothing for a suite manager to manage."
+    },
+    {
+      "id": "browser-extension-downloads",
+      "name": "Browser-extension download start, progress and completion surfaces",
+      "verdict": "not-applicable",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "This project ships no browser extension and no download capture path, so there is no handoff for those surfaces to receive."
+    },
+    {
+      "id": "destructive-confirmation",
+      "name": "Two-key super confirmation before a destructive action",
+      "verdict": "not-applicable",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "No user-facing surface performs an irreversible destructive action. Race rooms expire on their own and hold no durable user record. It becomes applicable the moment one does."
+    },
+    {
+      "id": "share-embed-graphic",
+      "name": "A real product embed graphic when a link is shared",
+      "verdict": "partial",
+      "implementation": [
+        "app/layout.tsx"
+      ],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "missing": "Open Graph tags are emitted, but there is no committed social-preview image at the repository root and nothing verifies that the served og:image is absolute and fetchable without credentials."
+    },
+    {
+      "id": "scheduled-settings",
+      "name": "Scheduled language and appearance, with external sources",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "Not built. Journey scheduling is a routing input, not a settings schedule."
+    },
+    {
+      "id": "external-editor",
+      "name": "Open an export in an external editor",
+      "verdict": "not-applicable",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "A browser cannot launch a local editor, and this project ships no desktop application to do it from."
+    },
+    {
+      "id": "guided-forms",
+      "name": "Pickers and real defaults rather than empty boxes",
+      "verdict": "present",
+      "implementation": [
+        "app/page.tsx",
+        "components/route-picker.tsx"
+      ],
+      "documentation": "docs/interface/ui-verification.md",
+      "test": "tests/place-context.test.mjs",
+      "capture": "docs/interface/interaction-ledger.json",
+      "note": "Places, agencies, routes and race endpoints all come from published data through pickers."
+    },
+    {
+      "id": "landing-page",
+      "name": "A documentation site carrying the same contracts",
+      "verdict": "absent",
+      "implementation": [],
+      "documentation": null,
+      "test": null,
+      "capture": null,
+      "reason": "There is no published documentation site. The docs live in the repository."
+    }
+  ]
+}
