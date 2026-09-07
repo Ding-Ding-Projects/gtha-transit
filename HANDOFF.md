@@ -1,5 +1,31 @@
 # Implementation handoff
 
+## Outage, 7 September 2026
+
+**OpenTripPlanner on the routing host was stopped for about seven hours** and the
+smoke test caught it: 0 of 14 journeys planned, every agency unreachable. The
+container had exited 143, a clean SIGTERM at 10:00:17 rather than a crash. Nothing
+in this repository caused it.
+
+Recovery was `docker compose -f compose.yaml -f image.8953a5eb.yaml up -d` in
+`/home/docker/gtha-transit-backend/backend` on the routing host. After it:
+14 of 14 planned, five agencies reached, 21 legs carrying a block chain.
+
+Two things worth keeping:
+
+- **`backend-api-1` on that host now fails to start**, with `Bind for 0.0.0.0:8787
+  failed: port is already allocated`. That is correct rather than broken: the
+  routing API moved to the web host during the co-location work, and the copy on
+  the routing host is a leftover. Only `otp` needs to run there. Starting the
+  whole project reports that error every time and it can be ignored, or the
+  leftover service removed from that compose file.
+- **OTP's realtime updaters resolve a host named `api`**, which is that same
+  leftover service. With it gone they log `UnknownHostException: api`. OTP still
+  serves the graph, so planning works; whether realtime enrichment on that host
+  is still wanted is a separate question nobody has answered.
+
+The smoke test is what turned a silent seven-hour outage into a one-line finding.
+
 ## Container images, 7 September 2026
 
 The release workflow now builds the web service as a container image and pushes it
