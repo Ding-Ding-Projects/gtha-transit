@@ -76,6 +76,20 @@ the credential it reads must be owned by the uid the container runs as, because
 that container drops every capability and therefore has no `CAP_DAC_OVERRIDE` to
 fall back on.
 
+## Cost, measured
+
+The two-architecture run took **6m25s** end to end on one amd64 runner, with the
+arm64 half emulated. That is the whole workflow, not only the image: bundle,
+package, code name, both images, release. It is slower than the single-platform
+run it replaced and it is not slow enough to be worth a second runner yet.
+
+## Verified
+
+`v0.1.0-101.1` was pulled on the arm64 deploy host and started healthy, reporting
+`arch=arm64` from a manifest carrying both platforms. The site answered 200 and
+the journey smoke test planned 13 of 14 pairs with 0 failures against the pulled
+image.
+
 ## The credential
 
 The push authenticates with the workflow token over standard input. It never

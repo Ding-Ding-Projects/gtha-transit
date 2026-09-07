@@ -1,5 +1,23 @@
 # Implementation handoff
 
+## Container images, 7 September 2026
+
+The release workflow now builds the web service as a container image and pushes it
+to the registry, so a host deploys by pulling rather than by rebuilding a source
+tarball. `v0.1.0-101.1` was pulled on the deploy host and started healthy.
+
+**The deploy host is `aarch64`.** The first published image was amd64 only; Docker
+pulled it, printed a single platform-mismatch warning, started it, and it
+crash-looped. The site was restored to the locally built image within a minute.
+The build now covers both platforms and inspects the published manifest rather
+than assuming it. Two-architecture cost, measured: 6m25s for the whole workflow.
+
+**The routing API image is still built on the host**, and cannot be built by a
+runner: it needs about 48 MB of generated stop, route and pattern indexes that
+this repository carries as 240-byte placeholders, produced from twelve
+checksum-validated GTFS archives whose manifest is not committed. Publishing one
+without them would ship a container that starts and answers nothing.
+
 ## Closeout pass, 6 September 2026
 
 Released `a7bcd200053b0722de8978b092cd1d98d19bd68e` as **v0.1.0-94.1**, non-draft, targeting that
