@@ -26,6 +26,10 @@ jobs:
           npm run build
           node scripts/package-release.mjs
           node scripts/count-lines.mjs > dist/line-counts.md
+      - name: Enable emulation for the other architecture
+        uses: docker/setup-qemu-action@v3
+      - name: Enable buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build and publish the web container image
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,11 +43,17 @@ jobs:
           OWNER=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/$OWNER/gtha-transit-web"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker build --build-arg SOURCE_COMMIT="$GITHUB_SHA" -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:$TAG" -t "$IMAGE:latest" .
-          for reference in "$GITHUB_SHA" "$TAG" latest; do docker push "$IMAGE:$reference"; done
-          # The digest names the exact bytes that were pushed, so the release can
-          # point at them rather than at a tag anyone could move later.
-          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")
+          # Both architectures, because the runner is amd64 and the deploy host is
+          # arm64. A single-architecture image pulls without complaint and then
+          # crash-loops, which is a worse failure than not publishing one at all.
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg SOURCE_COMMIT="$GITHUB_SHA" -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:$TAG" -t "$IMAGE:latest" --metadata-file dist/buildx.json --push .
+          # The manifest-list digest names the exact bytes for every architecture,
+          # so the release points at those rather than at a tag anyone could move.
+          DIGEST="$IMAGE@$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("dist/buildx.json","utf8"))["containerimage.digest"])')"
+          # Prove the published manifest actually carries both.
+          docker buildx imagetools inspect "$IMAGE:$GITHUB_SHA" --format '{{range .Manifest.Manifests}}{{.Platform.OS}}/{{.Platform.Architecture}} {{end}}' | tee dist/platforms.txt
+          grep -q 'linux/amd64' dist/platforms.txt
+          grep -q 'linux/arm64' dist/platforms.txt
           node -e 'require("fs").writeFileSync("dist/image.json", JSON.stringify({ image: process.argv[1], tag: process.argv[2], digest: process.argv[3] }))' "$IMAGE" "$TAG" "$DIGEST"
           echo "Published $DIGEST"
 

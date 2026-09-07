@@ -123,6 +123,24 @@ test('a half-written image record is not treated as a published image', () => {
   assert.ok(!buildNotes(null, { digest: IMAGE.digest }).includes('## Container image'));
 });
 
+test('the image is built for both architectures, and the manifest is proved', () => {
+  // The runner is amd64 and the deploy host is arm64. A single-architecture image
+  // pulls without complaint and then crash-loops, which is a worse failure than
+  // publishing none - so the build covers both and the published manifest is
+  // checked rather than assumed.
+  assert.match(workflow, /--platform linux\/amd64,linux\/arm64/);
+  assert.match(workflow, /docker\/setup-qemu-action@v3/);
+  assert.match(workflow, /docker\/setup-buildx-action@v3/);
+  assert.match(workflow, /buildx imagetools inspect/);
+  assert.match(workflow, /grep -q 'linux\/amd64' dist\/platforms\.txt/);
+  assert.match(workflow, /grep -q 'linux\/arm64' dist\/platforms\.txt/);
+  // The digest comes from the build's own metadata, not from a local image that
+  // a multi-platform build never leaves behind.
+  assert.match(workflow, /--metadata-file dist\/buildx\.json/);
+  assert.match(workflow, /containerimage\.digest/);
+  assert.ok(!/docker inspect --format '\{\{index \.RepoDigests/.test(workflow), 'a multi-platform build leaves no local image to inspect');
+});
+
 test('the workflow builds the image before the release, and pushes by digest-bearing tags', () => {
   assert.ok(
     workflow.indexOf('Build and publish the web container image') < workflow.indexOf('Publish unique release'),
@@ -130,9 +148,9 @@ test('the workflow builds the image before the release, and pushes by digest-bea
   );
   assert.match(workflow, /packages: write/);
   assert.match(workflow, /ghcr\.io\/\$OWNER\/gtha-transit-web/);
-  assert.match(workflow, /docker build --build-arg SOURCE_COMMIT="\$GITHUB_SHA"/);
-  assert.match(workflow, /for reference in "\$GITHUB_SHA" "\$TAG" latest; do docker push/);
-  assert.match(workflow, /RepoDigests/);
+  assert.match(workflow, /docker buildx build .*--build-arg SOURCE_COMMIT="\$GITHUB_SHA"/);
+  assert.match(workflow, /--push \./);
+  assert.match(workflow, /containerimage\.digest/);
   // The credential goes in on stdin, never in an argument.
   assert.match(workflow, /printf '%s' "\$GH_TOKEN" \| docker login ghcr\.io/);
   assert.ok(!/--password [^-]/.test(workflow), 'a credential must never be a command argument');

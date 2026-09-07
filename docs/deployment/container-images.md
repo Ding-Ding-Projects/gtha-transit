@@ -25,6 +25,24 @@ and publishing an API image without them would ship a container that starts and
 answers nothing. So the workflow builds one image and says so rather than
 appearing to build both.
 
+## Two architectures, because one is not enough
+
+The runner is `amd64`; the deploy host is `arm64`. The first published image was
+`amd64` only, and the consequence is worth recording because it is quietly nasty:
+Docker pulled it, printed a one-line platform-mismatch warning, started the
+container, and the container crash-looped. A single-architecture image is a worse
+failure than no image, because it looks like a successful deploy until the health
+check gives up.
+
+The build now covers `linux/amd64` and `linux/arm64`, and the published manifest
+is **inspected** afterwards rather than assumed: the step fails if either platform
+is missing from it.
+
+Both are built on one amd64 runner with QEMU emulation, so the arm64 half is
+slower than a native build. If that cost ever becomes the reason a release is
+slow, the answer is a matrix over a native `arm64` runner rather than dropping a
+platform.
+
 ## Tags and the digest
 
 Each build is pushed under three references:
@@ -33,9 +51,12 @@ Each build is pushed under three references:
 - the release tag, which identifies the release it went out with;
 - `latest`, for convenience.
 
-The release notes carry the **digest**, because a tag can be repointed later and a
-digest cannot. A host that wants certainty about which bytes it is running pulls
-the digest.
+The release notes carry the **digest** of the manifest list, because a tag can be
+repointed later and a digest cannot. A host that wants certainty about which bytes
+it is running pulls the digest; the registry still hands it the right architecture.
+
+The digest comes from the build's own metadata file. A multi-platform build leaves
+no image in the local daemon, so there is nothing to `docker inspect` afterwards.
 
 ## Deploying
 
