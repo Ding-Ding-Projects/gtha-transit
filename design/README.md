@@ -108,8 +108,11 @@ Measuring it found two real problems and confirmed one non-problem:
 
 - No per-click interaction ledger. Screens were audited and captured, not driven
   control by control.
-- The results area is where the next pass should go: on desktop the right column
-  is a map and then nothing until a journey is planned.
+- The **empty state** is a map, a sentence about what the service does and three
+  feature lines. Once a journey is planned that column carries the route on the
+  map, an option count, save/share/export and the journey cards, which reads well.
+  Whether the empty state should carry more than a value proposition is a product
+  question, not a layout defect.
 
 Suggested articles: [interface verification](../docs/interface/ui-verification.md),
 [the journey smoke test](../docs/verification/journey-smoke-test.md).
