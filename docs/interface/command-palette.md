@@ -128,9 +128,54 @@ padlock would suit the privacy rows better than a tick, and there is no padlock 
 the subset. `tests/command-palette.test.mjs` checks every name the palette can
 emit against the manifest of the binary that shipped, so this cannot rot quietly.
 
+## Captured from the built artifact
+
+Both taken through the debugging protocol against an isolated browser on an
+off-screen desktop, driving the document the production server actually serves.
+The theme is reached through the control a person would use, never by assigning
+the attribute the application owns and rewrites from its own state -- that mistake
+has already produced eighty captures in this project labelled dark that were the
+light interface.
+
+| | |
+| --- | --- |
+| Commit | `9e3c82684c94e4b4b7f07de877a7b4d8c4b0e405` |
+| Viewport | 1440 x 900, scale 1 |
+
+![The palette open on the settings destination in the light theme, searching for "dark mode", with one result: the colour theme, showing its live light and dark radio choice inline and its current value.](captures/command-palette-1440-light.png)
+
+![The palette open on the plan destination in the dark theme, searching for "voice", with nine results including both playfulness sliders at 5 and the narration switch in its off position.](captures/command-palette-1440-dark.png)
+
+| File | SHA-256 |
+| --- | --- |
+| `captures/command-palette-1440-light.png` | `6f86daeb189f8ec88c56550ee20dc87ecd18b0791c347ce2c0ed3bd7bd957022` |
+| `captures/command-palette-1440-dark.png` | `957e121b197e6387958e3ddecd9f14df7fa27e72c66d45567236a89ecb447fef` |
+
+The capture script refuses to take a picture when the running build reports a
+commit other than `HEAD`. An earlier pair had to be discarded for exactly that:
+the build had been made before the commit, so the stamp in the corner named the
+previous one, and a capture whose own stamp names another build is a picture of a
+different build.
+
+These are not the interaction ledger. The ledger drives the *deployed* site and
+binds every row to the deployed commit; see the gap recorded in `HANDOFF.md`.
+
 ## Verification
 
-`tests/command-palette.test.mjs`, 25 checks. Beyond the ordinary ones, seven
+`tests/command-palette.test.mjs`, 26 checks, plus fifteen against the running
+build through `scripts/ui-evidence/drive-palette.mjs`.
+
+The driver earned its place on its first run. Fourteen of its fifteen checks
+passed and the fifteenth found a defect nothing else could have: Escape did not
+close the palette, because the palette focuses a search field on open and Chromium
+treats Escape there as "clear this field" and consumes the key. Every unit test
+was green, the source read correctly, and the first Escape anybody pressed did
+nothing on a surface whose own footer says Escape closes it. The capture found a
+second one: the narration toggle was a native checkbox with a width and a height
+set on it, which renders as an empty rectangle with no track and no thumb.
+
+Neither was visible from the code. Both were obvious the moment the thing was
+driven and photographed. Beyond the ordinary ones, seven
 boundaries were broken on purpose and watched go red before being restored:
 
 | Boundary removed | Caught by |

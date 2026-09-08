@@ -2,8 +2,9 @@
 
 ## Command palette, 8 September 2026
 
-The palette is built, tested and documented. It is **not deployed**, so nothing in
-this section claims rendered evidence beyond what is stated.
+The palette is built, driven in the built artifact, captured, tested and
+documented. It is **not deployed**, so nothing here claims anything about the
+production site.
 
 ### What this pass was for
 
@@ -35,26 +36,29 @@ and fifteen settings is already more than a person will hunt through by hand.
 
 | | State |
 | --- | --- |
-| Tests | 519 pass, 0 fail, up from 494 |
+| Tests | 520 pass, 0 fail, up from 494 |
 | Type check | clean |
 | Build | `npm run build` exits 0; the prerendered document carries the palette |
-| Break tests | 7 boundaries broken on purpose, each watched red, each restored green |
+| Driven in the built artifact | 15 of 15 checks at `9e3c826`, through the debugging protocol against the served document |
+| Captures | 2, both themes at 1440, bound to `9e3c826`, hashes recorded |
+| Break tests | 9 boundaries broken on purpose, each watched red, each restored green |
 | Deployed | **no**; head is ahead of the deployment and touches application code |
 | Interaction ledger | **not re-recorded**; still bound to `40411b1` |
 
 ### Known gaps, stated rather than left to be found
 
-- **There is no capture of the palette from the built artifact.** The audit row is
-  `partial` and says so. The interaction ledger drives the *deployed* site and its
-  guard refuses tuples recorded against a commit other than the deployed one, so
-  the palette's steps were deliberately **not** added to
-  `scripts/ui-evidence/interaction-inventory.mjs` yet: adding them without a
-  re-record would turn the suite red on a count mismatch and prove nothing. The
-  order is deploy, then add the steps, then re-record all four tuples.
-- **The unit suite is not evidence about the seam it stubs.** These tests exercise
-  the palette's logic and assert its wiring in the source; they do not prove a key
-  press opens the dialog in a browser. That needs the built artifact driven
-  through the headless route, and it has not been done.
+- **The palette is absent from the interaction ledger.** The ledger drives the
+  *deployed* site and its guard refuses tuples recorded against a commit other than
+  the deployed one, so the palette's steps were deliberately **not** added to
+  `scripts/ui-evidence/interaction-inventory.mjs`: adding them without a re-record
+  would turn the suite red on a count mismatch and prove nothing. The order is
+  deploy, then add the steps, then re-record all four tuples. Until then the
+  palette's built-artifact evidence is `scripts/ui-evidence/drive-palette.mjs` and
+  the two captures, which are real but are not the ledger.
+- **The captures are at one tuple only.** 1440 wide, scale 1, both themes,
+  English. Narrow widths, higher display scales and the bilingual mode, where the
+  labels are longest, are unverified. The stylesheet has a rule for the narrow
+  case; nobody has looked at it.
 - **A choice with more than four options keeps its full control on the settings
   surface.** The installed-voice lists run to dozens, and a dropdown that long
   inside a palette row would need its own search field and regex builder to meet
@@ -70,6 +74,28 @@ and fifteen settings is already more than a person will hunt through by hand.
   actions, the changelog viewer, the dim sum surprise, app-logo customization, the
   file converter, the Ollama manager, scheduled settings and the landing page. The
   audit names each with a reason.
+
+### Two defects the tests could not have found
+
+Both were invisible in the source and obvious the moment the thing was driven and
+photographed. They are recorded here because the lesson is more useful than the
+fixes.
+
+- **Escape did not close the palette.** A modal dialog closes on Escape for free.
+  This one focuses a search field on open, and Chromium treats Escape on an
+  `input[type="search"]` as "clear this field" and consumes the key. So the first
+  Escape anybody pressed did nothing, on a surface whose own footer says Escape
+  closes it. Every unit test was green. The defect lived in the seam between the
+  component and the browser, which is exactly what a stubbed test is blind to.
+- **The narration switch was a checkbox stretched to switch proportions.** Setting
+  a width and a height on a native checkbox produces an empty rectangle with no
+  track and no thumb. Reading the code showed a checkbox with `role="switch"`,
+  which is correct; looking at the picture showed a blank box.
+
+An earlier pair of captures was discarded as well: the build had been made before
+the commit, so the stamp in the corner named the previous one. A capture whose own
+stamp names another build is a picture of a different build, so the capture script
+now refuses to fire unless the running build reports `HEAD`.
 
 ### Worth knowing before the next pass
 
