@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import { Icon } from '../components/icon';
 import { reportPokeGuys } from '../lib/report-poke-guys';
+import GaragePicker from '../components/garage-picker';
+import { applyGaragePreference } from '../lib/garage-preference';
+import garageRegistry from '../data/ttc-divisions.json';
 import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
@@ -285,6 +288,7 @@ export default function Home() {
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
   const [preferDivision, setPreferDivision] = useState(false);
+  const [preferredGarages, setPreferredGarages] = useState<string[]>([]);
   const [divisionMode, setDivisionMode] = useState<'exact' | 'route'>('route');
   const [divisionNow, setDivisionNow] = useState(() => Date.now());
   useEffect(() => { const timer = setInterval(() => setDivisionNow(Date.now()), 15000); return () => clearInterval(timer); }, []);
@@ -344,7 +348,15 @@ export default function Home() {
     [provenance, setProvenance] = useState<any>(null);
   const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
   const divisionResult = useMemo(() => divisionMode === 'route' ? applyJourneyRouteOpportunityPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }) : applyJourneyDivisionPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }), [vehicleResult.itineraries, preferDivision, divisionMode, divisionNow]);
-  const journeys: Itinerary[] = divisionResult.itineraries;
+  /* Applied after the existing division preference so the two compose: that one
+     promotes confirmed out-of-division vehicles, this one promotes routes a
+     chosen garage operates. Both order, neither filters. */
+  const garageResult = useMemo(() => applyGaragePreference(divisionResult.itineraries, {
+    garages: preferredGarages,
+    registry: garageRegistry,
+    today: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()),
+  }), [divisionResult.itineraries, preferredGarages]);
+  const journeys: Itinerary[] = garageResult.itineraries;
   const selected = Math.max(0, journeys.findIndex(journey => journey.id === selectedId));
   useEffect(() => { if (!journeys.some(journey => journey.id === selectedId)) setSelectedId(journeys[0]?.id ?? null); }, [journeys, selectedId]);
   useEffect(() => setSelectedId(null), [vehicleCriteria, vehicleOptions]);
@@ -1028,6 +1040,13 @@ export default function Home() {
                 )}
               </small>
             <JourneyVehiclePreferencesPanel criteria={vehicleCriteria} options={vehicleOptions} verifiedFleetFacts={[...TTC_FLEET_RANGES, ...Object.values(OTHER_FLEET_RANGES).flat()]} excludedCount={vehicleResult.excluded.length} onCriteriaChange={setVehicleCriteria} onOptionsChange={setVehicleOptions} t={t} />
+            <GaragePicker
+              registry={garageRegistry}
+              selected={preferredGarages}
+              onChange={setPreferredGarages}
+              disclosure={garageResult.disclosure}
+              t={t}
+            />
             <details className="journey-division-options">
               <summary><TrainFront size={16} aria-hidden="true" />{t('TTC garage preference', 'TTC 車廠偏好')}{preferDivision ? t(' · Active', ' · 已啟用') : ''}</summary>
               <label className="journey-division-choice"><input type="checkbox" checked={preferDivision} onChange={event => setPreferDivision(event.target.checked)} /><span><strong>{t('Prefer out-of-division vehicles', '優先乘搭跨車廠車輛')}</strong><small>{t('Promote current TTC opportunities while keeping every unconfirmed option available. Choose which evidence to use below.', '優先顯示目前 TTC 乘車機會，同時保留所有未確認行程。請在下方選擇資料依據。')}</small></span></label>

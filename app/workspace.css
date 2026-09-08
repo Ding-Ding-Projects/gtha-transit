@@ -465,3 +465,70 @@ button:disabled { cursor: not-allowed; }
   color: var(--md-sys-color-on-surface-variant);
   font: var(--md-sys-typescale-label-small);
 }
+
+/* ------------------------------------------------------------ garage picker -- */
+/* Choosing which garage's routes to ride. Ten checkboxes, each opening to the
+   routes that garage runs and the vehicles on them right now. */
+.garage-picker { margin: 4px 0 2px; }
+.garage-picker h3 { margin: 0 0 6px; font: var(--md-sys-typescale-title-small); }
+.garage-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; }
+.garage-list > li { border-radius: var(--md-sys-shape-corner-medium); }
+.garage-list > li:has(.garage-detail) { background: var(--md-sys-color-surface-container); padding-bottom: 8px; }
+
+.garage-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.garage-choice:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.garage-choice__name { flex: 1; min-width: 0; }
+.garage-choice__count { color: var(--md-sys-color-on-surface-variant); font: var(--md-sys-typescale-label-small); }
+
+.garage-more { margin-left: 34px; display: inline-flex; align-items: center; gap: 4px; }
+.garage-detail { padding: 4px 12px 0 34px; }
+.garage-detail h4 { margin: 10px 0 4px; font: var(--md-sys-typescale-label-large); }
+.garage-routes {
+  margin: 0;
+  font-family: var(--md-ref-typeface-mono);
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  word-break: break-word;
+}
+/* A garage can have a hundred vehicles out. The list scrolls rather than pushing
+   every control below it off the panel. */
+.garage-vehicles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 4px;
+  max-height: 190px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.garage-vehicles li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-high);
+  font: var(--md-sys-typescale-label-small);
+}
+.garage-vehicles strong { font-family: var(--md-ref-typeface-mono); }
+.garage-vehicles span { color: var(--md-sys-color-on-surface-variant); }
+
+.garage-outcome {
+  display: block;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-high);
+  font: var(--md-sys-typescale-body-medium);
+}
+.garage-outcome small { display: block; margin-top: 6px; color: var(--md-sys-color-on-surface-variant); }
