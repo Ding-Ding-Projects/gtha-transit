@@ -54,6 +54,28 @@ export function renameSchool(state: SchoolState, name: string): SchoolState {
 
 /* ------------------------------------------------------------ the credential -- */
 
+/**
+ * Can this browser derive the hash at all?
+ *
+ * `crypto.subtle` exists only in a secure context, so an origin served over
+ * plain HTTP -- a LAN address, a bare IP, anything but https or localhost -- has
+ * no WebCrypto and cannot set the lock. Found by driving the deployed build,
+ * where the mode silently refused to turn on and nothing said why: every unit
+ * test had passed, because Node always has it.
+ *
+ * A missing lock is a fine outcome. A lock that appears to be set and is not
+ * would be the dangerous one, so this exists to be asked before offering it.
+ */
+export const canLock = (): boolean =>
+  typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto?.subtle?.deriveBits === 'function';
+
+/** Why the lock cannot be set here, in words, or an empty string when it can. */
+export const lockUnavailable = (t: (en: string, zh: string) => string): string =>
+  canLock() ? '' : t(
+    'Setting a word needs a secure connection. This page is on a plain http address, which browsers do not give the tools to do it.',
+    '要設定一個字需要安全連線。呢版係普通 http 網址，瀏覽器唔會提供相關工具。',
+  );
+
 const encoder = new TextEncoder();
 const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));

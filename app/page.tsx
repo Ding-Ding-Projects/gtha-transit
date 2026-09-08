@@ -458,7 +458,7 @@ export default function Home() {
     () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) } }),
     [t, lang, dark, funEn, funZh, narrator, school],
   );
-  const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh }), [t, dark]);
+  const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh, hidden: school.on }), [t, dark, school.on]);
   /**
    * What the collapsed time row says.
    *

@@ -7,6 +7,7 @@ import {
   MIN_SECRET,
   RECOVERY,
   lock,
+  lockUnavailable,
   renameSchool,
   schoolName,
   secretIsUsable,
@@ -41,23 +42,42 @@ export default function SchoolMode({ t, state, setState }: SchoolModeProps) {
   const [name, setName] = useState(state.name);
   const [wrong, setWrong] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [broke, setBroke] = useState('');
   const shown = schoolName(state);
+  /*
+   * Asked before the control is offered, not discovered when somebody presses it.
+   * On a plain http origin there is no WebCrypto, so the lock cannot be set --
+   * and silently doing nothing is exactly what this did until the deployed build
+   * was driven.
+   */
+  const unavailable = lockUnavailable(t);
 
+  /* Both paths report a throw rather than swallowing it. A promise that rejects
+     inside an onClick is invisible: the button appears to do nothing at all. */
   const turnOn = async () => {
-    if (!secretIsUsable(secret) || busy) return;
+    if (!secretIsUsable(secret) || busy || unavailable) return;
     setBusy(true);
-    const named = renameSchool(state, name);
-    setState(await lock(named, secret));
-    setSecret('');
+    setBroke('');
+    try {
+      setState(await lock(renameSchool(state, name), secret));
+      setSecret('');
+    } catch {
+      setBroke(t('That did not work, and the mode was not turned on.', '搞唔掂，個模式冇開到。'));
+    }
     setBusy(false);
   };
 
   const turnOff = async () => {
     if (busy) return;
     setBusy(true);
-    const correct = await verify(state, secret);
-    setWrong(!correct);
-    if (correct) { setState(unlock(state)); setSecret(''); }
+    setBroke('');
+    try {
+      const correct = await verify(state, secret);
+      setWrong(!correct);
+      if (correct) { setState(unlock(state)); setSecret(''); }
+    } catch {
+      setBroke(t('That did not work, and the mode is still on.', '搞唔掂，個模式仲開住。'));
+    }
     setBusy(false);
   };
 
@@ -101,6 +121,10 @@ export default function SchoolMode({ t, state, setState }: SchoolModeProps) {
             </output>
           )}
         </>
+      ) : unavailable ? (
+        /* Said instead of the fields, because a form that cannot be submitted is
+           worse than no form: it looks like the person got something wrong. */
+        <p className="school-mode__unavailable">{unavailable}</p>
       ) : (
         <>
           <div className="school-mode__row">
@@ -134,6 +158,8 @@ export default function SchoolMode({ t, state, setState }: SchoolModeProps) {
           )}
         </>
       )}
+
+      {broke && <output className="school-mode__wrong" aria-live="polite">{broke}</output>}
 
       {/*
         * Said on the control, not buried. A lock somebody sets on themselves is a

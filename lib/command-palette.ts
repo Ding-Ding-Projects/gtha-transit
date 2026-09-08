@@ -220,15 +220,29 @@ export function settingKeywords(id: string, t: Translate): string {
 }
 
 /** The three things that are actions rather than values. */
+/**
+ * The actions School mode takes away.
+ *
+ * A second list beside the settings catalog's, because the actions are a second
+ * registry and filtering one of them is filtering half. This is exactly the leak
+ * the catalog's own comment warns about -- a list written twice disagrees with
+ * itself -- and it was found by driving the built page rather than by reading
+ * either file: the settings rows had gone and the palette could still reset a
+ * playfulness level the interface no longer offered.
+ */
+export const ACTIONS_HIDDEN_BY_SCHOOL: readonly string[] = ['reset-english-tone', 'reset-cantonese-tone'];
+
 export function workspaceActions(input: {
   t: Translate;
   dark: boolean;
   setDark: (value: boolean) => void;
   setFunEn: (value: number) => void;
   setFunZh: (value: number) => void;
+  /** True while School mode is on, which removes the playfulness actions. */
+  hidden?: boolean;
 }): PaletteAction[] {
   const { t, dark, setDark, setFunEn, setFunZh } = input;
-  return [
+  const actions: PaletteAction[] = [
     {
       id: 'toggle-theme',
       label: dark ? t('Switch to the light theme', '切換至淺色主題') : t('Switch to the dark theme', '切換至深色主題'),
@@ -254,6 +268,7 @@ export function workspaceActions(input: {
       run: () => setFunZh(5),
     },
   ];
+  return input.hidden ? actions.filter((action) => !ACTIONS_HIDDEN_BY_SCHOOL.includes(action.id)) : actions;
 }
 
 export type PaletteGroup = { kind: PaletteKind; label: string; entries: PaletteEntry[] };

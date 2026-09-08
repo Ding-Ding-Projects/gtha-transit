@@ -17,7 +17,9 @@ import {
   effectiveLanguage,
   emptySchoolState,
   hasChosenName,
+  canLock,
   lock,
+  lockUnavailable,
   parseSchool,
   renameSchool,
   schoolName,
@@ -188,9 +190,29 @@ test('the recovery route is stated in both languages', () => {
 });
 
 test('nothing here claims to be security', () => {
+  /*
+   * "secure context" and "secure connection" are the platform's own names for a
+   * browser capability, and saying the lock cannot be made without one is a fact
+   * about the browser rather than a claim about the mode. What must never appear
+   * is the mode described as encrypting or protecting somebody's data, so the
+   * two platform phrases are excluded by name rather than the check being
+   * loosened into uselessness.
+   */
   const text = source('lib', 'school-mode.ts');
   assert.match(text, /speed bump, not a security boundary/);
-  assert.ok(!/\bencrypt|\bprotect(s|ed)?\b|\bsecure(s|d)?\b/i.test(text.replace(/security boundary/g, '')),
+  const claims = text
+    .replace(/security boundary/g, '')
+    .replace(/secure context/g, '')
+    .replace(/secure connection/g, '');
+  /*
+   * Written with real word boundaries, and broken on purpose to prove they are
+   * real. An earlier edit to this line went through a script that turned every
+   * one of them into a literal backspace character, so the pattern matched
+   * nothing at all and the guard sat green while the module happily claimed to
+   * encrypt somebody's data. A negative assertion whose needle is mangled fails
+   * silently and forever, which is the one direction that costs something.
+   */
+  assert.ok(!/\bencrypt|\bprotect(s|ed)?\b|\bsecures?\b|\bsafe(ly)?\b/i.test(claims),
     'a self-imposed lock must not be described as protecting anything');
 });
 
@@ -294,4 +316,64 @@ test('the control states the recovery route on itself', () => {
     2,
     'both secret fields -- setting it and giving it back -- must be typed under cover',
   );
+});
+
+test('the lock is not offered where the browser cannot make one', () => {
+  /*
+   * crypto.subtle exists only in a secure context, so a plain http origin has no
+   * WebCrypto at all. Found by driving the deployed build: the mode silently
+   * refused to turn on and nothing said why, while every test here passed,
+   * because Node always has it. A lock that appears set and is not would be the
+   * dangerous outcome; not being offered one is a fine outcome that has to be
+   * said out loud.
+   */
+  assert.equal(canLock(), true, 'this runtime has it, which is exactly why the browser case needs its own guard');
+  assert.equal(lockUnavailable((en) => en), '');
+
+  const real = globalThis.crypto;
+  try {
+    Object.defineProperty(globalThis, 'crypto', { value: { getRandomValues: real.getRandomValues.bind(real) }, configurable: true });
+    assert.equal(canLock(), false);
+    assert.match(lockUnavailable((en) => en), /needs a secure connection/);
+  } finally {
+    Object.defineProperty(globalThis, 'crypto', { value: real, configurable: true });
+  }
+});
+
+test('the control asks before offering, and never fails silently', () => {
+  const text = source('components', 'school-mode.tsx');
+  assert.match(text, /^\s*const unavailable = lockUnavailable\(t\);$/m);
+  assert.match(text, /\) : unavailable \? \(/, 'the reason replaces the fields rather than sitting under a dead form');
+  assert.match(text, /if \(!secretIsUsable\(secret\) \|\| busy \|\| unavailable\) return;/);
+  // A promise rejecting inside an onClick is invisible: the button does nothing.
+  assert.equal((text.match(/\} catch \{/g) || []).length, 2, 'both the lock and the unlock report a throw');
+});
+
+test('the palette actions are a second registry, and the mode filters that one too', async () => {
+  /*
+   * The settings catalog and the action list are two registries, and filtering
+   * one of them is filtering half. Found by driving the built page: the settings
+   * rows had gone and the palette could still reset a playfulness level the
+   * interface no longer offered anywhere -- which is precisely the teleport past
+   * a hidden control that the whole design exists to close.
+   */
+  const { workspaceActions, ACTIONS_HIDDEN_BY_SCHOOL } = await import('../lib/command-palette.ts');
+  const base = { t: (en) => en, dark: false, setDark: () => {}, setFunEn: () => {}, setFunZh: () => {} };
+  const off = workspaceActions(base).map((action) => action.id);
+  const on = workspaceActions({ ...base, hidden: true }).map((action) => action.id);
+
+  assert.deepEqual(
+    [...ACTIONS_HIDDEN_BY_SCHOOL].sort(),
+    ['reset-cantonese-tone', 'reset-english-tone'],
+    'shortening this list is how an action quietly comes back',
+  );
+  for (const id of ACTIONS_HIDDEN_BY_SCHOOL) {
+    assert.ok(off.includes(id), `${id} exists to begin with`);
+    assert.ok(!on.includes(id), `${id} can still be run from the palette while the mode is on`);
+  }
+  assert.ok(on.includes('toggle-theme'), 'and an unrelated action is untouched');
+
+  const page = source('app', 'page.tsx');
+  assert.match(page, /workspaceActions\(\{ t, dark, setDark, setFunEn, setFunZh, hidden: school\.on \}\)/);
+  assert.match(page, /\[t, dark, school\.on\]/, 'a stale action list would keep offering them');
 });
