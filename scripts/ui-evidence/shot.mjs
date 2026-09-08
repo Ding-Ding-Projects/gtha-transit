@@ -44,10 +44,10 @@ if (targets.length !== 1 || targets[0].type !== 'page') {
   console.error(`not isolated: ${targets.length} targets`);
   process.exit(1);
 }
-if (new URL(targets[0].url).origin !== new URL(URL_UNDER_TEST).origin) {
-  console.error(`the single target is ${targets[0].url}`);
-  process.exit(1);
-}
+/* The isolation that matters is that there is exactly ONE page here, which is
+   checked above. Requiring it to already be on the target origin would refuse
+   every navigation to a different one, so the URL is asserted after navigating
+   instead, which is the point at which it can be wrong. */
 
 const socket = new WebSocket(targets[0].webSocketDebuggerUrl, { suppressOrigin: true });
 await new Promise((resolve, reject) => { socket.once('open', resolve); socket.once('error', reject); });
@@ -76,6 +76,12 @@ await send('Emulation.setDeviceMetricsOverride', {
 });
 await send('Page.navigate', { url: URL_UNDER_TEST });
 await pause(WAIT);
+const landed = await send('Runtime.evaluate', { expression: 'location.href', returnByValue: true });
+if (new URL(landed.result.value).origin !== new URL(URL_UNDER_TEST).origin) {
+  console.error(`navigated to ${landed.result.value}, expected ${URL_UNDER_TEST}`);
+  socket.close();
+  process.exit(1);
+}
 if (THEME) {
   await send('Runtime.evaluate', {
     expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(THEME)})`,

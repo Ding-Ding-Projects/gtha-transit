@@ -130,6 +130,10 @@ const report = await evaluate(`(() => {
     if (computed.display === 'none' || computed.visibility === 'hidden') continue;
     const rect = node.getBoundingClientRect();
     if (rect.width <= 1 || rect.height <= 1) continue;
+    /* A map's tile canvas is deliberately larger than its frame: that is how
+       panning works, and clipping it is the frame doing its job rather than text
+       being cut off. */
+    if (node.closest('.leaflet-container') || node.tagName === 'CANVAS') continue;
     const hiddenX = computed.overflowX === 'hidden' || computed.overflowX === 'clip';
     const hiddenY = computed.overflowY === 'hidden' || computed.overflowY === 'clip';
     const overX = hiddenX && node.scrollWidth > node.clientWidth + 1;
