@@ -2,7 +2,7 @@
 
 ## Evidence pass, 8 September 2026
 
-Head is `4e52d6e3b57fb301dc257ae25dc30726618b8fa6`, pushed, tree clean, one
+Head is `fe468edf0d02d14d377c7c1dfe467536aaf2952e`, pushed and deployed, tree clean, one
 local branch and one remote branch, no worktrees and no stashes.
 
 ### What this pass was for
@@ -37,32 +37,21 @@ not have.
 | Tests | 494 pass, 0 fail |
 | Type check | clean |
 | Interaction ledger | 4 tuples, 56 steps each, 224 captures, all green, 0 console exceptions |
-| Ledger binding | every row bound to `92153d6`, artifact `b8d360d8`, its own viewport, scale and theme |
+| Ledger binding | every row bound to `fe468ed`, its artifact hash, and its own viewport, scale and theme |
 | Design parity | 8 screens, 32 captures plus machine-readable evidence, guard green |
 | Parity guard | 8 boundaries each broken on purpose, watched red, restored green |
-| Latest release | `v0.1.0-136.1`, non-draft, targeting `9eaffa8`, assets downloadable |
-| Deployed | `92153d6`, three application files behind head |
+| Latest release | `v0.1.0-137.1`, non-draft, targeting `fe468ed`, assets downloadable |
+| Deployed | `fe468ed`, which is head |
 
 ### Known gaps, stated rather than left to be found
 
-- **The deployment is behind head, and three application files are now part of that
-  gap.** For most of this pass the gap was only scripts, tests, documentation and
-  evidence, so the running bundle was exactly what head built. That stopped being
-  true when the route colour lookup was split into its own module so it could be
-  tested without a renderer, and when a sort in the history store was given the
-  explicit comparator its linter asks for. Both are behaviour-preserving and both
-  are covered by tests, but behaviour-preserving is a claim rather than a
-  measurement, and neither has run in production.
+- **Nothing is undeployed, and the evidence binds to what is running.** The public
+  origin serves the head commit, and the interaction ledger, the design-parity
+  evidence and the walkthrough recording all name that same commit. That took
+  re-recording all of it after the last two commits touched application code:
+  evidence that names an older commit is not wrong, but it describes a build
+  nobody is using.
 
-  `git diff 92153d6..HEAD -- . ':(exclude)scripts/**' ':(exclude)docs/**'
-  ':(exclude)tests/**' ':(exclude)design/**'` names exactly what is undeployed:
-  `history/store.mjs`, `lib/route-colours.ts`, `lib/use-route-colours.ts`.
-
-  The ledger and design-parity evidence bind to `92153d6`, which is what is
-  actually running, so that evidence remains truthful about the deployed artifact
-  rather than about head. A deploy needs the host variables, which are deliberately
-  not in this repository, so whoever holds them should run `scripts/deploy.sh` and
-  then re-record the ledger at the new commit.
 - **Lint has 132 pre-existing findings**, mostly in the vendored `components/ui`
   tree and mostly `react-compiler` and `jsx-a11y(prefer-tag-over-role)`. Two were
   fixed in passing. This is separate debt and was not created by this work; it has
@@ -76,6 +65,16 @@ not have.
 - **The parity diff is not a gate and must not become one.** The reference is a mock
   whose map and live counts are placeholder slots. A threshold on that number would
   either pass everything or block every honest change.
+
+### Also in this pass
+
+- A README capture matrix and a committed walkthrough recording, where before there
+  were three pictures of an interface the project no longer builds and no recording
+  at all. The recording captures the renderer through the debugging protocol on an
+  off-screen desktop and never the machine screen.
+- The line counter, which runs in the release workflow and turned it red. It read a
+  video as UTF-8 and spawned git with the default one megabyte buffer. Both are
+  fixed and guarded.
 
 ### What is next
 
