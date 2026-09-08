@@ -1,5 +1,91 @@
 # Implementation handoff
 
+## Command palette, 8 September 2026
+
+The palette is built, tested and documented. It is **not deployed**, so nothing in
+this section claims rendered evidence beyond what is stated.
+
+### What this pass was for
+
+`docs/interface/feature-audit.json` records fifteen canonical features as absent.
+That file is the honest list of what this project owes, and the command palette was
+the largest of the fifteen that could be built without inventing a surface for it
+to live on. It is also the one that pays for itself immediately: nine destinations
+and fifteen settings is already more than a person will hunt through by hand.
+
+### What landed
+
+- **`Ctrl+Shift+F` opens a palette** over every surface, matched on the physical
+  key as well as the character so a non-Latin layout reaches it, and on the Mac
+  equivalent. It is not `Ctrl+F`, which belongs to the browser.
+- **Every destination, every setting, three actions.** A settings row renders its
+  real control inline -- theme, language, both playfulness sliders, the narration
+  switch, narration language, rate, pitch, quiet -- bound to the same setter the
+  settings surface uses, so the two cannot validate or persist differently.
+- **A row with a target teleports to the control**, not to the page holding it: it
+  switches destination, opens the settings section, unfolds anything collapsed
+  over it, scrolls, focuses, and outlines it. An outline rather than an animation,
+  so reduced motion has nothing to switch off.
+- **Three lists became one, twice.** The nine destinations were written out in the
+  navigation and again in the workspace heading; the fifteen settings were written
+  out in the settings workspace. Both now come from a registry
+  (`lib/destinations.ts`, `lib/settings-catalog.ts`) that every surface reads.
+
+### Evidence as it stands
+
+| | State |
+| --- | --- |
+| Tests | 519 pass, 0 fail, up from 494 |
+| Type check | clean |
+| Build | `npm run build` exits 0; the prerendered document carries the palette |
+| Break tests | 7 boundaries broken on purpose, each watched red, each restored green |
+| Deployed | **no**; head is ahead of the deployment and touches application code |
+| Interaction ledger | **not re-recorded**; still bound to `40411b1` |
+
+### Known gaps, stated rather than left to be found
+
+- **There is no capture of the palette from the built artifact.** The audit row is
+  `partial` and says so. The interaction ledger drives the *deployed* site and its
+  guard refuses tuples recorded against a commit other than the deployed one, so
+  the palette's steps were deliberately **not** added to
+  `scripts/ui-evidence/interaction-inventory.mjs` yet: adding them without a
+  re-record would turn the suite red on a count mismatch and prove nothing. The
+  order is deploy, then add the steps, then re-record all four tuples.
+- **The unit suite is not evidence about the seam it stubs.** These tests exercise
+  the palette's logic and assert its wiring in the source; they do not prove a key
+  press opens the dialog in a browser. That needs the built artifact driven
+  through the headless route, and it has not been done.
+- **A choice with more than four options keeps its full control on the settings
+  surface.** The installed-voice lists run to dozens, and a dropdown that long
+  inside a palette row would need its own search field and regex builder to meet
+  this project's own contract for a dropdown. The row says so and takes you there.
+  This is a deliberate boundary, recorded in `docs/interface/command-palette.md`.
+- **The glyphs are limited to the shipped subset.** A padlock would suit the
+  privacy rows better than a tick and the subset has no padlock. Adding one means
+  editing `ICON_NAMES` in `scripts/vendor-fonts.mjs` and re-vendoring, which
+  fetches from Google Fonts; that was not done here. A test checks every name the
+  palette can emit against the manifest of the binary that shipped.
+- **Fourteen canonical features remain absent.** Tabbed navigation, the appearance
+  editor, toy locks, ADHD modes, School mode, the personal-vocabulary upload, bulk
+  actions, the changelog viewer, the dim sum surprise, app-logo customization, the
+  file converter, the Ollama manager, scheduled settings and the landing page. The
+  audit names each with a reason.
+
+### Worth knowing before the next pass
+
+The first run of the break-test harness reported four clean misses. The harness was
+wrong, not the guards: it parsed `# fail N` while the runner prints `ℹ fail N`, so
+every count read as zero and every deliberate breakage looked survivable. It now
+proves itself against a deliberately failing test before any verdict from it is
+believed. A break-test harness that cannot see a failure is worse than no break
+test, because it certifies the guards it never ran.
+
+Two existing guards went red on the refactor, correctly: `material-theme.test.mjs`
+read the navigation's inline destination list, and `token-layering.test.mjs` keeps
+a hand-written stylesheet load order that a new stylesheet has to join. Both were
+rewritten to read the new source of truth rather than relaxed.
+
+
 ## Evidence pass, 8 September 2026
 
 The deployed commit is `40411b110a85b7a5b4d26d53017a7d2c4fcc7b26`. Head is one

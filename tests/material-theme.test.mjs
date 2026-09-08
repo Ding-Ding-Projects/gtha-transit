@@ -23,6 +23,7 @@ const shell = readFileSync(path.join(root, 'app', 'shell.css'), 'utf8');
 const workspace = readFileSync(path.join(root, 'app', 'workspace.css'), 'utf8');
 const layout = readFileSync(path.join(root, 'app', 'layout.tsx'), 'utf8');
 const navigation = readFileSync(path.join(root, 'components', 'workspace-navigation.tsx'), 'utf8');
+const destinations = readFileSync(path.join(root, 'lib', 'destinations.ts'), 'utf8');
 
 /** The roles anything drawn on this interface is allowed to use. */
 const REQUIRED_ROLES = [
@@ -98,12 +99,18 @@ test('the design system loads before every stylesheet that reads it', () => {
 });
 
 test('navigation carries four destinations and a More, in one list', () => {
-  const primary = navigation.slice(navigation.indexOf('const primary'), navigation.indexOf('const secondary'));
-  const ids = [...primary.matchAll(/id: '([a-z]+)'/g)].map((match) => match[1]);
+  // The list moved out to lib/destinations.ts when the command palette arrived,
+  // because the rail, the More dialog, the workspace heading and the palette all
+  // navigate to the same nine places and each was free to hold its own copy.
+  // What this still guards is the shape: four on the phone bar, the rest behind
+  // one More target, and the navigation reading the registry rather than growing
+  // a second list beside it.
+  const ids = [...destinations.matchAll(/\{ id: '([a-z]+)'[^}]*group: 'primary' \}/g)].map((match) => match[1]);
   assert.deepEqual(ids, ['plan', 'status', 'vehicles', 'saved'], 'four destinations earn a permanent place');
   assert.match(navigation, /aria-haspopup="dialog"/, 'the rest live behind one More target');
-  // One list feeding both the rail and the bar, so they cannot drift apart.
-  assert.equal(navigation.match(/const primary = \[/g)?.length, 1);
+  assert.match(navigation, /^\s*const primary = primaryDestinations\(t\);$/m, 'the rail reads the registry');
+  assert.match(navigation, /^\s*const secondary = secondaryDestinations\(t\);$/m, 'and so does the More dialog');
+  assert.ok(!/const primary = \[/.test(navigation), 'a second inline list here is the drift the registry prevents');
 });
 
 test('the rail is the Material width, and the bar appears below the Material breakpoint', () => {

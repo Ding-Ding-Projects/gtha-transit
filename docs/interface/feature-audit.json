@@ -147,12 +147,18 @@
     {
       "id": "command-palette",
       "name": "Ctrl+Shift+F command palette that teleports to the exact element",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "components/command-palette.tsx",
+        "lib/command-palette.ts",
+        "lib/settings-catalog.ts",
+        "lib/destinations.ts",
+        "app/command-palette.css"
+      ],
+      "documentation": "docs/interface/command-palette.md",
+      "test": "tests/command-palette.test.mjs",
       "capture": null,
-      "reason": "Not built. With four destinations and a More dialog there is less to search than the contract assumes, but the contract covers every setting and control too, so this is a real gap rather than a size argument."
+      "missing": "Built and wired, with every destination, every setting and three actions reachable, settings rows carrying their real controls, and a teleport that lands on the exact element. It is partial rather than present for two reasons. A choice with more than four options keeps its full control on the settings surface, because a long dropdown inside a palette row would need its own search and regex builder to meet this project own contract for a dropdown. And there is no capture from the built artifact yet, so its behaviour is proven by tests rather than by a picture of it running."
     },
     {
       "id": "appearance-editor",

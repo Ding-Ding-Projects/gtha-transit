@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BrandMark } from './brand-mark';
 import { Icon } from './icon';
+import { primaryDestinations, secondaryDestinations } from '../lib/destinations';
 
 /**
  * Navigation: a rail on desktop, a bar on mobile, one list behind both.
@@ -40,20 +41,15 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, l
   const dialog = useRef<HTMLDialogElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
 
-  /** The four that earn a place on a phone, and the rest, which the rail still shows. */
-  const primary = [
-    { id: 'plan', label: t('Plan', '規劃'), glyph: 'alt_route' },
-    { id: 'status', label: t('Live', '即時'), glyph: 'sensors' },
-    { id: 'vehicles', label: t('Vehicles', '車輛'), glyph: 'directions_bus' },
-    { id: 'saved', label: t('Saved', '已儲存'), glyph: 'bookmark' },
-  ];
-  const secondary = [
-    { id: 'race', label: t('Race', '比賽'), glyph: 'flag' },
-    { id: 'divisions', label: t('Out of division', '跨車廠'), glyph: 'garage' },
-    { id: 'history', label: t('History', '歷史'), glyph: 'history' },
-    { id: 'coverage', label: t('Our region', '服務範圍'), glyph: 'public' },
-    { id: 'settings', label: t('Settings', '設定'), glyph: 'settings' },
-  ];
+  /**
+   * The four that earn a place on a phone, and the rest, which the rail still shows.
+   *
+   * Both come from the destinations registry rather than being written here, so the
+   * rail, the More dialog, the workspace heading and the command palette cannot end
+   * up navigating to four different lists of the same nine places.
+   */
+  const primary = primaryDestinations(t);
+  const secondary = secondaryDestinations(t);
   const inMore = secondary.some((item) => item.id === active);
 
   useEffect(() => { if (moreOpen) dialog.current?.showModal(); }, [moreOpen]);

@@ -9,6 +9,7 @@ import './workspace.css';
 import './settings-workspace.css';
 import './journey-time.css';
 import './vehicle-preferences.css';
+import './command-palette.css';
 // The shell loads last so its navigation rules win over the old workspace ones.
 import './shell.css';
 export const metadata: Metadata = {

@@ -7,11 +7,19 @@ import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-wo
 import NarratorSettings from './narrator-settings';
 import type { NarratorController } from '../lib/narrator';
 import { useLocalSetting } from '../lib/use-local-setting';
+import { SETTINGS_SECTION_KEY, SETTINGS_SECTIONS, settingsCatalog, type SettingsEntry, type SettingsSection } from '../lib/settings-catalog';
 
 type Lang = 'en' | 'zh' | 'both';
-type Section = 'appearance' | 'language' | 'narrator' | 'privacy';
+type Section = SettingsSection;
 type Translate = (en: string, zh: string) => string;
-type SearchEntry = { id: string; section: Section; label: string; description: string; value?: string; selector: string };
+/**
+ * The settings list is no longer written here.
+ *
+ * It comes from the shared catalog, which the command palette reads too. A
+ * setting added to one surface and forgotten in the other is a setting the
+ * palette cannot find, and nothing about that failure announces itself.
+ */
+type SearchEntry = SettingsEntry;
 
 function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: SearchEntry[]; storageId: string; title: string; t: Translate; navigate: (entry: SearchEntry) => void }) {
   const [search, setSearch] = useState(emptySearchState);
@@ -39,31 +47,15 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
-  const storedTab = useLocalSetting('gtha-settings-section-v1');
-  const active: Section = ['appearance', 'language', 'narrator', 'privacy'].includes(storedTab.value || '') ? storedTab.value as Section : 'appearance';
+  const storedTab = useLocalSetting(SETTINGS_SECTION_KEY);
+  const active: Section = (SETTINGS_SECTIONS as readonly string[]).includes(storedTab.value || '') ? storedTab.value as Section : 'appearance';
   const sections = [
     { id: 'appearance', label: t('Appearance', '外觀'), icon: Palette },
     { id: 'language', label: t('Language', '語言'), icon: Languages },
     { id: 'narrator', label: t('Narrator', '旁白'), icon: Mic2 },
     { id: 'privacy', label: t('Privacy', '私隱'), icon: ShieldCheck },
   ];
-  const entries: SearchEntry[] = [
-    { id: 'theme', section: 'appearance', label: t('Colour theme', '色彩主題'), description: t('Light or dark appearance', '淺色或深色外觀'), value: dark ? t('Dark', '深色') : t('Light', '淺色'), selector: '#settings-theme-light' },
-    { id: 'language', section: 'language', label: t('Language', '語言'), description: t('English, Hong Kong Cantonese or both', '英文、香港廣東話或雙語'), value: lang, selector: '#settings-language-en' },
-    { id: 'english-tone', section: 'language', label: t('English playfulness', '英文趣味程度'), description: t('Independent English tone from serious to playful', '獨立英文語氣，由認真至有趣'), value: String(funEn), selector: '#settings-english-tone' },
-    { id: 'cantonese-tone', section: 'language', label: t('Cantonese playfulness', '廣東話趣味程度'), description: t('Independent Cantonese tone from serious to playful', '獨立廣東話語氣，由認真至有趣'), value: String(funZh), selector: '#settings-cantonese-tone' },
-    { id: 'narration', section: 'narrator', label: t('Enable narration', '開啟旁白'), description: t('Spoken journey updates, off by default', '語音行程提示，預設關閉'), selector: '#narrator-enabled' },
-    { id: 'narration-language', section: 'narrator', label: t('Narration language', '旁白語言'), description: t('English, Cantonese or both in sequence', '英文、廣東話或依次讀出兩者'), selector: '#narrator-language-en' },
-    { id: 'english-voice', section: 'narrator', label: t('English voice', '英文語音'), description: t('Choose an installed voice or choose automatically', '選擇已安裝語音或自動選擇'), selector: '#narrator-english-voice-automatic' },
-    { id: 'cantonese-voice', section: 'narrator', label: t('Hong Kong Cantonese voice', '香港廣東話語音'), description: t('Choose an installed Cantonese voice or choose automatically', '選擇已安裝廣東話語音或自動選擇'), selector: '#narrator-cantonese-voice-automatic' },
-    { id: 'rate', section: 'narrator', label: t('Rate', '速度'), description: t('Adjust speaking speed', '調整朗讀速度'), value: String(narrator.settings.rate), selector: '.narrator-tuning input[min="0.1"]' },
-    { id: 'pitch', section: 'narrator', label: t('Pitch', '音調'), description: t('Adjust the voice pitch', '調整語音音調'), value: String(narrator.settings.pitch), selector: '.narrator-tuning input[min="0"]' },
-    { id: 'quiet', section: 'narrator', label: t('Quiet narration', '靜音旁白'), description: t('Silence narration while another voice is active', '其他語音使用時令旁白靜音'), selector: '#narrator-quiet' },
-    { id: 'preview', section: 'narrator', label: t('Preview narration', '試聽旁白'), description: t('Hear a sample with the selected voice settings', '試聽所選語音設定'), selector: '.narrator-advanced > button' },
-    { id: 'local-data', section: 'privacy', label: t('Your journey stays yours', '你嘅行程，由你掌握'), description: t('Saved trips, local storage and routing requests', '儲存行程、本機資料及路線請求'), selector: '#settings-local-data' },
-    { id: 'shared-links', section: 'privacy', label: t('Sharing a trip', '分享行程'), description: t('Shared links contain the journey locations', '分享連結包含行程地點'), selector: '#settings-sharing' },
-    { id: 'reliability', section: 'privacy', label: t('Data and reliability', '資料及可靠程度'), description: t('Independent planner and official service notices', '獨立規劃工具及官方服務通告'), selector: '#settings-reliability' },
-  ];
+  const entries = settingsCatalog({ t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator });
   const [navigationTarget, setNavigationTarget] = useState<SearchEntry | null>(null);
   const previewVoiceAvailable = narrator.settings.language === 'en' ? !!narrator.englishVoice.voice : narrator.settings.language === 'zh' ? !!narrator.cantoneseVoice.voice : !!(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
   const navigationNotice = !navigationTarget ? '' : !narrator.speechAvailable ? t('This browser does not provide speech synthesis. Voice controls are unavailable here.', '此瀏覽器未提供語音合成，未能使用語音控制。') : !narrator.settings.enabled ? t('Enable narration first to change this voice setting.', '請先開啟旁白，再更改此語音設定。') : navigationTarget.id === 'preview' && narrator.settings.quiet ? t('Turn off quiet narration to hear a preview.', '請關閉靜音旁白以試聽。') : navigationTarget.id === 'preview' && !previewVoiceAvailable ? t('No compatible voice is available for the chosen narration language.', '所選旁白語言未有可用語音。') : '';

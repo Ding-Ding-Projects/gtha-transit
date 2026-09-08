@@ -42,6 +42,10 @@ import RaceWorkspace from '../components/race-workspace';
 import GoCancellations from '../components/go-cancellations';
 import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
+import CommandPalette from '../components/command-palette';
+import { destinationHeading, workspaceDestinations } from '../lib/destinations';
+import { settingsCatalog } from '../lib/settings-catalog';
+import { workspaceActions } from '../lib/command-palette';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
 import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
@@ -371,6 +375,22 @@ export default function Home() {
     },
     [lang, funEn, funZh],
   );
+
+  /**
+   * What the command palette can reach.
+   *
+   * All three come from the same registries the surfaces themselves render from,
+   * which is the whole point: the palette cannot list a destination the rail does
+   * not have, or miss a setting the settings workspace added last week. The
+   * settings entries carry the real setters, so a palette row and the settings
+   * page change one value through one piece of code.
+   */
+  const paletteDestinations = useMemo(() => workspaceDestinations(t), [t]);
+  const paletteSettings = useMemo(
+    () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator }),
+    [t, lang, dark, funEn, funZh, narrator],
+  );
+  const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh }), [t, dark]);
   /**
    * What the collapsed time row says.
    *
@@ -898,8 +918,9 @@ export default function Home() {
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
       <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={lang} onLang={setLang} t={t} />
+      <CommandPalette t={t} destinations={paletteDestinations} settings={paletteSettings} actions={paletteActions} onNavigate={setTab} />
       <div className="workspace-topline">
-        <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{({ plan: t('Plan your next connection', '規劃你嘅下一程'), vehicles: t('Find your next ride', '搵你嘅下一程車'), status: t('The network, right now', '交通網絡現況'), divisions: t('Beyond the usual garage', '跨越平日車廠分配'), history: t('The service record', '服務歷史記錄'), saved: t('Ready when you are', '隨時準備出發'), coverage: t('Across the whole region', '接通整個地區'), race: t('Race across the region', '同人鬥快跨區'), settings: t('Make yourself at home', '按你喜好設定') } as Record<string, string>)[tab]}</h1></div>
+        <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{destinationHeading(t, tab)}</h1></div>
         <div className="build-stamp"><strong>{version?.version ? 'v' + version.version : t('Version unavailable', '版本未能提供')}{version?.commit ? ' · ' + version.commit.slice(0, 7) : ''}</strong><span>{version?.builtAt && Number.isFinite(Date.parse(version.builtAt)) ? t('Updated', '更新') + ' ' + new Date(version.builtAt).toLocaleString('en-CA', { timeZone: 'America/Toronto', timeZoneName: 'short', hour12: false, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : t('Build provenance unavailable', '建置資料未能提供')}</span></div>
       </div>
       <main id="main" className="workspace">

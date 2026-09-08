@@ -1,0 +1,209 @@
+/* ------------------------------------------------------- command palette -- */
+
+/*
+ * The palette is a Material dialog that comes in two sizes. The bounded card is
+ * the shipped default; the full window is a deliberate choice a person makes and
+ * the browser remembers.
+ *
+ * Everything here is drawn from the system tokens rather than from hand-picked
+ * values, so the palette follows the theme, the density and the type scale the
+ * rest of the planner follows. A dialog that keeps its own colours is the one
+ * surface that looks wrong the day somebody changes the seed.
+ */
+
+.palette {
+  border: 0;
+  padding: 0;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+  overflow: hidden;
+}
+
+.palette::backdrop { background: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent); }
+
+.palette--card {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 64px));
+}
+
+.palette--full {
+  width: calc(100vw - 32px);
+  height: calc(100dvh - 32px);
+  max-width: none;
+  max-height: none;
+}
+
+/* The surface scrolls, not the page behind it, and the list gets the room. */
+.palette__surface {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 8px;
+  padding: 16px 16px 12px;
+  max-height: inherit;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.palette__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.palette__title { display: flex; align-items: center; gap: 10px; margin: 0; font: var(--md-sys-typescale-headline-small); }
+.palette__tools { display: flex; align-items: center; gap: 8px; }
+
+.palette__size {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  overflow: hidden;
+}
+.palette__size button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.palette__size button[aria-pressed='true'] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.palette__size button:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
+
+.palette__close {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: var(--md-sys-shape-corner-full);
+  background: none; color: var(--md-sys-color-on-surface-variant); cursor: pointer;
+}
+.palette__close:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.palette__close:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.palette__status,
+.palette__notice {
+  display: block;
+  font: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 0 4px;
+}
+.palette__notice { color: var(--md-sys-color-error); }
+
+.palette__list { overflow-y: auto; overscroll-behavior: contain; padding: 0 2px 4px; }
+.palette__group + .palette__group { margin-top: 12px; }
+.palette__group-label {
+  margin: 0 0 4px;
+  padding: 0 8px;
+  font: var(--md-sys-typescale-label-medium);
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+.palette__group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+
+.palette-row { border-radius: var(--md-sys-shape-corner-large); }
+.palette-row:has(.palette-row__go:focus-visible) { background: var(--md-sys-color-surface-container-highest); }
+
+.palette-row__go {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  text-align: start;
+  cursor: pointer;
+}
+.palette-row__go:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.palette-row__go:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
+
+.palette-row__text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.palette-row__text strong { font: var(--md-sys-typescale-body-large); font-weight: 600; }
+/* Wrapping rather than an ellipsis: a truncated setting name is a setting nobody can identify. */
+.palette-row__text small { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); overflow-wrap: anywhere; }
+
+.palette-row__value {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  max-width: 40%;
+  overflow-wrap: anywhere;
+}
+
+.palette-row__note {
+  margin: 0 0 6px;
+  padding: 0 12px 0 48px;
+  font: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.palette-row__control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 8px;
+  padding: 0 12px 0 48px;
+  font: var(--md-sys-typescale-label-large);
+}
+.palette-row__control input[type='range'] { flex: 1; min-width: 140px; min-height: 44px; }
+.palette-row__control input[type='checkbox'] { width: 44px; height: 28px; }
+.palette-row__control output { min-width: 2ch; color: var(--md-sys-color-on-surface-variant); }
+
+.palette-row__choices { border: 0; margin: 0 0 8px; }
+.palette-row__choices label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+}
+.palette-row__choices label:has(input:checked) {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.palette-row__choices label:has(input:focus-visible) { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.palette__foot {
+  margin: 0;
+  padding: 8px 8px 0;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  font: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/*
+ * Where a teleport landed.
+ *
+ * An outline rather than an animation, so it reads the same whether or not the
+ * visitor has asked for reduced motion. There is nothing to switch off, because
+ * nothing moves.
+ */
+.palette-landed {
+  outline: 3px solid var(--md-sys-color-tertiary);
+  outline-offset: 3px;
+  border-radius: var(--md-sys-shape-corner-small);
+}
+
+/* A phone has no room for the tools row beside the title, so it goes underneath. */
+@media (max-width: 520px) {
+  .palette--card { width: calc(100vw - 16px); max-height: calc(100dvh - 32px); }
+  .palette__surface { padding: 12px 12px 8px; }
+  .palette__title { font: var(--md-sys-typescale-title-large); }
+  .palette__tools { width: 100%; justify-content: space-between; }
+  .palette-row__note,
+  .palette-row__control { padding-left: 12px; }
+  .palette-row__value { max-width: 100%; }
+}
