@@ -47,10 +47,32 @@ echo "deploy: $sha"
 git archive --format=tar.gz -o "$archive" "$sha"
 scp "${ssh_options[@]}" "$archive" "$DEPLOY_HOST:$DEPLOY_DIR/releases/"
 
+# The dim sum photos belong to a public catalog and are never committed here, so
+# `git archive` cannot carry them and a host that only unpacks the archive builds
+# an image with no pictures in it. They ride alongside instead, when this machine
+# has them: `node scripts/vendor-dim-sum.mjs` puts them in public/dim-sum, the
+# build folds that into dist/client, and the planner serves them from its own
+# origin. Their absence is not an error -- the surprise simply never appears, and
+# this says which of the two happened rather than leaving it to be discovered.
+photos=""
+if [ -d public/dim-sum ] && [ -n "$(ls -A public/dim-sum 2>/dev/null)" ]; then
+  photos="${TMPDIR:-/tmp}/gtha-dim-sum-$sha.tar.gz"
+  tar -czf "$photos" -C public dim-sum
+  scp "${ssh_options[@]}" "$photos" "$DEPLOY_HOST:$DEPLOY_DIR/releases/"
+  echo "deploy: shipping $(ls public/dim-sum | wc -l | tr -d ' ') dim sum files"
+else
+  echo "deploy: no dim sum photos on this machine, so the surprise will not appear"
+  echo "deploy: run 'node scripts/vendor-dim-sum.mjs' first to include them"
+fi
+
 ssh "${ssh_options[@]}" "$DEPLOY_HOST" "set -eu
   release=$DEPLOY_DIR/releases/$sha
   mkdir -p \"\$release\"
   tar -xzf $DEPLOY_DIR/releases/gtha-$sha.tar.gz -C \"\$release\"
+  if [ -f $DEPLOY_DIR/releases/gtha-dim-sum-$sha.tar.gz ]; then
+    mkdir -p \"\$release/public\"
+    tar -xzf $DEPLOY_DIR/releases/gtha-dim-sum-$sha.tar.gz -C \"\$release/public\"
+  fi
   docker build --build-arg SOURCE_COMMIT=$sha -t gtha-transit-web:$sha \"\$release\" >/dev/null
   cd $DEPLOY_DIR
   SOURCE_COMMIT=$sha RELEASE_TAG=$sha \
