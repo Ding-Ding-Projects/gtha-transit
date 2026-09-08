@@ -251,16 +251,3 @@
   .school-mode__row { grid-template-columns: 1fr; }
   .school-mode__row button { width: 100%; }
 }
-/*
- * Why the lock cannot be set here, where the fields would have been. A form that
- * cannot be submitted is worse than no form: it reads as the person having got
- * something wrong.
- */
-.school-mode__unavailable {
-  margin: 12px 0 0;
-  padding: 12px 14px;
-  border-radius: var(--md-sys-shape-corner-medium);
-  background: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface-variant);
-  font: var(--md-sys-typescale-body-medium);
-}

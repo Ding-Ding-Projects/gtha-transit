@@ -7,7 +7,6 @@ import {
   MIN_SECRET,
   RECOVERY,
   lock,
-  lockUnavailable,
   renameSchool,
   schoolName,
   secretIsUsable,
@@ -44,18 +43,11 @@ export default function SchoolMode({ t, state, setState }: SchoolModeProps) {
   const [busy, setBusy] = useState(false);
   const [broke, setBroke] = useState('');
   const shown = schoolName(state);
-  /*
-   * Asked before the control is offered, not discovered when somebody presses it.
-   * On a plain http origin there is no WebCrypto, so the lock cannot be set --
-   * and silently doing nothing is exactly what this did until the deployed build
-   * was driven.
-   */
-  const unavailable = lockUnavailable(t);
 
   /* Both paths report a throw rather than swallowing it. A promise that rejects
      inside an onClick is invisible: the button appears to do nothing at all. */
   const turnOn = async () => {
-    if (!secretIsUsable(secret) || busy || unavailable) return;
+    if (!secretIsUsable(secret) || busy) return;
     setBusy(true);
     setBroke('');
     try {
@@ -121,10 +113,6 @@ export default function SchoolMode({ t, state, setState }: SchoolModeProps) {
             </output>
           )}
         </>
-      ) : unavailable ? (
-        /* Said instead of the fields, because a form that cannot be submitted is
-           worse than no form: it looks like the person got something wrong. */
-        <p className="school-mode__unavailable">{unavailable}</p>
       ) : (
         <>
           <div className="school-mode__row">

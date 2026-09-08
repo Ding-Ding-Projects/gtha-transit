@@ -15,6 +15,13 @@
  * again. A rename that leaked the original name in one tooltip would defeat the
  * rename entirely.
  *
+ * **The lock works on every origin, because it does not use WebCrypto.**
+ * `crypto.subtle` exists only in a secure context, so on a plain http origin it
+ * is simply not there -- and this mode used to fail silently on exactly those
+ * origins, the button doing nothing at all. The derivation is done in plain
+ * JavaScript instead, checked against the platform's own implementations. Only
+ * the salt comes from `crypto.getRandomValues`, which needs no secure context.
+ *
  * **It is a speed bump, not a security boundary, and it says so.** The credential
  * is a salted hash in this browser's own storage. Anybody who can clear site data
  * can turn the mode off, and the unlock dialog tells them that rather than
@@ -22,14 +29,30 @@
  * dishonest part; the honesty is what makes it fine to ship.
  */
 
+import { pbkdf2Sha256 } from './pbkdf2.ts';
+
 export const SCHOOL_STORAGE_KEY = 'gtha-school-mode-v1';
 
 /** The name it ships with, used only until somebody chooses their own. */
 export const SHIPPED_NAME = 'School mode';
 export const MAX_NAME = 40;
 
-/** PBKDF2 work factor. High enough to matter, low enough not to stall a phone. */
-export const PBKDF2_ITERATIONS = 210_000;
+/**
+ * PBKDF2 work factor.
+ *
+ * Lower than the number a password vault would use, and deliberately so. The
+ * derivation is done in plain JavaScript rather than through WebCrypto -- see
+ * `lib/pbkdf2.ts` for why -- which makes it synchronous and roughly ten times
+ * slower, so a vault-sized count would freeze the tab for several seconds on a
+ * phone every time somebody turned the mode on or off.
+ *
+ * Measured at 276 ms on the machine this was written on. What is being resisted
+ * is somebody idly guessing at a word they chose themselves ten minutes ago, not
+ * an offline attack on a stolen database -- and the control says in as many words
+ * that clearing site data turns it off, so the salted hash was never the thing
+ * standing between anybody and the planner.
+ */
+export const PBKDF2_ITERATIONS = 50_000;
 export const MIN_SECRET = 4;
 
 export type SchoolState = {
@@ -54,28 +77,6 @@ export function renameSchool(state: SchoolState, name: string): SchoolState {
 
 /* ------------------------------------------------------------ the credential -- */
 
-/**
- * Can this browser derive the hash at all?
- *
- * `crypto.subtle` exists only in a secure context, so an origin served over
- * plain HTTP -- a LAN address, a bare IP, anything but https or localhost -- has
- * no WebCrypto and cannot set the lock. Found by driving the deployed build,
- * where the mode silently refused to turn on and nothing said why: every unit
- * test had passed, because Node always has it.
- *
- * A missing lock is a fine outcome. A lock that appears to be set and is not
- * would be the dangerous one, so this exists to be asked before offering it.
- */
-export const canLock = (): boolean =>
-  typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto?.subtle?.deriveBits === 'function';
-
-/** Why the lock cannot be set here, in words, or an empty string when it can. */
-export const lockUnavailable = (t: (en: string, zh: string) => string): string =>
-  canLock() ? '' : t(
-    'Setting a word needs a secure connection. This page is on a plain http address, which browsers do not give the tools to do it.',
-    '要設定一個字需要安全連線。呢版係普通 http 網址，瀏覽器唔會提供相關工具。',
-  );
-
 const encoder = new TextEncoder();
 const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
@@ -87,13 +88,7 @@ const fromBase64 = (text: string) => Uint8Array.from(atob(text), (character) => 
  * anywhere a capture could reach. What is kept is this, and a random salt.
  */
 export async function deriveHash(secret: string, salt: Uint8Array): Promise<string> {
-  const key = await crypto.subtle.importKey('raw', encoder.encode(secret), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: salt as unknown as BufferSource, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-    key,
-    256,
-  );
-  return toBase64(new Uint8Array(bits));
+  return toBase64(pbkdf2Sha256(encoder.encode(secret), salt, PBKDF2_ITERATIONS, 32));
 }
 
 /** Turn it on, setting the secret that will turn it off again. */

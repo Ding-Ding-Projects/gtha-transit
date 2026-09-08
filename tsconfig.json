@@ -6,6 +6,10 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    /* The .ts extension is written out on relative imports, because Node
+       type-stripping resolves them literally when the test suite loads a lib
+       module directly. The bundler is happy either way; Node is not. */
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",

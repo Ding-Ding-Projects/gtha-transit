@@ -17,9 +17,7 @@ import {
   effectiveLanguage,
   emptySchoolState,
   hasChosenName,
-  canLock,
   lock,
-  lockUnavailable,
   parseSchool,
   renameSchool,
   schoolName,
@@ -87,7 +85,11 @@ test('unlocking forgets the credential and keeps the chosen name', async () => {
 });
 
 test('the work factor is real and the secret has a floor', () => {
-  assert.ok(PBKDF2_ITERATIONS >= 100_000, 'a token iteration count is a token defence');
+  /* The floor moved down when the derivation moved off WebCrypto, and the reason
+     is recorded beside the constant rather than left as an unexplained drop: plain
+     JavaScript is about ten times slower, so a vault-sized count freezes the tab.
+     The range is asserted in its own test; this one just refuses a token count. */
+  assert.ok(PBKDF2_ITERATIONS >= 20_000, 'a token iteration count is a token defence');
   assert.equal(secretIsUsable('1234'), true);
   assert.equal(secretIsUsable('123'), false);
   assert.equal(secretIsUsable('   '), false);
@@ -318,35 +320,50 @@ test('the control states the recovery route on itself', () => {
   );
 });
 
-test('the lock is not offered where the browser cannot make one', () => {
+test('the lock works without WebCrypto, which is the whole point of not using it', async () => {
   /*
-   * crypto.subtle exists only in a secure context, so a plain http origin has no
-   * WebCrypto at all. Found by driving the deployed build: the mode silently
-   * refused to turn on and nothing said why, while every test here passed,
-   * because Node always has it. A lock that appears set and is not would be the
-   * dangerous outcome; not being offered one is a fine outcome that has to be
-   * said out loud.
+   * crypto.subtle exists only in a secure context, so on a plain http origin it
+   * is not there at all -- and this mode used to fail silently on exactly those
+   * origins, the button doing nothing whatsoever. The derivation is plain
+   * JavaScript now, so the same word locks and unlocks on every origin.
    */
-  assert.equal(canLock(), true, 'this runtime has it, which is exactly why the browser case needs its own guard');
-  assert.equal(lockUnavailable((en) => en), '');
-
   const real = globalThis.crypto;
   try {
-    Object.defineProperty(globalThis, 'crypto', { value: { getRandomValues: real.getRandomValues.bind(real) }, configurable: true });
-    assert.equal(canLock(), false);
-    assert.match(lockUnavailable((en) => en), /needs a secure connection/);
+    Object.defineProperty(globalThis, 'crypto', {
+      value: { getRandomValues: real.getRandomValues.bind(real) },
+      configurable: true,
+    });
+    assert.equal(typeof globalThis.crypto.subtle, 'undefined', 'the point is that it is missing');
+    const locked = await lock(emptySchoolState(), 'exam-time');
+    assert.equal(locked.on, true);
+    assert.equal(await verify(locked, 'exam-time'), true);
+    assert.equal(await verify(locked, 'not-it'), false);
   } finally {
     Object.defineProperty(globalThis, 'crypto', { value: real, configurable: true });
   }
 });
 
-test('the control asks before offering, and never fails silently', () => {
-  const text = source('components', 'school-mode.tsx');
-  assert.match(text, /^\s*const unavailable = lockUnavailable\(t\);$/m);
-  assert.match(text, /\) : unavailable \? \(/, 'the reason replaces the fields rather than sitting under a dead form');
-  assert.match(text, /if \(!secretIsUsable\(secret\) \|\| busy \|\| unavailable\) return;/);
-  // A promise rejecting inside an onClick is invisible: the button does nothing.
-  assert.equal((text.match(/\} catch \{/g) || []).length, 2, 'both the lock and the unlock report a throw');
+test('the module reaches for WebCrypto nowhere in its code', () => {
+  const code = source('lib', 'school-mode.ts')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(!/subtle/.test(code), 'a WebCrypto path would be a lock that works on some origins and not others');
+  // The salt still comes from real randomness, which needs no secure context.
+  assert.match(code, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
+});
+
+test('the work factor is honest about being a synchronous derivation', () => {
+  /*
+   * Lower than a password vault would use, deliberately, because plain JavaScript
+   * is roughly ten times slower than WebCrypto and a vault-sized count would
+   * freeze the tab for seconds on a phone. High enough to still be a real cost.
+   */
+  assert.ok(PBKDF2_ITERATIONS >= 20_000 && PBKDF2_ITERATIONS <= 100_000, `${PBKDF2_ITERATIONS} is outside the range this was measured for`);
+  const started = Date.now();
+  return lock(emptySchoolState(), 'exam-time').then(() => {
+    const took = Date.now() - started;
+    assert.ok(took < 3000, `a lock that takes ${took} ms is a lock somebody thinks is broken`);
+  });
 });
 
 test('the palette actions are a second registry, and the mode filters that one too', async () => {
