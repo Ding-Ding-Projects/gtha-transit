@@ -2,6 +2,14 @@
 
 ## 0.1.0, unreleased
 
+Every commit in this release has an entry below, except the one that publishes
+these entries: a record cannot cite the commit that creates it. That commit
+touches this file and nothing else.
+
+- Complete the changelog for the pass, including the entries about the changelog itself, because one that covers every commit except those has coverage that cannot be checked. ([40411b1](https://github.com/Ding-Ding-Projects/gtha-transit/commit/40411b1))
+
+- Bind the interaction evidence to the artifact the site actually serves. Every row carried an artifact hash described as the built artifact's own, and it was the hash of a local build directory on whatever machine ran the harness. The run drives a deployed site, and this build is not reproducible, so the field could never have matched the deployed artifact even when the source agreed. It hashes the fetched document now, and the four tuples, the deployment and a fresh fetch all agree on one value. ([3850c72](https://github.com/Ding-Ding-Projects/gtha-transit/commit/3850c72))
+
 - Bring this file up to date with the pass so far. Recorded here rather than left out because a changelog that covers every commit except the ones about itself is a changelog whose coverage cannot be checked. ([d3339aa](https://github.com/Ding-Ding-Projects/gtha-transit/commit/d3339aa))
 
 - Fix the line counter, which runs in the release workflow and had turned it red. Its binary exclusion listed the extensions the repository happened to hold when it was written, so it read the first committed video as UTF-8, and every file is read through a spawned git with the default one megabyte buffer, so the first tracked file past that killed the run with ENOBUFS. The buffer is explicit now and the exclusion is decided by looking at the bytes. Four guards, each watched going red, one of which found a real extensionless binary the counter was relying on a single check to notice. ([9eaffa8](https://github.com/Ding-Ding-Projects/gtha-transit/commit/9eaffa8))
