@@ -2,6 +2,14 @@
 
 ## 0.1.0, unreleased
 
+- Bring this file up to date with the pass so far. Recorded here rather than left out because a changelog that covers every commit except the ones about itself is a changelog whose coverage cannot be checked. ([d3339aa](https://github.com/Ding-Ding-Projects/gtha-transit/commit/d3339aa))
+
+- Fix the line counter, which runs in the release workflow and had turned it red. Its binary exclusion listed the extensions the repository happened to hold when it was written, so it read the first committed video as UTF-8, and every file is read through a spawned git with the default one megabyte buffer, so the first tracked file past that killed the run with ENOBUFS. The buffer is explicit now and the exclusion is decided by looking at the bytes. Four guards, each watched going red, one of which found a real extensionless binary the counter was relying on a single check to notice. ([9eaffa8](https://github.com/Ding-Ding-Projects/gtha-transit/commit/9eaffa8))
+
+- Correct a handoff claim that had stopped being true. It said nothing application-affecting had changed since the deployed commit, which was right when written and wrong two commits later. ([fe468ed](https://github.com/Ding-Ding-Projects/gtha-transit/commit/fe468ed))
+
+- Deploy head and re-record every piece of evidence against it. The site had been serving a commit from eight back; for most of that gap only scripts and documentation had moved, but the last two commits touched application code that had never run in production. The ledger, the design-parity evidence, the walkthrough recording and the README captures were all re-recorded, because evidence naming an older commit is not wrong so much as beside the point: it describes a build nobody is using. ([ac07ee0](https://github.com/Ding-Ding-Projects/gtha-transit/commit/ac07ee0))
+
 - Record the pass in the handoff, and take three words of internal shorthand out of it. Two of those had been committed in an earlier pass, so the file is clean from here and the history is not, which is said plainly rather than fixed by rewriting published history. A sweep of every tracked file, release body, issue, comment and discussion found nothing else. ([8bf3126](https://github.com/Ding-Ding-Projects/gtha-transit/commit/8bf3126))
 
 - Show the interface that actually ships. The README carried three pictures, all from before the redesign, so the only images of this project were of an interface it no longer builds. Fifteen now, from the ledger that already photographs every click. Selecting one by hand went wrong immediately: a shots directory held two runs at once and a pattern picked the older, so a light screen was published as the dark one. The recorder clears stale captures, a guard refuses a mixed directory, and the publisher selects by recorded name and verifies the bytes against the hash. ([93b2388](https://github.com/Ding-Ding-Projects/gtha-transit/commit/93b2388))
