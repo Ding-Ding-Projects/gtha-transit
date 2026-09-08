@@ -1,16 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-07T17:52:28.421Z",
+  "generatedAt": "2026-09-08T06:06:19.213Z",
   "url": "https://toronto-transit.org/",
-  "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-  "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+  "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+  "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
   "viewportWidth": 390,
   "displayScale": 1,
   "theme": "dark",
-  "inventorySteps": 37,
-  "recordedRows": 37,
+  "inventorySteps": 40,
+  "recordedRows": 40,
   "counts": {
-    "pass": 37
+    "pass": 39,
+    "not-applicable": 1
   },
   "consoleErrors": [],
   "rows": [
@@ -27,30 +28,31 @@
       },
       "expected": ".place-field input",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/001-plan.open-390-dark.png",
-      "screenshotSha256": "8a0cb8a9a55cc26e6b99b1b3e4ba3731a064d88af22e4fb2ec1fa3e13921f2cc",
+      "screenshot": "shots-390-dark-1x/001-plan.open-390-dark.png",
+      "screenshotSha256": "55640abd417a2bdccefb653f1de3c42a20de995fdd4e6b6f44821fbf18819d53",
       "privacy": "clean"
     },
     {
@@ -66,30 +68,31 @@
       },
       "expected": ".suggestions button",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/002-plan.from-390-dark.png",
-      "screenshotSha256": "65807eced23faf02a8b01af83c80b70171ec6dbe65a45642f098498d7a56c106",
+      "screenshot": "shots-390-dark-1x/002-plan.from-390-dark.png",
+      "screenshotSha256": "242eb2703859aaa3803fbbebd5f505b60af1073d4362507294d85645b866c1e9",
       "privacy": "clean"
     },
     {
@@ -105,108 +108,111 @@
       },
       "expected": ".place-field .selected-place-name, .place-field input",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/003-plan.from.choose-390-dark.png",
-      "screenshotSha256": "05c68005e1f66d3c92c82b1ff1aeecd0e09c030335c485fee3a338bc42fd5467",
+      "screenshot": "shots-390-dark-1x/003-plan.from.choose-390-dark.png",
+      "screenshotSha256": "78c21edec9e44758c286e400e7178b40b2185f29bae3f2ff848bb5374bf1d0a0",
       "privacy": "clean"
     },
     {
       "sequence": 4,
       "surface": "plan",
       "step": "plan.reverse",
-      "describe": "the trip can be reversed",
+      "describe": "the trip can be reversed from the header control",
       "optional": false,
-      "inputMethod": "pointer:text-match",
+      "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
         "name": "Reverse trip"
       },
       "expected": ".place-field input",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/004-plan.reverse-390-dark.png",
-      "screenshotSha256": "4b9e506b113ac90e8b6b66f3a2dccd127b793735afb6e7d4ec166f6a7e1cb7ce",
+      "screenshot": "shots-390-dark-1x/004-plan.reverse-390-dark.png",
+      "screenshotSha256": "f74cf9769a6fe3c58d0a5daeb856c5f72f386eb9f9af3c03bc141038a5d98a1c",
       "privacy": "clean"
     },
     {
       "sequence": 5,
       "surface": "plan",
       "step": "plan.when.open",
-      "describe": "the when row opens its date and time controls",
+      "describe": "the when chip opens its date and time controls",
       "optional": false,
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingMon, Sep 7, 13:52"
+        "name": "LeavingTue 02:05expand_more"
       },
       "expected": ".trip-when[open] .journey-time",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/005-plan.when.open-390-dark.png",
-      "screenshotSha256": "f309be61446071e23ba80d33844246d8e91756e56c2bbd942952f18f82f642bc",
+      "screenshot": "shots-390-dark-1x/005-plan.when.open-390-dark.png",
+      "screenshotSha256": "031bc57c1d967b2bb5798453ab9173a120a99ed49569a05c65d2cd6d19a547f3",
       "privacy": "clean"
     },
     {
@@ -218,73 +224,75 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingMon, Sep 7, 13:52"
+        "name": "LeavingTue 02:05expand_more"
       },
       "expected": ".trip-when:not([open])",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/006-plan.when.close-390-dark.png",
-      "screenshotSha256": "4b9e506b113ac90e8b6b66f3a2dccd127b793735afb6e7d4ec166f6a7e1cb7ce",
+      "screenshot": "shots-390-dark-1x/006-plan.when.close-390-dark.png",
+      "screenshotSha256": "9e9ae93b07f5174faf711d315f9ad3b7efa76f73b48eaa1c6abe7c16e5f20c85",
       "privacy": "clean"
     },
     {
       "sequence": 7,
       "surface": "plan",
       "step": "plan.options.open",
-      "describe": "trip options opens its preferences",
+      "describe": "the priority chip opens its preferences",
       "optional": false,
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "Trip optionsFastest"
+        "name": "PriorityFastestexpand_more"
       },
       "expected": ".trip-options[open] .journey-priority",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/007-plan.options.open-390-dark.png",
-      "screenshotSha256": "6730558f4b0e21fd9b4c088139f2f9fdd80c9aeda5b69ca28e74ad14e093e1bf",
+      "screenshot": "shots-390-dark-1x/007-plan.options.open-390-dark.png",
+      "screenshotSha256": "921ec824e674a5b957dc755b57669a2cbf3ffa01a905e2baf6164c048e37057f",
       "privacy": "clean"
     },
     {
@@ -300,30 +308,31 @@
       },
       "expected": ".journey-priority button[aria-pressed=\"true\"]",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/008-plan.options.priority-390-dark.png",
-      "screenshotSha256": "7ece31bbaa0acc87f3a8822639ed040465522565dc31e9a4471c9595155f7046",
+      "screenshot": "shots-390-dark-1x/008-plan.options.priority-390-dark.png",
+      "screenshotSha256": "de680446ad65f8001e7be9a5e303bc04de31c31e48b95dc791cf221d4b3dc33a",
       "privacy": "clean"
     },
     {
@@ -335,34 +344,35 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "Trip optionsFewer transfers"
+        "name": "PriorityFewer transfersexpand_more"
       },
       "expected": ".trip-options:not([open])",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/009-plan.options.close-390-dark.png",
-      "screenshotSha256": "969bf455f3480221e6a12a4a5bb6cb01f04fbbcfb2dcf7d95223658abfca2716",
+      "screenshot": "shots-390-dark-1x/009-plan.options.close-390-dark.png",
+      "screenshotSha256": "5c2433366e419b6796a0b5a4e74c2a7073e5c66245ed8f214cd46ac51a5fbe41",
       "privacy": "clean"
     },
     {
@@ -378,30 +388,31 @@
       },
       "expected": ".place-field",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/010-plan.intermediate-390-dark.png",
-      "screenshotSha256": "8a1afbe5946a5b9df405a6cc4ffe5b86720fe5445ebd001a07203b01084c05af",
+      "screenshot": "shots-390-dark-1x/010-plan.intermediate-390-dark.png",
+      "screenshotSha256": "0797630675f43ef88a2dbe590139f794ba6a8c922ba3e74da2907012e85e8cfc",
       "privacy": "clean"
     },
     {
@@ -417,30 +428,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/011-plan.map.toggle-390-dark.png",
-      "screenshotSha256": "754949259ab472755a5cdbe80ac2b0608985334b85070fdef26feca87c729bae",
+      "screenshot": "shots-390-dark-1x/011-plan.map.toggle-390-dark.png",
+      "screenshotSha256": "d696197e47cf77282608c375aa0d08f845d07fce99acad7f190d28d05758ff3f",
       "privacy": "clean"
     },
     {
@@ -456,30 +468,31 @@
       },
       "expected": ".mini-lines button, .page-panel",
       "before": {
-        "destination": "Plan",
+        "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "dark",
+        "theme": "light",
         "focused": "input"
       },
       "after": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/012-status.open-390-dark.png",
-      "screenshotSha256": "1391f6447d1c7516ed7bb4bbe51cbd59d2595615375c281a998758db20a52005",
+      "screenshot": "shots-390-dark-1x/012-status.open-390-dark.png",
+      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
       "privacy": "clean"
     },
     {
@@ -495,30 +508,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/013-status.line-390-dark.png",
-      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "screenshot": "shots-390-dark-1x/013-status.line-390-dark.png",
+      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
       "privacy": "clean"
     },
     {
@@ -534,30 +548,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/014-status.group-390-dark.png",
-      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "screenshot": "shots-390-dark-1x/014-status.group-390-dark.png",
+      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
       "privacy": "clean"
     },
     {
@@ -573,30 +588,31 @@
       },
       "expected": ".go-cancellations",
       "before": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/015-status.go.refresh-390-dark.png",
-      "screenshotSha256": "5b264b430e9d025f237fd052974cd51b7eaa5a0368bbe0bf3595dbf4f8869802",
+      "screenshot": "shots-390-dark-1x/015-status.go.refresh-390-dark.png",
+      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
       "privacy": "clean"
     },
     {
@@ -612,30 +628,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/016-status.refresh-390-dark.png",
-      "screenshotSha256": "aa4ead374932b05e856f1102abbf3d3cd1bb07e068b886fa01a207ec42892da8",
+      "screenshot": "shots-390-dark-1x/016-status.refresh-390-dark.png",
+      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
       "privacy": "clean"
     },
     {
@@ -651,30 +668,31 @@
       },
       "expected": ".tracker, main",
       "before": {
-        "destination": "Live",
+        "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/017-vehicles.open-390-dark.png",
-      "screenshotSha256": "85f1e552760dba1ca94cbd89aa56d83d7a23270db0a32045e33e73ce965b68ec",
+      "screenshot": "shots-390-dark-1x/017-vehicles.open-390-dark.png",
+      "screenshotSha256": "985bf9bc49b91ebd675b1167bf4dcc64380fd9976901114fb2ec65cd601b46c9",
       "privacy": "clean"
     },
     {
@@ -690,30 +708,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/018-vehicles.search-390-dark.png",
-      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "screenshot": "shots-390-dark-1x/018-vehicles.search-390-dark.png",
+      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
       "privacy": "clean"
     },
     {
@@ -729,30 +748,31 @@
       },
       "expected": ".fleet-filter-panel[open]",
       "before": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/019-vehicles.filters-390-dark.png",
-      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "screenshot": "shots-390-dark-1x/019-vehicles.filters-390-dark.png",
+      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
       "privacy": "clean"
     },
     {
@@ -768,30 +788,31 @@
       },
       "expected": ".fleet-filter-panel:not([open])",
       "before": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/020-vehicles.filters.close-390-dark.png",
-      "screenshotSha256": "23283b00168523fed420353d14fbd305c2de8a51de76348e01208198a31f8883",
+      "screenshot": "shots-390-dark-1x/020-vehicles.filters.close-390-dark.png",
+      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
       "privacy": "clean"
     },
     {
@@ -807,30 +828,31 @@
       },
       "expected": "dialog[open], .guided-route-picker",
       "before": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "h1"
       },
       "after": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/021-vehicles.route-390-dark.png",
-      "screenshotSha256": "de22fff8da7cf100fc48e17a1a4610432489fbc4a01b14b3d00087505db938ff",
+      "screenshot": "shots-390-dark-1x/021-vehicles.route-390-dark.png",
+      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
       "privacy": "clean"
     },
     {
@@ -846,30 +868,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "Vehicles",
+        "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "Saved",
+        "destination": "bookmarkSaved",
         "heading": "Ready when you are",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/022-saved.open-390-dark.png",
-      "screenshotSha256": "c6e841b4ed93ff56324306edb7d3205cb87977ae0e123abaafe04e8298473245",
+      "screenshot": "shots-390-dark-1x/022-saved.open-390-dark.png",
+      "screenshotSha256": "feedf7923cf2b00dd913bc563a416901a45956fa6cfb68c7fbe0756c15a14804",
       "privacy": "clean"
     },
     {
@@ -885,30 +908,31 @@
       },
       "expected": ".race-workspace",
       "before": {
-        "destination": "Saved",
+        "destination": "bookmarkSaved",
         "heading": "Ready when you are",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/023-race.open-390-dark.png",
-      "screenshotSha256": "a80e6d0d1629ac742fa1185f5070d726cff39451ff8d8448e9fde7d00510b3a0",
+      "screenshot": "shots-390-dark-1x/023-race.open-390-dark.png",
+      "screenshotSha256": "878683f18f40101df7dc2eeaa62ecacb8a1f182037e0ae00dc310d76c8be0f0b",
       "privacy": "clean"
     },
     {
@@ -924,30 +948,31 @@
       },
       "expected": ".race-modes",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/024-race.mode-390-dark.png",
-      "screenshotSha256": "a80e6d0d1629ac742fa1185f5070d726cff39451ff8d8448e9fde7d00510b3a0",
+      "screenshot": "shots-390-dark-1x/024-race.mode-390-dark.png",
+      "screenshotSha256": "878683f18f40101df7dc2eeaa62ecacb8a1f182037e0ae00dc310d76c8be0f0b",
       "privacy": "clean"
     },
     {
@@ -963,30 +988,31 @@
       },
       "expected": "#race-title",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/025-race.title-390-dark.png",
-      "screenshotSha256": "bf9ddc239d751202ec8b44237e6d44063944cbd153ec0fe2eb0ed3e7e2556314",
+      "screenshot": "shots-390-dark-1x/025-race.title-390-dark.png",
+      "screenshotSha256": "5e224499a0f4cacb4e85f4c62d634957e4d332d455a91d47b70a07249b10a5fc",
       "privacy": "clean"
     },
     {
@@ -1002,30 +1028,31 @@
       },
       "expected": "#race-code",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/026-race.code-390-dark.png",
-      "screenshotSha256": "03875dbb91ac88938e56d31dc8de352dc2e13eba0675399824384ed058a122ee",
+      "screenshot": "shots-390-dark-1x/026-race.code-390-dark.png",
+      "screenshotSha256": "a9ccd33a9f879f297ab67bfde40e625e116c5775e0d9cc901b9e1b063d3b5ec6",
       "privacy": "clean"
     },
     {
@@ -1041,30 +1068,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Beyond the usual garage",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/027-divisions.open-390-dark.png",
-      "screenshotSha256": "a3015fed0b6b21277c7fa29ad285c01ff7dab572429d9915121e0506f26a5077",
+      "screenshot": "shots-390-dark-1x/027-divisions.open-390-dark.png",
+      "screenshotSha256": "723c6f39d6ac64e29a85c9ded59a554f922035acbfc4370be2562904879279af",
       "privacy": "clean"
     },
     {
@@ -1080,30 +1108,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Beyond the usual garage",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/028-history.open-390-dark.png",
-      "screenshotSha256": "3ccbf10ffe274452021ba6efc4f14fe8e929b176926833edf4467a51b4905428",
+      "screenshot": "shots-390-dark-1x/028-history.open-390-dark.png",
+      "screenshotSha256": "62c17f955d06a85667cf718ae263cffd7c6f505d35c1544e7da3946c82e08167",
       "privacy": "clean"
     },
     {
@@ -1119,30 +1148,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/029-history.preset-390-dark.png",
-      "screenshotSha256": "4fcf21e3068ebc80296508870cf770beb6ee3c7f34c22b0ebc306e8388d202d9",
+      "screenshot": "shots-390-dark-1x/029-history.preset-390-dark.png",
+      "screenshotSha256": "678aeb26b1da52edc15e3fc9ff346827d6722fecdc68debb5f57c7cf1d944cb4",
       "privacy": "clean"
     },
     {
@@ -1158,30 +1188,31 @@
       },
       "expected": "main",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Across the whole region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/030-coverage.open-390-dark.png",
-      "screenshotSha256": "310295224822bc651a61298c3c1e1ba2c90fe980f0bf22ffefd51c42b8825d86",
+      "screenshot": "shots-390-dark-1x/030-coverage.open-390-dark.png",
+      "screenshotSha256": "f418313857d381f986b20266bd391c3b260f6b844bee2d9190703a7127ab22e5",
       "privacy": "clean"
     },
     {
@@ -1197,30 +1228,31 @@
       },
       "expected": ".settings-tab-strip",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Across the whole region",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/031-settings.open-390-dark.png",
-      "screenshotSha256": "300244a2ef683a450a5896b6fe510be39accd39d005aede5744ab41be8e304cf",
+      "screenshot": "shots-390-dark-1x/031-settings.open-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
       "privacy": "clean"
     },
     {
@@ -1236,30 +1268,31 @@
       },
       "expected": ".settings-tab-strip [data-slot=\"tabs-trigger\"][aria-selected=\"true\"]",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/032-settings.tab.language-390-dark.png",
-      "screenshotSha256": "df6faa9c0bc17733168902a0e5e29e1760a38afd074fa61126d1eefb2231af79",
+      "screenshot": "shots-390-dark-1x/032-settings.tab.language-390-dark.png",
+      "screenshotSha256": "5de5c4b33567b55d87d26d31cc30a0495c9c30cdbaace2649d36a9054684ae86",
       "privacy": "clean"
     },
     {
@@ -1275,69 +1308,73 @@
       },
       "expected": ".settings-tab-strip [data-slot=\"tabs-trigger\"][aria-selected=\"true\"]",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/033-settings.tab.first-390-dark.png",
-      "screenshotSha256": "4682391dad5353dc2f7542dd70ea16d2125e1ff98c35dcf0343a669a6c9e90e6",
+      "screenshot": "shots-390-dark-1x/033-settings.tab.first-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
       "privacy": "clean"
     },
     {
       "sequence": 34,
       "surface": "navigation",
       "step": "nav.more.open",
-      "describe": "More opens its dialog",
+      "describe": "More opens its dialog on a phone",
       "optional": false,
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "More"
+        "name": "more_horizMore"
       },
       "expected": ".m3-more[open]",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "button"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": [
+        390
+      ],
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/034-nav.more.open-390-dark.png",
-      "screenshotSha256": "d3c9166fbaa7deb97427892546276176023024526ee2a28d2a987d80a2186346",
+      "screenshot": "shots-390-dark-1x/034-nav.more.open-390-dark.png",
+      "screenshotSha256": "38d5349cb0633e881d9beb934d8fe79cdee55726d05de6f07863e34562f962e0",
       "privacy": "clean"
     },
     {
@@ -1353,34 +1390,156 @@
       },
       "expected": ".m3-more:not([open])",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "button"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": [
+        390
+      ],
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/035-nav.more.close-390-dark.png",
-      "screenshotSha256": "300244a2ef683a450a5896b6fe510be39accd39d005aede5744ab41be8e304cf",
+      "screenshot": "shots-390-dark-1x/035-nav.more.close-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
       "privacy": "clean"
     },
     {
       "sequence": 36,
+      "surface": "navigation",
+      "step": "nav.rail.secondary",
+      "describe": "the rail reaches a secondary destination with no dialog",
+      "optional": false,
+      "inputMethod": "not-applicable-at-this-width",
+      "target": null,
+      "expected": "main",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "expectedStateArrived": false,
+      "applicableWidths": [
+        1440
+      ],
+      "outcome": "not-applicable",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/036-nav.rail.secondary-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 37,
+      "surface": "navigation",
+      "step": "nav.lang",
+      "describe": "language can be changed from the rail",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Cantonese"
+      },
+      "expected": ".m3-nav__lang[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horiz更多",
+        "heading": "按你喜好設定",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/037-nav.lang-390-dark.png",
+      "screenshotSha256": "7570e736de7cf3ac9bb4ad84ada14051c10aa028324e20d63a20fe42d6ccbdd8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 38,
+      "surface": "navigation",
+      "step": "nav.lang.back",
+      "describe": "and changed back",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "英文"
+      },
+      "expected": ".m3-nav__lang[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horiz更多",
+        "heading": "按你喜好設定",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/038-nav.lang.back-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 39,
       "surface": "navigation",
       "step": "nav.theme",
       "describe": "the colour theme can be switched",
@@ -1388,38 +1547,39 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Switch to dark appearance"
+        "name": "Switch to night appearance"
       },
       "expected": "html[data-theme]",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "dark",
+        "theme": "light",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
         "theme": "dark",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/036-nav.theme-390-dark.png",
-      "screenshotSha256": "244fb2eb3cea19f4b7020aa5fb132a0d164b7e4277a66827ac13233fa4bcf2a8",
+      "screenshot": "shots-390-dark-1x/039-nav.theme-390-dark.png",
+      "screenshotSha256": "8b430a539ba3f7b80a5e29979a3bc29f05463a7a27f3884f2252318e64090d21",
       "privacy": "clean"
     },
     {
-      "sequence": 37,
+      "sequence": 40,
       "surface": "navigation",
       "step": "nav.theme.back",
       "describe": "and switched back",
@@ -1427,34 +1587,35 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Switch to light appearance"
+        "name": "Switch to day appearance"
       },
       "expected": "html[data-theme]",
       "before": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
         "theme": "dark",
         "focused": "body"
       },
       "after": {
-        "destination": "More",
+        "destination": "more_horizMore",
         "heading": "Make yourself at home",
         "theme": "light",
         "focused": "body"
       },
       "acted": true,
       "expectedStateArrived": true,
+      "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "0a86bdb785ed6774cf34c08e66f8d1071ea15fac",
-      "artifactSha256": "aca0ffc083ed075eb98e7f54ac9bb7fe7f2b6587247ef1560705ec9499c20df8",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
       "viewport": {
         "width": 390,
         "height": 900
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark/037-nav.theme.back-390-dark.png",
-      "screenshotSha256": "fdbc8949719de48418bcb2c577563c2acb34dc8aed9c2c6b5fd82561793f17d3",
+      "screenshot": "shots-390-dark-1x/040-nav.theme.back-390-dark.png",
+      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
       "privacy": "clean"
     }
   ]
