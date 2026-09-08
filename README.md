@@ -8,31 +8,62 @@ An independent journey planner for Greater Toronto and Hamilton, with cross-agen
 
 The [travel-time controls](docs/planning/travel-time.md) separate Date and Time, preserve Toronto clock-change semantics, and offer explicit departure/arrival choices. Current deployment and the bounded browser verification are recorded in the [handoff](HANDOFF.md).
 
+## What it looks like
+
+Every picture below is the real built interface at commit `92153d6`, photographed
+through an isolated headless browser as part of the interaction ledger, which
+captures the surface after every one of its 56 clicks. They are copied out by
+`scripts/ui-evidence/publish-captures.mjs`, which selects by the name the ledger
+recorded and refuses any file whose bytes do not match the hash the ledger holds
+for it. None is a mockup and none is hand-edited.
+
+<details><summary>Planning a trip</summary>
+
+![The journey composer at desktop width in the dark theme, with the map behind it](docs/captures/plan-dark-92153d6.png)
+
+![The same composer in the light theme, amber on warm paper](docs/captures/plan-light-92153d6.png)
+
+![A garage expanded to the routes it operates and what is running on them now](docs/captures/garage-detail-dark-92153d6.png)
+
+</details>
+
+<details><summary>Watching the network</summary>
+
+![Live network status: GO cancellations and every TTC line with its facility notices](docs/captures/live-dark-92153d6.png)
+
+![The vehicle tracker with its route picker, search workbench and live map](docs/captures/vehicles-dark-92153d6.png)
+
+![Out of division: classification filters with live counts and the allocation source named](docs/captures/divisions-dark-92153d6.png)
+
+![A vehicle out of division, with its route in the operator colour on the map](docs/captures/division-verdict-dark-92153d6.png)
+
+![Regional realtime coverage, agency by agency](docs/captures/coverage-dark-92153d6.png)
+
+![The service record, with its date presets](docs/captures/history-dark-92153d6.png)
+
+</details>
+
+<details><summary>Racing, saving, settling in</summary>
+
+![The race workspace before a room is created](docs/captures/race-dark-92153d6.png)
+
+![The speed run checklist: 110 stations across five lines, photo proof required](docs/captures/speed-run-dark-92153d6.png)
+
+![Saved trips](docs/captures/saved-dark-92153d6.png)
+
+![Settings: tabbed sections, each with its own search, and the colour theme choice](docs/captures/settings-dark-92153d6.png)
+
+</details>
+
+<details><summary>On a phone</summary>
+
+![The composer at 390 pixels, with the bottom navigation bar](docs/captures/plan-phone-dark-92153d6.png)
+
+![The More dialog on a phone, listing the destinations the bar cannot hold](docs/captures/more-phone-light-92153d6.png)
+
+</details>
+
 ## Run locally
-
-<details><summary>See the focused Settings workspace</summary>
-
-Appearance, Language, Narrator and Privacy have separate accessible tabs. This real built capture is from `1e428b1e320f2046e9abc9b49f2d508e68aef274`, at 1440 by 1000 pixels. Separate runtime checks cover theme choices, keyboard focus and narrator search recovery. [Settings behavior and evidence](docs/interface/settings.md).
-
-![Tabbed settings with light and dark appearance choices](docs/captures/settings-appearance-1e428b1.png)
-
-</details>
-
-<details><summary>See the redesigned tracker</summary>
-
-This is the real public tracker at source `b1829a948358c9b9b532d033f174f0b8214563c7`, captured through an isolated headless browser on September 5, 2026. The dark bilingual viewport is 320 by 844 CSS pixels with device pixel ratio 1.5. Vehicle counts reflect that capture moment. This is browser emulation, not physical-device or browser-zoom verification. [Capture inventory](docs/interface/capture-inventory.json).
-
-![Live vehicle tracker in bilingual mode at 320 pixels](docs/captures/tracker-bilingual-b1829a9.png)
-
-</details>
-
-<details><summary>See the guided route picker</summary>
-
-The agency and route picker keeps its own advanced search workbenches. The actual built surface below comes from `b7e0ae4215433ffee376891cbcad25404cbb64ac` at 1440 by 1000 CSS pixels. Separate live keyboard evidence verified that search and radio Enter did not submit the surrounding journey form, while route-button Enter still selected TTC route 1. [Picker behavior and evidence limits](docs/search/route-picker.md).
-
-![Guided route picker with its independent search workbench](docs/captures/route-picker-keyboard-b7e0ae4.png)
-
-</details>
 
 ```powershell
 .\build.bat --run

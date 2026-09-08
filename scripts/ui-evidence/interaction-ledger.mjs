@@ -25,7 +25,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { WebSocket } from 'ws';
 import { ALL_STEPS, SURFACES, FORBIDDEN_IN_EVIDENCE } from './interaction-inventory.mjs';
@@ -51,7 +51,21 @@ for (const [name, value] of [['--endpoint', ENDPOINT], ['--url', URL_UNDER_TEST]
 }
 if (!/^[0-9a-f]{40}$/.test(COMMIT)) { console.error('--commit must be a full sha'); process.exit(2); }
 
+/* Empty the shots directory before writing into it.
+
+   Without this a run leaves every capture from every earlier run beside its own,
+   and the directory silently holds two runs at once. The ledger names the files it
+   wrote, so it stays correct, but anything that reaches for a capture by pattern
+   rather than by name gets whichever run sorted first. That happened: a README
+   picked `031-settings.open` from a forty-step run while the current one had
+   written `047-settings.open`, and the image published as the dark interface was a
+   light one from hours earlier. Orphans are removed rather than left, because a
+   stale capture that nobody references is indistinguishable from a current one to
+   everything except the ledger. */
 mkdirSync(SHOTS, { recursive: true });
+for (const stale of readdirSync(SHOTS)) {
+  if (stale.endsWith('.png')) rmSync(path.join(SHOTS, stale));
+}
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 /** The built artifact's own hash, so a row cannot be read as being about another build. */

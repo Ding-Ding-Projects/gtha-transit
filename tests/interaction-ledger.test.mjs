@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ALL_STEPS, SURFACES } from '../scripts/ui-evidence/interaction-inventory.mjs';
@@ -136,6 +136,48 @@ test('a tuple was actually recorded in the theme it claims', () => {
       [],
       `${tuple} recorded steps outside its own theme`,
     );
+  }
+});
+
+test('a shots directory holds one run, not several', () => {
+  /* The recorder used to write beside whatever an earlier run had left, so a
+     directory could hold two runs at once. The ledger stayed correct, because it
+     names the files it wrote, but anything reaching for a capture by pattern got
+     whichever run sorted first: a README published a light capture as the dark
+     interface for exactly this reason. Captures are not committed, so this only
+     checks where they actually are. */
+  for (const tuple of REQUIRED_TUPLES) {
+    const directory = path.join(root, 'docs', 'interface', 'ledger', `shots-${tuple}`);
+    if (!existsSync(directory)) continue;
+    const named = new Set(ledgers[tuple].rows.map((row) => row.screenshot.split('/').pop()));
+    const orphans = readdirSync(directory).filter((file) => file.endsWith('.png') && !named.has(file));
+    assert.deepEqual(orphans.slice(0, 5), [],
+      `${tuple} has ${orphans.length} captures on disk that its ledger does not name, so the directory holds more than one run`);
+  }
+});
+
+test('the README shows the captures that were actually published', async () => {
+  /* Two ways this drifts, and neither announces itself: a capture is added to the
+     matrix and never referenced, so nobody sees it; or the README references one
+     that is no longer published, so a reader gets a broken image where the product
+     should be. Both are checked against the matrix rather than against each other. */
+  const { MATRIX } = await import('../scripts/ui-evidence/publish-captures.mjs');
+  const readme = readFileSync(path.join(root, 'README.md'), 'utf8');
+  const referenced = [...readme.matchAll(/\]\((docs\/captures\/[^)]+)\)/g)].map((match) => match[1]);
+
+  for (const [, , name] of MATRIX) {
+    const published = referenced.find((file) => file.includes('/' + name + '-'));
+    assert.ok(published, `${name} is published and the README never shows it`);
+    assert.ok(existsSync(path.join(root, published)), `${published} is referenced and not on disk`);
+  }
+  for (const file of referenced) {
+    assert.ok(existsSync(path.join(root, file)), `the README references ${file}, which is not on disk`);
+  }
+  // Alt text carries the picture to a reader who cannot see it, so an empty one is
+  // the same as no picture for them.
+  for (const [, , , alt] of MATRIX) {
+    assert.ok(alt && alt.length > 10, 'a published capture has no useful alt text');
+    assert.ok(readme.includes('![' + alt + ']'), `the README does not carry the alt text for: ${alt}`);
   }
 });
 
