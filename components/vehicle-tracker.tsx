@@ -20,6 +20,8 @@ import { attachMapTiles } from '../lib/map-tiles';
 import { vehiclePage } from '../lib/vehicle-page';
 import { superExpressFor } from '../lib/go-express';
 import SuperExpressBadge from './super-express-badge';
+import DivisionVerdict, { RouteChip } from './division-verdict';
+import { useRouteColours } from '../lib/use-route-colours';
 type Vehicle = {
   id: string;
   agencyId?: string;
@@ -114,6 +116,9 @@ export default function VehicleTracker({
     [error, setError] = useState(''),
     [refresh, setRefresh] = useState(0),
     [tileError, setTileError] = useState(false);
+  /* Published route colours, so a route number is the thing riders recognise
+     rather than a bare number they have to already know. */
+  const routeColours = useRouteColours(divisionMode ? 'ttc' : agency);
   const sourceScope = JSON.stringify([agency, route, divisionMode, classification]);
   const filterStorageKey = divisionMode ? 'gtha-division-fleet-filters' : 'gtha-tracker-fleet-filters';
   const savedFilter = useLocalSetting(filterStorageKey);
@@ -328,18 +333,25 @@ export default function VehicleTracker({
         more.addEventListener('click', () => pick.current(v));
         for (const child of [title, routeLine, equipment, more])
           summary.appendChild(child);
+        /* On the out-of-division tracker the map is showing one agency's buses,
+           so colouring them all by agency says nothing: every dot is the same
+           colour. There, the route's own published colour is the useful signal,
+           and it matches the badge in the list beside it. Everywhere else the
+           map mixes agencies and the agency colour is what tells them apart.
+           A route with no published colour keeps the agency colour rather than
+           being given an invented one. */
+        const routeColour = divisionMode ? routeColours.forRoute(v.routeId).color : null;
+        const agencyColour = agencyColors[v.agencyId || 'ttc'];
         L.circleMarker([v.lat, v.lon], {
           radius: identity(selected) === identity(v) ? 9 : 5,
-          color: v.stale
-            ? '#877659'
-            : agencyColors[v.agencyId || 'ttc'] || '#153e31',
+          color: v.stale ? '#877659' : routeColour || agencyColour || '#153e31',
           weight: 2,
           fillColor:
             identity(selected) === identity(v)
               ? '#d2f574'
               : v.stale
                 ? '#aaa'
-                : agencyColors[v.agencyId || 'ttc'] || '#348b67',
+                : routeColour || agencyColour || '#348b67',
           fillOpacity: 0.9,
         })
           .bindTooltip(label)
@@ -352,7 +364,10 @@ export default function VehicleTracker({
       stopped = true;
       clearTimeout(timer);
     };
-  }, [data, selected, t]);
+    // routeColours is a dependency: the catalogue arrives after the first paint,
+    // and without it the markers keep the colour they were drawn with before it
+    // loaded, which looks like the route colours simply not working.
+  }, [data, selected, t, divisionMode, routeColours]);
   const choose = (v: Vehicle) => {
     pick.current(v);
     map.current?.setView([v.lat, v.lon], Math.max(map.current.getZoom(), 14));
@@ -490,14 +505,17 @@ export default function VehicleTracker({
           </div>
           <div className="vehicle-facts">
             {onFollow && <button type="button" className="pill" onClick={() => onFollow(selected)}>{t('Follow this vehicle', '跟隨此車輛')}</button>}
-            {selected.division && <>
-              <span><small>{t('Home garage', '所屬車廠')}</small><strong>{selected.division.homeGarageName || t('Unconfirmed', '未確認')}</strong></span>
-              <span><small>{t('Route garages', '路線車廠')}</small><strong>{selected.division.assignedGarageNames?.join(', ') || t('Unconfirmed', '未確認')}</strong></span>
-              <span><small>{t('Observed frequency', '已觀察頻率')}</small><strong>{selected.division.rarity?.eligible ? `${selected.division.rarity.percentage?.toFixed(1)}% · ${selected.division.rarity.rarity}` : t('Collecting observations', '收集觀察資料中')}</strong><small>{selected.division.rarity?.sample ? `${selected.division.rarity.sample.vehicleRouteDays} / ${selected.division.rarity.sample.routeObservedDays} ` + t('observed route days', '路線觀察日') : t('History unavailable', '未有歷史資料')}</small></span>
-            </>}
+            {selected.division && (
+              <DivisionVerdict
+                division={selected.division}
+                routeId={selected.routeId}
+                colour={routeColours.forRoute(selected.routeId)}
+                t={t}
+              />
+            )}
             <span>
               <small>{t('Route', '路線')}</small>
-              <strong>{selected.routeId || t('Unknown', '未知')}</strong>
+              <strong><RouteChip routeId={selected.routeId} colour={routeColours.forRoute(selected.routeId)} t={t} /></strong>
             </span>
             <span>
               <small>{t('Manufacturer', '製造商')}</small>
@@ -607,7 +625,7 @@ export default function VehicleTracker({
               <BusFront size={18} />
               <strong>{v.fleetNumber || v.label || v.id}</strong>
               <span className="vehicle-route-badge">
-                {t('Route', '路線')} {v.routeId || '?'}
+                <RouteChip routeId={v.routeId} colour={routeColours.forRoute(v.routeId)} t={t} />
               </span>
               {superExpressFor({ agency: v.agencyName, route: v.routeId, headsign: null }) && (
                 <SuperExpressBadge match={superExpressFor({ agency: v.agencyName, route: v.routeId, headsign: null })!} t={t} />

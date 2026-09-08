@@ -532,3 +532,60 @@ button:disabled { cursor: not-allowed; }
   font: var(--md-sys-typescale-body-medium);
 }
 .garage-outcome small { display: block; margin-top: 6px; color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------------------------------------------------------- division verdict -- */
+/* The panel used to show "Home garage: Wilson" beside "Route garages: Mount
+   Dennis" and stop. Both facts were right and neither said the thing the reader
+   came for, which is that those two differing IS the finding. The verdict leads
+   and the facts sit under it as evidence. */
+.division-verdict {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-high);
+  border-left: 4px solid var(--md-sys-color-outline);
+}
+.division-verdict.is-out-of-division { border-left-color: var(--md-sys-color-primary); }
+.division-verdict.is-in-division { border-left-color: var(--md-sys-color-outline-variant); }
+
+.division-verdict__head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.division-verdict__head strong { font: var(--md-sys-typescale-title-medium); }
+.division-verdict p { margin: 8px 0 12px; color: var(--md-sys-color-on-surface-variant); }
+
+/* Rare is a badge with its own word, never a colour on its own. */
+.division-verdict__rare {
+  padding: 3px 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font: var(--md-sys-typescale-label-medium);
+  font-family: var(--md-ref-typeface-mono);
+}
+
+.division-verdict__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 0; }
+.division-verdict__facts div { min-width: 0; }
+.division-verdict__facts dt { font: var(--md-sys-typescale-label-small); color: var(--md-sys-color-on-surface-variant); }
+.division-verdict__facts dd { margin: 2px 0 0; font-weight: 600; }
+.division-verdict__facts dd small { display: block; font-weight: 400; color: var(--md-sys-color-on-surface-variant); }
+.division-verdict__source { display: block; margin-top: 10px; color: var(--md-sys-color-on-surface-variant); }
+
+/* The operator's own colour for a route. A route with none published keeps the
+   surface colours rather than being given an invented one, because a generated
+   colour is a claim about branding that nobody made. */
+.route-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 9px;
+  border-radius: var(--md-sys-shape-corner-small);
+  font-family: var(--md-ref-typeface-mono);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.route-chip--plain, .route-chip--none {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}

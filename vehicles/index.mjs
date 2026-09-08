@@ -7,6 +7,11 @@ export const VEHICLE_FEEDS = Object.freeze({
   miway: { name: 'MiWay', url: 'https://www.miapp.ca/GTFS_RT/Vehicle/VehiclePositions.pb' },
   burlington: { name: 'Burlington Transit', url: 'https://opendata.burlington.ca/gtfs-rt/GTFS_VehiclePositions.pb' },
   hsr: { name: 'Hamilton Street Railway', url: 'https://opendata.hamilton.ca/GTFS-RT/GTFS_VehiclePositions.pb' },
+  /* YRT publishes realtime separately from its static feed, at rtu.york.ca rather
+     than yrt.ca, which is why it was absent while the timetable was loaded: the
+     schedule was there and the buses were not. The open-data agreement covers
+     access; the endpoint itself needs no credential. */
+  yrt: { name: 'York Region Transit', url: 'https://rtu.york.ca/gtfsrealtime/VehiclePositions' },
   go: { name: 'GO Transit', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/Gtfs.proto/Feed/VehiclePosition', proxyAgency: 'go' },
   up: { name: 'UP Express', url: 'https://api.openmetrolinx.com/OpenDataAPI/api/V1/UP/Gtfs.proto/Feed/VehiclePosition', proxyAgency: 'up' },
 });

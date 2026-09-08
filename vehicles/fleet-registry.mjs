@@ -115,6 +115,9 @@ export function resolveFleetNumber(vehicleId, label = '') {
   return fleetLike(cleanLabel) ? cleanLabel : fleetLike(cleanId) ? cleanId : cleanLabel || cleanId;
 }
 
+/** The contractor letters YRT's realtime feed adds; its roster uses none of them. */
+const YRT_OPERATOR_PREFIXES = new Set(['c', 'm', 'v']);
+
 export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName = 'Toronto Transit Commission' } = {}) {
   const identity = resolveFleetNumber(vehicleId, label);
   const parts = /^([A-Za-z]?)(\d{3,6})(?:-(\d{2}))?$/.exec(identity);
@@ -122,9 +125,20 @@ export function matchCptdb(vehicleId, label = '', { agencyId = 'ttc', agencyName
   const prefix = parts?.[1].toLowerCase() || '';
   const ranges = agencyId === 'ttc' ? TTC_FLEET_RANGES : OTHER_FLEET_RANGES[agencyId] ?? [];
   const unitSuffix = parts?.[3] ?? null;
-  const found = Number.isFinite(numeric) ? ranges.find((entry) => prefix === (entry.prefix || '').toLowerCase()
+  const inRange = (entry, withPrefix) => withPrefix === (entry.prefix || '').toLowerCase()
     && numeric >= entry.first && numeric <= entry.last
-    && (!entry.suffix || entry.suffix === unitSuffix)) : undefined;
+    && (!entry.suffix || entry.suffix === unitSuffix);
+  let found = Number.isFinite(numeric) ? ranges.find((entry) => inRange(entry, prefix)) : undefined;
+  /* YRT contracts its operations out and its realtime feed prefixes each vehicle
+     with the operator's letter: the same bus is C1513, M1513 or V1513 depending
+     on who is driving it. The published roster numbers those without a letter, so
+     matching on it found nothing for the entire fleet, silently, as "Unverified".
+     Only the letters the roster never uses are dropped, and only after an exact
+     match has failed. YRT's own roster prefix means something, so it survives:
+     e1911 is an electric XE40 and 1911 is not a bus at all. */
+  if (!found && Number.isFinite(numeric) && agencyId === 'yrt' && YRT_OPERATOR_PREFIXES.has(prefix)) {
+    found = ranges.find((entry) => inRange(entry, ''));
+  }
   if (found) {
     const { first, last, suffix, ...verifiedFacts } = found;
     const exactPage = agencyId !== 'ttc' && verifiedFacts.source?.url?.startsWith('https://cptdb.ca/');
