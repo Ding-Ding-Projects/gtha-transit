@@ -15,6 +15,7 @@ import { classifyOutOfDivision, loadTtcDivisionRegistry } from '../vehicles/divi
 import { annotateJourneyDivisions } from '../vehicles/journey-divisions.mjs';
 import { annotateJourneyRouteOpportunities } from '../vehicles/journey-route-opportunities.mjs';
 import { VERIFIED_PHOTO_URLS } from '../vehicles/fleet-registry.mjs';
+import { record as recordPokeGuy, recent as recentPokeGuys } from './diagnostics.mjs';
 const photoCache = new Map();
 const realtime = new RealtimeAggregator({ registry: await loadRegistry() });
 const history = process.env.HISTORY_DIR
@@ -370,10 +371,13 @@ async function placeSource(origin, requestPath, field) {
 
 let activeRequests = 0;
 const server = http.createServer(async (req, res) => {
-  if (activeRequests >= 16)
+  const startedAt = Date.now();
+  if (activeRequests >= 16) {
+    recordPokeGuy({ kind: 'request', route: req.url, status: 503, message: 'concurrency limit reached' });
     return send(res, 503, {
       error: 'The service is busy. Please retry shortly.',
     });
+  }
   activeRequests++;
   res.once('close', () => {
     activeRequests--;
@@ -522,7 +526,8 @@ const server = http.createServer(async (req, res) => {
             redirect: 'error',
           });
           return { name, state: response.ok ? 'available' : 'unavailable', status: response.status, millis: Date.now() - startedAt };
-        } catch {
+        } catch (cause) {
+          recordPokeGuy({ kind: 'upstream', route: '/' + name, message: cause?.name || 'unreachable', millis: Date.now() - startedAt });
           return { name, state: 'unreachable', millis: Date.now() - startedAt };
         }
       };
@@ -540,6 +545,47 @@ const server = http.createServer(async (req, res) => {
           ? 'A private origin did not answer. Journey planning or maps will fail until it does.'
           : 'Every private origin answered. This does not certify feed coverage or public DNS.',
       });
+    }
+    /* /api/dependencies asks whether the private origins answer right now. This
+       asks what has been failing, which one probe cannot see: an origin that
+       fails one request in ten looks available every time you ask it. */
+    if (url.pathname === '/api/diagnostics' && req.method === 'GET') {
+      return send(res, 200, recentPokeGuys(Number(url.searchParams.get('limit')) || undefined));
+    }
+    /* The browser half. A failure in the renderer never reaches the container's
+       log, so a deployment can be visibly broken while every server-side signal
+       says it is fine.
+
+       Bounded hard, and rate-limited per client, because this is an unauthenticated
+       write on a public origin: at most 2 KiB, and only the four fields below
+       survive. Nothing else in the body is read, so it cannot become a way to
+       write arbitrary text into a diagnostics buffer. */
+    if (url.pathname === '/api/diagnostics' && req.method === 'POST') {
+      const client = process.env.TRUST_TUNNEL === '1'
+        ? String(req.headers['cf-connecting-ip'] || req.socket.remoteAddress).slice(0, 80)
+        : req.socket.remoteAddress;
+      if (!allowed(client)) return send(res, 429, { error: 'Too many reports. Please wait a minute.' });
+      let report = null;
+      try {
+        const chunks = [];
+        let size = 0;
+        for await (const chunk of req) {
+          size += chunk.length;
+          if (size > 2048) return send(res, 413, { error: 'Report too large.' });
+          chunks.push(chunk);
+        }
+        report = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      } catch {
+        return send(res, 400, { error: 'Report must be JSON.' });
+      }
+      recordPokeGuy({
+        kind: 'client',
+        route: typeof report?.route === 'string' ? report.route : null,
+        status: report?.status,
+        message: typeof report?.message === 'string' ? report.message : null,
+        millis: report?.millis,
+      });
+      return send(res, 202, { recorded: true });
     }
     if (url.pathname === '/api/status/ttc' && req.method === 'GET')
       return send(res, 200, await getTtcStatus());
@@ -763,6 +809,17 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'HEAD') return res.end();
     createReadStream(target).pipe(res);
   } catch (e) {
+    /* A 404 for a missing static file is the router working, not a failure worth
+       recording; everything reaching here otherwise is. */
+    if (e?.code !== 'ENOENT') {
+      recordPokeGuy({
+        kind: 'request',
+        route: req.url,
+        status: 503,
+        message: e?.code || e?.message,
+        millis: Date.now() - startedAt,
+      });
+    }
     if (!res.headersSent)
       send(res, e?.code === 'ENOENT' ? 404 : 503, {
         error:

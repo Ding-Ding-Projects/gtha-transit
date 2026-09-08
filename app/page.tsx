@@ -22,6 +22,7 @@ import {
   Info,
 } from 'lucide-react';
 import { Icon } from '../components/icon';
+import { reportPokeGuys } from '../lib/report-poke-guys';
 import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
@@ -530,6 +531,9 @@ export default function Home() {
       controller?.abort();
     };
   }, []);
+  /* Failures in the renderer never reach the container's log, so a deployment can
+     be visibly broken while every server-side signal says it is healthy. */
+  useEffect(() => { reportPokeGuys(); }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
