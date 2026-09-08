@@ -52,3 +52,4 @@ kind, a bounded message and a duration, and deliberately keeps nothing that coul
 identify a rider or where they were going.
 
 - [Surviving a restart](restarting.md) — what brings each stack back on its own, and the outage that proved it did not.
+- [What the planner lets a browser keep](caching.md) — the caching policy, the validator, and what a repeat visit stops paying for.

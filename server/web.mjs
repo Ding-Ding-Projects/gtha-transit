@@ -1,5 +1,6 @@
 import http from 'node:http';
 import { withPlaceContext } from './place-context.mjs';
+import { cachePolicy, validatorFor } from '../lib/static-cache.ts';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
@@ -803,15 +804,21 @@ const server = http.createServer(async (req, res) => {
       return send(res, 403, { error: 'Path not allowed.' });
     const info = await stat(target);
     if (!info.isFile()) return send(res, 404, { error: 'Not found.' });
-    res.writeHead(200, {
-      'content-type': mime[path.extname(target)] || 'application/octet-stream',
-      'content-length': info.size,
-      'cache-control': path.extname(target) === '.html'
-        ? 'public,no-cache,no-transform'
-        : target.includes('/_next/')
-        ? 'public,max-age=31536000,immutable'
-        : 'no-cache',
-    });
+    const extension = path.extname(target);
+    const validator = validatorFor(info);
+    const headers = {
+      'content-type': mime[extension] || 'application/octet-stream',
+      'cache-control': cachePolicy(decoded, extension),
+      etag: validator,
+      'last-modified': new Date(info.mtimeMs).toUTCString(),
+    };
+    /* The whole point of sending a validator: a browser that already has this
+       file asks about it and gets a header exchange back, not the file again. */
+    if (req.headers['if-none-match'] === validator) {
+      res.writeHead(304, headers);
+      return res.end();
+    }
+    res.writeHead(200, { ...headers, 'content-length': info.size });
     if (req.method === 'HEAD') return res.end();
     createReadStream(target).pipe(res);
   } catch (e) {
