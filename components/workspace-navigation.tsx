@@ -167,7 +167,9 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, l
             aria-current={active === id ? 'page' : undefined}
           >
             <Icon name={glyph} size={20} />
-            <span>{label}</span>
+            {/* Classed, because the icon before it is a span too: a ligature font
+                makes the glyph literally text, so "the first span" is "flag". */}
+            <span className="m3-more__label">{label}</span>
           </button>
         ))}
       </div>

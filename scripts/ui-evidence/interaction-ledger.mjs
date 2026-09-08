@@ -154,7 +154,7 @@ async function goToDestination(label) {
   if (how === 'more') {
     await pause(600);
     await evaluate(`(() => {
-      const i = [...document.querySelectorAll('.m3-more__item')].find((n) => (n.querySelector('span') || n).textContent.trim().startsWith(${JSON.stringify(label)}));
+      const i = [...document.querySelectorAll('.m3-more__item')].find((n) => (n.querySelector('.m3-more__label') || n).textContent.trim().startsWith(${JSON.stringify(label)}));
       if (i) i.click();
     })()`);
   }
@@ -227,7 +227,18 @@ for (const surface of SURFACES) {
     }
 
     // A bounded semantic poll, then the assertion. Never a fixed sleep alone.
-    const arrived = acted ? await waitFor(step.expect) : false;
+    let arrived = acted ? await waitFor(step.expect) : false;
+
+    /* A destination step whose expectation is only `main` passes on every page in
+       the application, because `main` is always there. Three of them did exactly
+       that: they never navigated, the More dialog matcher had silently stopped
+       finding anything, and the ledger recorded a pass for each. So a destination
+       must also land on the heading its surface declares. */
+    if (arrived && step.kind === 'destination' && surface.heading) {
+      const heading = await evaluate(`((document.querySelector('#workspace-heading') || {}).textContent || '').trim()`);
+      arrived = String(heading).includes(surface.heading);
+      if (!arrived) observedTarget = { tag: 'heading', name: `expected "${surface.heading}", found "${heading}"`.slice(0, 60) };
+    }
 
     await pause(400);
     const after = await state();
