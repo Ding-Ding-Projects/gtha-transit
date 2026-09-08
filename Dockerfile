@@ -11,6 +11,10 @@ FROM node:24.19.0-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0 NODE_OPTIONS=--max-old-space-size=128
 COPY --from=builder --chown=node:node /app/dist/client ./dist/client
+# The server imports from lib/, so lib/ has to be in the image. Adding an import
+# across this boundary and not adding the directory is a container that builds
+# cleanly, passes every test on the machine that wrote it, and cannot start.
+COPY --chown=node:node lib ./lib
 COPY --chown=node:node server ./server
 COPY --chown=node:node status ./status
 COPY --chown=node:node history ./history
