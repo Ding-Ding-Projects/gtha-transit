@@ -157,7 +157,55 @@
   font: var(--md-sys-typescale-label-large);
 }
 .palette-row__control input[type='range'] { flex: 1; min-width: 140px; min-height: 44px; }
-.palette-row__control input[type='checkbox'] { width: 44px; height: 28px; }
+
+/*
+ * A Material switch, not a checkbox stretched to switch proportions.
+ *
+ * Setting a width and a height on a native checkbox does exactly that, and it is
+ * visible the moment you look at a capture: an empty rectangle with no track, no
+ * thumb and no way to tell on from off but a tick. The state is carried by the
+ * thumb position and the track colour together, and the accessible role is still
+ * `switch`, so nothing here is the only signal.
+ */
+.palette-row__control input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  margin: 6px;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  cursor: pointer;
+}
+.palette-row__control input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-outline);
+  transform: translateY(-50%);
+}
+.palette-row__control input[type='checkbox']:checked {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+}
+.palette-row__control input[type='checkbox']:checked::after {
+  left: 22px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
+}
+.palette-row__control input[type='checkbox']:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+/* The thumb slides, unless the visitor has asked for less of that. */
+@media (prefers-reduced-motion: no-preference) {
+  .palette-row__control input[type='checkbox']::after { transition: left 120ms ease, width 120ms ease, height 120ms ease; }
+}
 .palette-row__control output { min-width: 2ch; color: var(--md-sys-color-on-surface-variant); }
 
 .palette-row__choices { border: 0; margin: 0 0 8px; }
