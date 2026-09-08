@@ -1,5 +1,88 @@
 # Implementation handoff
 
+## Session closeout, 8 September 2026
+
+Everything below this section predates the work described here. Where an older
+section quotes a suite count, it was true when written; the current count is
+**708 pass, 0 fail**. Deployed and serving at `01a9ae9`.
+
+### What landed
+
+**School mode.** Renamable, off by default, and it *omits* rather than disables:
+Cantonese, both languages, both playfulness sliders, the personal-wording file and
+the dim sum surprise leave the interface, the settings search, the palette rows
+and the palette actions together, through two named lists. What somebody chose is
+read through rather than overwritten, so it returns untouched when the mode goes
+off. `lib/school-mode.ts`, `components/school-mode.tsx`, article at
+`docs/interface/school-mode.md`, 23 of 23 browser checks, 24 boundaries broken and
+watched go red, two captures at 1440.
+
+**The lock does not use WebCrypto.** `crypto.subtle` exists only in a secure
+context, so on the plain http origin the planner is served from it is simply not
+there — and the mode failed silently on exactly those origins, the button doing
+nothing at all. The derivation is plain JavaScript in `lib/pbkdf2.ts`, checked
+differentially against Node's `createHash`/`createHmac`/`pbkdf2Sync` and against
+WebCrypto itself rather than against hand-typed vectors. There is deliberately no
+WebCrypto path left: a lock that takes one route on some origins and another on
+the rest behaves differently in development and production. Work factor is 50,000
+rather than 210,000, and the reason sits beside the constant.
+
+**The dim sum photos now reach the deployed site at all.** They belong to a public
+catalog so none is committed, and `git archive` cannot carry a gitignored
+directory — so every deploy before this built an image with no pictures in it.
+They ride alongside the release archive now. Their content type was also wrong
+(`application/octet-stream`); a browser sniffs past that for an `<img>`, which is
+why nothing looked broken.
+
+**Static caching.** Every static file had been sent in full on every load. The
+policy is now a pure module, `lib/static-cache.ts`, decided by one question — does
+the URL change when the bytes do — plus an `ETag`/`Last-Modified` on every static
+response, because `no-cache` without a validator means the check *is* the
+download. A repeat visit stops requesting about 1,693 KB entirely and stops
+re-downloading about 79 KB it still has to check. Article at
+`docs/deployment/caching.md`.
+
+### Two outages, both recorded
+
+**Regional routing was unavailable for twelve hours.** OpenTripPlanner had been
+explicitly stopped, and `restart: unless-stopped` honours that forever, including
+through a reboot. Its container had also drifted from its compose file and needed
+`--force-recreate` to publish its port again. Both stacks now have a systemd unit
+running `docker compose up -d` at boot, and the deploy writes the `.env` the
+frontend stack needs, because every variable in its compose file is required and
+those values only ever existed inside a deploy shell. Proven by reproducing the
+failure rather than asserting it. `docs/deployment/restarting.md`.
+
+**The caching change took the site down for about two minutes.** The runtime image
+copies named directories and `lib/` was not one of them, so moving the policy into
+a module the server imports produced a container that built cleanly and exited
+`ERR_MODULE_NOT_FOUND`. Fixed in the Dockerfile. Adding an import across the image
+boundary is invisible from a checkout, where the file is always there.
+
+### Left for the owner
+
+- **Two projects want port 8787 on the routing host.** `compose.yaml` asks for it
+  for the routing API; an unrelated workload binds it on every interface. A
+  `compose.override.yaml` there keeps the API reachable on the compose network,
+  which is how it was already being reached, rather than taking a port off a
+  running workload that is not the planner's. Which project should own it is not
+  a decision to settle by whichever container restarts last.
+- **The public origin is unknown to me.** None of the 28 tunnel hostnames serves
+  `/version.json`, and the tunnel is remotely managed, so its hostname mapping is
+  not on the host. Every deploy this session is verified reaching
+  `192.168.50.242:8188`, not verified reaching the public internet.
+- **The TTC summary is current.** *September 6 to October 31, 2026*, checked live
+  on 8 September. `node scripts/check-ttc-summary.mjs` reports when a newer one is
+  posted; it never gates.
+
+### Audit position
+
+13 present, 6 partial, 9 absent. Seven of those absent are in scope — the owner
+excluded only the file converter and the Ollama manager: `tabbed-navigation`,
+`appearance-editor`, `toy-locks`, `changelog-viewer`, `app-logo-customization`,
+`scheduled-settings`, `landing-page`. `unlock-ladder` becomes required the moment
+toy locks ship.
+
 ## TTC garage refresh and the expired-source split, 8 September 2026
 
 The garage source was three days out of its period, and two parts of the planner
