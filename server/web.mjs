@@ -151,6 +151,7 @@ const routing = process.env.ROUTING_ORIGIN || 'http://127.0.0.1:8787';
 const maps = process.env.MAPS_ORIGIN || 'http://127.0.0.1:8789';
 const routes = new Set([
   '/api/stop-routes',
+  '/api/rapid-transit-stations',
   '/api/plan-washroom-detour',
   '/api/routes',
   '/api/places',

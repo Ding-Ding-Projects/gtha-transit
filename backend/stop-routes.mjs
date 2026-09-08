@@ -124,6 +124,12 @@ export function publishedStopForIdFromIndexes(stops, index, patterns, qualifiedS
   };
 }
 
+/** Every rapid transit station, derived from the same pattern index. */
+export async function rapidTransitStations(options) {
+  const { rapidTransitStationsFromIndexes } = await import('./rapid-transit-stations.mjs');
+  return rapidTransitStationsFromIndexes(await routePatternIndex(), options);
+}
+
 export async function servingRoutesForStop(stopId, options) {
   const [index, patterns] = await Promise.all([routeIndex(), routePatternIndex()]);
   return servingRoutesFromIndexes(index, patterns, stopId, options);

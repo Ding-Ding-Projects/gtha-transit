@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
+import { rapidTransitStations } from "./stop-routes.mjs";
 import { blockPredecessorWithOtp, departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
 import { applyWashroomPreference, resolvedWashroomRegistry, washroomForPublishedPlace } from "./washrooms.mjs";
 import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
@@ -125,6 +126,12 @@ const server = http.createServer(async (req, res) => {
       const offset = url.searchParams.get("offset") == null ? 0 : nonNegativeInteger(url.searchParams.get("offset"), "offset", 1_000_000);
       const date = url.searchParams.get("date"); if (date && !isCalendarDate(date)) throw new Error("date must be a real YYYY-MM-DD calendar date");
       return json(res, 200, await routeCatalogPageFromIndex({ agency: url.searchParams.get("agency"), query: url.searchParams.get("q"), date, limit, offset, cursor: url.searchParams.get("cursor") }));
+    }
+    if (req.method === "GET" && url.pathname === "/api/rapid-transit-stations") {
+      // Derived from the pattern index, never hand-typed: a written-out station
+      // list is wrong the day a line opens, and this one has to be complete or a
+      // speed run asks for something nobody can finish.
+      return json(res, 200, await rapidTransitStations());
     }
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
