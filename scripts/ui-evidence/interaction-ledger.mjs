@@ -186,9 +186,19 @@ for (const surface of SURFACES) {
        running it, because it reads as evidence. */
     const applicable = !Array.isArray(step.widths) || step.widths.includes(WIDTH);
 
+    /* A step with no click, no text match and no destination is an assertion:
+       it makes no input at all and only claims that the state the step before it
+       produced is really on the page. It is recorded with `acted: false` and an
+       input method that says so, because calling it a click would be a false
+       report about how the state was reached. What it still has to do is arrive:
+       an assertion that cannot find its target fails exactly like any other. */
+    const assertion = !step.click && !step.clickText && step.kind !== 'destination';
+
     try {
       if (!applicable) {
         inputMethod = 'not-applicable-at-this-width';
+      } else if (assertion) {
+        inputMethod = 'assert:no-input';
       } else if (step.kind === 'destination') {
         inputMethod = 'pointer:navigation';
         observedTarget = { tag: 'button', name: step.label };
@@ -227,7 +237,7 @@ for (const surface of SURFACES) {
     }
 
     // A bounded semantic poll, then the assertion. Never a fixed sleep alone.
-    let arrived = acted ? await waitFor(step.expect) : false;
+    let arrived = (acted || assertion) ? await waitFor(step.expect) : false;
 
     /* A destination step whose expectation is only `main` passes on every page in
        the application, because `main` is always there. Three of them did exactly
@@ -249,7 +259,7 @@ for (const surface of SURFACES) {
     writeFileSync(path.join(SHOTS, name), bytes);
     const privacy = await privacyVerdict(bytes);
 
-    const missing = !acted;
+    const missing = !acted && !assertion;
     rows.push({
       sequence,
       surface: surface.id,
@@ -262,6 +272,7 @@ for (const surface of SURFACES) {
       before,
       after,
       acted,
+      assertion,
       expectedStateArrived: arrived,
       applicableWidths: step.widths ?? null,
       outcome: !applicable
