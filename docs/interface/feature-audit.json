@@ -269,18 +269,20 @@
     {
       "id": "dim-sum-surprise",
       "name": "Ten per cent chance of a dim sum dish at startup",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "lib/dim-sum.ts",
         "components/dim-sum.tsx",
         "app/dim-sum.css",
         "scripts/vendor-dim-sum.mjs",
+        "scripts/deploy.sh",
+        "server/web.mjs",
         "app/page.tsx"
       ],
       "documentation": "docs/interface/dim-sum.md",
       "test": "tests/dim-sum.test.mjs",
       "capture": "docs/interface/captures/dim-sum-1440-light.png",
-      "missing": "Built, wired and seen rendering in a browser after launching until the one-in-ten draw came up, which took six launches. A dish named in both languages with its catalog alt text, an aside rather than a dialog, taking no focus, dismissing itself, never during a first run, an error or an in-flight request, and with no setting anywhere. It is partial only because the photos are fetched rather than committed, so a deployment that has never run scripts/vendor-dim-sum.mjs shows nothing at all: the surprise is a deploy-time step rather than a build-time one, and the deployed site has not had that step run."
+      "reason": "Built, wired, seen firing in a browser on the sixth launch, and now actually reaching the deployed site. A dish named in both languages with its catalog alt text, an aside rather than a dialog, taking no focus, dismissing itself, never during a first run, an error or an in-flight request, and with no setting anywhere. The photos are the public catalog's, so none is committed; the deploy ships the locally vendored set alongside the release archive, which is the half that was missing -- the archive cannot carry a gitignored directory, so every previous deploy built an image with no pictures in it. Verified against the deployed origin: 24 dishes in the manifest and a real 24,722-byte photo served as image/webp, which itself was found wrong at the same moment because the static MIME map had no .webp and a browser sniffs past that for an img."
     },
     {
       "id": "app-logo-customization",

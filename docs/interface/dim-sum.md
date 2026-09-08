@@ -101,8 +101,11 @@ is 44px, and focus was not inside the card.
 - The vendored set is the first 24 dishes the catalog lists that carry both names,
   a photo and alt text. It is not a curated selection, and it is not the whole
   catalog of 2,866.
-- A deployment that has never run `scripts/vendor-dim-sum.mjs` shows nothing at
-  all, because the photos are fetched rather than committed. That is deliberate,
-  and it means the surprise is a deploy-time step rather than a build-time one.
+- The vendored set has to exist on the machine doing the deploying.
+  `scripts/deploy.sh` ships `public/dim-sum` alongside the release archive,
+  because `git archive` cannot carry a gitignored directory and every deploy
+  before that built an image with no pictures in it. A deploy from a machine that
+  has never run `scripts/vendor-dim-sum.mjs` still succeeds and says plainly that
+  the surprise will not appear, rather than leaving it to be discovered.
 - The capture covers 1440 in the light theme. Narrow widths, the dark theme and
   higher display scales are unverified.
