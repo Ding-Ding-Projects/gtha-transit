@@ -350,18 +350,90 @@ select {
   color: var(--muted);
   opacity: 0.9;
 }
+/* Reverse moved out of the gap between the fields and into the header row, where
+   the design puts it. Absolutely positioning it at a fixed top offset meant it
+   landed on top of a field the moment either one grew: a selected place adds a
+   second line, and bilingual mode adds a third. */
+.planner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.planner-head h2 { margin: 0; }
 .swap {
-  position: absolute;
-  right: 27px;
-  top: 69px;
-  z-index: 3;
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  flex: none;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
   border-radius: var(--md-sys-shape-corner-full);
   width: 44px;
   height: 44px;
   display: grid;
   place-items: center;
+  cursor: pointer;
+}
+.swap:hover { background: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface); }
+.swap:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+/* When and Priority sit side by side, each already showing what it holds, so
+   neither has to be opened to be read. An opened one takes the whole row, which
+   is what keeps its contents from being squeezed into half the width. */
+.trip-chips {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+.trip-chips > details { margin: 0; }
+.trip-chips > details[open] { grid-column: 1 / -1; }
+
+/* The chip is a label above its value, so the value is legible without opening
+   anything. Times use the mono face with tabular figures, so a minute changing
+   does not move the digits beside it. */
+.trip-chips > details > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 56px;
+  padding: 9px 14px;
+}
+.trip-when__label, .trip-options__label {
+  grid-column: 1;
+  font: var(--md-sys-typescale-label-small);
+  color: var(--md-sys-color-on-surface-variant);
+}
+.trip-when__summary, .trip-options__summary {
+  grid-column: 1;
+  font: var(--md-sys-typescale-body-medium);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trip-when__summary {
+  font-family: var(--md-ref-typeface-mono);
+  font-variant-numeric: tabular-nums;
+}
+.trip-chip__caret {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+.trip-chips > details[open] .trip-chip__caret { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .trip-chip__caret { transition: none; }
+}
+
+/* What the answer will be built from, said before it is asked for. */
+.planner-provenance {
+  margin: 10px 0 0;
+  font: var(--md-sys-typescale-label-small);
+  color: var(--md-sys-color-on-surface-variant);
 }
 .suggestions {
   position: absolute;
@@ -467,28 +539,12 @@ select {
 .trip-when > summary::-webkit-details-marker { display: none; }
 .trip-when > summary:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
 .trip-when > summary:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; }
-/* In bilingual mode the label is twice as long and was squeezing the value out of
-   the row, so "Mon, Sep 7, 13:00" became "Mon, Sep 7, 1...". The value is the
-   answer and the label is only context, so the label gives way first. */
-.trip-when__label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.trip-when__summary {
-  flex: 1 0 auto;
-  /* The value keeps its width; the label beside it gives way instead. */
-  flex: 1 0 auto;
-  min-width: 0;
-  font: var(--md-sys-typescale-body-medium);
-  color: var(--md-sys-color-on-surface);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: right;
-}
-.trip-when > summary > svg:last-child { flex: none; transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard); }
-.trip-when[open] > summary > svg:last-child { transform: rotate(90deg); }
+/* The label and the value are stacked rows of a grid now, so neither has to give
+   way to the other. What is left here is only the truncation behaviour. */
+.trip-when__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trip-when[open] > summary { border-bottom: 1px solid var(--md-sys-color-outline-variant); }
 .trip-when > .journey-time { margin: 0; padding: 16px; }
 @media (prefers-reduced-motion: reduce) {
-  .trip-when > summary > svg:last-child { transition: none; }
 }
 
 /* One options group, not three stacked disclosures.
@@ -533,8 +589,6 @@ select {
   white-space: nowrap;
   text-align: right;
 }
-.trip-options > summary > svg:last-child { flex: none; transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard); }
-.trip-options[open] > summary > svg:last-child { transform: rotate(90deg); }
 .trip-options[open] > summary { border-bottom: 1px solid var(--md-sys-color-outline-variant); }
 .trip-options__body { padding: 4px 16px 16px; display: grid; gap: 4px; }
 /* The panels inside are grouped by the wrapper, so they drop their own boxes
@@ -542,7 +596,6 @@ select {
 .trip-options__body > .options,
 .trip-options__body > .journey-division-options { border: 0; margin: 0; padding: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .trip-options > summary > svg:last-child { transition: none; }
 }
 
 .options {
@@ -2071,20 +2124,9 @@ select {
   font-size: 20px;
 }
 
-/* Below this the row cannot hold a bilingual label and its value side by side, so
-   they stack. Truncating the value would hide the answer the row exists to give. */
+/* The label and value always stack now, at every width, so the rule that used to
+   make them stack below 420px has nothing left to do. What a narrow screen still
+   needs is one chip per row rather than two half-width ones. */
 @media (max-width: 420px) {
-  .trip-when > summary,
-  .trip-options > summary {
-    flex-wrap: wrap;
-    row-gap: 2px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-  .trip-when__summary,
-  .trip-options__summary {
-    flex: 1 1 100%;
-    order: 3;
-    text-align: left;
-  }
+  .trip-chips { grid-template-columns: minmax(0, 1fr); }
 }

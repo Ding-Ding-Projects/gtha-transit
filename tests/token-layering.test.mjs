@@ -120,3 +120,33 @@ test('no stylesheet hard-codes a hex colour on the selectors the theme owns', ()
   }
   assert.deepEqual(literals, [], 'put the colour in the generator, not in a stylesheet that loads after it');
 });
+
+test('the browser chrome colour still matches the generated surface roles', () => {
+  // theme-color cannot read a custom property, so the two values in the layout
+  // are copies. A copy of a generated value drifts the moment the generator runs
+  // again, and nothing about a stale browser chrome colour looks wrong until you
+  // put the two schemes side by side.
+  const layout = readFileSync(path.join(root, 'app', 'layout.tsx'), 'utf8');
+  const theme = read('material-theme.css');
+  const surfaceIn = (selector) => {
+    const rule = rules(theme).find(([name]) => name === selector);
+    assert.ok(rule, `the theme has no ${selector} rule`);
+    const match = rule[1].match(/--md-sys-color-surface:\s*(#[0-9a-f]{6})/i);
+    assert.ok(match, `${selector} declares no surface colour`);
+    return match[1].toLowerCase();
+  };
+  // Found by plain string search rather than a pattern. The literal parentheses
+  // in a media query need escaping, and an escape that goes missing turns them
+  // into a capture group that matches nothing, which reads as a failing check
+  // rather than as a broken one.
+  const declared = (scheme) => {
+    const marker = `media="(prefers-color-scheme: ${scheme})" content="`;
+    const at = layout.indexOf(marker);
+    assert.notEqual(at, -1, `the layout declares no ${scheme} theme-color`);
+    const value = layout.slice(at + marker.length, at + marker.length + 7);
+    assert.match(value, /^#[0-9a-f]{6}$/i, `the ${scheme} theme-color is ${value}`);
+    return value.toLowerCase();
+  };
+  assert.equal(declared('light'), surfaceIn(':root'), 'the light chrome colour is not the light surface');
+  assert.equal(declared('dark'), surfaceIn("html[data-theme='dark']"), 'the dark chrome colour is not the dark surface');
+});

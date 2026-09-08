@@ -108,7 +108,8 @@ test('navigation carries four destinations and a More, in one list', () => {
 
 test('the rail is the Material width, and the bar appears below the Material breakpoint', () => {
   assert.match(shell, /@media \(min-width: 905px\)/, 'the rail appears at the medium window class');
-  assert.match(shell, /--workspace-rail: 80px/, 'the rail is 80px, not the old 216px');
+  // 84px is the design's rail. It was 80px, and 216px before that.
+  assert.match(shell, /--workspace-rail: 84px/, 'the rail is the design width, not the old 216px list');
   assert.match(shell, /@media \(max-width: 904px\)/, 'below it the destinations move to a bottom bar');
   assert.match(shell, /padding-bottom: env\(safe-area-inset-bottom/, 'the bar clears the home indicator');
   assert.match(shell, /prefers-reduced-motion/, 'the indicator transition is opt-out');

@@ -171,8 +171,16 @@ for (const surface of SURFACES) {
     let acted = false;
     let inputMethod = null;
 
+    /* A step that only exists at some widths is recorded as not applicable here,
+       with its capture, rather than skipped. Driving a display:none control would
+       report a pass for something nobody can reach, which is worse than not
+       running it, because it reads as evidence. */
+    const applicable = !Array.isArray(step.widths) || step.widths.includes(WIDTH);
+
     try {
-      if (step.kind === 'destination') {
+      if (!applicable) {
+        inputMethod = 'not-applicable-at-this-width';
+      } else if (step.kind === 'destination') {
         inputMethod = 'pointer:navigation';
         observedTarget = { tag: 'button', name: step.label };
         acted = Boolean(await goToDestination(step.label));
@@ -211,6 +219,7 @@ for (const surface of SURFACES) {
 
     // A bounded semantic poll, then the assertion. Never a fixed sleep alone.
     const arrived = acted ? await waitFor(step.expect) : false;
+
     await pause(400);
     const after = await state();
 
@@ -234,7 +243,12 @@ for (const surface of SURFACES) {
       after,
       acted,
       expectedStateArrived: arrived,
-      outcome: missing ? (step.optional ? 'absent-optional' : 'absent') : arrived ? 'pass' : 'state-not-reached',
+      applicableWidths: step.widths ?? null,
+      outcome: !applicable
+        ? 'not-applicable'
+        : missing
+          ? (step.optional ? 'absent-optional' : 'absent')
+          : arrived ? 'pass' : 'state-not-reached',
       sourceCommit: COMMIT,
       artifactSha256: artifact,
       viewport: { width: WIDTH, height: 900 },

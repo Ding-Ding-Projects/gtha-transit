@@ -33,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#123f32" />
+        {/* The browser chrome follows the scheme, and these are the generated
+            surface roles rather than a colour typed in beside them. */}
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#071327" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fcf9f0" />
         <link rel="icon" href="/favicon.svg" />
       </head>
       <body>{children}</body>

@@ -1,52 +1,58 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import {
-  ArrowUpRight, Bookmark, BusFront, ChartNoAxesCombined, CircleHelp, Flag, History,
-  Menu, Moon, Route, Settings, Sun, TrainFront, X,
-} from 'lucide-react';
+import { BrandMark } from './brand-mark';
+import { Icon } from './icon';
 
 /**
- * Navigation: a rail on desktop, a bar on mobile, four destinations either way.
+ * Navigation: a rail on desktop, a bar on mobile, one list behind both.
  *
- * Nine destinations in one list meant nine things to read before choosing one,
- * and the three that matter were buried among six that do not. Four are primary
- * because four is what people actually reach for; the rest live behind More,
- * which is one target rather than six.
+ * The rail shows every destination, grouped. It can: a vertical strip has room
+ * for nine labels where a horizontal one has room for four, which is the whole
+ * reason the design docks it to the left edge rather than the top. Hiding six
+ * destinations behind a dialog on a screen with room for them was solving the
+ * phone's problem on the desktop.
  *
- * The rail and the bar are the same component and the same list. Two navigations
- * that drift apart is the failure this avoids: a destination added here appears
- * in both, or in neither.
+ * The bar is still four and More, because a phone genuinely cannot show nine
+ * targets at a size anyone can hit. Same list, same order, one component; two
+ * navigations that drift apart is the failure this avoids.
+ *
+ * Which one you get is decided in CSS, at the Material breakpoint, by display
+ * rather than by visibility. A control hidden but still focusable is a control
+ * that traps the keyboard on a surface where it does not appear.
  */
+
+type Language = 'en' | 'zh' | 'both';
 
 type Props = {
   active: string;
   onChange: (value: string) => void;
   dark: boolean;
   onTheme: () => void;
+  lang: Language;
+  onLang: (value: Language) => void;
   t: (en: string, zh: string) => string;
 };
 
-export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t }: Props) {
+export default function WorkspaceNavigation({ active, onChange, dark, onTheme, lang, onLang, t }: Props) {
   const [moreOpen, setMoreOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
 
-  /** The four that earn a permanent place, and everything else. */
+  /** The four that earn a place on a phone, and the rest, which the rail still shows. */
   const primary = [
-    { id: 'plan', label: t('Plan', '規劃'), icon: Route },
-    { id: 'status', label: t('Live', '即時'), icon: TrainFront },
-    { id: 'vehicles', label: t('Vehicles', '車輛'), icon: BusFront },
-    { id: 'saved', label: t('Saved', '已儲存'), icon: Bookmark },
+    { id: 'plan', label: t('Plan', '規劃'), glyph: 'alt_route' },
+    { id: 'status', label: t('Live', '即時'), glyph: 'sensors' },
+    { id: 'vehicles', label: t('Vehicles', '車輛'), glyph: 'directions_bus' },
+    { id: 'saved', label: t('Saved', '已儲存'), glyph: 'bookmark' },
   ];
   const secondary = [
-    { id: 'race', label: t('Race', '比賽'), icon: Flag },
-    { id: 'divisions', label: t('Out of division', '跨車廠'), icon: ChartNoAxesCombined },
-    { id: 'history', label: t('History', '歷史'), icon: History },
-    { id: 'coverage', label: t('Our region', '服務範圍'), icon: CircleHelp },
-    { id: 'settings', label: t('Settings', '設定'), icon: Settings },
+    { id: 'race', label: t('Race', '比賽'), glyph: 'flag' },
+    { id: 'divisions', label: t('Out of division', '跨車廠'), glyph: 'garage' },
+    { id: 'history', label: t('History', '歷史'), glyph: 'history' },
+    { id: 'coverage', label: t('Our region', '服務範圍'), glyph: 'public' },
+    { id: 'settings', label: t('Settings', '設定'), glyph: 'settings' },
   ];
   const inMore = secondary.some((item) => item.id === active);
 
@@ -61,55 +67,85 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
   /**
    * One destination target.
    *
-   * The active indicator is a shape behind the icon rather than a colour change
-   * alone, so which destination is current does not depend on seeing a hue.
+   * The active indicator is a shape behind the glyph, not a colour change alone,
+   * so which destination is current does not depend on seeing a hue.
    */
-  const destination = ({ id, label, icon: Icon }: { id: string; label: string; icon: typeof Route }) => (
+  const destination = (
+    { id, label, glyph }: { id: string; label: string; glyph: string },
+    group: 'primary' | 'secondary' = 'primary',
+  ) => (
     <button
       key={id}
       type="button"
-      className={`m3-nav__item${active === id ? ' is-active' : ''}`}
+      className={`m3-nav__item m3-nav__item--${group}${active === id ? ' is-active' : ''}`}
       onClick={() => navigate(id)}
       aria-current={active === id ? 'page' : undefined}
     >
       <span className="m3-nav__indicator">
-        <Icon size={22} aria-hidden="true" />
+        <Icon name={glyph} size={22} />
         {id === 'status' && <span className="m3-nav__badge" aria-hidden="true" />}
       </span>
       <span className="m3-nav__label">{label}</span>
     </button>
   );
 
+  const languages: { id: Language; short: string; name: string }[] = [
+    { id: 'en', short: 'EN', name: t('English', '英文') },
+    { id: 'zh', short: '中', name: t('Cantonese', '廣東話') },
+    // One glyph, because three labels share 84px. The accessible name says it fully.
+    { id: 'both', short: '雙', name: t('Both languages', '雙語') },
+  ];
+
   return <>
     <header className="m3-nav" aria-label={t('Main navigation', '主要導覽')}>
       <Link href="/" className="m3-nav__brand" aria-label="GTHA Transit">
-        <Image unoptimized src="/logo.svg" alt="" width={36} height={36} />
+        <BrandMark size={36} />
         <span className="m3-nav__brand-text">GTHA<span className="brand-light">transit</span></span>
       </Link>
 
       <nav className="m3-nav__items" aria-label={t('Destinations', '目的地')}>
-        {primary.map(destination)}
+        {/* Wrapped, not passed bare: map hands the index in as the second argument. */}
+        {primary.map((item) => destination(item))}
+        {/* Only the phone bar shows this. The rail lists the same items below it. */}
         <button
           ref={moreButton}
           type="button"
-          className={`m3-nav__item${inMore ? ' is-active' : ''}`}
+          className={`m3-nav__item m3-nav__item--more${inMore ? ' is-active' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={moreOpen}
           onClick={() => setMoreOpen(true)}
         >
-          <span className="m3-nav__indicator"><Menu size={22} aria-hidden="true" /></span>
+          <span className="m3-nav__indicator"><Icon name="more_horiz" size={22} /></span>
           <span className="m3-nav__label">{t('More', '更多')}</span>
         </button>
+        <span className="m3-nav__divider" aria-hidden="true" />
+        {secondary.map((item) => destination(item, 'secondary'))}
       </nav>
 
       <div className="m3-nav__tail">
+        {/* fieldset rather than role="group": the native element carries the
+            grouping semantics, which is what assistive technology reads first. */}
+        <fieldset className="m3-nav__langs" aria-label={t('Language', '語言')}>
+          {languages.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`m3-nav__lang${lang === option.id ? ' is-active' : ''}`}
+              aria-pressed={lang === option.id}
+              aria-label={option.name}
+              onClick={() => onLang(option.id)}
+            >
+              {option.short}
+            </button>
+          ))}
+        </fieldset>
         <button
           type="button"
           className="m3-nav__theme"
           onClick={onTheme}
-          aria-label={dark ? t('Switch to light appearance', '切換淺色外觀') : t('Switch to dark appearance', '切換深色外觀')}
+          aria-label={dark ? t('Switch to day appearance', '切換日間外觀') : t('Switch to night appearance', '切換夜間外觀')}
         >
-          {dark ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
+          <Icon name={dark ? 'light_mode' : 'dark_mode'} size={20} />
         </button>
       </div>
     </header>
@@ -118,11 +154,11 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
       <div className="m3-more__head">
         <h2>{t('More', '更多')}</h2>
         <button type="button" className="m3-more__close" onClick={closeMore} aria-label={t('Close', '關閉')}>
-          <X size={20} aria-hidden="true" />
+          <Icon name="close" size={20} />
         </button>
       </div>
       <div className="m3-more__items">
-        {secondary.map(({ id, label, icon: Icon }) => (
+        {secondary.map(({ id, label, glyph }) => (
           <button
             key={id}
             type="button"
@@ -130,7 +166,7 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
             onClick={() => navigate(id)}
             aria-current={active === id ? 'page' : undefined}
           >
-            <Icon size={20} aria-hidden="true" />
+            <Icon name={glyph} size={20} />
             <span>{label}</span>
           </button>
         ))}
@@ -138,7 +174,7 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, t
       <div className="m3-more__foot">
         <p>{t('One region. Every connection.', '一個地區，接通每一程。')}</p>
         <a href="https://github.com/Ding-Ding-Projects/gtha-transit" target="_blank" rel="noreferrer">
-          {t('Independent & open source', '獨立開源')}<ArrowUpRight size={14} aria-hidden="true" />
+          {t('Independent & open source', '獨立開源')}<Icon name="arrow_forward" size={14} />
         </a>
       </div>
     </dialog>

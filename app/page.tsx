@@ -8,11 +8,9 @@ import {
   ChevronRight,
   Clock,
   Footprints,
-  LocateFixed,
   MapPin,
   Map as MapIcon,
   Route,
-  Settings,
   ShieldCheck,
   TrainFront,
   TriangleAlert,
@@ -20,13 +18,11 @@ import {
   RefreshCw,
   Share2,
   Download,
-  Sun,
-  Moon,
   Accessibility,
   ExternalLink,
   Info,
-  CalendarDays,
 } from 'lucide-react';
+import { Icon } from '../components/icon';
 import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
@@ -95,6 +91,7 @@ function PlaceField({
   onChange,
   t,
   onMap,
+  onLocate,
   when,
 }: {
   label: string;
@@ -102,6 +99,9 @@ function PlaceField({
   onChange: (p: Place | null) => void;
   t: (en: string, zh: string) => string;
   onMap: () => void;
+  /* Only the origin gets this. "Use my location" was a row of its own, which
+     made a field affordance look like a step in the form. */
+  onLocate?: () => void;
   when?: string;
 }) {
   const [query, setQuery] = useState(value?.name || ''),
@@ -213,6 +213,17 @@ function PlaceField({
           onChange(null); setQuery(''); setItems([]); setActive(-1); setError(''); setBusy(false); setOpen(false);
           box.current?.querySelector('input')?.focus();
         }}><X size={17} aria-hidden="true" /></button>}
+        {onLocate && (
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onLocate}
+            title={t('Use my location', '使用目前位置')}
+            aria-label={t('Use my location', '使用目前位置')}
+          >
+            <Icon name="my_location" size={17} />
+          </button>
+        )}
         <button
           type="button"
           className="icon-button"
@@ -220,7 +231,7 @@ function PlaceField({
           title={t('Choose on map', '喺地圖選擇')}
           aria-label={t('Choose on map', '喺地圖選擇')}
         >
-          <MapIcon size={17} />
+          <Icon name="map" size={17} />
         </button>
       </div>
       {value && <div className="selected-place-name">{value.name}</div>}
@@ -359,8 +370,21 @@ export default function Home() {
     if (!when) return t('Now', '而家');
     const at = Date.parse(travelTime.instant || when);
     if (!Number.isFinite(at)) return when;
+    /* The chip is half the composer's width, and "Mon, Sep 7, 21:32" does not fit
+       in it. Within the coming week the weekday and the time say everything, so
+       the date is dropped; past that it is needed and the case is rare enough
+       that the extra width is affordable. */
+    const zone = 'America/Toronto';
+    const calendarDay = (value: Date) =>
+      new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(value);
+    const daysAway = Math.round(
+      (Date.parse(calendarDay(new Date(at))) - Date.parse(calendarDay(new Date()))) / 86_400_000,
+    );
+    const withinTheWeek = daysAway >= 0 && daysAway <= 6;
     return new Intl.DateTimeFormat(lang === 'zh' ? 'zh-HK' : 'en-CA', {
-      timeZone: 'America/Toronto', weekday: 'short', day: 'numeric', month: 'short',
+      timeZone: zone,
+      weekday: 'short',
+      ...(withinTheWeek ? {} : { day: 'numeric', month: 'short' }),
       hour: 'numeric', minute: '2-digit', hour12: false,
     }).format(new Date(at));
   })();
@@ -858,20 +882,31 @@ export default function Home() {
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
-      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} t={t} />
+      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={lang} onLang={setLang} t={t} />
       <div className="workspace-topline">
         <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{({ plan: t('Plan your next connection', '規劃你嘅下一程'), vehicles: t('Find your next ride', '搵你嘅下一程車'), status: t('The network, right now', '交通網絡現況'), divisions: t('Beyond the usual garage', '跨越平日車廠分配'), history: t('The service record', '服務歷史記錄'), saved: t('Ready when you are', '隨時準備出發'), coverage: t('Across the whole region', '接通整個地區'), race: t('Race across the region', '同人鬥快跨區'), settings: t('Make yourself at home', '按你喜好設定') } as Record<string, string>)[tab]}</h1></div>
         <div className="build-stamp"><strong>{version?.version ? 'v' + version.version : t('Version unavailable', '版本未能提供')}{version?.commit ? ' · ' + version.commit.slice(0, 7) : ''}</strong><span>{version?.builtAt && Number.isFinite(Date.parse(version.builtAt)) ? t('Updated', '更新') + ' ' + new Date(version.builtAt).toLocaleString('en-CA', { timeZone: 'America/Toronto', timeZoneName: 'short', hour12: false, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : t('Build provenance unavailable', '建置資料未能提供')}</span></div>
       </div>
       <main id="main" className="workspace">
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
-          <div className="eyebrow">
-            {t('A BETTER WAY ACROSS THE REGION', '輕鬆接駁全個地區')}
+          {/* The eyebrow and lede that used to sit here said nothing the heading
+              above the workspace does not already say, and they pushed the first
+              field below the fold on a phone. */}
+          <div className="planner-head">
+            <h2>{t('Where to next?', '下一站，去邊？')}</h2>
+            {/* Reverse belongs beside the pair it reverses, as one target rather
+                than a labelled row of its own. An arrow says nothing out loud, so
+                it keeps its accessible name. */}
+            <button
+              type="button"
+              className="swap"
+              onClick={swap}
+              title={t('Reverse trip', '反轉行程')}
+              aria-label={t('Reverse trip', '反轉行程')}
+            >
+              <Icon name="swap_vert" size={20} />
+            </button>
           </div>
-          <h2>{t('Where to next?', '下一站，去邊？')}</h2>
-          <p className="lede">
-            {t('One journey. Every connection.', '一個行程，接通每一程。')}
-          </p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -885,21 +920,13 @@ export default function Home() {
                 onChange={setFrom}
                 t={translate}
                 when={when}
+                onLocate={locate}
                 onMap={() => {
                   setPicking('from');
                   setMapVisible(true);
                   setTab('plan');
                 }}
               />
-              <button
-                type="button"
-                className="swap"
-                onClick={swap}
-                title={t('Swap origin and destination', '交換起點同終點')}
-              >
-                <ArrowDownUp size={18} aria-hidden="true" />
-                <span>{t('Reverse trip', '反轉行程')}</span>
-              </button>
               <DestinationList items={destinations} t={t} onChange={next => {
                 setDestinations(next);
                 if (picking && picking !== 'from' && !next.some(item => item.id === picking)) setPicking(null);
@@ -912,23 +939,15 @@ export default function Home() {
                 onMap={() => { setPicking(item.id); setMapVisible(true); setTab('plan'); }}
               />} />
             </div>
-            <button
-              type="button"
-              className="text-button locate"
-              onClick={locate}
-            >
-              <LocateFixed size={16} />
-              {t('Use my location', '使用目前位置')}
-            </button>
-            {/* Most trips are "now", so the whole date and time block sits behind a
-                row that already says when you are leaving. Opening it is for the
-                trips that are not now. */}
+            {/* Two chips, side by side, each already showing what it holds. Most
+                trips are "now" and fastest, so opening either is for the trips
+                that are not. */}
+            <div className="trip-chips">
             <details className="trip-when">
               <summary>
-                <CalendarDays size={16} aria-hidden="true" />
                 <span className="trip-when__label">{arriveBy ? t('Arrive by', '到達時間') : t('Leaving', '出發時間')}</span>
                 <span className="trip-when__summary">{whenSummary}</span>
-                <ChevronRight size={16} aria-hidden="true" />
+                <Icon name="expand_more" size={16} className="trip-chip__caret" />
               </summary>
               <JourneyTimeControls value={when} instant={travelTime.instant} arriveBy={arriveBy}
                 onChange={setWhen} onModeChange={setArriveBy} t={t} />
@@ -937,15 +956,14 @@ export default function Home() {
                 says what is set inside it, so nobody has to open it to find out. */}
             <details className="trip-options">
               <summary>
-                <Settings size={16} aria-hidden="true" />
-                <span className="trip-options__label">{t('Trip options', '行程選項')}</span>
+                <span className="trip-options__label">{t('Priority', '優先')}</span>
                 <span className="trip-options__summary">{[
                   preference === 'fastest' ? t('Fastest', '最快') : preference === 'transfers' ? t('Fewer transfers', '少轉車') : preference === 'walking' ? t('Less walking', '少步行') : t('Less waiting', '少等候'),
                   ...(wheelchair ? [t('Step-free', '無障礙')] : []),
                   ...(requiredRoute ? [t('Required route', '必經路線')] : []),
                   ...(preferDivision ? [t('Garage preference', '車廠偏好')] : []),
                 ].join(' · ')}</span>
-                <ChevronRight size={16} aria-hidden="true" />
+                <Icon name="expand_more" size={16} className="trip-chip__caret" />
               </summary>
               <div className="trip-options__body">
               <section className="required-route-control" aria-label={t('Include a route in this trip', '行程必須包括路線')}>
@@ -1015,19 +1033,32 @@ export default function Home() {
             </details>
               </div>
             </details>
+            </div>
             <button className="primary" disabled={loading} type="submit">
-              {loading ? (
-                <RefreshCw size={19} className="spin" />
-              ) : (
-                <Route size={19} />
-              )}
               <span>
                 {loading
                   ? t('Finding your connections…', '搜尋接駁中…')
-                  : t('Plan my trip', '規劃我嘅行程')}
+                  : t('Plan this trip', '規劃呢程')}
               </span>
-              <ArrowRight size={19} />
+              <Icon name={loading ? 'refresh' : 'arrow_forward'} size={19} className={loading ? 'spin' : undefined} />
             </button>
+            {/* What the answer will be built from, said before it is asked for.
+                Every figure here is read from the graph's own provenance; when
+                that cannot be reached the line says so rather than guessing. */}
+            <p className="planner-provenance">
+              {coverage
+                ? [
+                    t('Scheduled service', '按時間表'),
+                    t(`${agencies.filter((agency: any) => agency.loaded).length} agencies loaded`, `已載入 ${agencies.filter((agency: any) => agency.loaded).length} 間營運商`),
+                    ...(coverage.graphBuiltAt && Number.isFinite(Date.parse(coverage.graphBuiltAt))
+                      ? [t(
+                          'graph built ' + new Date(coverage.graphBuiltAt).toLocaleDateString('en-CA', { timeZone: 'America/Toronto', month: 'short', day: 'numeric' }),
+                          '路網建於 ' + new Date(coverage.graphBuiltAt).toLocaleDateString('zh-Hant', { timeZone: 'America/Toronto', month: 'short', day: 'numeric' }),
+                        )]
+                      : []),
+                  ].join(' · ')
+                : t('Service coverage is being read', '正在讀取服務資料')}
+            </p>
           </form>
           {!!dateGaps.length && (
             <div className="error" role="status">

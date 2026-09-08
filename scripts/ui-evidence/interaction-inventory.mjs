@@ -14,6 +14,12 @@
  * running. Those are recorded as absent with the reason rather than failing, and
  * the count of them is reported so a run where everything was absent cannot look
  * like a run where everything passed.
+ *
+ * `widths: [...]` marks a step that only exists at some viewports. The rail shows
+ * every destination, so More is a phone control; driving it at 1440 would report
+ * a pass for a button that is display:none there, which is worse than not running
+ * it, because it reads as evidence. Such a step is recorded as not-applicable at
+ * the widths it does not belong to, and the count is reported.
  */
 
 /** Reach a destination by its navigation label, through More when it is not primary. */
@@ -28,12 +34,12 @@ export const SURFACES = [
       { id: 'plan.open', ...destination('Plan'), expect: '.place-field input', describe: 'the journey composer is present' },
       { id: 'plan.from', click: '.place-field:nth-of-type(1) input', type: 'Union Station', expect: '.suggestions button', describe: 'typing an origin offers published places' },
       { id: 'plan.from.choose', click: '.suggestions button', expect: '.place-field .selected-place-name, .place-field input', describe: 'choosing a place fills the field' },
-      { id: 'plan.reverse', clickText: 'Reverse trip', expect: '.place-field input', describe: 'the trip can be reversed' },
-      { id: 'plan.when.open', click: '.trip-when > summary', expect: '.trip-when[open] .journey-time', describe: 'the when row opens its date and time controls' },
-      { id: 'plan.when.close', click: '.trip-when > summary', expect: '.trip-when:not([open])', describe: 'and closes again' },
-      { id: 'plan.options.open', click: '.trip-options > summary', expect: '.trip-options[open] .journey-priority', describe: 'trip options opens its preferences' },
+      { id: 'plan.reverse', click: '.swap', expect: '.place-field input', describe: 'the trip can be reversed from the header control' },
+      { id: 'plan.when.open', click: '.trip-chips .trip-when > summary', expect: '.trip-when[open] .journey-time', describe: 'the when chip opens its date and time controls' },
+      { id: 'plan.when.close', click: '.trip-chips .trip-when > summary', expect: '.trip-when:not([open])', describe: 'and closes again' },
+      { id: 'plan.options.open', click: '.trip-chips .trip-options > summary', expect: '.trip-options[open] .journey-priority', describe: 'the priority chip opens its preferences' },
       { id: 'plan.options.priority', click: '.journey-priority button:nth-of-type(2)', expect: '.journey-priority button[aria-pressed="true"]', describe: 'a journey priority can be chosen' },
-      { id: 'plan.options.close', click: '.trip-options > summary', expect: '.trip-options:not([open])', describe: 'and closes again' },
+      { id: 'plan.options.close', click: '.trip-chips .trip-options > summary', expect: '.trip-options:not([open])', describe: 'and closes again' },
       { id: 'plan.intermediate', clickText: 'Add intermediate stop', expect: '.place-field', describe: 'an intermediate stop can be added' },
       { id: 'plan.map.toggle', clickText: 'Hide map', expect: 'main', describe: 'the map can be hidden' },
     ],
@@ -121,8 +127,11 @@ export const SURFACES = [
     label: 'Plan',
     heading: 'Plan your next connection',
     steps: [
-      { id: 'nav.more.open', click: '.m3-nav__item:nth-of-type(5)', expect: '.m3-more[open]', describe: 'More opens its dialog' },
-      { id: 'nav.more.close', click: '.m3-more__close', expect: '.m3-more:not([open])', describe: 'and closes, returning focus' },
+      { id: 'nav.more.open', click: '.m3-nav__item--more', expect: '.m3-more[open]', describe: 'More opens its dialog on a phone', widths: [390] },
+      { id: 'nav.more.close', click: '.m3-more__close', expect: '.m3-more:not([open])', describe: 'and closes, returning focus', widths: [390] },
+      { id: 'nav.rail.secondary', click: '.m3-nav__item--secondary', expect: 'main', describe: 'the rail reaches a secondary destination with no dialog', widths: [1440] },
+      { id: 'nav.lang', click: '.m3-nav__lang:nth-of-type(2)', expect: '.m3-nav__lang[aria-pressed="true"]', describe: 'language can be changed from the rail' },
+      { id: 'nav.lang.back', click: '.m3-nav__lang:nth-of-type(1)', expect: '.m3-nav__lang[aria-pressed="true"]', describe: 'and changed back' },
       { id: 'nav.theme', click: '.m3-nav__theme', expect: 'html[data-theme]', describe: 'the colour theme can be switched' },
       { id: 'nav.theme.back', click: '.m3-nav__theme', expect: 'html[data-theme]', describe: 'and switched back' },
     ],

@@ -72,6 +72,34 @@ test('all four tuples describe the same build', () => {
   assert.equal(commits.size, 1, `the tuples were recorded against ${commits.size} different commits`);
 });
 
+test('a width-scoped step is recorded as such, and only at the widths it names', () => {
+  // The rail lists every destination, so More exists on a phone and nowhere else.
+  // Marking that not-applicable is honest; recording a pass for a display:none
+  // control would be a green row about something nobody can reach.
+  for (const tuple of REQUIRED_TUPLES) {
+    const ledger = ledgers[tuple];
+    for (const row of ledger.rows) {
+      if (!row.applicableWidths) {
+        assert.notEqual(row.outcome, 'not-applicable', `${tuple}/${row.step} is not applicable but names no widths`);
+        continue;
+      }
+      const belongs = row.applicableWidths.includes(ledger.viewportWidth);
+      assert.equal(
+        row.outcome === 'not-applicable',
+        !belongs,
+        `${tuple}/${row.step} names widths ${row.applicableWidths.join(', ')} and recorded ${row.outcome}`,
+      );
+    }
+  }
+  // And every width-scoped step must actually run somewhere, or it is dead.
+  const everywhere = REQUIRED_TUPLES.flatMap((tuple) => ledgers[tuple].rows);
+  const scoped = new Set(everywhere.filter((row) => row.applicableWidths).map((row) => row.step));
+  for (const step of scoped) {
+    const ran = everywhere.some((row) => row.step === step && row.outcome !== 'not-applicable');
+    assert.ok(ran, `${step} is not applicable at any tuple that was driven`);
+  }
+});
+
 test('nothing failed, and nothing leaked', () => {
   for (const tuple of REQUIRED_TUPLES) {
     const ledger = ledgers[tuple];

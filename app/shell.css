@@ -17,23 +17,164 @@
   box-shadow: none;
 }
 
+/* The base rules come BEFORE the media queries on purpose.
+
+   They used to sit after them, and equal specificity is decided by order, so
+   every responsive override quietly lost to the base rule that followed it. The
+   symptom was a phone bar showing all nine destinations and a theme toggle
+   sitting under the language pill instead of beside it: both overrides were
+   written, both were correct, and neither applied. Nothing warns about this. */
+
+/* ------------------------------------------------------------------ parts -- */
+
+.m3-nav__brand { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; border-radius: var(--md-sys-shape-corner-medium); }
+.m3-nav__brand:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 3px; }
+.m3-nav__brand-text { font: var(--md-sys-typescale-title-medium); letter-spacing: -.3px; }
+.m3-nav__brand-text .brand-light { font-weight: 400; margin-left: 4px; }
+
+.m3-nav__items { display: flex; }
+
+/* One destination. Icon in an indicator, label beneath it, whole thing a target. */
+.m3-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 10px;
+  min-width: 56px;
+  min-height: 56px;
+  flex: 1 1 auto;
+  border: 0;
+  background: none;
+  color: var(--nav-muted);
+  cursor: pointer;
+}
+.m3-nav__item:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: -3px; border-radius: var(--md-sys-shape-corner-medium); }
+
+/* The active indicator is a shape, so the current destination does not depend on
+   seeing a colour. */
+.m3-nav__indicator {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  transition: background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+.m3-nav__item:hover .m3-nav__indicator { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.m3-nav__item.is-active { color: var(--nav-text); }
+.m3-nav__item.is-active .m3-nav__indicator { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+.m3-nav__label { font: var(--md-sys-typescale-label-medium); text-align: center; }
+
+/* A live feed has something to say. It is a dot beside an icon that already has
+   a text label, never the only thing carrying the meaning. */
+.m3-nav__badge {
+  position: absolute;
+  top: 2px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  outline: 2px solid var(--nav-bg);
+}
+.m3-nav__item.is-active .m3-nav__badge { background: var(--md-sys-color-on-primary-container); }
+
+.m3-nav__tail { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+/* Language sits in the rail rather than three levels into settings, because it
+   is the control a bilingual reader reaches for most and the least likely to be
+   found where it was. Each option shows its own script, so the choice is legible
+   in the language it selects. */
+.m3-nav__langs {
+  display: flex;
+  /* A fieldset defaults to min-inline-size: min-content, which ignores the rail's
+     width and pushes the pill past its left edge. */
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 3px;
+  gap: 2px;
+  max-width: 100%;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-high);
+}
+
+/* The design draws this as a horizontal segmented pill with 26px segments. Three
+   44px targets do not fit across an 84px rail, and 26px is below the minimum this
+   project holds every control to, so the rail stacks them instead. Same control,
+   same three options, at a size a finger can actually hit. The phone bar has the
+   width for a row and uses one. */
+@media (min-width: 905px) {
+  .m3-nav__langs { flex-direction: column; }
+}
+.m3-nav__lang {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  cursor: pointer;
+}
+.m3-nav__lang:hover { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
+.m3-nav__lang.is-active { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.m3-nav__lang:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.m3-nav__theme {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--nav-muted);
+  cursor: pointer;
+}
+.m3-nav__theme:hover { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); color: var(--nav-text); }
+.m3-nav__theme:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
 /* ---------------------------------------------------------------- desktop -- */
 /* Material's own breakpoint: the rail appears at the medium window class. */
 @media (min-width: 905px) {
-  :root { --workspace-rail: 80px; }
+  :root { --workspace-rail: 84px; }
   .m3-nav {
     inset: 0 auto 0 0;
     width: var(--workspace-rail);
     height: 100dvh;
     flex-direction: column;
     align-items: center;
-    padding: 12px 0 16px;
-    gap: 8px;
+    padding: 12px 0 14px;
+    gap: 10px;
   }
-  .m3-nav__brand { margin-bottom: 12px; }
+  .m3-nav__brand { margin-bottom: 8px; }
   .m3-nav__brand-text { display: none; }
-  .m3-nav__items { flex-direction: column; gap: 4px; width: 100%; }
-  .m3-nav__tail { margin-top: auto; }
+  /* Nine destinations fit a tall window and not a short one, so the list scrolls
+     rather than pushing the language and theme controls off the bottom edge. */
+  .m3-nav__items {
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    min-height: 0;
+  }
+  .m3-nav__item { flex: none; }
+  /* The rail lists every destination, so there is nothing left for More to hold.
+     display, not visibility: a hidden focusable control traps the keyboard. */
+  .m3-nav__item--more { display: none; }
+  .m3-nav__divider {
+    display: block;
+    width: 28px;
+    height: 1px;
+    margin: 8px auto;
+    background: var(--md-sys-color-outline-variant);
+  }
+  .m3-nav__tail { margin-top: auto; padding-top: 8px; }
 }
 
 /* ----------------------------------------------------------------- mobile -- */
@@ -55,79 +196,12 @@
   /* The brand belongs at the top of the page, not in a thumb bar. */
   .m3-nav__brand { position: fixed; inset: 0 auto auto 0; height: 56px; padding: 0 16px; display: flex; align-items: center; gap: 10px; background: var(--nav-bg); width: 100%; z-index: 1; }
   .m3-nav__items { flex: 1; justify-content: space-around; }
-  .m3-nav__tail { position: fixed; inset: 8px 8px auto auto; z-index: 2; }
+  /* A phone bar cannot hold nine targets at a size a thumb can hit, so the
+     secondary group stays in the More dialog here. */
+  .m3-nav__item--secondary, .m3-nav__divider { display: none; }
+  .m3-nav__tail { position: fixed; inset: 8px 8px auto auto; z-index: 2; flex-direction: row; }
   .m3-nav__label { font: var(--md-sys-typescale-label-medium); }
 }
-
-/* ------------------------------------------------------------------ parts -- */
-
-.m3-nav__brand { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; border-radius: var(--md-sys-shape-corner-medium); }
-.m3-nav__brand:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: 3px; }
-.m3-nav__brand-text { font: var(--md-sys-typescale-title-medium); letter-spacing: -.3px; }
-.m3-nav__brand-text .brand-light { font-weight: 400; margin-left: 4px; }
-
-.m3-nav__items { display: flex; }
-
-/* One destination. Icon in an indicator, label beneath it, whole thing a target. */
-.m3-nav__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 0 10px;
-  min-width: 56px;
-  min-height: 56px;
-  flex: 1 1 auto;
-  border: 0;
-  background: none;
-  color: var(--nav-muted);
-  cursor: pointer;
-}
-.m3-nav__item:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: -3px; border-radius: var(--md-sys-shape-corner-medium); }
-
-/* The active indicator is a shape, so the current destination does not depend on
-   seeing a colour. */
-.m3-nav__indicator {
-  display: grid;
-  place-items: center;
-  position: relative;
-  width: 56px;
-  height: 32px;
-  border-radius: var(--md-sys-shape-corner-full);
-  transition: background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
-}
-.m3-nav__item:hover .m3-nav__indicator { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); }
-.m3-nav__item.is-active { color: var(--nav-text); }
-.m3-nav__item.is-active .m3-nav__indicator { background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
-.m3-nav__label { font: var(--md-sys-typescale-label-medium); text-align: center; }
-
-/* A live feed has something to say. It is a dot beside an icon that already has
-   a text label, never the only thing carrying the meaning. */
-.m3-nav__badge {
-  position: absolute;
-  top: 2px;
-  right: 14px;
-  width: 8px;
-  height: 8px;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: var(--md-sys-color-tertiary-container);
-  outline: 2px solid var(--nav-bg);
-}
-.m3-nav__item.is-active .m3-nav__badge { background: var(--md-sys-color-on-tertiary-container); }
-
-.m3-nav__theme {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 0;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: none;
-  color: var(--nav-muted);
-  cursor: pointer;
-}
-.m3-nav__theme:hover { background: color-mix(in srgb, var(--nav-text) calc(var(--md-sys-state-hover-opacity) * 100%), transparent); color: var(--nav-text); }
-.m3-nav__theme:focus-visible { outline: 3px solid var(--md-sys-color-tertiary-container); outline-offset: 2px; }
 
 /* ------------------------------------------------------------------- more -- */
 
