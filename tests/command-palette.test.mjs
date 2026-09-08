@@ -385,6 +385,23 @@ test('the palette is rendered in the shell, wired to the shared registries', () 
   assert.match(source, /^\s*const paletteSettings = useMemo\($/m);
 });
 
+test('Escape is handled by the palette rather than left to the dialog', () => {
+  /*
+   * A modal dialog closes on Escape for free, and here it did not: the palette
+   * puts the focus in a search field on open, and Chromium treats Escape on an
+   * `input[type="search"]` as "clear this field" and consumes the key. Every unit
+   * test was green while the first Escape anybody pressed did nothing at all.
+   *
+   * This is a drift guard, not proof. The proof is pressing the key in a real
+   * browser, which scripts/ui-evidence/drive-palette.mjs does.
+   */
+  const source = readFileSync(path.join(root, 'components', 'command-palette.tsx'), 'utf8');
+  assert.match(source, /^\s*const onSurfaceKey = \(event: ReactKeyboardEvent<HTMLDivElement>\) => \{$/m);
+  assert.match(source, /^\s*if \(event\.key !== 'Escape' \|\| event\.defaultPrevented\) return;$/m,
+    'an inner handler that already dealt with Escape has to win, or the regex builder cannot close first');
+  assert.match(source, /onKeyDown=\{onSurfaceKey\}/, 'the handler is wired to the surface');
+});
+
 test('the palette stylesheet is loaded, and the shell still loads after it', () => {
   const layout = readFileSync(path.join(root, 'app', 'layout.tsx'), 'utf8');
   const palette = layout.indexOf("import './command-palette.css';");

@@ -182,6 +182,24 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
     if (entry.selector) reveal(entry.selector);
   };
 
+  /**
+   * Escape closes the palette, which a native dialog does not manage on its own here.
+   *
+   * `showModal` gives a dialog Escape for free, and it was not working: the palette
+   * puts the focus in the search field on open, and Chromium treats Escape on an
+   * `input[type="search"]` as "clear this field" and consumes the key. So the very
+   * first Escape anybody pressed did nothing at all, which the unit suite could
+   * never have seen -- it was found by pressing the key in a real browser.
+   *
+   * An inner handler that already dealt with Escape wins, so the regex builder's
+   * popover still closes first and leaves the palette open behind it.
+   */
+  const onSurfaceKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Escape' || event.defaultPrevented) return;
+    event.preventDefault();
+    close();
+  };
+
   const onListKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
@@ -217,7 +235,7 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
       }}
       onCancel={() => setOpen(false)}
     >
-      <div className="palette__surface" ref={surface}>
+      <div className="palette__surface" ref={surface} onKeyDown={onSurfaceKey}>
         <div className="palette__head">
           <h2 className="palette__title">
             <Icon name="search" size={20} />
