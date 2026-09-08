@@ -23,3 +23,7 @@ The September 5, 2026 timetable uses the TTC publisher archive retrieved by Mobi
 Suggested articles: [TTC status](../status/README.md), [regional data](../data/README.md), [deployment](../deployment/README.md).
 
 Each journey option shows its first boarding time, initial waiting from the chosen departure time with access walking excluded, transfer waiting, and total elapsed time to arrival. Each transit leg identifies its own boarding wait. Arrive-by planning does not invent an initial departure wait. Invalid or overlapping connection times are unavailable rather than a false zero. These values describe the returned itinerary; they do not claim every later departure is represented.
+
+Riders who care which garage a bus came from can say so through the
+[garage preference](garage-preference.md). No feed says which vehicle a departure will
+be, so it orders journeys by the routes a chosen garage runs and never hides one.

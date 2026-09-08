@@ -46,3 +46,7 @@ Retain the prior container image tag and last validated graph/data generation. C
 `/health` verifies the frontend process; it does not certify routing, feed coverage, maps or public DNS. Verify those endpoints and an actual journey independently.
 
 Suggested articles: [passenger guide](../planning/README.md), [regional data](../data/README.md).
+
+Failures are recorded by [diagnostics](diagnostics.md), which keeps a route pattern, a
+kind, a bounded message and a duration, and deliberately keeps nothing that could
+identify a rider or where they were going.

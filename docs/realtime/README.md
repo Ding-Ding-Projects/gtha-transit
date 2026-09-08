@@ -19,7 +19,7 @@ Metrolinx documents the API registration condition and the GTFS resource paths i
 
 ## Explicit coverage gaps
 
-Brampton Transit, Durham Region Transit and Milton Transit have no verified canonical public GTFS-RT endpoint in the bounded official-source review. York Region Transit exposes its GTFS acquisition through a contact form and licence agreement, but the official route does not publish GTFS-RT URLs. These agencies remain unavailable. Oakville Transit is scheduled-only because its official trip-planner page states that real-time information is not yet available. These states are deliberate and must not be replaced with guessed vendor paths, scraped consumer APIs or third-party mirrors.
+Brampton Transit, Durham Region Transit and Milton Transit have no verified canonical public GTFS-RT endpoint in the bounded official-source review and remain unavailable. York Region Transit is now connected: its realtime is published from `rtu.york.ca` rather than from the host that serves its timetable, which is why the schedule was loaded and current while its vehicles were absent. The earlier review looked only at the timetable acquisition route, found a contact form and a licence agreement, and concluded there was no realtime URL. Vehicle positions, trip updates and service alerts are all read from that host. Oakville Transit is scheduled-only because its official trip-planner page states that real-time information is not yet available. These states are deliberate and must not be replaced with guessed vendor paths, scraped consumer APIs or third-party mirrors.
 
 ## Runtime behaviour
 

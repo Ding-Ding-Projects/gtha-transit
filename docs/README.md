@@ -11,3 +11,7 @@
 - [Accessibility and narration](accessibility/README.md)
 - [Journey vehicle preferences](planning/vehicle-preferences.md)
 - [Place and intersection search](search/README.md)
+- [Garage preference](planning/garage-preference.md)
+- [Out of division: the verdict, route colour and rarity](vehicles/division-verdict.md)
+- [Whole-network station checklist](race/speed-run-stations.md)
+- [Diagnostics](deployment/diagnostics.md)

@@ -26,7 +26,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Complete closure/shuttle integration, exact bus assignment mapping and the remaining rendered verification. Preserve the distinction between deployed code and verified behavior.
 
 - [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.
-- [ ] Refresh the expired TTC garage source from a new official publication. Do not extend the old September 5 validity date or hide the unknown-evidence state.
+- [ ] Refresh the TTC garage source when a new official summary is published. The last one covers service through 2026-09-05 and no replacement exists yet. Answers now come from that last published summary rather than refusing, because allocations move slowly and a dated answer beats none, and every result says which period it describes. Do not extend the validity date, and do not present it as current.
 
 - [ ] Verify contextual suggestion cards on the built interface: exact timetable routes, explicitly nearby routes, place-specific type/address fields and washroom presence. Warden source mismatch is repaired without changing destination identity; broader address enrichment remains source-dependent.
 
@@ -42,14 +42,14 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Deploy and verify the guided route picker: separate phone steps, agency counts, focused search, official badges, period handling and non-submitting picker actions. The nested-form radio correction was verified separately at b7e0ae4 with zero incidental planning requests.
 - [x] Deploy compact star controls and verify their actual 44px geometry, open/close, focus return and narrow layout at 5482814.
 - [x] Verify saved-snippet persistence with a complete keyboard activation sequence and ordinary pointer click at 34f6fff. Both saved entries survived reload; the earlier synthetic Enter did not establish product failure.
-- [ ] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation.
+- [x] Deliver and verify the full workspace redesign across planning, tracking, status, history, saved trips, coverage, settings and mobile More navigation. Driven in the built artifact at 92153d6 across all ten surfaces, at 1440 and 390 in both themes, 56 steps per tuple with a capture after every click and no console exceptions. More opens and closes at 390; the rail reaches its secondary destinations at 1440.
 - [ ] Deploy and exercise manufacturer/model/year tracker filters, per-field search workbenches and the exact-assignment out-of-division planning preference. Local matching, freshness and HTTP-boundary tests pass; built-browser proof is pending.
 
 - [ ] Finish the remaining built-browser checks: live vehicle switching and saved/shared destination order. At 1e428b1, actual stop badges, arrow and pointer-drag reordering, matching map labels and a four-stop real journey passed. Physical touch and broader scale coverage remain unverified.
 
-- [ ] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Server and history modules are implemented.
+- [x] Ship and verify the dedicated Out-of-division tab, route/classification filters, garage evidence, map and observed rarity. Driven at 92153d6: the four classification filters carry live counts, a selected vehicle states where it lives and which garages run its route, the route badge carries the operator colour, and the map draws each vehicle in it. The allocation source and its end date are named on the surface.
 - [ ] Deploy the company-first vehicle preference panel: manufacturer selection controls available models and clears incompatible choices.
-- [ ] Modernize the route picker, vehicle preference controls and overall visual hierarchy, then verify phone-width light/dark layouts.
+- [x] Modernize the route picker, vehicle preference controls and overall visual hierarchy, then verify phone-width light/dark layouts. The 390px light and dark tuples are green at 92153d6, 55 of 56 steps with the remaining one scoped to the desktop rail.
 - [x] Deploy and interact with the agency/route dialog, official colors and isolated regex workbenches. Phone steps and desktop columns were exercised; the broader language/zoom matrix remains open.
 - [ ] Verify compact location queries against deployed services and show served routes/colors on stop suggestions.
 - [ ] Add location clear buttons and ordered multi-destination planning, drag reordering, keyboard reordering and saved/shared order.
@@ -82,7 +82,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Complete intersection-aware search, including Warden and Highway 7.
 - [x] Add live vehicle maps for six connected agencies and exact-trip assignments.
 - [x] Show verified fleet details, CPTDB references and attributed photos where available.
-- [ ] Connect every available official real-time feed, documenting inaccessible sources.
+- [ ] Connect every available official real-time feed, documenting inaccessible sources. York Region Transit vehicles are connected; its realtime is published from a different host than its timetable, which is why the schedule was current while the buses were absent. Remaining agencies are still to be surveyed.
 - [ ] Verify the public HTTPS hostname and published release.
 
 ## Later capabilities
@@ -103,7 +103,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Deploy and verify the all-agency tracker, paginated list, map summaries and automatic detail focus.
 - [ ] Show first-service and transfer waiting time for each returned journey option.
 - [ ] Add verified manufacturer, model and build-year preference and avoidance controls.
-- [ ] Add dated out-of-division classification and observed-frequency rarity without invented probabilities.
+- [x] Add dated out-of-division classification and observed-frequency rarity without invented probabilities. Rarity is stated as a share of observed days with its sample beside it, needs at least seven observed days, and says on the surface that it is not a prediction. Classification carries the date its allocation source covers.
 - [ ] Separate seated, standing and total capacity when supported by sources.
 - [ ] Add an opt-in narrator with separate English and Cantonese voices and serialized announcements.
 - [ ] Add planner-relevant accessibility, command search, appearance, notification history, saved-trip history, exports and help features. Ollama and file conversion are excluded.

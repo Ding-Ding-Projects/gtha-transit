@@ -33,3 +33,8 @@ A photo is accepted only as a re-encoded JPEG, verified by its own leading bytes
 A check-in records that a participant said they were somewhere at a time, with the coordinates and measured distance they chose to include, and optionally a photo. **It is an observation, not a verification.** Nothing here checks that a photo shows the place it claims, and the interface must never say otherwise.
 
 Suggested articles: [passenger guide](../planning/README.md).
+
+A speed run needs every station, so it carries the
+[whole-network station checklist](speed-run-stations.md): 110 stations derived from the
+published feed and checked against the operator's own per-line counts, with photo proof
+required for each check-in.
