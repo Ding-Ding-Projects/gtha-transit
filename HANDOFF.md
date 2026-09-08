@@ -1,9 +1,85 @@
 # Implementation handoff
 
+## Evidence pass, 8 September 2026
+
+Head is `4e52d6e3b57fb301dc257ae25dc30726618b8fa6`, pushed, tree clean, one
+local branch and one remote branch, no worktrees and no stashes.
+
+### What this pass was for
+
+The redesign the owner authored had shipped. What had not shipped was the evidence
+that it had, and three separate things turned out to be reporting coverage they did
+not have.
+
+- **Half the interaction captures were the wrong theme.** The dark tuples were the
+  light interface, every one of them, for the whole life of the harness. The theme
+  was set by assigning `data-theme`, which the application owns and rewrites from its
+  own state on mount, so the assignment was overwritten a moment later and nothing
+  failed. The check that should have caught it compared the declared theme against
+  itself. The theme is now reached through the control a person would use, the run
+  refuses to record captures labelled with a theme it could not reach, and the guard
+  compares the label against what the document actually carried.
+- **Three shipped features had never been clicked.** The ledger opened the
+  out-of-division surface and stopped; the garage picker and the whole-network
+  station checklist had no steps at all. Sixteen steps were added and four more
+  defects fell out of driving them: tuples inheriting each other through session
+  storage, five plan steps passing while sitting on the race surface, two theme
+  steps asserting something true of every page, and a station list whose first line
+  opens itself so the step clicking it was closing it.
+- **The design parity contract was entirely unsatisfied.** The reference had been
+  checked in since the first commit of the redesign, which turns the contract on,
+  and there was no viewer, no inventory, no comparison and no gate.
+
+### Evidence as it stands
+
+| | State |
+| --- | --- |
+| Tests | 486 pass, 0 fail |
+| Type check | clean |
+| Interaction ledger | 4 tuples, 56 steps each, 224 captures, all green, 0 console exceptions |
+| Ledger binding | every row bound to `92153d6`, artifact `b8d360d8`, its own viewport, scale and theme |
+| Design parity | 8 screens, 32 captures plus machine-readable evidence, guard green |
+| Parity guard | 8 boundaries each broken on purpose, watched red, restored green |
+| Latest release | `v0.1.0-130.1`, non-draft, targeting `0c703bb` |
+| Deployed | `92153d6` |
+
+### Known gaps, stated rather than left to be found
+
+- **The deployment is behind head by four commits, and that is not a stale build.**
+  Nothing app-affecting has changed since `92153d6`: every commit since touches only
+  scripts, tests, documentation and evidence, which is provable with
+  `git diff 92153d6..HEAD` excluding those paths and getting nothing. The running
+  bundle is therefore exactly what head builds, and the ledger and parity evidence
+  bind to `92153d6` truthfully. What is out of date is the commit string in
+  `version.json`. A deploy needs the host variables, which are deliberately not in
+  the repository, so whoever has them should run `scripts/deploy.sh` to bring the
+  label into line.
+- **Lint has 132 pre-existing findings**, mostly in the vendored `components/ui`
+  tree and mostly `react-compiler` and `jsx-a11y(prefer-tag-over-role)`. Two were
+  fixed in passing. This is separate debt and was not created by this work; it has
+  never gated a release here, because the workflow runs no tests and no lint by
+  standing decision.
+- **The reference renders with unresolved template expressions.** The design export
+  carries the template and not the data, so `{{ line.name }}` and its siblings appear
+  literally outside the design tool. Layout, chrome, spacing and type still compare,
+  which is what the parity is for, and the limitation is recorded in
+  `design/README.md` rather than left to surprise the next reader.
+- **The parity diff is not a gate and must not become one.** The reference is a mock
+  whose map and live counts are placeholder slots. A threshold on that number would
+  either pass everything or block every honest change.
+
+### What is next
+
+`ROADMAP.md` carries 45 ticked and 43 open. The nearest ones are the remaining
+built-browser checks for live vehicle switching and saved destination order, and the
+TTC garage source, which stays open because the operator has published no
+replacement summary. Changing how we answer in the meantime is not the same as the
+answer changing, and the surface says which period it describes.
+
 ## Preservation closeout, 7 September 2026
 
 Requested early, with allowance remaining. Everything in flight is committed and
-on the hui at `e03ca1c81c738e7e2534835e1f3c3666990f96b1`; the tree is clean, local
+pushed at `e03ca1c81c738e7e2534835e1f3c3666990f96b1`; the tree is clean, local
 and remote agree, and there are no worktrees or stashes.
 
 ### What landed in this pass
@@ -112,7 +188,7 @@ Deployed and serving publicly. One checkout, one local `main`, one remote `main`
 
 ### Journey smoke test
 
-`node scripts/smoke-journeys.mjs` — fourteen real pairs against the deployed service. Three
+`node scripts/smoke-journeys.mjs` runs fourteen real pairs against the deployed service. Three
 consecutive runs after deployment: **13 planned, 1 service gap, 0 failures**. Agencies reached: GO
 Transit, TTC, UP Express, York Region Transit. **20-22 legs carried a block chain**, which is a live
 count from real plans rather than a fixture.
@@ -132,10 +208,10 @@ same to a rider and must not look the same here.
 - `codex/journey-time-input`, `codex/journey-year-bounds`, `codex/ui-evidence-records` and
   `feature/maps` were already ancestors of `main` with zero unique commits.
 
-All six were proved ancestors of the dewed remote `main` before removal, none was protected, none
+All six were proved ancestors of the pushed remote `main` before removal, none was protected, none
 was referenced by a workflow, and no pull request was open. The whole repository was archived to
-OneDrive first and the archive read back and verified — 697 entries including 337 refs/logs/objects
-entries, 4,894,508 bytes — before anything was deleted.
+OneDrive first and the archive read back and verified (697 entries including 337 refs/logs/objects
+entries, 4,894,508 bytes) before anything was deleted.
 
 ### Gates this repository cannot meet, and why
 
@@ -169,7 +245,7 @@ TTC allocation source whose `validThrough` is 2026-09-05.
   either by the trip identifier the realtime feed publishes or by position against that trip's own
   stop times. Exactly one candidate or nothing is claimed.
 - **A finding worth keeping.** On the live corridor the winning method is
-  `block-predecessor-trip-id` — the realtime feed publishes the *previous* trip's identifier while
+  `block-predecessor-trip-id`: the realtime feed publishes the *previous* trip's identifier while
   the leg carries the next one. That is why the direct trip-identifier join never worked and why
   the block chain does.
 - **Race endpoints, real routes and the draw.** A leader picks a start and a finish through the
