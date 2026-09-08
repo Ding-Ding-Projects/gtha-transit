@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { inGamut, oklabToOklch, oklabToRgbTriple, oklchToOklab, toLinear, tripleToOklab } from '../../lib/colour.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT = path.resolve(here, '..', '..', 'app', 'material-theme.css');
@@ -70,53 +71,27 @@ function hexToRgb(hex) {
   return [0, 2, 4].map((at) => parseInt(text.slice(at, at + 2), 16) / 255);
 }
 
-const toLinear = (channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
-const toGamma = (channel) => (channel <= 0.0031308 ? channel * 12.92 : 1.055 * channel ** (1 / 2.4) - 0.055);
-
-function rgbToOklab([red, green, blue]) {
-  const r = toLinear(red);
-  const g = toLinear(green);
-  const b = toLinear(blue);
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  return [
-    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
-    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
-    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
-  ];
-}
-
-function oklabToRgb([lightness, aStar, bStar]) {
-  const l = (lightness + 0.3963377774 * aStar + 0.2158037573 * bStar) ** 3;
-  const m = (lightness - 0.1055613458 * aStar - 0.0638541728 * bStar) ** 3;
-  const s = (lightness - 0.0894841775 * aStar - 1.2914855480 * bStar) ** 3;
-  return [
-    toGamma(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
-    toGamma(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-    toGamma(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s),
-  ];
-}
-
-const oklabToOklch = ([lightness, aStar, bStar]) => [
-  lightness,
-  Math.hypot(aStar, bStar),
-  (Math.atan2(bStar, aStar) * 180) / Math.PI,
-];
-
-const oklchToOklab = ([lightness, chroma, hue]) => [
-  lightness,
-  chroma * Math.cos((hue * Math.PI) / 180),
-  chroma * Math.sin((hue * Math.PI) / 180),
-];
+/*
+ * The conversions come from lib/colour.ts rather than being repeated here.
+ *
+ * They were repeated here, and the colour picker was about to become a second
+ * copy of the same matrices. Two implementations of a colour space agree right
+ * up until one of them is corrected, and then they disagree silently: the
+ * generated theme and the picker showing you that theme would describe the same
+ * colour differently, and nothing would fail. One of the copies already had a
+ * D50 white point paired with a D65 matrix.
+ *
+ * `oklabToRgb` keeps its name here because that is what the generator calls it;
+ * it is the shared function, which returns gamma-encoded channels in 0..1.
+ */
+const oklabToRgb = oklabToRgbTriple;
+const rgbToOklab = tripleToOklab;
 
 /** CIE L*, the lightness a Material tone number names. */
 function cieLightness([red, green, blue]) {
   const y = 0.2126729 * toLinear(red) + 0.7151522 * toLinear(green) + 0.0721750 * toLinear(blue);
   return y <= 216 / 24389 ? y * (24389 / 27) : 116 * Math.cbrt(y) - 16;
 }
-
-const inGamut = (rgb) => rgb.every((channel) => channel >= -0.0001 && channel <= 1.0001);
 
 /**
  * One tone of a palette: the source hue at the requested lightness.
