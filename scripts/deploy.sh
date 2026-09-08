@@ -81,6 +81,23 @@ ssh "${ssh_options[@]}" "$DEPLOY_HOST" "set -eu
     WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS WEB_PORT=$WEB_PORT \
     API_TAG=$API_TAG OTP_URL=$OTP_URL \
     docker compose -p gtha-transit up -d --no-build web >/dev/null
+  # Record what this deploy used, so the stack can be brought up again without
+  # one. Every variable here is required by compose with the \${VAR:?} form, so
+  # a host that only had the compose file could not start its own services after
+  # a reboot -- it survived only as long as nothing ever stopped a container,
+  # which is exactly how the routing backend stayed down for twelve hours.
+  umask 077
+  cat > $DEPLOY_DIR/.env <<ENV
+SOURCE_COMMIT=$sha
+RELEASE_TAG=$sha
+ROUTING_ORIGIN=$ROUTING_ORIGIN
+MAPS_ORIGIN=$MAPS_ORIGIN
+TUNNEL_NETWORK=$TUNNEL_NETWORK
+WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS
+WEB_PORT=$WEB_PORT
+API_TAG=$API_TAG
+OTP_URL=$OTP_URL
+ENV
   for _ in 1 2 3 4 5 6 7 8 9 10; do
     state=\$(docker inspect -f '{{.State.Health.Status}}' gtha-transit-web)
     [ \"\$state\" = healthy ] && break

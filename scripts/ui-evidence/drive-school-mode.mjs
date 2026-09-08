@@ -134,8 +134,17 @@ socket.on('open', async () => {
 
     // --- turning it on -------------------------------------------------------
     await openComfort();
-    check('the lock can actually be made here, or the rest of this proves nothing',
-      await evaluate("typeof crypto.subtle"), 'object');
+    /*
+     * Recorded rather than required. On a plain http origin crypto.subtle is
+     * undefined, and the whole reason the derivation is plain JavaScript is that
+     * the lock has to work anyway -- so this run is MORE meaningful when it says
+     * undefined, not less. Randomness is a separate matter and must be real
+     * wherever this runs.
+     */
+    const webcrypto = await evaluate("typeof crypto.subtle");
+    console.log(`      (this origin is ${await evaluate('location.origin')}, crypto.subtle is ${webcrypto})`);
+    check('the salt still comes from real randomness, which needs no secure context',
+      await evaluate("typeof crypto.getRandomValues"), 'function');
 
     await evaluate(type('.school-mode input[type="password"]', 'ab'));
     await wait(400);
