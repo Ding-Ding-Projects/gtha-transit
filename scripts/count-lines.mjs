@@ -46,7 +46,17 @@ export function count() {
   for (const file of trackedFiles()) {
     if (isExcludedByName(file)) { excluded += 1; continue; }
 
-    const bytes = execFileSync('git', ['show', 'HEAD:' + file], { maxBuffer: MAX_BUFFER });
+    /*
+     * Read from the index, not from HEAD.
+     *
+     * `git ls-files` lists the index, so pairing it with `HEAD:` asks for a blob
+     * that a newly staged file does not have yet, and the whole run dies with
+     * "path does not exist in HEAD". On a clean tree the two are identical, which
+     * is why the release is unaffected and why nobody noticed: it only bites
+     * somebody running the suite with a new file staged, and it reddens the suite
+     * for a reason that has nothing to do with their change.
+     */
+    const bytes = execFileSync('git', ['show', ':' + file], { maxBuffer: MAX_BUFFER });
     if (bytes.includes(0)) { excluded += 1; continue; }
 
     const lines = bytes.toString('utf8').replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n');
@@ -68,5 +78,5 @@ if (process.argv[1] && process.argv[1].endsWith('count-lines.mjs')) {
   for (const [name, counts] of Object.entries(rows)) {
     console.log(`| ${name} | ${counts.total} | ${counts.nonblank} |`);
   }
-  console.log(`\nExcluded ${excluded} lockfile, generated scaffold-component or binary files. Counts use tracked files at HEAD. Command: node scripts/count-lines.mjs.`);
+  console.log(`\nExcluded ${excluded} lockfile, generated scaffold-component or binary files. Counts use tracked files as staged, which on a clean tree is HEAD. Command: node scripts/count-lines.mjs.`);
 }

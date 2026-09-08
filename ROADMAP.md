@@ -59,6 +59,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Show washrooms throughout planning and add urgent washroom diversion with ETA and retained remaining destinations.
 - [x] Deploy required-line selection and verify an actual Line 5 detour in the public API and built browser, preserving the extra Bloor-Yonge destination. Other selectable routes use the same exact-identity contract; availability remains bounded by published data.
 - [ ] Expand live route-by-route checks beyond Line 5 and promote validated public captures of the new flows.
+- [x] Give notifications a stacking surface, per-severity dismissal and a reviewable centre, with bulk actions, eleven export formats and a two-key gate in front of the irreversible one. Driven in the built artifact, 24 checks.
 - [ ] Separate bus, streetcar, rapid-transit, network-wide and unclassified disruption groups.
 - [ ] Repair evidenced assignment joins and document the route-324 static/live identifier mismatch without inventing a vehicle.
 - [x] Deploy narrator enable/voice/rate/quiet controls and verify persistence through real browser interaction. Physical audio was not tested.

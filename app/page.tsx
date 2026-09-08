@@ -43,6 +43,8 @@ import GoCancellations from '../components/go-cancellations';
 import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import CommandPalette from '../components/command-palette';
+import NotificationCentre from '../components/notification-centre';
+import { emptyNotifications, notify, type NotificationState, type Severity } from '../lib/notifications';
 import { destinationHeading, workspaceDestinations } from '../lib/destinations';
 import { settingsCatalog } from '../lib/settings-catalog';
 import { workspaceActions } from '../lib/command-palette';
@@ -340,7 +342,7 @@ export default function Home() {
     [loading, setLoading] = useState(false),
     [planned, setPlanned] = useState(false),
     [error, setError] = useState(''),
-    [notice, setNotice] = useState(''),
+    [notifications, setNotifications] = useState<NotificationState>(emptyNotifications),
     [picking, setPicking] = useState<string | null>(null),
     [mapVisible, setMapVisible] = useState(true);
   const [status, setStatus] = useState<TransitStatus | null>(null),
@@ -375,6 +377,17 @@ export default function Home() {
     },
     [lang, funEn, funZh],
   );
+
+  /**
+   * Raise a notification.
+   *
+   * The severity is what decides whether it leaves on its own. Everything used to
+   * be one string on one 6.5 second timer, so an error you looked away from was
+   * gone and a second message replaced the first without saying which it dropped.
+   */
+  const notice = useCallback((title: string, severity: Severity = 'info', body?: string) => {
+    setNotifications((current) => notify(current, { severity, title, body }));
+  }, []);
 
   /**
    * What the command palette can reach.
@@ -528,7 +541,7 @@ export default function Home() {
       const encodedVia = params.getAll('via');
       const sharedVia = encodedVia.slice(0, 5).map((raw, index) => read(`via-${index}`, raw));
       if (encodedVia.length > 5 || sharedVia.some(place => !place)) {
-        setNotice('The shared trip contains an invalid or unsupported destination list. Choose the destinations again.');
+        notice('The shared trip contains an invalid or unsupported destination list. Choose the destinations again.', 'warning');
         setDestinations([{ id: 'destination-1', place: null }]);
       } else setDestinations([...sharedVia, read('to')].map((place, index) => ({ id: `destination-${index}`, place })));
     } catch {}
@@ -576,11 +589,12 @@ export default function Home() {
           JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision, divisionMode }),
         );
       } catch {
-        setNotice(
+        notice(
           t(
             'Preferences could not be saved in this browser.',
             '呢個瀏覽器無法儲存設定。',
           ),
+          'warning',
         );
       }
   }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision, divisionMode]);
@@ -743,12 +757,12 @@ export default function Home() {
     try {
       localStorage.setItem('gtha-saved', JSON.stringify(next));
     } catch {
-      setNotice(t('This browser could not save the trip. Your current journey remains open.', '呢個瀏覽器未能儲存行程，目前行程仍然開啟。'));
+      notice(t('This browser could not save the trip. Your current journey remains open.', '呢個瀏覽器未能儲存行程，目前行程仍然開啟。'), 'warning');
       narrate('save-error', 'This browser could not save the trip. Your current journey remains open.', '呢個瀏覽器未能儲存行程，目前行程仍然開啟。', true);
       return;
     }
     setSaved(next);
-    setNotice(t('Trip saved on this device.', '行程已儲存喺呢部裝置。'));
+    notice(t('Trip saved on this device.', '行程已儲存喺呢部裝置。'), 'success');
     narrate('trip-saved', 'Trip saved on this device.', '行程已儲存喺呢部裝置。');
   }
   function shiftJourney(minutes: number) {
@@ -757,7 +771,7 @@ export default function Home() {
       setTravelTime(next);
       void plan(next);
     } catch {
-      setNotice(t('Choose a valid date and time before moving the journey time.', '更改行程時間前，請選擇有效日期同時間。'));
+      notice(t('Choose a valid date and time before moving the journey time.', '更改行程時間前，請選擇有效日期同時間。'), 'warning');
     }
   }
   async function share() {
@@ -765,7 +779,7 @@ export default function Home() {
     let sharedTime: string;
     try { sharedTime = resolveTorontoTime(when, travelTime.instant); }
     catch {
-      setNotice(t('Choose a valid date and time before sharing this trip.', '分享行程前，請選擇有效日期同時間。'));
+      notice(t('Choose a valid date and time before sharing this trip.', '分享行程前，請選擇有效日期同時間。'), 'warning');
       return;
     }
     const url = new URL(location.origin);
@@ -780,14 +794,15 @@ export default function Home() {
     if (requiredRoute) { url.searchParams.set('requiredAgency', requiredRoute.feedId); url.searchParams.set('requiredRoute', requiredRoute.routeId); }
     try {
       await navigator.clipboard.writeText(url.href);
-      setNotice(
+      notice(
         t(
           'Link copied. It includes every selected trip location and the selected travel time.',
           '連結已複製，包含所有已選行程地點同所選時間。',
         ),
+        'success',
       );
     } catch {
-      setNotice(url.href);
+      notice(url.href);
     }
   }
   function exportJourney() {
@@ -850,11 +865,6 @@ export default function Home() {
     );
   }
   const current = journeys[selected];
-  useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(() => setNotice(''), 6500);
-    return () => clearTimeout(timer);
-  }, [notice]);
   const disruptionGroups = useMemo(() => groupTtcDisruptions(status?.alerts || [], ttcRoutes), [status, ttcRoutes]);
   const totalAlerts = disruptionGroups.totalDistinct;
   useEffect(() => {
@@ -2217,17 +2227,7 @@ export default function Home() {
           {t('Open source', '開源')}
         </a>
       </footer>
-      {notice && (
-        <div className="toast" role="status">
-          <span>{notice}</span>
-          <button
-            onClick={() => setNotice('')}
-            aria-label={t('Dismiss notification', '關閉通知')}
-          >
-            <X size={18} />
-          </button>
-        </div>
-      )}
+      <NotificationCentre state={notifications} setState={setNotifications} t={t} />
     </div>
   );
 }

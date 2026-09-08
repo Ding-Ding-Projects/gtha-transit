@@ -1,0 +1,302 @@
+/* --------------------------------------------------------- notifications -- */
+
+/*
+ * The stack, the centre, and the gate in front of anything irreversible.
+ *
+ * This file loads after every stylesheet that used to describe the single toast,
+ * so its rules win. The older `.toast` blocks in globals.css, workspace.css and
+ * map-controls.css are left where they are: they still describe the card itself
+ * correctly, and what changed is that a card now sits inside a stack that owns
+ * the positioning. Two rules fighting over `position` is how the old navigation
+ * ended up one pixel tall, so the stack takes it and the card gives it up.
+ */
+
+.toast-stack {
+  position: fixed;
+  inset: auto 16px calc(16px + env(safe-area-inset-bottom, 0px)) auto;
+  z-index: 1600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: min(420px, calc(100vw - 32px));
+  /* The stack must not swallow clicks on the page behind it, but each card must
+     still take its own. A notification that blocks the interface is not
+     non-blocking, whatever else it does. */
+  pointer-events: none;
+}
+.toast-stack > * { pointer-events: auto; }
+
+.toast-stack .toast {
+  position: static;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  border-inline-start: 4px solid var(--md-sys-color-outline);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+  font: var(--md-sys-typescale-body-medium);
+}
+
+/* The kind is carried by a glyph and a word as well as the edge colour, so it is
+   never colour alone that says an error is an error. */
+.toast--success { border-inline-start-color: var(--md-sys-color-tertiary); }
+.toast--warning { border-inline-start-color: var(--md-sys-color-secondary); }
+.toast--error { border-inline-start-color: var(--md-sys-color-error); }
+.toast--progress { border-inline-start-color: var(--md-sys-color-primary); }
+
+.toast__text { display: grid; gap: 3px; flex: 1; min-width: 0; }
+.toast__text strong { font: var(--md-sys-typescale-body-large); font-weight: 600; }
+.toast__text span { opacity: .85; overflow-wrap: anywhere; }
+.toast__actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.toast__actions button,
+.toast__actions a {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: inherit;
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.toast__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -8px -10px 0;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.toast__close:focus-visible,
+.toast__actions button:focus-visible,
+.toast__actions a:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.toast-stack__clear {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ opener -- */
+
+.notification-opener {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.notification-opener:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.notification-opener__count {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font: var(--md-sys-typescale-label-medium);
+}
+
+/* ------------------------------------------------------------------ centre -- */
+
+.notification-centre {
+  border: 0;
+  padding: 0;
+  width: min(780px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 64px));
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+  overflow: hidden;
+}
+.notification-centre::backdrop { background: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent); }
+
+.notification-centre__surface {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto auto 1fr auto;
+  gap: 10px;
+  padding: 16px;
+  max-height: inherit;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.notification-centre__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.notification-centre__head h2 { margin: 0; font: var(--md-sys-typescale-headline-small); }
+.notification-centre__close {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: var(--md-sys-shape-corner-full);
+  background: none; color: var(--md-sys-color-on-surface-variant); cursor: pointer;
+}
+
+.notification-centre__severities { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
+.notification-centre__severities label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.notification-centre__severities label.is-on {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.notification-centre__severities small { opacity: .7; }
+
+.notification-centre__dates,
+.notification-centre__bulk,
+.notification-centre__export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: var(--md-sys-typescale-label-large); }
+.notification-centre__dates input,
+.notification-centre__export select { min-height: 40px; }
+.notification-centre__bulk button,
+.notification-centre__dates button,
+.notification-centre__export button,
+.notification-centre__foot button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.notification-centre__bulk button:disabled,
+.notification-centre__export button:disabled,
+.notification-centre__foot button:disabled { opacity: .45; cursor: not-allowed; }
+
+.notification-centre__status { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.notification-centre__loss { margin: 0; flex-basis: 100%; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-secondary); }
+
+.notification-centre__list { list-style: none; margin: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 4px; }
+.notification-centre__empty { padding: 24px 8px; text-align: center; color: var(--md-sys-color-on-surface-variant); }
+
+.notification-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  border-inline-start: 4px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container);
+}
+.notification-row--success { border-inline-start-color: var(--md-sys-color-tertiary); }
+.notification-row--warning { border-inline-start-color: var(--md-sys-color-secondary); }
+.notification-row--error { border-inline-start-color: var(--md-sys-color-error); }
+.notification-row__select { display: grid; place-items: center; min-width: 44px; min-height: 44px; margin: -6px 0; }
+.notification-row__text { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.notification-row__text strong { font: var(--md-sys-typescale-body-large); }
+.notification-row__text small,
+.notification-row__text time { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); overflow-wrap: anywhere; }
+.notification-row__kind { flex: none; font: var(--md-sys-typescale-label-medium); color: var(--md-sys-color-on-surface-variant); }
+
+.notification-centre__foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; border-top: 1px solid var(--md-sys-color-outline-variant); padding-top: 10px; }
+.notification-centre__forget { border-color: var(--md-sys-color-error) !important; color: var(--md-sys-color-error) !important; }
+
+/* ----------------------------------------------------------- super confirm -- */
+
+.super-confirm {
+  border: 0;
+  padding: 0;
+  width: min(520px, calc(100vw - 32px));
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level5);
+}
+.super-confirm::backdrop { background: color-mix(in srgb, var(--md-sys-color-scrim) 60%, transparent); }
+.super-confirm__surface { display: grid; gap: 14px; padding: 20px; }
+.super-confirm__head { display: flex; gap: 14px; align-items: flex-start; }
+.super-confirm__head h2 { margin: 0 0 4px; font: var(--md-sys-typescale-headline-small); }
+.super-confirm__warning { color: var(--md-sys-color-error); }
+.super-confirm__detail { margin: 0; font: var(--md-sys-typescale-body-medium); color: var(--md-sys-color-on-surface-variant); }
+.super-confirm__consequences { margin: 0; padding-inline-start: 20px; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); display: grid; gap: 4px; }
+.super-confirm__irreversible { margin: 0; color: var(--md-sys-color-error); font: var(--md-sys-typescale-body-medium); }
+
+.super-confirm__keys { display: flex; gap: 10px; border: 0; margin: 0; padding: 0; flex-wrap: wrap; }
+.super-confirm__keys legend { font: var(--md-sys-typescale-label-medium); color: var(--md-sys-color-on-surface-variant); padding: 0 0 6px; }
+.super-confirm__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.super-confirm__key.is-turned { border-color: var(--md-sys-color-tertiary); background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+.super-confirm__key:has(input:focus-visible) { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.super-confirm__slider { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; opacity: .5; }
+.super-confirm__slider.is-armed { opacity: 1; }
+.super-confirm__slider label { grid-column: 1 / -1; font: var(--md-sys-typescale-label-large); }
+.super-confirm__slider input { min-height: 44px; width: 100%; accent-color: var(--md-sys-color-error); }
+.super-confirm__slider.is-swept input { accent-color: var(--md-sys-color-tertiary); }
+.super-confirm__slider output { font: var(--md-sys-typescale-label-large); min-width: 4ch; text-align: end; }
+.super-confirm__waiting { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+
+.super-confirm__actions { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.super-confirm__exit,
+.super-confirm__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.super-confirm__exit { border: 1px solid var(--md-sys-color-outline); background: none; color: var(--md-sys-color-on-surface); }
+.super-confirm__go { border: 0; background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
+.super-confirm__go:disabled { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); cursor: not-allowed; }
+.super-confirm__exit:focus-visible,
+.super-confirm__go:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+/*
+ * The gate's progress is animated, and the animation is entirely decorative: the
+ * percentage beside the slider says the same thing in words, so nothing here is
+ * the only carrier of state.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .super-confirm__slider.is-armed input { transition: accent-color 160ms ease; }
+  .toast-stack .toast { animation: toast-arrive 180ms ease-out; }
+  @keyframes toast-arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+
+@media (max-width: 520px) {
+  .toast-stack { inset: auto 8px calc(88px + env(safe-area-inset-bottom, 0px)) 8px; width: auto; align-items: stretch; }
+  .notification-centre { width: calc(100vw - 16px); max-height: calc(100dvh - 32px); }
+  .notification-centre__surface { padding: 12px; }
+  .notification-centre__foot { justify-content: stretch; }
+  .notification-centre__foot button { flex: 1; }
+}

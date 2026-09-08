@@ -62,14 +62,17 @@
     {
       "id": "notifications",
       "name": "Non-blocking notifications with a reviewable centre",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
-        "components/ui/toast.tsx"
+        "lib/notifications.ts",
+        "components/notification-centre.tsx",
+        "app/notifications.css",
+        "app/page.tsx"
       ],
-      "documentation": "docs/interface/ui-verification.md",
-      "test": null,
+      "documentation": "docs/interface/notifications.md",
+      "test": "tests/notifications.test.mjs",
       "capture": null,
-      "missing": "No notification centre, so a notification that has been dismissed cannot be reviewed again. No focused test covers the toast surface."
+      "note": "A stacking corner surface with per-severity dismissal and a reviewable centre. Warnings, errors and progress do not leave on their own; information and success do. Retries supersede rather than stack. The centre searches with the shared matcher and its regex builder, filters by kind and day, multi-selects, previews what will change against what is selected, and exports in eleven formats. Driven in the built artifact."
     },
     {
       "id": "local-history",
@@ -89,13 +92,14 @@
       "name": "Export in every format that can carry the data",
       "verdict": "partial",
       "implementation": [
-        "app/page.tsx",
-        "server/web.mjs"
+        "lib/export.ts",
+        "components/notification-centre.tsx",
+        "app/page.tsx"
       ],
-      "documentation": "docs/interface/ui-verification.md",
-      "test": "tests/web-server.test.mjs",
+      "documentation": "docs/interface/notifications.md",
+      "test": "tests/bulk-export.test.mjs",
       "capture": "docs/interface/ledger/1440-light-1x.json",
-      "missing": "History exports; journey export covers a subset of the listed formats."
+      "missing": "Eleven formats now exist and state what each cannot carry before writing: JSON, JSON Lines, CSV, TSV, YAML, TOML, XML, Markdown, HTML, SQL and JSON Schema. The notification centre offers all of them honouring its filter. The journey export still writes only JSON and the disruption history only NDJSON; neither has been moved onto the shared writers yet."
     },
     {
       "id": "accessibility",
@@ -224,12 +228,15 @@
     {
       "id": "bulk-actions",
       "name": "Multi-select and bulk actions on every list",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "lib/list-selection.ts",
+        "components/notification-centre.tsx"
+      ],
+      "documentation": "docs/interface/notifications.md",
+      "test": "tests/bulk-export.test.mjs",
       "capture": null,
-      "reason": "Not built. The lists here are read-only observations - vehicles, alerts, history records - so there is no action to apply to a selection yet. It becomes a gap the moment a list holds something a person owns."
+      "missing": "Built and shipped on the notification centre: multi-select, a select-all that states whether it means this page or every match, inverse selection, a preview separating what is selected from what will change with the reason for each skip, and a destructive action behind the two-key gate. The selection module is general, but the saved trips, the destination list, the vehicle tracker and the disruption history do not use it yet."
     },
     {
       "id": "changelog-viewer",
@@ -296,12 +303,16 @@
     {
       "id": "destructive-confirmation",
       "name": "Two-key super confirmation before a destructive action",
-      "verdict": "not-applicable",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "present",
+      "implementation": [
+        "lib/super-confirm.ts",
+        "components/super-confirm.tsx",
+        "app/notifications.css"
+      ],
+      "documentation": "docs/interface/notifications.md",
+      "test": "tests/super-confirm.test.mjs",
       "capture": null,
-      "reason": "No user-facing surface performs an irreversible destructive action. Race rooms expire on their own and hold no durable user record. It becomes applicable the moment one does."
+      "note": "This row was not-applicable because nothing here performed an irreversible action. Forgetting a notification is one, so the gate is built: two keys turned independently, then a full slider sweep, with an emergency exit that is never disabled and a re-entry guard in the state machine rather than only on the button. Verified in a browser that one key leaves the slider inert and a 90 per cent drag still refuses."
     },
     {
       "id": "share-embed-graphic",
