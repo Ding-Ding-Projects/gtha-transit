@@ -148,6 +148,20 @@ test('the notification surface is rendered in the shell and the old single toast
   assert.match(page, /^\s*const notice = useCallback\(\(title: string, severity: Severity = 'info'/m);
 });
 
+test('the way into the centre is in the topline, not below the footer', () => {
+  /*
+   * It was rendered after the footer, which put the only opener at the very
+   * bottom of the document. Every unit check passed and the driver found it with
+   * a query selector; a person could not see it. The capture is what showed it.
+   */
+  const page = source('app', 'page.tsx');
+  const topline = page.indexOf('className="workspace-topline"');
+  const footer = page.indexOf('</footer>');
+  const centre = page.indexOf('<NotificationCentre');
+  assert.ok(topline > 0 && footer > topline, 'the topline comes before the footer');
+  assert.ok(centre > topline && centre < footer, 'and the opener sits between them');
+});
+
 test('every notification the shell raises names a severity, or is deliberately the default', () => {
   const page = source('app', 'page.tsx');
   const calls = [...page.matchAll(/notice\((?:[^;]|\n)*?\);/g)].map((match) => match[0]);

@@ -120,6 +120,15 @@
   font: var(--md-sys-typescale-label-medium);
 }
 
+/*
+ * In the topline, beside the build stamp.
+ *
+ * It was rendered after the footer, which put the only way into the centre at the
+ * very bottom of the document: reachable by a query selector, and invisible to a
+ * person. The capture is what showed it; nothing in the suite could have.
+ */
+.workspace-topline .notification-opener { align-self: center; justify-self: end; }
+
 /* ------------------------------------------------------------------ centre -- */
 
 .notification-centre {

@@ -932,6 +932,11 @@ export default function Home() {
       <div className="workspace-topline">
         <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{destinationHeading(t, tab)}</h1></div>
         <div className="build-stamp"><strong>{version?.version ? 'v' + version.version : t('Version unavailable', '版本未能提供')}{version?.commit ? ' · ' + version.commit.slice(0, 7) : ''}</strong><span>{version?.builtAt && Number.isFinite(Date.parse(version.builtAt)) ? t('Updated', '更新') + ' ' + new Date(version.builtAt).toLocaleString('en-CA', { timeZone: 'America/Toronto', timeZoneName: 'short', hour12: false, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : t('Build provenance unavailable', '建置資料未能提供')}</span></div>
+        {/* Beside the build stamp, where a person can see it. Rendered after the
+            footer, its opener sat at the very bottom of the document: reachable
+            by a query selector and invisible to anybody. The stack and both
+            dialogs are fixed, so only the opener's position changes here. */}
+        <NotificationCentre state={notifications} setState={setNotifications} t={t} />
       </div>
       <main id="main" className="workspace">
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
@@ -2227,7 +2232,6 @@ export default function Home() {
           {t('Open source', '開源')}
         </a>
       </footer>
-      <NotificationCentre state={notifications} setState={setNotifications} t={t} />
     </div>
   );
 }
