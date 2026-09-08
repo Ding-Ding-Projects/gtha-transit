@@ -88,7 +88,7 @@ for (const [name, mutate] of [
   ['wrong process', target => { target.launch = { ...target.launch, pid: 999 }; }],
   ['stale receipt', target => { target.verifiedAt = '2020-01-01T00:00:00.000Z'; }],
   ['wrong socket', target => { target.webSocketDebuggerUrl = 'ws://127.0.0.1:9223/devtools/page/fixture'; }]
-]) test(`preflight rejects ${name} before capture`, async t => {
+]) test(`preflight rejects ${String(name)} before capture`, async t => {
   const f = await fixture(t, mutate); assert.equal(f.called, 0); assert.ok(f.record.failure); assert.equal(f.record.capture.startedAt, undefined);
 });
 

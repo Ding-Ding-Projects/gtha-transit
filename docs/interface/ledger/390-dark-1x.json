@@ -1,16 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-08T06:06:19.213Z",
+  "generatedAt": "2026-09-08T07:03:24.265Z",
   "url": "https://toronto-transit.org/",
   "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
   "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
   "viewportWidth": 390,
   "displayScale": 1,
   "theme": "dark",
-  "inventorySteps": 40,
-  "recordedRows": 40,
+  "inventorySteps": 56,
+  "recordedRows": 56,
   "counts": {
-    "pass": 39,
+    "pass": 55,
     "not-applicable": 1
   },
   "consoleErrors": [],
@@ -30,16 +30,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -52,7 +53,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/001-plan.open-390-dark.png",
-      "screenshotSha256": "55640abd417a2bdccefb653f1de3c42a20de995fdd4e6b6f44821fbf18819d53",
+      "screenshotSha256": "70312240901a4e0759e3aff75f17e30809d523bfc90ef504afa2f8c7c48cc7e0",
       "privacy": "clean"
     },
     {
@@ -70,16 +71,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -92,7 +94,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/002-plan.from-390-dark.png",
-      "screenshotSha256": "242eb2703859aaa3803fbbebd5f505b60af1073d4362507294d85645b866c1e9",
+      "screenshotSha256": "eecba79bbd1dc2041d6df4e01730f584697c658f83312df716773e4bdbb078e4",
       "privacy": "clean"
     },
     {
@@ -110,16 +112,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -132,7 +135,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/003-plan.from.choose-390-dark.png",
-      "screenshotSha256": "78c21edec9e44758c286e400e7178b40b2185f29bae3f2ff848bb5374bf1d0a0",
+      "screenshotSha256": "208291459e509635cddd1edc304fd22eaa3f88a41468e197dff1c6e43809677a",
       "privacy": "clean"
     },
     {
@@ -150,16 +153,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -172,7 +176,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/004-plan.reverse-390-dark.png",
-      "screenshotSha256": "f74cf9769a6fe3c58d0a5daeb856c5f72f386eb9f9af3c03bc141038a5d98a1c",
+      "screenshotSha256": "1eadc30c225329d588ac262543c2078ea5fd89985c8f93f94db031a76b29bc56",
       "privacy": "clean"
     },
     {
@@ -184,22 +188,23 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 02:05expand_more"
+        "name": "LeavingTue 03:02expand_more"
       },
       "expected": ".trip-when[open] .journey-time",
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -212,7 +217,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/005-plan.when.open-390-dark.png",
-      "screenshotSha256": "031bc57c1d967b2bb5798453ab9173a120a99ed49569a05c65d2cd6d19a547f3",
+      "screenshotSha256": "4b9f4cf625cc74373664b4d84104e11ab09455de98f0781372c3960711f0ba99",
       "privacy": "clean"
     },
     {
@@ -224,22 +229,23 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 02:05expand_more"
+        "name": "LeavingTue 03:02expand_more"
       },
       "expected": ".trip-when:not([open])",
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -252,7 +258,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/006-plan.when.close-390-dark.png",
-      "screenshotSha256": "9e9ae93b07f5174faf711d315f9ad3b7efa76f73b48eaa1c6abe7c16e5f20c85",
+      "screenshotSha256": "06d7017414fc2b2c27e61ec7d5dc94fc7be4ac5b3eb790875b5d5f213d694abf",
       "privacy": "clean"
     },
     {
@@ -270,16 +276,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -292,7 +299,7 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/007-plan.options.open-390-dark.png",
-      "screenshotSha256": "921ec824e674a5b957dc755b57669a2cbf3ffa01a905e2baf6164c048e37057f",
+      "screenshotSha256": "75750a079cb35de3fd31938a12f4520bc736c842705403139cf0791c1867ff87",
       "privacy": "clean"
     },
     {
@@ -310,16 +317,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -332,11 +340,213 @@
       "displayScale": 1,
       "theme": "dark",
       "screenshot": "shots-390-dark-1x/008-plan.options.priority-390-dark.png",
-      "screenshotSha256": "de680446ad65f8001e7be9a5e303bc04de31c31e48b95dc791cf221d4b3dc33a",
+      "screenshotSha256": "4a331bd52601c215845a7edf500d2d64a16883b4ba091761b65171876daa2914",
       "privacy": "clean"
     },
     {
       "sequence": 9,
+      "surface": "plan",
+      "step": "plan.garage.choose",
+      "describe": "a garage can be preferred",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".garage-picker .garage-choice input:checked",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/009-plan.garage.choose-390-dark.png",
+      "screenshotSha256": "9db81ecbbdfd83e2e48b8ab82966edf3ce77435f67056ed7e6cd8769c6938fb1",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 10,
+      "surface": "plan",
+      "step": "plan.garage.details",
+      "describe": "a garage shows the routes it operates",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Show more details"
+      },
+      "expected": ".garage-detail .garage-routes",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/010-plan.garage.details-390-dark.png",
+      "screenshotSha256": "4a331bd52601c215845a7edf500d2d64a16883b4ba091761b65171876daa2914",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 11,
+      "surface": "plan",
+      "step": "plan.garage.vehicles",
+      "describe": "and what is running on those routes right now",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".garage-detail h4",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/011-plan.garage.vehicles-390-dark.png",
+      "screenshotSha256": "9db81ecbbdfd83e2e48b8ab82966edf3ce77435f67056ed7e6cd8769c6938fb1",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 12,
+      "surface": "plan",
+      "step": "plan.garage.hide",
+      "describe": "the detail closes again",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Hide details"
+      },
+      "expected": ".garage-picker",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/012-plan.garage.hide-390-dark.png",
+      "screenshotSha256": "4a331bd52601c215845a7edf500d2d64a16883b4ba091761b65171876daa2914",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 13,
+      "surface": "plan",
+      "step": "plan.garage.clear",
+      "describe": "and the preference can be cleared",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".garage-picker",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "dark",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/013-plan.garage.clear-390-dark.png",
+      "screenshotSha256": "9db81ecbbdfd83e2e48b8ab82966edf3ce77435f67056ed7e6cd8769c6938fb1",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 14,
       "surface": "plan",
       "step": "plan.options.close",
       "describe": "and closes again",
@@ -350,16 +560,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -371,12 +582,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/009-plan.options.close-390-dark.png",
-      "screenshotSha256": "5c2433366e419b6796a0b5a4e74c2a7073e5c66245ed8f214cd46ac51a5fbe41",
+      "screenshot": "shots-390-dark-1x/014-plan.options.close-390-dark.png",
+      "screenshotSha256": "83b1582de1130ebe4ccd1d800386f6cd742a320b8208950475daafc3b343793b",
       "privacy": "clean"
     },
     {
-      "sequence": 10,
+      "sequence": 15,
       "surface": "plan",
       "step": "plan.intermediate",
       "describe": "an intermediate stop can be added",
@@ -390,16 +601,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -411,12 +623,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/010-plan.intermediate-390-dark.png",
-      "screenshotSha256": "0797630675f43ef88a2dbe590139f794ba6a8c922ba3e74da2907012e85e8cfc",
+      "screenshot": "shots-390-dark-1x/015-plan.intermediate-390-dark.png",
+      "screenshotSha256": "ccb2ce5581c27c6968580cf6659556d602feb5693b55e6727615fd3b76b2c58d",
       "privacy": "clean"
     },
     {
-      "sequence": 11,
+      "sequence": 16,
       "surface": "plan",
       "step": "plan.map.toggle",
       "describe": "the map can be hidden",
@@ -430,16 +642,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -451,12 +664,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/011-plan.map.toggle-390-dark.png",
-      "screenshotSha256": "d696197e47cf77282608c375aa0d08f845d07fce99acad7f190d28d05758ff3f",
+      "screenshot": "shots-390-dark-1x/016-plan.map.toggle-390-dark.png",
+      "screenshotSha256": "d0afb86a0e264d60da981bd196882c8f82bc03106b03107b6b6a4935b2970f67",
       "privacy": "clean"
     },
     {
-      "sequence": 12,
+      "sequence": 17,
       "surface": "status",
       "step": "status.open",
       "describe": "the live network surface is present",
@@ -470,16 +683,17 @@
       "before": {
         "destination": "alt_routePlan",
         "heading": "Plan your next connection",
-        "theme": "light",
+        "theme": "dark",
         "focused": "input"
       },
       "after": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -491,12 +705,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/012-status.open-390-dark.png",
-      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
+      "screenshot": "shots-390-dark-1x/017-status.open-390-dark.png",
+      "screenshotSha256": "e554f4e84c87f2c21b9b3557cebc466164350cc58c2dec4e733e4a32d2739810",
       "privacy": "clean"
     },
     {
-      "sequence": 13,
+      "sequence": 18,
       "surface": "status",
       "step": "status.line",
       "describe": "a line card opens its detail",
@@ -510,16 +724,17 @@
       "before": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -531,12 +746,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/013-status.line-390-dark.png",
-      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
+      "screenshot": "shots-390-dark-1x/018-status.line-390-dark.png",
+      "screenshotSha256": "e554f4e84c87f2c21b9b3557cebc466164350cc58c2dec4e733e4a32d2739810",
       "privacy": "clean"
     },
     {
-      "sequence": 14,
+      "sequence": 19,
       "surface": "status",
       "step": "status.group",
       "describe": "an alert group expands",
@@ -550,16 +765,17 @@
       "before": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -571,12 +787,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/014-status.group-390-dark.png",
-      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
+      "screenshot": "shots-390-dark-1x/019-status.group-390-dark.png",
+      "screenshotSha256": "e554f4e84c87f2c21b9b3557cebc466164350cc58c2dec4e733e4a32d2739810",
       "privacy": "clean"
     },
     {
-      "sequence": 15,
+      "sequence": 20,
       "surface": "status",
       "step": "status.go.refresh",
       "describe": "the GO panel can be re-read",
@@ -590,16 +806,17 @@
       "before": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -611,12 +828,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/015-status.go.refresh-390-dark.png",
-      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
+      "screenshot": "shots-390-dark-1x/020-status.go.refresh-390-dark.png",
+      "screenshotSha256": "e554f4e84c87f2c21b9b3557cebc466164350cc58c2dec4e733e4a32d2739810",
       "privacy": "clean"
     },
     {
-      "sequence": 16,
+      "sequence": 21,
       "surface": "status",
       "step": "status.refresh",
       "describe": "live status can be refreshed",
@@ -630,16 +847,17 @@
       "before": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -651,12 +869,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/016-status.refresh-390-dark.png",
-      "screenshotSha256": "9d31b5749bfc237cf8bed4de2c4fabe890e904bfa3cc5809685d46bc59d1a1d4",
+      "screenshot": "shots-390-dark-1x/021-status.refresh-390-dark.png",
+      "screenshotSha256": "e554f4e84c87f2c21b9b3557cebc466164350cc58c2dec4e733e4a32d2739810",
       "privacy": "clean"
     },
     {
-      "sequence": 17,
+      "sequence": 22,
       "surface": "vehicles",
       "step": "vehicles.open",
       "describe": "the vehicle tracker is present",
@@ -670,16 +888,17 @@
       "before": {
         "destination": "sensorsLive",
         "heading": "The network, right now",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -691,12 +910,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/017-vehicles.open-390-dark.png",
-      "screenshotSha256": "985bf9bc49b91ebd675b1167bf4dcc64380fd9976901114fb2ec65cd601b46c9",
+      "screenshot": "shots-390-dark-1x/022-vehicles.open-390-dark.png",
+      "screenshotSha256": "181874a8ba6bd999f043c6142fd43cd77876310704b24b1ae7627d9ef571fc5a",
       "privacy": "clean"
     },
     {
-      "sequence": 18,
+      "sequence": 23,
       "surface": "vehicles",
       "step": "vehicles.search",
       "describe": "the fleet can be searched",
@@ -710,16 +929,17 @@
       "before": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -731,12 +951,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/018-vehicles.search-390-dark.png",
-      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
+      "screenshot": "shots-390-dark-1x/023-vehicles.search-390-dark.png",
+      "screenshotSha256": "463464707f1642a9772b8d549672924af92acc8aff84c7935eca3c96c169dda6",
       "privacy": "clean"
     },
     {
-      "sequence": 19,
+      "sequence": 24,
       "surface": "vehicles",
       "step": "vehicles.filters",
       "describe": "fleet filters open",
@@ -750,16 +970,17 @@
       "before": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -771,12 +992,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/019-vehicles.filters-390-dark.png",
-      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
+      "screenshot": "shots-390-dark-1x/024-vehicles.filters-390-dark.png",
+      "screenshotSha256": "463464707f1642a9772b8d549672924af92acc8aff84c7935eca3c96c169dda6",
       "privacy": "clean"
     },
     {
-      "sequence": 20,
+      "sequence": 25,
       "surface": "vehicles",
       "step": "vehicles.filters.close",
       "describe": "and close again",
@@ -790,16 +1011,17 @@
       "before": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -811,12 +1033,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/020-vehicles.filters.close-390-dark.png",
-      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
+      "screenshot": "shots-390-dark-1x/025-vehicles.filters.close-390-dark.png",
+      "screenshotSha256": "463464707f1642a9772b8d549672924af92acc8aff84c7935eca3c96c169dda6",
       "privacy": "clean"
     },
     {
-      "sequence": 21,
+      "sequence": 26,
       "surface": "vehicles",
       "step": "vehicles.route",
       "describe": "the agency and route picker opens",
@@ -830,16 +1052,17 @@
       "before": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "h1"
       },
       "after": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -851,12 +1074,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/021-vehicles.route-390-dark.png",
-      "screenshotSha256": "3b8c39be6593147232bff710a7cb6e51e5c92909126907108bd91320d583268b",
+      "screenshot": "shots-390-dark-1x/026-vehicles.route-390-dark.png",
+      "screenshotSha256": "463464707f1642a9772b8d549672924af92acc8aff84c7935eca3c96c169dda6",
       "privacy": "clean"
     },
     {
-      "sequence": 22,
+      "sequence": 27,
       "surface": "saved",
       "step": "saved.open",
       "describe": "saved trips shows its state",
@@ -870,16 +1093,17 @@
       "before": {
         "destination": "directions_busVehicles",
         "heading": "Find your next ride",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "bookmarkSaved",
         "heading": "Ready when you are",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -891,12 +1115,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/022-saved.open-390-dark.png",
-      "screenshotSha256": "feedf7923cf2b00dd913bc563a416901a45956fa6cfb68c7fbe0756c15a14804",
+      "screenshot": "shots-390-dark-1x/027-saved.open-390-dark.png",
+      "screenshotSha256": "b8f5f5b3dc9b85185ca2233ce597127dafd78412affe86aa316d7be4bb8a5c70",
       "privacy": "clean"
     },
     {
-      "sequence": 23,
+      "sequence": 28,
       "surface": "race",
       "step": "race.open",
       "describe": "the race workspace is present",
@@ -910,16 +1134,17 @@
       "before": {
         "destination": "bookmarkSaved",
         "heading": "Ready when you are",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -931,35 +1156,36 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/023-race.open-390-dark.png",
-      "screenshotSha256": "878683f18f40101df7dc2eeaa62ecacb8a1f182037e0ae00dc310d76c8be0f0b",
+      "screenshot": "shots-390-dark-1x/028-race.open-390-dark.png",
+      "screenshotSha256": "70f5bd9d8d3373fd213345e88e5829e3c7cbddb4d0e5bf2027b6af255c16f5b9",
       "privacy": "clean"
     },
     {
-      "sequence": 24,
+      "sequence": 29,
       "surface": "race",
       "step": "race.mode",
-      "describe": "a challenge type can be chosen",
+      "describe": "the speed run challenge type can be chosen",
       "optional": false,
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "input",
         "name": ""
       },
-      "expected": ".race-modes",
+      "expected": "#race-title[placeholder=\"Line 1 end to end\"]",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -971,12 +1197,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/024-race.mode-390-dark.png",
-      "screenshotSha256": "878683f18f40101df7dc2eeaa62ecacb8a1f182037e0ae00dc310d76c8be0f0b",
+      "screenshot": "shots-390-dark-1x/029-race.mode-390-dark.png",
+      "screenshotSha256": "923902ed8ac8b2e7312491259c44f16c969ca62767377dba39561dc0f08badc8",
       "privacy": "clean"
     },
     {
-      "sequence": 25,
+      "sequence": 30,
       "surface": "race",
       "step": "race.title",
       "describe": "a race can be named",
@@ -990,16 +1216,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1011,12 +1238,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/025-race.title-390-dark.png",
-      "screenshotSha256": "5e224499a0f4cacb4e85f4c62d634957e4d332d455a91d47b70a07249b10a5fc",
+      "screenshot": "shots-390-dark-1x/030-race.title-390-dark.png",
+      "screenshotSha256": "37e0d58ae4a01c08c1adcb35d1d099793c6413a7cf2ec3a554f5c22f4789fac7",
       "privacy": "clean"
     },
     {
-      "sequence": 26,
+      "sequence": 31,
       "surface": "race",
       "step": "race.code",
       "describe": "a join code can be entered",
@@ -1030,16 +1257,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1051,12 +1279,296 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/026-race.code-390-dark.png",
-      "screenshotSha256": "a9ccd33a9f879f297ab67bfde40e625e116c5775e0d9cc901b9e1b063d3b5ec6",
+      "screenshot": "shots-390-dark-1x/031-race.code-390-dark.png",
+      "screenshotSha256": "e9dbd681d9a10f214029877c6dab34b905f3d24741fe3fed73d030ae010651e5",
       "privacy": "clean"
     },
     {
-      "sequence": 27,
+      "sequence": 32,
+      "surface": "race",
+      "step": "race.create",
+      "describe": "a speed run room is created",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Create the race"
+      },
+      "expected": ".race-headline .race-code",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/032-race.create-390-dark.png",
+      "screenshotSha256": "f38a82ac3b107eaa995a22da3e090f82083199cf9ab2a5af813667385d8dd3ae",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 33,
+      "surface": "race",
+      "step": "race.team",
+      "describe": "a team can be named",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": "Team name"
+      },
+      "expected": ".race-team-add input",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/033-race.team-390-dark.png",
+      "screenshotSha256": "33b9a0e1f8060790e28f7cd5bfaa3a3f9fa74ea86f81ec7f74a42af5019c26bf",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 34,
+      "surface": "race",
+      "step": "race.team.add",
+      "describe": "adding it offers the room to be ridden",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Add team"
+      },
+      "expected": "#race-own-name",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/034-race.team.add-390-dark.png",
+      "screenshotSha256": "4c0b17b16fcd68483a3264d20b3cfc253ad1c08bd9be214fba04713b2fe9659e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 35,
+      "surface": "race",
+      "step": "race.join.name",
+      "describe": "a rider can name themselves",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": "#race-own-name",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/035-race.join.name-390-dark.png",
+      "screenshotSha256": "4c0b17b16fcd68483a3264d20b3cfc253ad1c08bd9be214fba04713b2fe9659e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 36,
+      "surface": "race",
+      "step": "race.join",
+      "describe": "joining a speed run shows every station on the network",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Join a team"
+      },
+      "expected": ".speed-run__lines",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/036-race.join-390-dark.png",
+      "screenshotSha256": "4c0b17b16fcd68483a3264d20b3cfc253ad1c08bd9be214fba04713b2fe9659e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 37,
+      "surface": "race",
+      "step": "race.speedrun.line",
+      "describe": "a collapsed line opens its stations",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Line 2 Bloor-Danforth0/31expand_more"
+      },
+      "expected": ".speed-run__lines li:nth-of-type(2) .speed-run__stations",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/037-race.speedrun.line-390-dark.png",
+      "screenshotSha256": "4c0b17b16fcd68483a3264d20b3cfc253ad1c08bd9be214fba04713b2fe9659e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 38,
+      "surface": "race",
+      "step": "race.speedrun.progress",
+      "describe": "and the run reports how many are left",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".speed-run__progress progress",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/038-race.speedrun.progress-390-dark.png",
+      "screenshotSha256": "4c0b17b16fcd68483a3264d20b3cfc253ad1c08bd9be214fba04713b2fe9659e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 39,
       "surface": "divisions",
       "step": "divisions.open",
       "describe": "the division surface is present",
@@ -1066,20 +1578,21 @@
         "tag": "button",
         "name": "Out of division"
       },
-      "expected": "main",
+      "expected": ".division-overview",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Beyond the usual garage",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1091,12 +1604,173 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/027-divisions.open-390-dark.png",
-      "screenshotSha256": "723c6f39d6ac64e29a85c9ded59a554f922035acbfc4370be2562904879279af",
+      "screenshot": "shots-390-dark-1x/039-divisions.open-390-dark.png",
+      "screenshotSha256": "6401fe40211b9a1dc5851e6f850ae65cd6ce4cd21717db1db886ebe49d4e5439",
       "privacy": "clean"
     },
     {
-      "sequence": 28,
+      "sequence": 40,
+      "surface": "divisions",
+      "step": "divisions.classification",
+      "describe": "vehicles can be filtered by garage assignment",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Assigned garage22"
+      },
+      "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/040-divisions.classification-390-dark.png",
+      "screenshotSha256": "78b213299282d63ffbf9af24804c2a94683d61b436ce35b82fd58b8a41cf2016",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 41,
+      "surface": "divisions",
+      "step": "divisions.classification.back",
+      "describe": "and back to out of division",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Out of division21"
+      },
+      "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/041-divisions.classification.back-390-dark.png",
+      "screenshotSha256": "aa905f175d618d255e75147f14904ac9daf85af90a4bd436d91ca7f2530d697f",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 42,
+      "surface": "divisions",
+      "step": "divisions.vehicle",
+      "describe": "a vehicle states where it lives and who runs its route",
+      "optional": true,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "3410334TTCNova Bus · LFS HybridBuilt 2018Out of division · M"
+      },
+      "expected": ".division-verdict",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/042-divisions.vehicle-390-dark.png",
+      "screenshotSha256": "1e576f8464d644ed881dd83b2cb922a4c75e32c53c7935be896fb77afc4e58d3",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 43,
+      "surface": "divisions",
+      "step": "divisions.route.colour",
+      "describe": "and carries the route in the operator colour",
+      "optional": true,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".division-verdict .route-chip",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "dark",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "dark",
+      "screenshot": "shots-390-dark-1x/043-divisions.route.colour-390-dark.png",
+      "screenshotSha256": "1e576f8464d644ed881dd83b2cb922a4c75e32c53c7935be896fb77afc4e58d3",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 44,
       "surface": "history",
       "step": "history.open",
       "describe": "the service record is present",
@@ -1110,16 +1784,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Beyond the usual garage",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1131,12 +1806,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/028-history.open-390-dark.png",
-      "screenshotSha256": "62c17f955d06a85667cf718ae263cffd7c6f505d35c1544e7da3946c82e08167",
+      "screenshot": "shots-390-dark-1x/044-history.open-390-dark.png",
+      "screenshotSha256": "efbe325ac76500a09c658433e75cc6a9762ab29e255e6192f0a24adcbbd8f659",
       "privacy": "clean"
     },
     {
-      "sequence": 29,
+      "sequence": 45,
       "surface": "history",
       "step": "history.preset",
       "describe": "a date preset can be applied",
@@ -1150,16 +1825,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1171,12 +1847,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/029-history.preset-390-dark.png",
-      "screenshotSha256": "678aeb26b1da52edc15e3fc9ff346827d6722fecdc68debb5f57c7cf1d944cb4",
+      "screenshot": "shots-390-dark-1x/045-history.preset-390-dark.png",
+      "screenshotSha256": "4713b30cd6cc38639804484dee205db10d5638b997e8364f35767c85ca195c61",
       "privacy": "clean"
     },
     {
-      "sequence": 30,
+      "sequence": 46,
       "surface": "coverage",
       "step": "coverage.open",
       "describe": "the coverage surface is present",
@@ -1190,16 +1866,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "The service record",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Across the whole region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1211,12 +1888,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/030-coverage.open-390-dark.png",
-      "screenshotSha256": "f418313857d381f986b20266bd391c3b260f6b844bee2d9190703a7127ab22e5",
+      "screenshot": "shots-390-dark-1x/046-coverage.open-390-dark.png",
+      "screenshotSha256": "da6ce7521efe4623f7f7dee8ea0beef6bb414b26eb92ea35f72e2ddfa4a4d32a",
       "privacy": "clean"
     },
     {
-      "sequence": 31,
+      "sequence": 47,
       "surface": "settings",
       "step": "settings.open",
       "describe": "settings is present with its tab strip",
@@ -1230,16 +1907,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Across the whole region",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1251,12 +1929,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/031-settings.open-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/047-settings.open-390-dark.png",
+      "screenshotSha256": "e5e69c5916798d68148ba128ebc5b24c081fef1b5c2214b6a71ce5bc86df27fe",
       "privacy": "clean"
     },
     {
-      "sequence": 32,
+      "sequence": 48,
       "surface": "settings",
       "step": "settings.tab.language",
       "describe": "a settings tab can be selected",
@@ -1270,16 +1948,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1291,12 +1970,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/032-settings.tab.language-390-dark.png",
-      "screenshotSha256": "5de5c4b33567b55d87d26d31cc30a0495c9c30cdbaace2649d36a9054684ae86",
+      "screenshot": "shots-390-dark-1x/048-settings.tab.language-390-dark.png",
+      "screenshotSha256": "10093aa2ba6e2fea9393bda5d8cf9e49e9e96639047ab5ffb3d76f98528a69ad",
       "privacy": "clean"
     },
     {
-      "sequence": 33,
+      "sequence": 49,
       "surface": "settings",
       "step": "settings.tab.first",
       "describe": "and the first tab selected again",
@@ -1310,16 +1989,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1331,12 +2011,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/033-settings.tab.first-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/049-settings.tab.first-390-dark.png",
+      "screenshotSha256": "e5e69c5916798d68148ba128ebc5b24c081fef1b5c2214b6a71ce5bc86df27fe",
       "privacy": "clean"
     },
     {
-      "sequence": 34,
+      "sequence": 50,
       "surface": "navigation",
       "step": "nav.more.open",
       "describe": "More opens its dialog on a phone",
@@ -1350,16 +2030,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "button"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": [
         390
@@ -1373,12 +2054,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/034-nav.more.open-390-dark.png",
-      "screenshotSha256": "38d5349cb0633e881d9beb934d8fe79cdee55726d05de6f07863e34562f962e0",
+      "screenshot": "shots-390-dark-1x/050-nav.more.open-390-dark.png",
+      "screenshotSha256": "a24d857c10543d413680968cb3b31b957333ae468e05b1871a12d762e3f4168c",
       "privacy": "clean"
     },
     {
-      "sequence": 35,
+      "sequence": 51,
       "surface": "navigation",
       "step": "nav.more.close",
       "describe": "and closes, returning focus",
@@ -1392,16 +2073,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "button"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": [
         390
@@ -1415,32 +2097,33 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/035-nav.more.close-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/051-nav.more.close-390-dark.png",
+      "screenshotSha256": "e5e69c5916798d68148ba128ebc5b24c081fef1b5c2214b6a71ce5bc86df27fe",
       "privacy": "clean"
     },
     {
-      "sequence": 36,
+      "sequence": 52,
       "surface": "navigation",
       "step": "nav.rail.secondary",
       "describe": "the rail reaches a secondary destination with no dialog",
       "optional": false,
       "inputMethod": "not-applicable-at-this-width",
       "target": null,
-      "expected": "main",
+      "expected": ".m3-nav__item--secondary.is-active",
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": false,
+      "assertion": false,
       "expectedStateArrived": false,
       "applicableWidths": [
         1440
@@ -1454,12 +2137,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/036-nav.rail.secondary-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/052-nav.rail.secondary-390-dark.png",
+      "screenshotSha256": "e5e69c5916798d68148ba128ebc5b24c081fef1b5c2214b6a71ce5bc86df27fe",
       "privacy": "clean"
     },
     {
-      "sequence": 37,
+      "sequence": 53,
       "surface": "navigation",
       "step": "nav.lang",
       "describe": "language can be changed from the rail",
@@ -1473,16 +2156,17 @@
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horiz更多",
         "heading": "按你喜好設定",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1494,12 +2178,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/037-nav.lang-390-dark.png",
-      "screenshotSha256": "7570e736de7cf3ac9bb4ad84ada14051c10aa028324e20d63a20fe42d6ccbdd8",
+      "screenshot": "shots-390-dark-1x/053-nav.lang-390-dark.png",
+      "screenshotSha256": "cc9a72df0ec3d83c8a952e920dd46e1b61fda8cc0c76da5e37ac3b75b38e31c2",
       "privacy": "clean"
     },
     {
-      "sequence": 38,
+      "sequence": 54,
       "surface": "navigation",
       "step": "nav.lang.back",
       "describe": "and changed back",
@@ -1513,16 +2197,17 @@
       "before": {
         "destination": "more_horiz更多",
         "heading": "按你喜好設定",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
-        "theme": "light",
+        "theme": "dark",
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1534,12 +2219,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/038-nav.lang.back-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/054-nav.lang.back-390-dark.png",
+      "screenshotSha256": "46f58465a09506b1b3e79be55823678d3c10e2f04cb0255948362d3ad6a3b6c9",
       "privacy": "clean"
     },
     {
-      "sequence": 39,
+      "sequence": 55,
       "surface": "navigation",
       "step": "nav.theme",
       "describe": "the colour theme can be switched",
@@ -1547,22 +2232,23 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Switch to night appearance"
+        "name": "Switch to day appearance"
       },
-      "expected": "html[data-theme]",
+      "expected": "html[data-theme=\"light\"]",
       "before": {
-        "destination": "more_horizMore",
-        "heading": "Make yourself at home",
-        "theme": "light",
-        "focused": "body"
-      },
-      "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
         "theme": "dark",
         "focused": "body"
       },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1574,12 +2260,12 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/039-nav.theme-390-dark.png",
-      "screenshotSha256": "8b430a539ba3f7b80a5e29979a3bc29f05463a7a27f3884f2252318e64090d21",
+      "screenshot": "shots-390-dark-1x/055-nav.theme-390-dark.png",
+      "screenshotSha256": "f7195075c6f29d55d0e3b1024ca5b5bd7839973baa16138a8dd840861b30e8ad",
       "privacy": "clean"
     },
     {
-      "sequence": 40,
+      "sequence": 56,
       "surface": "navigation",
       "step": "nav.theme.back",
       "describe": "and switched back",
@@ -1587,22 +2273,23 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Switch to day appearance"
+        "name": "Switch to night appearance"
       },
-      "expected": "html[data-theme]",
+      "expected": "html[data-theme=\"dark\"]",
       "before": {
-        "destination": "more_horizMore",
-        "heading": "Make yourself at home",
-        "theme": "dark",
-        "focused": "body"
-      },
-      "after": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
         "theme": "light",
         "focused": "body"
       },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "dark",
+        "focused": "body"
+      },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1614,8 +2301,8 @@
       },
       "displayScale": 1,
       "theme": "dark",
-      "screenshot": "shots-390-dark-1x/040-nav.theme.back-390-dark.png",
-      "screenshotSha256": "2118517dcf4eea442f43dcac988a2dc5e3bae025148d18683521b224c034a39c",
+      "screenshot": "shots-390-dark-1x/056-nav.theme.back-390-dark.png",
+      "screenshotSha256": "46f58465a09506b1b3e79be55823678d3c10e2f04cb0255948362d3ad6a3b6c9",
       "privacy": "clean"
     }
   ]

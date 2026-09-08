@@ -1,16 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-08T06:02:58.371Z",
+  "generatedAt": "2026-09-08T06:59:41.849Z",
   "url": "https://toronto-transit.org/",
   "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
   "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
   "viewportWidth": 1440,
   "displayScale": 1,
   "theme": "light",
-  "inventorySteps": 40,
-  "recordedRows": 40,
+  "inventorySteps": 56,
+  "recordedRows": 56,
   "counts": {
-    "pass": 38,
+    "pass": 54,
     "not-applicable": 2
   },
   "consoleErrors": [],
@@ -40,6 +40,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -52,7 +53,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/001-plan.open-1440-light.png",
-      "screenshotSha256": "d1bf86afa5ebf0f7c9a968d03ebba54898364927493e70dd018d7c70b754f09d",
+      "screenshotSha256": "485b5a08d31024ad9019b1271d360d0c86e4cefcbeff1f8eab89ae72f51de7a3",
       "privacy": "clean"
     },
     {
@@ -80,6 +81,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -92,7 +94,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/002-plan.from-1440-light.png",
-      "screenshotSha256": "17a231701df67efcc14e74fe6fea90342d147d5c6874015127790cd7183b1f9d",
+      "screenshotSha256": "21301f313b1958ee34e9d8dc598a4932c60c4a1eaa4aabb5ce8bada7f387b578",
       "privacy": "clean"
     },
     {
@@ -120,6 +122,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -132,7 +135,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/003-plan.from.choose-1440-light.png",
-      "screenshotSha256": "fde80771951b7887025f8551b136674ea0b7b40dbabfc87f94b9fcc73527cd90",
+      "screenshotSha256": "4c4abd9e677eb9a92c1511e4b91ba82ef9c29a5f66cb444546687bfda50c15fb",
       "privacy": "clean"
     },
     {
@@ -160,6 +163,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -172,7 +176,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/004-plan.reverse-1440-light.png",
-      "screenshotSha256": "eb07a76f7236be1aca7a9c07bb53b74cfa40d78add7a24e9ba9ab10316276479",
+      "screenshotSha256": "368771b042f9238413711c7868436675f3558c4a0184f68b623311eb3d23a116",
       "privacy": "clean"
     },
     {
@@ -184,7 +188,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 02:02expand_more"
+        "name": "LeavingTue 02:59expand_more"
       },
       "expected": ".trip-when[open] .journey-time",
       "before": {
@@ -200,6 +204,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -212,7 +217,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/005-plan.when.open-1440-light.png",
-      "screenshotSha256": "2b73494f7a4697c22aaa2b8d71078396688127a66336f2fe33c5b40cecd73b9c",
+      "screenshotSha256": "41f3ecbb058eb0ccd2bd88a4b6b614cf7023aaee603fd11f6400df5190a18746",
       "privacy": "clean"
     },
     {
@@ -224,7 +229,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 02:02expand_more"
+        "name": "LeavingTue 02:59expand_more"
       },
       "expected": ".trip-when:not([open])",
       "before": {
@@ -240,6 +245,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -252,7 +258,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/006-plan.when.close-1440-light.png",
-      "screenshotSha256": "eb07a76f7236be1aca7a9c07bb53b74cfa40d78add7a24e9ba9ab10316276479",
+      "screenshotSha256": "368771b042f9238413711c7868436675f3558c4a0184f68b623311eb3d23a116",
       "privacy": "clean"
     },
     {
@@ -280,6 +286,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -292,7 +299,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/007-plan.options.open-1440-light.png",
-      "screenshotSha256": "cc33cec6e7f4edc4ab7ac1cf2aa425f6f731c4d44bfd777d4f08100847c23f0a",
+      "screenshotSha256": "034176c3d6a124e4fc0a637ab2b6fcc129543b5643c92db81854f979e77c179d",
       "privacy": "clean"
     },
     {
@@ -320,6 +327,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -332,11 +340,213 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/008-plan.options.priority-1440-light.png",
-      "screenshotSha256": "8f7e09e7216f1fb10b35f0befba1c6767a5859e5b2ebd0d39bf819eb9bb3ff7c",
+      "screenshotSha256": "36a672493e97c5a13530a188ab0b2c1040241bf5c49483d5242950d939a85783",
       "privacy": "clean"
     },
     {
       "sequence": 9,
+      "surface": "plan",
+      "step": "plan.garage.choose",
+      "describe": "a garage can be preferred",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".garage-picker .garage-choice input:checked",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/009-plan.garage.choose-1440-light.png",
+      "screenshotSha256": "11275ecac69fb8d6d21985cab3a96433c2d6a5ab4978e4f2c2ddb11139d6acba",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 10,
+      "surface": "plan",
+      "step": "plan.garage.details",
+      "describe": "a garage shows the routes it operates",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Show more details"
+      },
+      "expected": ".garage-detail .garage-routes",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/010-plan.garage.details-1440-light.png",
+      "screenshotSha256": "99857b4a2b0432fd2771252d810c42069c1c75c30772606a40c2017e523f6fe6",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 11,
+      "surface": "plan",
+      "step": "plan.garage.vehicles",
+      "describe": "and what is running on those routes right now",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".garage-detail h4",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/011-plan.garage.vehicles-1440-light.png",
+      "screenshotSha256": "98efb3ed032cfad3cc53474812cdfedfd4825bc050d7b5bfcfb4443accaf8e84",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 12,
+      "surface": "plan",
+      "step": "plan.garage.hide",
+      "describe": "the detail closes again",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Hide details"
+      },
+      "expected": ".garage-picker",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/012-plan.garage.hide-1440-light.png",
+      "screenshotSha256": "70f5b816d47a2a06ee806b6604843f5816884fe8c8545240a0c304ac759414e1",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 13,
+      "surface": "plan",
+      "step": "plan.garage.clear",
+      "describe": "and the preference can be cleared",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": ".garage-picker",
+      "before": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "after": {
+        "destination": "alt_routePlan",
+        "heading": "Plan your next connection",
+        "theme": "light",
+        "focused": "input"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/013-plan.garage.clear-1440-light.png",
+      "screenshotSha256": "fde62408b49cdf2712e2936c54a017fa17cac4d1dd7add72e874a4990af6124a",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 14,
       "surface": "plan",
       "step": "plan.options.close",
       "describe": "and closes again",
@@ -360,6 +570,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -371,12 +582,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/009-plan.options.close-1440-light.png",
-      "screenshotSha256": "cdb5cc62e711be6865c42f95d6e71bb89224c22a072948147a05fe3414130289",
+      "screenshot": "shots-1440-light-1x/014-plan.options.close-1440-light.png",
+      "screenshotSha256": "a5f3379d54827060c16c7ea8a0060a4c4a047f04db88fd0421c7c3160138b818",
       "privacy": "clean"
     },
     {
-      "sequence": 10,
+      "sequence": 15,
       "surface": "plan",
       "step": "plan.intermediate",
       "describe": "an intermediate stop can be added",
@@ -400,6 +611,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -411,12 +623,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/010-plan.intermediate-1440-light.png",
-      "screenshotSha256": "39026e5211051ebb9c9b52e8dfcc67566cc3a41f0912775bbdd376d0d8b8f7f8",
+      "screenshot": "shots-1440-light-1x/015-plan.intermediate-1440-light.png",
+      "screenshotSha256": "ec12578157942be6b034f569d36b27509369d956014eece28c31148c986061dd",
       "privacy": "clean"
     },
     {
-      "sequence": 11,
+      "sequence": 16,
       "surface": "plan",
       "step": "plan.map.toggle",
       "describe": "the map can be hidden",
@@ -440,6 +652,7 @@
         "focused": "input"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -451,12 +664,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/011-plan.map.toggle-1440-light.png",
-      "screenshotSha256": "93df16db082bf97af918a8b2a9d461c36a5544a79c949532f7fe8e10ba9264ce",
+      "screenshot": "shots-1440-light-1x/016-plan.map.toggle-1440-light.png",
+      "screenshotSha256": "ba845a428e3b4923110704c1b6f8ec517dfa5cb39645bbf1f135acbdddbc1d7f",
       "privacy": "clean"
     },
     {
-      "sequence": 12,
+      "sequence": 17,
       "surface": "status",
       "step": "status.open",
       "describe": "the live network surface is present",
@@ -480,6 +693,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -491,12 +705,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/012-status.open-1440-light.png",
-      "screenshotSha256": "0c73966f244183a4a8e35567d407e123531f3c1b05644ddd83af0b8a74e3d0ca",
+      "screenshot": "shots-1440-light-1x/017-status.open-1440-light.png",
+      "screenshotSha256": "c1c03c63605a91c7241dcc45c1ad6a30f57034508cfc055464adc1e34b68bc9e",
       "privacy": "clean"
     },
     {
-      "sequence": 13,
+      "sequence": 18,
       "surface": "status",
       "step": "status.line",
       "describe": "a line card opens its detail",
@@ -520,6 +734,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -531,12 +746,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/013-status.line-1440-light.png",
-      "screenshotSha256": "d971b439751188160edebb0ca2da38b7d98eb529252767f238d014e5e8f33dd7",
+      "screenshot": "shots-1440-light-1x/018-status.line-1440-light.png",
+      "screenshotSha256": "34b6e5a7f88a0d9ccd036be59ea36c162e3e16593e914c48e19850bc2f72d54a",
       "privacy": "clean"
     },
     {
-      "sequence": 14,
+      "sequence": 19,
       "surface": "status",
       "step": "status.group",
       "describe": "an alert group expands",
@@ -560,6 +775,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -571,12 +787,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/014-status.group-1440-light.png",
-      "screenshotSha256": "a0f295eaa319115d0e383c61b1ec3e9dc3d2be85727b02ad9c648daa482c6440",
+      "screenshot": "shots-1440-light-1x/019-status.group-1440-light.png",
+      "screenshotSha256": "3f4f3d1b3ab402d4729b9542fd5facb2c59b7d7e67bf8fbedf1f01621437ae6c",
       "privacy": "clean"
     },
     {
-      "sequence": 15,
+      "sequence": 20,
       "surface": "status",
       "step": "status.go.refresh",
       "describe": "the GO panel can be re-read",
@@ -600,6 +816,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -611,12 +828,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/015-status.go.refresh-1440-light.png",
-      "screenshotSha256": "a0f295eaa319115d0e383c61b1ec3e9dc3d2be85727b02ad9c648daa482c6440",
+      "screenshot": "shots-1440-light-1x/020-status.go.refresh-1440-light.png",
+      "screenshotSha256": "3f4f3d1b3ab402d4729b9542fd5facb2c59b7d7e67bf8fbedf1f01621437ae6c",
       "privacy": "clean"
     },
     {
-      "sequence": 16,
+      "sequence": 21,
       "surface": "status",
       "step": "status.refresh",
       "describe": "live status can be refreshed",
@@ -640,6 +857,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -651,12 +869,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/016-status.refresh-1440-light.png",
-      "screenshotSha256": "a0f295eaa319115d0e383c61b1ec3e9dc3d2be85727b02ad9c648daa482c6440",
+      "screenshot": "shots-1440-light-1x/021-status.refresh-1440-light.png",
+      "screenshotSha256": "3f4f3d1b3ab402d4729b9542fd5facb2c59b7d7e67bf8fbedf1f01621437ae6c",
       "privacy": "clean"
     },
     {
-      "sequence": 17,
+      "sequence": 22,
       "surface": "vehicles",
       "step": "vehicles.open",
       "describe": "the vehicle tracker is present",
@@ -680,6 +898,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -691,12 +910,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/017-vehicles.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/022-vehicles.open-1440-light.png",
       "screenshotSha256": "b9f3fd9f6fd7e0f8dd2a22cff30817fce5f66ad5ac25c81fb5f41c7e9e07ecf2",
       "privacy": "clean"
     },
     {
-      "sequence": 18,
+      "sequence": 23,
       "surface": "vehicles",
       "step": "vehicles.search",
       "describe": "the fleet can be searched",
@@ -720,6 +939,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -731,12 +951,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/018-vehicles.search-1440-light.png",
-      "screenshotSha256": "94c53458c0050797e2d0011bdc218b797751c05ffd1278caddda67e50b6b7dc8",
+      "screenshot": "shots-1440-light-1x/023-vehicles.search-1440-light.png",
+      "screenshotSha256": "a284d7e38b5029584e2a4dcf1548b77958ac2436615886440daf80f490b1f09e",
       "privacy": "clean"
     },
     {
-      "sequence": 19,
+      "sequence": 24,
       "surface": "vehicles",
       "step": "vehicles.filters",
       "describe": "fleet filters open",
@@ -760,6 +980,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -771,12 +992,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/019-vehicles.filters-1440-light.png",
-      "screenshotSha256": "727fb6a62e7ba183ac78d554457437ee0d713d52a461e0f39a9daf92e55c8f19",
+      "screenshot": "shots-1440-light-1x/024-vehicles.filters-1440-light.png",
+      "screenshotSha256": "d12bd91278765438aa06b22c358702899fbe65b990d52df0ae6b2f22af55097c",
       "privacy": "clean"
     },
     {
-      "sequence": 20,
+      "sequence": 25,
       "surface": "vehicles",
       "step": "vehicles.filters.close",
       "describe": "and close again",
@@ -800,6 +1021,7 @@
         "focused": "h1"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -811,12 +1033,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/020-vehicles.filters.close-1440-light.png",
-      "screenshotSha256": "e343a709085ecfb5a52c6c65086f8334c4fb533fd8044f15a55d38ba771485f1",
+      "screenshot": "shots-1440-light-1x/025-vehicles.filters.close-1440-light.png",
+      "screenshotSha256": "a284d7e38b5029584e2a4dcf1548b77958ac2436615886440daf80f490b1f09e",
       "privacy": "clean"
     },
     {
-      "sequence": 21,
+      "sequence": 26,
       "surface": "vehicles",
       "step": "vehicles.route",
       "describe": "the agency and route picker opens",
@@ -840,6 +1062,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -851,12 +1074,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/021-vehicles.route-1440-light.png",
-      "screenshotSha256": "e343a709085ecfb5a52c6c65086f8334c4fb533fd8044f15a55d38ba771485f1",
+      "screenshot": "shots-1440-light-1x/026-vehicles.route-1440-light.png",
+      "screenshotSha256": "a284d7e38b5029584e2a4dcf1548b77958ac2436615886440daf80f490b1f09e",
       "privacy": "clean"
     },
     {
-      "sequence": 22,
+      "sequence": 27,
       "surface": "saved",
       "step": "saved.open",
       "describe": "saved trips shows its state",
@@ -880,6 +1103,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -891,12 +1115,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/022-saved.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/027-saved.open-1440-light.png",
       "screenshotSha256": "2f087c01651dfa2169025f6cdd865788b43faee7d5122e7217fc3f54474425cc",
       "privacy": "clean"
     },
     {
-      "sequence": 23,
+      "sequence": 28,
       "surface": "race",
       "step": "race.open",
       "describe": "the race workspace is present",
@@ -920,6 +1144,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -931,22 +1156,22 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/023-race.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/028-race.open-1440-light.png",
       "screenshotSha256": "cb83a54c3bada5ee3e5be6217e821ea3c487911318202635389465fe6efc2cf9",
       "privacy": "clean"
     },
     {
-      "sequence": 24,
+      "sequence": 29,
       "surface": "race",
       "step": "race.mode",
-      "describe": "a challenge type can be chosen",
+      "describe": "the speed run challenge type can be chosen",
       "optional": false,
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "input",
         "name": ""
       },
-      "expected": ".race-modes",
+      "expected": "#race-title[placeholder=\"Line 1 end to end\"]",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
@@ -960,6 +1185,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -971,12 +1197,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/024-race.mode-1440-light.png",
-      "screenshotSha256": "cb83a54c3bada5ee3e5be6217e821ea3c487911318202635389465fe6efc2cf9",
+      "screenshot": "shots-1440-light-1x/029-race.mode-1440-light.png",
+      "screenshotSha256": "57c050705b3985322e16cfbcf951fff627aea5ab21d2fd69f11ca7b58d63aaa1",
       "privacy": "clean"
     },
     {
-      "sequence": 25,
+      "sequence": 30,
       "surface": "race",
       "step": "race.title",
       "describe": "a race can be named",
@@ -1000,6 +1226,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1011,12 +1238,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/025-race.title-1440-light.png",
-      "screenshotSha256": "8276ecf6b609afe5ee2d7ebd5460a40753a16da9c92d3c218f87f9e6cc8f4e17",
+      "screenshot": "shots-1440-light-1x/030-race.title-1440-light.png",
+      "screenshotSha256": "1f4dc2baded42ec96804c2e21406ed5f2490911b9ff2b6824828611f607c141f",
       "privacy": "clean"
     },
     {
-      "sequence": 26,
+      "sequence": 31,
       "surface": "race",
       "step": "race.code",
       "describe": "a join code can be entered",
@@ -1040,6 +1267,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1051,12 +1279,296 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/026-race.code-1440-light.png",
-      "screenshotSha256": "82888c7bfef52b290cb8cbb5de42e8097dee38d913b5050be7146533c7ad13bc",
+      "screenshot": "shots-1440-light-1x/031-race.code-1440-light.png",
+      "screenshotSha256": "01fd8a878dc12fd9f15c8aeab0b3c64cc525d7897c3d8a4b38cc0aa1f2d4c5a7",
       "privacy": "clean"
     },
     {
-      "sequence": 27,
+      "sequence": 32,
+      "surface": "race",
+      "step": "race.create",
+      "describe": "a speed run room is created",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Create the race"
+      },
+      "expected": ".race-headline .race-code",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/032-race.create-1440-light.png",
+      "screenshotSha256": "48ff9100196d9edd8286e143c71d972626024ca5f2d70e8c59794e98f8c70690",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 33,
+      "surface": "race",
+      "step": "race.team",
+      "describe": "a team can be named",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": "Team name"
+      },
+      "expected": ".race-team-add input",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/033-race.team-1440-light.png",
+      "screenshotSha256": "b2bef2c13d1f68ee517809564ca16b6b3766f592a1bdae9b4ce2dbd88b1d9b64",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 34,
+      "surface": "race",
+      "step": "race.team.add",
+      "describe": "adding it offers the room to be ridden",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Add team"
+      },
+      "expected": "#race-own-name",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/034-race.team.add-1440-light.png",
+      "screenshotSha256": "1f7e21bafbb7dabfc569f23639278103c076b301107c6fa3173fad04a7bdda98",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 35,
+      "surface": "race",
+      "step": "race.join.name",
+      "describe": "a rider can name themselves",
+      "optional": false,
+      "inputMethod": "keyboard:type",
+      "target": {
+        "tag": "input",
+        "name": ""
+      },
+      "expected": "#race-own-name",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/035-race.join.name-1440-light.png",
+      "screenshotSha256": "1f7e21bafbb7dabfc569f23639278103c076b301107c6fa3173fad04a7bdda98",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 36,
+      "surface": "race",
+      "step": "race.join",
+      "describe": "joining a speed run shows every station on the network",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Join a team"
+      },
+      "expected": ".speed-run__lines",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/036-race.join-1440-light.png",
+      "screenshotSha256": "35a6b78e91c0571a5380671e98d8b2d442e6bb0a1d10122b53654cdf78237f10",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 37,
+      "surface": "race",
+      "step": "race.speedrun.line",
+      "describe": "a collapsed line opens its stations",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Line 2 Bloor-Danforth0/31expand_more"
+      },
+      "expected": ".speed-run__lines li:nth-of-type(2) .speed-run__stations",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/037-race.speedrun.line-1440-light.png",
+      "screenshotSha256": "ccd263cc13ae409236a9a6a8a258b14d3e78eed75ea0717019c1011810d41c2a",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 38,
+      "surface": "race",
+      "step": "race.speedrun.progress",
+      "describe": "and the run reports how many are left",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".speed-run__progress progress",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Race across the region",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/038-race.speedrun.progress-1440-light.png",
+      "screenshotSha256": "ccd263cc13ae409236a9a6a8a258b14d3e78eed75ea0717019c1011810d41c2a",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 39,
       "surface": "divisions",
       "step": "divisions.open",
       "describe": "the division surface is present",
@@ -1066,7 +1578,7 @@
         "tag": "button",
         "name": "Out of division"
       },
-      "expected": "main",
+      "expected": ".division-overview",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
@@ -1080,6 +1592,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1091,12 +1604,173 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/027-divisions.open-1440-light.png",
-      "screenshotSha256": "5eb971287e40b7c6b042b2f282a5493597e19c300f1aaa2b1a54b45de3f239b8",
+      "screenshot": "shots-1440-light-1x/039-divisions.open-1440-light.png",
+      "screenshotSha256": "527721545536dc3a428137ffe8b3eae01b6a63e27cf52a0ae9b8d7e6adcc852b",
       "privacy": "clean"
     },
     {
-      "sequence": 28,
+      "sequence": 40,
+      "surface": "divisions",
+      "step": "divisions.classification",
+      "describe": "vehicles can be filtered by garage assignment",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Assigned garage25"
+      },
+      "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/040-divisions.classification-1440-light.png",
+      "screenshotSha256": "f58d78973bd39547018dad42d50ec143a120f1167eae29c0d585c33a6b8f94d2",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 41,
+      "surface": "divisions",
+      "step": "divisions.classification.back",
+      "describe": "and back to out of division",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Out of division21"
+      },
+      "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/041-divisions.classification.back-1440-light.png",
+      "screenshotSha256": "527721545536dc3a428137ffe8b3eae01b6a63e27cf52a0ae9b8d7e6adcc852b",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 42,
+      "surface": "divisions",
+      "step": "divisions.vehicle",
+      "describe": "a vehicle states where it lives and who runs its route",
+      "optional": true,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "3410334TTCNova Bus · LFS HybridBuilt 2018Out of division · M"
+      },
+      "expected": ".division-verdict",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/042-divisions.vehicle-1440-light.png",
+      "screenshotSha256": "4f3fbd5c6ac5a7aeb84ebe94bc5f3555ac9b3f14f6f75d1e0002559186adeede",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 43,
+      "surface": "divisions",
+      "step": "divisions.route.colour",
+      "describe": "and carries the route in the operator colour",
+      "optional": true,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": ".division-verdict .route-chip",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Beyond the usual garage",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "artifactSha256": "b8d360d8d2ce31a8313050f18057b51938b3067dacdea4296422609670bf711f",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/043-divisions.route.colour-1440-light.png",
+      "screenshotSha256": "b04ba65ef9829ace5c314571eeb026880573bc20e5443b0892bc30d51554dfb1",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 44,
       "surface": "history",
       "step": "history.open",
       "describe": "the service record is present",
@@ -1120,6 +1794,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1131,12 +1806,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/028-history.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/044-history.open-1440-light.png",
       "screenshotSha256": "193fa861430a967ed505d49b6f0b8b698d7bb3344318c51977612c733319ddcc",
       "privacy": "clean"
     },
     {
-      "sequence": 29,
+      "sequence": 45,
       "surface": "history",
       "step": "history.preset",
       "describe": "a date preset can be applied",
@@ -1160,6 +1835,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1171,12 +1847,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/029-history.preset-1440-light.png",
+      "screenshot": "shots-1440-light-1x/045-history.preset-1440-light.png",
       "screenshotSha256": "82bb097289864bd92faba4fe6b800b18a3f06ba07499c6598fbdf95abe6c831d",
       "privacy": "clean"
     },
     {
-      "sequence": 30,
+      "sequence": 46,
       "surface": "coverage",
       "step": "coverage.open",
       "describe": "the coverage surface is present",
@@ -1200,6 +1876,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1211,12 +1888,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/030-coverage.open-1440-light.png",
-      "screenshotSha256": "18cd0d672091f9c9710e2a9594dcd0527dc4d3f9758534c31a328e908118b4c5",
+      "screenshot": "shots-1440-light-1x/046-coverage.open-1440-light.png",
+      "screenshotSha256": "b1bb55103b7faba7d2b5424a77b7395269ab55b15713545f07268181076ad7e4",
       "privacy": "clean"
     },
     {
-      "sequence": 31,
+      "sequence": 47,
       "surface": "settings",
       "step": "settings.open",
       "describe": "settings is present with its tab strip",
@@ -1240,6 +1917,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1251,12 +1929,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/031-settings.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/047-settings.open-1440-light.png",
       "screenshotSha256": "e1ab8157d5863f87678c0f5c58ce5c6f71150e007405c21251b377a6c0c546a6",
       "privacy": "clean"
     },
     {
-      "sequence": 32,
+      "sequence": 48,
       "surface": "settings",
       "step": "settings.tab.language",
       "describe": "a settings tab can be selected",
@@ -1280,6 +1958,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1291,12 +1970,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/032-settings.tab.language-1440-light.png",
+      "screenshot": "shots-1440-light-1x/048-settings.tab.language-1440-light.png",
       "screenshotSha256": "589239f6216958ee8513d78480a6f41009ce2d8f3683f480534ba6e84263e97c",
       "privacy": "clean"
     },
     {
-      "sequence": 33,
+      "sequence": 49,
       "surface": "settings",
       "step": "settings.tab.first",
       "describe": "and the first tab selected again",
@@ -1320,6 +1999,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1331,12 +2011,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/033-settings.tab.first-1440-light.png",
+      "screenshot": "shots-1440-light-1x/049-settings.tab.first-1440-light.png",
       "screenshotSha256": "e1ab8157d5863f87678c0f5c58ce5c6f71150e007405c21251b377a6c0c546a6",
       "privacy": "clean"
     },
     {
-      "sequence": 34,
+      "sequence": 50,
       "surface": "navigation",
       "step": "nav.more.open",
       "describe": "More opens its dialog on a phone",
@@ -1357,6 +2037,7 @@
         "focused": "body"
       },
       "acted": false,
+      "assertion": false,
       "expectedStateArrived": false,
       "applicableWidths": [
         390
@@ -1370,12 +2051,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/034-nav.more.open-1440-light.png",
+      "screenshot": "shots-1440-light-1x/050-nav.more.open-1440-light.png",
       "screenshotSha256": "e1ab8157d5863f87678c0f5c58ce5c6f71150e007405c21251b377a6c0c546a6",
       "privacy": "clean"
     },
     {
-      "sequence": 35,
+      "sequence": 51,
       "surface": "navigation",
       "step": "nav.more.close",
       "describe": "and closes, returning focus",
@@ -1396,6 +2077,7 @@
         "focused": "body"
       },
       "acted": false,
+      "assertion": false,
       "expectedStateArrived": false,
       "applicableWidths": [
         390
@@ -1409,12 +2091,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/035-nav.more.close-1440-light.png",
+      "screenshot": "shots-1440-light-1x/051-nav.more.close-1440-light.png",
       "screenshotSha256": "e1ab8157d5863f87678c0f5c58ce5c6f71150e007405c21251b377a6c0c546a6",
       "privacy": "clean"
     },
     {
-      "sequence": 36,
+      "sequence": 52,
       "surface": "navigation",
       "step": "nav.rail.secondary",
       "describe": "the rail reaches a secondary destination with no dialog",
@@ -1424,7 +2106,7 @@
         "tag": "button",
         "name": "flagRace"
       },
-      "expected": "main",
+      "expected": ".m3-nav__item--secondary.is-active",
       "before": {
         "destination": "more_horizMore",
         "heading": "Make yourself at home",
@@ -1438,6 +2120,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": [
         1440
@@ -1451,12 +2134,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/036-nav.rail.secondary-1440-light.png",
-      "screenshotSha256": "cb83a54c3bada5ee3e5be6217e821ea3c487911318202635389465fe6efc2cf9",
+      "screenshot": "shots-1440-light-1x/052-nav.rail.secondary-1440-light.png",
+      "screenshotSha256": "35a6b78e91c0571a5380671e98d8b2d442e6bb0a1d10122b53654cdf78237f10",
       "privacy": "clean"
     },
     {
-      "sequence": 37,
+      "sequence": 53,
       "surface": "navigation",
       "step": "nav.lang",
       "describe": "language can be changed from the rail",
@@ -1480,6 +2163,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1491,12 +2175,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/037-nav.lang-1440-light.png",
-      "screenshotSha256": "6619d080ddb25041ad02abb03d60e0b91a479d5a6e2baad84c05560550f4581a",
+      "screenshot": "shots-1440-light-1x/053-nav.lang-1440-light.png",
+      "screenshotSha256": "4b1c22d27e9cdcd030c0b49d66cb4bb459bb7b9c76c18245c7cbbbab7d5e3007",
       "privacy": "clean"
     },
     {
-      "sequence": 38,
+      "sequence": 54,
       "surface": "navigation",
       "step": "nav.lang.back",
       "describe": "and changed back",
@@ -1520,6 +2204,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1531,12 +2216,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/038-nav.lang.back-1440-light.png",
-      "screenshotSha256": "cb83a54c3bada5ee3e5be6217e821ea3c487911318202635389465fe6efc2cf9",
+      "screenshot": "shots-1440-light-1x/054-nav.lang.back-1440-light.png",
+      "screenshotSha256": "35a6b78e91c0571a5380671e98d8b2d442e6bb0a1d10122b53654cdf78237f10",
       "privacy": "clean"
     },
     {
-      "sequence": 39,
+      "sequence": 55,
       "surface": "navigation",
       "step": "nav.theme",
       "describe": "the colour theme can be switched",
@@ -1546,7 +2231,7 @@
         "tag": "button",
         "name": "Switch to night appearance"
       },
-      "expected": "html[data-theme]",
+      "expected": "html[data-theme=\"dark\"]",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
@@ -1560,6 +2245,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1571,12 +2257,12 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/039-nav.theme-1440-light.png",
-      "screenshotSha256": "01700e47d2200cc6e31e73cdceb17cd5853290ce4fc1cc57f9c72948d873b123",
+      "screenshot": "shots-1440-light-1x/055-nav.theme-1440-light.png",
+      "screenshotSha256": "fa8aacff8b1fb9b12e3889942ddfc2f011910dbef514b304e70eb1884a7ee834",
       "privacy": "clean"
     },
     {
-      "sequence": 40,
+      "sequence": 56,
       "surface": "navigation",
       "step": "nav.theme.back",
       "describe": "and switched back",
@@ -1586,7 +2272,7 @@
         "tag": "button",
         "name": "Switch to day appearance"
       },
-      "expected": "html[data-theme]",
+      "expected": "html[data-theme=\"light\"]",
       "before": {
         "destination": "more_horizMore",
         "heading": "Race across the region",
@@ -1600,6 +2286,7 @@
         "focused": "body"
       },
       "acted": true,
+      "assertion": false,
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
@@ -1611,8 +2298,8 @@
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/040-nav.theme.back-1440-light.png",
-      "screenshotSha256": "cb83a54c3bada5ee3e5be6217e821ea3c487911318202635389465fe6efc2cf9",
+      "screenshot": "shots-1440-light-1x/056-nav.theme.back-1440-light.png",
+      "screenshotSha256": "35a6b78e91c0571a5380671e98d8b2d442e6bb0a1d10122b53654cdf78237f10",
       "privacy": "clean"
     }
   ]

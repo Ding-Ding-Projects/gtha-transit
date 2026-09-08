@@ -45,7 +45,7 @@ function normalize(snapshot) {
     if (!item || typeof item !== 'object') continue;
     const id = clean(item.id);
     if (!id) continue;
-    const routeIds = [...new Set((item.lines || item.routeIds || linesFor(item, lines)).map(clean).filter(Boolean))].sort();
+    const routeIds = [...new Set((item.lines || item.routeIds || linesFor(item, lines)).map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     const payload = { id, title: clean(item.title), description: clean(item.description), url: clean(item.url), updatedAt: clean(item.updatedAt), activeFrom: clean(item.activeFrom), activeTo: clean(item.activeTo), lines: routeIds };
     records.push({ key: `${source}:${id}`, source, id, observedAt: observedAt.toISOString(), payload, routes: routeIds });
   }

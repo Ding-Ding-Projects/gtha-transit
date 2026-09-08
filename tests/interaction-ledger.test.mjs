@@ -111,6 +111,34 @@ test('nothing failed, and nothing leaked', () => {
   }
 });
 
+test('a tuple was actually recorded in the theme it claims', () => {
+  /* The theme was set by assigning `data-theme`, which the application owns and
+     rewrites from its own state on mount. The assignment was overwritten, nothing
+     failed, and the dark tuples were the light interface with dark in the filename:
+     eighty captures that looked like coverage and were the same eighty images as
+     the light run. The declared theme was checked against itself, which is why it
+     always agreed. This checks it against what the document actually carried. */
+  for (const tuple of REQUIRED_TUPLES) {
+    const ledger = ledgers[tuple];
+    const first = ledger.rows[0];
+    assert.equal(
+      first.before.theme,
+      ledger.theme,
+      `${tuple} says ${ledger.theme} but the document carried ${first.before.theme} when the run began`,
+    );
+    /* Two steps toggle the appearance on purpose. Every other step must sit in the
+       tuple's own theme, or a capture in the middle of the run is mislabelled. */
+    const strayed = ledger.rows
+      .filter((row) => !row.step.startsWith('nav.theme'))
+      .filter((row) => row.before.theme && row.before.theme !== ledger.theme);
+    assert.deepEqual(
+      strayed.map((row) => `${row.step}=${row.before.theme}`),
+      [],
+      `${tuple} recorded steps outside its own theme`,
+    );
+  }
+});
+
 test('the inventory is hand-written and every step is named once', () => {
   // Discovery would pass on a surface whose controls had all disappeared.
   const ids = ALL_STEPS.map((step) => step.id);

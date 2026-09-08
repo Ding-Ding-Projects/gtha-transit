@@ -87,7 +87,12 @@ export const SURFACES = [
     heading: 'Race across the region',
     steps: [
       { id: 'race.open', ...destination('Race'), expect: '.race-workspace', describe: 'the race workspace is present' },
-      { id: 'race.mode', click: '.race-modes input[type="radio"]:last-of-type', expect: '.race-modes', describe: 'a challenge type can be chosen' },
+      /* `:last-of-type` is scoped to each radio's own label, so both radios matched it
+         and querySelector returned the first. This step reported a pass while selecting
+         the wrong challenge type, because its expectation was only that the fieldset
+         exists, which is true on either. The placeholder below only says this in a
+         speed run, so a wrong selection now fails instead of passing quietly. */
+      { id: 'race.mode', click: '.race-modes label:last-of-type input[type="radio"]', expect: '#race-title[placeholder="Line 1 end to end"]', describe: 'the speed run challenge type can be chosen' },
       { id: 'race.title', click: '#race-title', type: 'Evidence run', expect: '#race-title', describe: 'a race can be named' },
       { id: 'race.code', click: '#race-code', type: 'ABC234', expect: '#race-code', describe: 'a join code can be entered' },
       { id: 'race.create', clickText: 'Create the race', expect: '.race-headline .race-code', describe: 'a speed run room is created' },
@@ -95,7 +100,9 @@ export const SURFACES = [
       { id: 'race.team.add', clickText: 'Add team', expect: '#race-own-name', describe: 'adding it offers the room to be ridden' },
       { id: 'race.join.name', click: '#race-own-name', type: 'Evidence rider', expect: '#race-own-name', describe: 'a rider can name themselves' },
       { id: 'race.join', clickText: 'Join a team', expect: '.speed-run__lines', describe: 'joining a speed run shows every station on the network' },
-      { id: 'race.speedrun.line', click: '.speed-run__line', expect: '.speed-run__stations', describe: 'a line opens its stations' },
+      /* The checklist opens the first line for you, so clicking that one closes it
+         and the stations vanish. The second line is the one that is shut. */
+      { id: 'race.speedrun.line', click: '.speed-run__lines li:nth-of-type(2) .speed-run__line', expect: '.speed-run__lines li:nth-of-type(2) .speed-run__stations', describe: 'a collapsed line opens its stations' },
       { id: 'race.speedrun.progress', expect: '.speed-run__progress progress', describe: 'and the run reports how many are left' },
     ],
   },
@@ -141,15 +148,20 @@ export const SURFACES = [
   {
     id: 'navigation',
     label: 'Plan',
-    heading: 'Plan your next connection',
+    /* No heading, because the rail is not a destination: it is chrome that is
+       present on every surface, so binding it to one page would be a claim that
+       is false wherever the run happens to be standing. */
     steps: [
       { id: 'nav.more.open', click: '.m3-nav__item--more', expect: '.m3-more[open]', describe: 'More opens its dialog on a phone', widths: [390] },
       { id: 'nav.more.close', click: '.m3-more__close', expect: '.m3-more:not([open])', describe: 'and closes, returning focus', widths: [390] },
-      { id: 'nav.rail.secondary', click: '.m3-nav__item--secondary', expect: 'main', describe: 'the rail reaches a secondary destination with no dialog', widths: [1440] },
+      { id: 'nav.rail.secondary', click: '.m3-nav__item--secondary', expect: '.m3-nav__item--secondary.is-active', describe: 'the rail reaches a secondary destination with no dialog', widths: [1440] },
       { id: 'nav.lang', click: '.m3-nav__lang:nth-of-type(2)', expect: '.m3-nav__lang[aria-pressed="true"]', describe: 'language can be changed from the rail' },
       { id: 'nav.lang.back', click: '.m3-nav__lang:nth-of-type(1)', expect: '.m3-nav__lang[aria-pressed="true"]', describe: 'and changed back' },
-      { id: 'nav.theme', click: '.m3-nav__theme', expect: 'html[data-theme]', describe: 'the colour theme can be switched' },
-      { id: 'nav.theme.back', click: '.m3-nav__theme', expect: 'html[data-theme]', describe: 'and switched back' },
+      /* `html[data-theme]` is true of every page in either theme, so these two
+         asserted nothing whatsoever and would have passed with the toggle
+         disconnected. The expectation is the other theme, then this one back. */
+      { id: 'nav.theme', click: '.m3-nav__theme', expect: ({ theme }) => `html[data-theme="${theme === 'dark' ? 'light' : 'dark'}"]`, describe: 'the colour theme can be switched' },
+      { id: 'nav.theme.back', click: '.m3-nav__theme', expect: ({ theme }) => `html[data-theme="${theme}"]`, describe: 'and switched back' },
     ],
   },
 ];

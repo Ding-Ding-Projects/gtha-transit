@@ -111,11 +111,47 @@ socket.on('message', (raw) => {
   }
 });
 
+/**
+ * Put the interface into the theme this tuple is for, using the control a person
+ * would use.
+ *
+ * Setting `data-theme` directly does not work and did not work for the whole life
+ * of this harness: the application owns that attribute and writes it from its own
+ * state on mount, so the assignment was overwritten a moment later. Nothing failed.
+ * The tuple went on calling itself dark, the label on every capture said dark, and
+ * eighty images were the light interface. A run that records the wrong theme is
+ * worse than a run that does not happen, because it is indistinguishable from
+ * coverage, so this refuses to continue rather than recording a lie.
+ */
+async function ensureTheme() {
+  const read = () => evaluate(`document.documentElement.getAttribute('data-theme')`);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await read() === THEME) return;
+    await evaluate(`(() => { const n = document.querySelector('.m3-nav__theme'); if (!n) return false; n.click(); return true; })()`);
+    await pause(700);
+  }
+  if (await read() !== THEME) {
+    console.error(`could not reach the ${THEME} theme; refusing to record captures labelled ${THEME}`);
+    process.exit(1);
+  }
+}
+
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: 900, deviceScaleFactor: SCALE, mobile: WIDTH < 900 });
 await send('Page.navigate', { url: URL_UNDER_TEST });
 if (!await waitFor('.m3-nav__item', 80)) { console.error('the interface never rendered'); process.exit(1); }
-await evaluate(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(THEME)})`);
+
+/* Start where a person arriving for the first time does.
+
+   Four tuples run back to back in one tab, and sessionStorage survives a
+   navigation, so the second tuple inherited the race room the first one had
+   created: its captures show another run's team name, and five plan steps
+   reported a pass while sitting on the race surface, because a place field
+   exists there too. Nothing failed and eight images were of the wrong page. */
+await evaluate(`(() => { try { window.localStorage.clear(); } catch {} try { window.sessionStorage.clear(); } catch {} return true; })()`);
+await send('Page.navigate', { url: URL_UNDER_TEST });
+if (!await waitFor('.m3-nav__item', 80)) { console.error('the interface never came back'); process.exit(1); }
+await ensureTheme();
 await pause(1800);
 
 // ---------------------------------------------------------------- one step --
@@ -176,6 +212,18 @@ for (const surface of SURFACES) {
   for (const step of surface.steps) {
     sequence += 1;
     const before = await state();
+
+    /* Several selectors are not unique to one surface: a place field exists on
+       the composer and on the race start form, so a run that had drifted onto
+       the wrong page went on reporting passes for controls it really did find,
+       on a surface nobody asked about. A step belongs to its surface. */
+    const onSurface = !surface.heading || String(before.heading || '').includes(surface.heading);
+
+    /* Some expectations only mean something relative to the tuple. `html[data-theme]`
+       is true of every page in both themes, so the two theme steps asserted nothing
+       and would have passed while the toggle did nothing at all. A step may name a
+       function instead, and the resolved selector is what gets recorded. */
+    const expected = typeof step.expect === 'function' ? step.expect({ theme: THEME, width: WIDTH }) : step.expect;
     let observedTarget = null;
     let acted = false;
     let inputMethod = null;
@@ -237,7 +285,11 @@ for (const surface of SURFACES) {
     }
 
     // A bounded semantic poll, then the assertion. Never a fixed sleep alone.
-    let arrived = (acted || assertion) ? await waitFor(step.expect) : false;
+    let arrived = (acted || assertion) ? await waitFor(expected) : false;
+    if (arrived && !onSurface && step.kind !== 'destination') {
+      arrived = false;
+      observedTarget = { tag: 'surface', name: `expected "${surface.heading}", was on "${before.heading}"`.slice(0, 60) };
+    }
 
     /* A destination step whose expectation is only `main` passes on every page in
        the application, because `main` is always there. Three of them did exactly
@@ -268,7 +320,7 @@ for (const surface of SURFACES) {
       optional: Boolean(step.optional),
       inputMethod,
       target: observedTarget,
-      expected: step.expect,
+      expected,
       before,
       after,
       acted,
@@ -279,7 +331,11 @@ for (const surface of SURFACES) {
         ? 'not-applicable'
         : missing
           ? (step.optional ? 'absent-optional' : 'absent')
-          : arrived ? 'pass' : 'state-not-reached',
+          /* An optional step depends on live data. When the vehicle it needed was
+             not running, the click is absent and that is already tolerated; the
+             assertion after it cannot reach its state either, and calling that a
+             failure punishes the run for the feed being quiet. */
+          : arrived ? 'pass' : (step.optional ? 'absent-optional' : 'state-not-reached'),
       sourceCommit: COMMIT,
       artifactSha256: artifact,
       viewport: { width: WIDTH, height: 900 },
