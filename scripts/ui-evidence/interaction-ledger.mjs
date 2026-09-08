@@ -137,17 +137,26 @@ const describeTarget = (selector) => evaluate(`(() => {
 })()`);
 
 async function goToDestination(label) {
+  /* Matched on the label element, not on the item's textContent. Material Symbols
+     is a ligature font, so the glyph IS text: a destination's textContent now
+     begins with "garage" or "sensors" and every startsWith(label) match silently
+     stopped finding anything. The label span is the only part that is the label. */
   const how = await evaluate(`(() => {
-    const primary = [...document.querySelectorAll('.m3-nav__item')].find((n) => n.textContent.trim().startsWith(${JSON.stringify(label)}));
+    const labelOf = (node) => (node.querySelector('.m3-nav__label') || node).textContent.trim();
+    const items = [...document.querySelectorAll('.m3-nav__item')];
+    const primary = items.find((n) => labelOf(n).startsWith(${JSON.stringify(label)}) && n.offsetParent !== null);
     if (primary) { primary.click(); return 'rail'; }
-    const more = [...document.querySelectorAll('.m3-nav__item')][4];
-    if (!more) return null;
+    const more = document.querySelector('.m3-nav__item--more');
+    if (!more || more.offsetParent === null) return null;
     more.click();
     return 'more';
   })()`);
   if (how === 'more') {
     await pause(600);
-    await evaluate(`(() => { const i = [...document.querySelectorAll('.m3-more__item')].find((n) => n.textContent.trim().startsWith(${JSON.stringify(label)})); if (i) i.click(); })()`);
+    await evaluate(`(() => {
+      const i = [...document.querySelectorAll('.m3-more__item')].find((n) => (n.querySelector('span') || n).textContent.trim().startsWith(${JSON.stringify(label)}));
+      if (i) i.click();
+    })()`);
   }
   return how;
 }
