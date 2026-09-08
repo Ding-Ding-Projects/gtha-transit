@@ -20,7 +20,7 @@
 }
 [hidden] { display: none !important; }
 .shell { max-width: none; min-height: 100dvh; background: var(--bg); }.workspace-topline {
-  margin-left: var(--workspace-rail); display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   gap: 24px; padding: 27px 36px 24px; border-bottom: 1px solid var(--border); background: var(--surface);
 }
 .workspace-label { font-size: 10px; letter-spacing: 1.6px; font-weight: 750; color: var(--muted); }
@@ -28,7 +28,10 @@
 .workspace-topline h1:focus { outline: none; }
 .build-stamp { flex: 0 1 auto; display: grid; gap: 4px; font-size: 11px; text-align: right; color: var(--muted); max-width: 270px; font-variant-numeric: tabular-nums; }
 .build-stamp strong { font-size: 11px; color: var(--text); }
-.shell .workspace { display: block; margin-left: var(--workspace-rail); min-height: calc(100dvh - 180px); border: 0; padding: 28px 36px; }
+/* No margin-left here: .shell already pads by the rail width, and adding it
+   again left an 84px strip of dead space between the rail and the content on
+   every surface. */
+.shell .workspace { display: block; min-height: calc(100dvh - 180px); border: 0; padding: 28px 36px; }
 .shell[data-tab='plan'] .workspace { display: grid; grid-template-columns: minmax(300px, 350px) minmax(0, 1fr); gap: 24px; align-items: start; }
 .shell .planner { position: static; padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); min-width: 0; height: auto; max-height: none; overflow: visible; box-shadow: var(--shadow); }
 .planner > .eyebrow, .planner > .lede { display: none; }
@@ -213,7 +216,7 @@ html[data-theme='dark'] .primary { color: var(--bg); }
 .navigation-destinations button { display: flex; align-items: center; gap: 14px; padding: 16px; min-height: 60px; border-radius: 16px; background: var(--surface2); text-align: left; }
 .navigation-destinations button > span { flex: 1; }
 .navigation-destinations button[aria-current='page'] { background: var(--primary); color: var(--bg); }
-.shell .footer { margin-left: var(--workspace-rail); border-top: 1px solid var(--border); background: transparent; padding: 16px 36px; font-size: 10px; gap: 18px; color: var(--muted); }
+.shell .footer { border-top: 1px solid var(--border); background: transparent; padding: 16px 36px; font-size: 10px; gap: 18px; color: var(--muted); }
 .toast { z-index: 1600; border-radius: 16px; background: var(--text); color: var(--surface); box-shadow: 0 10px 40px #0003; padding: 16px 20px; }
 .error { border: 1px solid color-mix(in srgb, var(--alert), transparent 70%); border-radius: 16px; padding: 16px; font-size: 13px; }
 button, a, summary, input, select { scroll-margin: 18px; }
@@ -378,10 +381,22 @@ button:disabled { cursor: not-allowed; }
    one from a screenshot. */
 @media (min-width: 905px) {
   .shell[data-tab='plan'] .workspace {
-    grid-template-columns: 408px minmax(0, 1fr);
+    grid-template-columns: 468px minmax(0, 1fr);
     gap: 0;
     padding: 0;
     align-items: stretch;
+  }
+  /* The composer is the design's width while it is a form, and grows when a chip
+     opens. Trip options holds a route picker, four priority choices, a walking
+     distance and a washroom preference, and 360px turned every one of them into
+     a stack of two-word lines. Widening it permanently would spend the map's room
+     on a panel that is closed almost all of the time, so it is spent only while
+     the panel is open. */
+  .shell[data-tab='plan'] .workspace:has(.planner details[open]) {
+    grid-template-columns: 660px minmax(0, 1fr);
+  }
+  .shell[data-tab='plan'] .workspace {
+    transition: grid-template-columns var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized);
   }
   .shell[data-tab='plan'] .planner {
     margin: 24px;
@@ -421,6 +436,9 @@ button:disabled { cursor: not-allowed; }
      kept its area's full width regardless, so the 24px each side pushed it 9px
      past the viewport into a sideways scroll. max-width caps the box itself,
      which is the one instruction that cannot be reinterpreted. */
+  @media (prefers-reduced-motion: reduce) {
+    .shell[data-tab='plan'] .workspace { transition: none; }
+  }
   .shell[data-tab='plan'] .status-rail {
     margin: 0 24px 24px;
     min-width: 0;

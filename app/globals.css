@@ -129,7 +129,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #438cff;
+  outline: 3px solid var(--md-sys-color-primary);
   outline-offset: 3px;
 }
 button:focus-visible {
@@ -175,6 +175,97 @@ select {
   min-width: 0;
   max-width: 100%;
   color: var(--text);
+}
+
+/* ------------------------------------------ Material Design 3 form controls -- */
+/* These stayed as the browser drew them: a grey system dropdown and a square the
+   platform fills in its own blue, sitting in the middle of a Material surface.
+   They are still the real elements, because a div pretending to be a checkbox
+   loses the keyboard, the label association and the screen-reader announcement
+   in one go. Only the skin changes.
+
+   This layer owns border, background, radius and padding for all of them, so a
+   component rule that also sets padding will put its text under the caret drawn
+   here. Component rules should set layout only. */
+
+select {
+  appearance: none;
+  min-height: 44px;
+  padding: 10px 38px 10px 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small);
+  background-color: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+  /* appearance: none removes the platform's caret and puts nothing in its place,
+     so this draws one. Two gradients rather than a glyph: a font that has not
+     loaded would otherwise leave the control looking like a plain box. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 18px center, right 13px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select:hover { background-color: var(--md-sys-color-surface-container); }
+select:disabled { opacity: 0.38; cursor: not-allowed; }
+
+input[type='checkbox'],
+input[type='radio'] {
+  appearance: none;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 2px solid var(--md-sys-color-on-surface-variant);
+  background: transparent;
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+input[type='checkbox'] { border-radius: 2px; }
+input[type='radio'] { border-radius: var(--md-sys-shape-corner-full); }
+
+input[type='checkbox']::before,
+input[type='radio']::before {
+  content: '';
+  transform: scale(0);
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+input[type='checkbox']::before {
+  width: 13px;
+  height: 13px;
+  background: var(--md-sys-color-on-primary);
+  /* The tick is a shape, not a character, for the same reason as the caret. */
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+input[type='radio']::before {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+input[type='checkbox']:checked {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+input[type='radio']:checked { border-color: var(--md-sys-color-primary); }
+input[type='checkbox']:checked::before,
+input[type='radio']:checked::before { transform: scale(1); }
+input[type='checkbox']:disabled,
+input[type='radio']:disabled { opacity: 0.38; cursor: not-allowed; }
+
+/* The thumb and filled track follow the accent without reimplementing a slider,
+   which would cost the keyboard behaviour the native one already has. */
+input[type='range'] { accent-color: var(--md-sys-color-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='checkbox']::before,
+  input[type='radio']::before { transition: none; }
 }
 .skip {
   position: fixed;
@@ -388,6 +479,10 @@ select {
 }
 .trip-chips > details { margin: 0; }
 .trip-chips > details[open] { grid-column: 1 / -1; }
+/* With the panel wider, the priority choices and the walking distance can sit
+   beside each other instead of stacking into two-word lines. */
+.trip-options__body { display: grid; gap: 14px; }
+.journey-priority { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 
 /* The chip is a label above its value, so the value is legible without opening
    anything. Times use the mono face with tabular figures, so a minute changing
@@ -500,11 +595,9 @@ select {
 .time-row select,
 .options select,
 .settings select {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 10px;
+  /* Layout only. Border, background, radius and padding belong to the control
+     layer, and re-declaring padding here put the value under the drawn caret. */
   width: 100%;
-  padding: 10px 7px;
   font-size: 13px;
   min-height: 44px;
 }
@@ -1993,10 +2086,6 @@ select {
 .race-card input[type='file'],
 .race-card select {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg);
   color: var(--text);
   font: inherit;
 }

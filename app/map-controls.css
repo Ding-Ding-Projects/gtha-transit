@@ -86,10 +86,6 @@
 .history-filters input,
 .history-filters select {
   width: 100%;
-  min-height: 44px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
   border-radius: 10px;
   font-size: 16px;
 }
@@ -299,4 +295,25 @@
   .content {
     scroll-margin-top: 135px;
   }
+}
+
+/* ------------------------------------------------- journey lines and stops -- */
+/* Leaflet takes a literal colour, and a literal cannot follow the theme: the
+   route line stayed the previous palette's green on an amber interface, in both
+   schemes. These are classes on the path instead, so the stylesheet answers and
+   re-answers for free when the theme changes. */
+.route-line--transit { stroke: var(--md-sys-color-primary); }
+.route-line--walk { stroke: var(--md-sys-color-on-surface-variant); }
+
+/* The stops the trip actually calls at. Drawn as a ring rather than a filled dot
+   so the line stays readable underneath, and filled with the surface colour so a
+   stop reads as a break in the line rather than a blob on top of it. */
+.route-stop {
+  stroke: var(--md-sys-color-primary);
+  fill: var(--md-sys-color-surface-container-lowest);
+  fill-opacity: 1;
+}
+.route-stop--end {
+  stroke: var(--md-sys-color-on-surface);
+  fill: var(--md-sys-color-surface-container-lowest);
 }

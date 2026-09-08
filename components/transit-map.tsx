@@ -133,11 +133,51 @@ export default function TransitMap({
         } catch {}
         if (!points.length) return;
         bounds.push(...points);
+        const walking = leg.mode === 'WALK';
+        /* The colour is a class rather than an option. Leaflet takes a literal,
+           and a literal cannot follow the theme: the line stayed the previous
+           palette's green on an amber interface, in both schemes. A class lets
+           the stylesheet answer, which it re-answers for free when the theme
+           changes. */
         L.polyline(points, {
-          color: leg.mode === 'WALK' ? '#65756c' : '#1b7556',
-          weight: leg.mode === 'WALK' ? 4 : 6,
-          dashArray: leg.mode === 'WALK' ? '5 8' : undefined,
+          className: walking ? 'route-line route-line--walk' : 'route-line route-line--transit',
+          weight: walking ? 4 : 6,
+          dashArray: walking ? '5 8' : undefined,
         }).addTo(layer.current);
+
+        /* The stops the trip actually calls at. The routing API has returned
+           these on every leg all along; the map simply never drew them, so a
+           journey was a line between two pins with nothing to say where it
+           stopped. Walking legs have none, by definition. */
+        if (walking) return;
+        for (const stop of leg.intermediateStops ?? []) {
+          if (!Number.isFinite(stop?.lat) || !Number.isFinite(stop?.lon)) continue;
+          const label = document.createElement('span');
+          label.textContent = stop.name;
+          L.circleMarker([stop.lat, stop.lon], {
+            className: 'route-stop',
+            radius: 4,
+            weight: 2,
+            interactive: true,
+          })
+            .bindTooltip(label)
+            .addTo(layer.current);
+        }
+        /* Where you get on and off is worth more than a stop in between, so it
+           is drawn larger and last, over the line rather than under it. */
+        for (const end of [leg.from, leg.to]) {
+          if (!Number.isFinite(end?.lat) || !Number.isFinite(end?.lon)) continue;
+          const label = document.createElement('span');
+          label.textContent = end.name;
+          L.circleMarker([end.lat, end.lon], {
+            className: 'route-stop route-stop--end',
+            radius: 6,
+            weight: 3,
+            interactive: true,
+          })
+            .bindTooltip(label)
+            .addTo(layer.current);
+        }
       });
       if (bounds.length)
         map.current.fitBounds(bounds, { padding: [55, 55], maxZoom: 14 });
