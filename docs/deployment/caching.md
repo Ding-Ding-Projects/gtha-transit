@@ -67,5 +67,15 @@ sub-millisecond rounding removed, and on the server side the `ETag`, the
 `Last-Modified` and the conditional-request branch each deleted.
 
 The headers were then read back off a running server rather than inferred from the
-source — which mattered, because the first probe ran against a stale process still
-holding the port and reported that none of it worked.
+source — which mattered twice.
+
+The first probe ran against a stale process still holding the port and reported
+that none of it worked. And the first deploy took the site down: the runtime image
+copies named directories, `lib/` was not one of them, and moving the policy into a
+module the server imports produced a container that built cleanly and exited with
+`ERR_MODULE_NOT_FOUND`. Adding an import across the image boundary without adding
+the directory is invisible from a checkout, where the file is always there.
+
+Confirmed on the deployed origin afterwards: the document answers a conditional
+request with `304` and zero bytes against `200` and 62,575 cold, build assets and
+content-addressed fonts come back `immutable`, and the icon font does not.
