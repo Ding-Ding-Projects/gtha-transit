@@ -24,7 +24,26 @@ test('classifies only fresh vehicles from single-garage fleet allocations', asyn
 
 test('fails closed on expired evidence, stale observations, non-TTC vehicles, and missing routes', async () => {
   const registry = await loadTtcDivisionRegistry();
-  assert.equal(classifyOutOfDivision(vehicle(), '29', registry, { now: Date.parse('2026-09-06T12:00:00Z') }).reason, 'allocation-source-expired');
+  /* A summary that has not started yet says nothing about today, so it refuses.
+     One that has ended is the last allocation the operator published and is used,
+     because refusing left every vehicle unclassified for the whole gap between
+     board periods. Which one it is travels with the answer as sourceCoverage. */
+  const beforeItStarts = classifyOutOfDivision(vehicle(), '29', registry, { now: Date.parse('2026-07-01T12:00:00Z') });
+  assert.equal(beforeItStarts.reason, 'allocation-source-not-yet-in-effect');
+  assert.equal(beforeItStarts.sourceCoverage, 'not-yet-in-effect');
+
+  /* Fresh at that moment, not at NOW. The fixture's timestamp is fixed, so a
+     vehicle reused at a later date is two months stale and would fail freshness
+     for a reason that has nothing to do with the source period. */
+  const later = Date.parse('2026-09-06T12:00:00Z');
+  const afterItEnds = classifyOutOfDivision(vehicle({ timestamp: new Date(later - 30_000).toISOString() }), '29', registry, { now: later });
+  assert.equal(afterItEnds.sourceCoverage, 'last-published', 'the last published summary should still answer');
+  assert.notEqual(afterItEnds.reason, 'allocation-source-expired', 'it no longer refuses once the period ends');
+
+  const during = classifyOutOfDivision(vehicle(), '29', registry, { now: NOW });
+  assert.equal(during.sourceCoverage, 'current');
+  // Whatever the coverage, the answer itself must not change between them.
+  assert.equal(afterItEnds.state, during.state, 'the classification changed with the calendar rather than the data');
   assert.equal(classifyOutOfDivision(vehicle({ stale: true }), '29', registry, { now: NOW }).reason, 'not-a-fresh-ttc-vehicle');
   assert.equal(classifyOutOfDivision(vehicle({ timestamp: 'not-a-date' }), '29', registry, { now: NOW }).reason, 'not-a-fresh-ttc-vehicle');
   assert.equal(classifyOutOfDivision(vehicle({ timestamp: new Date(NOW + 1).toISOString() }), '29', registry, { now: NOW }).reason, 'not-a-fresh-ttc-vehicle');

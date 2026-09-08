@@ -51,9 +51,22 @@ function usedGlyphNames() {
   const names = new Map();
   for (const file of sourceFiles()) {
     const source = readFileSync(file, 'utf8');
-    for (const match of source.matchAll(/<Icon\s+name=["']([a-z0-9_]+)["']/g)) {
-      if (!names.has(match[1])) names.set(match[1], []);
-      names.get(match[1]).push(path.relative(root, file));
+    /* Every <Icon> tag, then every quoted glyph-shaped string inside it.
+       Matching only `name="literal"` missed the far more common conditional form,
+       `name={busy ? 'refresh' : 'arrow_forward'}`, and it missed it silently:
+       the guard passed on a component asking for a glyph the subset does not
+       carry, which would have rendered the word "check_circle" in the interface.
+       A guard that only sees one spelling of a usage is a guard with a hole. */
+    for (const tag of source.matchAll(/<Icon\b[^>]*>/g)) {
+      const attribute = /\bname=(?:["']([a-z][a-z0-9_]*)["']|\{([^}]*)\})/.exec(tag[0]);
+      if (!attribute) continue;
+      // Only the name attribute. Reading every quoted string in the tag also
+      // picked up className="spin" and aria-hidden="true", which are not glyphs.
+      const candidates = attribute[1] ? [attribute[1]] : [...(attribute[2] ?? '').matchAll(/["']([a-z][a-z0-9_]*)["']/g)].map((one) => one[1]);
+      for (const glyph of candidates) {
+        if (!names.has(glyph)) names.set(glyph, []);
+        names.get(glyph).push(path.relative(root, file));
+      }
     }
   }
   return names;

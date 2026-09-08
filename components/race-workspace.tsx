@@ -23,6 +23,7 @@ import {
 import type { Itinerary, Place } from '../lib/types';
 import { drawRoutes, toRaceRoutes, type Draw, type RaceRoute } from '../lib/race-routes';
 import { resolveTorontoTime, torontoLocalInput } from '../lib/journey-utils';
+import SpeedRunStations from './speed-run-stations';
 
 type Props = { t: (en: string, zh: string) => string };
 
@@ -511,6 +512,14 @@ export default function RaceWorkspace({ t }: Props) {
           <p className="data-note">
             {t('Riding for', '你代表')} <b>{myTeam?.name || t('your team', '你隊')}</b>
           </p>
+          {room?.mode === 'speedrun' && (
+            <SpeedRunStations
+              checkins={room.checkins}
+              teamId={person.teamId}
+              onChoose={(station) => { setTarget(station); setChosen(null); }}
+              t={t}
+            />
+          )}
           <label htmlFor="race-target">{room?.mode === 'speedrun' ? t('Which station are you at?', '你而家喺邊個站？') : t('Where are you?', '你而家喺邊？')}</label>
           <input id="race-target" value={target} autoComplete="off" onChange={(event) => { setTarget(event.target.value); setChosen(null); }} />
           {suggestions.length > 0 && !chosen && (
@@ -529,11 +538,18 @@ export default function RaceWorkspace({ t }: Props) {
           <div className="race-photo">
             <input ref={photoInput} type="file" accept="image/*" capture="environment" id="race-photo"
               onChange={(event) => attachPhoto(event.target.files?.[0] || null)} />
-            <label htmlFor="race-photo">{t('Photo proof (optional)', '相片證明（可選）')}</label>
+            <label htmlFor="race-photo">
+              {room?.mode === 'speedrun'
+                ? t('Photo proof (required)', '相片證明（必須）')
+                : t('Photo proof (optional)', '相片證明（可選）')}
+            </label>
           </div>
           {photoNote && <p className="data-note">{photoNote}</p>}
 
-          <button type="button" className="primary" disabled={busy || !target.trim()} onClick={() => run(async () => {
+          {room?.mode === 'speedrun' && !pendingPhoto && (
+            <p className="data-note">{t('A speed run check-in needs a photo. Take one at the station to record it.', '極速挑戰打卡要有相。喺個站影一張先可以記錄。')}</p>
+          )}
+          <button type="button" className="primary" disabled={busy || !target.trim() || (room?.mode === 'speedrun' && !pendingPhoto)} onClick={() => run(async () => {
             const distance = chosen && position && typeof chosen.lat === 'number' && typeof chosen.lon === 'number'
               ? Math.round(metresBetween(position.lat, position.lon, chosen.lat, chosen.lon))
               : undefined;

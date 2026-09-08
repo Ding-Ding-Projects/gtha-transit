@@ -27,9 +27,32 @@ export function routeGarages(registry, routeId) {
   return Object.entries(registry.routesByGarage).filter(([, routes]) => routes.includes(route)).map(([garage]) => garage);
 }
 
+/**
+ * Whether the published period still covers a day, and which side of it we are on.
+ *
+ * Before the period starts is a different thing from after it ends. A summary
+ * that has not begun describes service nobody is running yet, and using it would
+ * be a guess about the future. One that has ended describes the last service the
+ * operator published, which is the best available answer until the next summary
+ * is out, and garage allocations move slowly enough for that to be worth having.
+ */
+export function sourceCoverage(registry, now = Date.now()) {
+  const today = day(now);
+  if (today < registry.source.validFrom) return 'not-yet-in-effect';
+  if (today > registry.source.validThrough) return 'last-published';
+  return 'current';
+}
+
 export function classifyOutOfDivision(vehicle, routeId, registry, { now = Date.now() } = {}) {
-  const evidence = { source: registry.source, routeId: String(routeId ?? ''), vehicleId: String(vehicle?.id ?? ''), fleetNumber: String(vehicle?.fleetNumber ?? vehicle?.label ?? '') };
-  if (day(now) < registry.source.validFrom || day(now) > registry.source.validThrough) return { state: 'unknown', reason: 'allocation-source-expired', ...evidence };
+  const coverage = sourceCoverage(registry, now);
+  const evidence = { source: registry.source, sourceCoverage: coverage, routeId: String(routeId ?? ''), vehicleId: String(vehicle?.id ?? ''), fleetNumber: String(vehicle?.fleetNumber ?? vehicle?.label ?? '') };
+  /* A summary that has not started yet cannot say anything about today. One that
+     has ended can: it is the last allocation the operator published, and refusing
+     to use it left every vehicle unclassified for the whole gap between board
+     periods, which reads as "we found nothing" rather than "the answer is a few
+     days old". It is carried on every result as sourceCoverage so nothing
+     downstream can present it as current. */
+  if (coverage === 'not-yet-in-effect') return { state: 'unknown', reason: 'allocation-source-not-yet-in-effect', ...evidence };
   if (!vehicle || vehicle.agencyId !== 'ttc') return { state: 'unknown', reason: 'not-a-fresh-ttc-vehicle', ...evidence };
   const observedAt = timestampMs(vehicle?.timestamp);
   if (vehicle.stale || !Number.isFinite(observedAt) || observedAt > now || now - observedAt > 120_000) return { state: 'unknown', reason: 'not-a-fresh-ttc-vehicle', ...evidence };

@@ -23,8 +23,15 @@ test('withholds division evidence for completed, too-distant, ambiguous, expired
   const legs = [assigned({ endTime: NOW - 1 }), assigned({ startTime: NOW + 7_200_001, endTime: NOW + 7_260_001 }), assigned({ vehicle: { ...assigned().vehicle, fleetNumber: '9001' } }), routeOnly];
   const result = annotateJourneyDivisions([{ legs }], registry, { now: NOW });
   assert.deepEqual(result.itineraries[0].legs.map((leg) => leg.vehicleDivision.reason), ['leg-is-not-current', 'leg-is-not-current', 'multi-garage-fleet-allocation', 'no-exact-vehicle-assignment']);
-  const expiredNow = Date.parse('2026-09-06T04:01:00Z'); const expiredLeg = assigned({ startTime: expiredNow - 60_000, endTime: expiredNow + 60_000, vehicle: { ...assigned().vehicle, timestamp: expiredNow - 30_000 } });
-  assert.equal(annotateJourneyDivisions([{ legs: [expiredLeg] }], registry, { now: expiredNow }).itineraries[0].legs[0].vehicleDivision.reason, 'allocation-source-expired');
+  /* Past the published period the last summary still answers, marked as such.
+     It used to refuse, which left every leg unclassified for the whole gap
+     between board periods and read as "no evidence" rather than "evidence a few
+     days old". */
+  const pastThePeriod = Date.parse('2026-09-06T04:01:00Z');
+  const lateLeg = assigned({ startTime: pastThePeriod - 60_000, endTime: pastThePeriod + 60_000, vehicle: { ...assigned().vehicle, timestamp: pastThePeriod - 30_000 } });
+  const late = annotateJourneyDivisions([{ legs: [lateLeg] }], registry, { now: pastThePeriod }).itineraries[0].legs[0].vehicleDivision;
+  assert.notEqual(late.reason, 'allocation-source-expired', 'it should no longer refuse once the period ends');
+  assert.equal(late.sourceCoverage, 'last-published', 'and it must say which period the answer came from');
 });
 
 test('accepts a verified upcoming boarding within two hours but not one three hours away', () => {

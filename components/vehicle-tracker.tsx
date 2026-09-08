@@ -136,10 +136,10 @@ export default function VehicleTracker({
   const samples = useMemo(() => fleetResult.vehicles.map(vehicle => [vehicle.id, vehicle.fleetNumber, vehicle.label, vehicle.agencyId, vehicle.agencyName, vehicle.routeId, vehicle.cptdb?.manufacturer, vehicle.cptdb?.model, vehicle.cptdb?.year].filter(Boolean).join(' ').slice(0, 512)), [fleetResult.vehicles]);
   const matching = useSearchMatches(samples, search);
   const filterError = fleetResult.error === 'Select a manufacturer before filtering by model.' ? t(fleetResult.error, '請先選擇製造商，再篩選型號。') : fleetResult.error === 'Enter a whole year from 1800 through 3000.' ? t(fleetResult.error, '請輸入 1800 至 3000 之間嘅完整年份。') : fleetResult.error === 'The start year must be the same as or earlier than the end year.' ? t(fleetResult.error, '開始年份必須早於或等於結束年份。') : fleetResult.error;
-  /* The API already refuses to classify from an expired source; this is only the
-     interface working out whether to explain that, from the same field. Compared
-     as calendar days in Toronto, because a reader in another timezone should see
-     the same answer the routing service gave. */
+  /* The API keeps answering from the last published summary once its period ends,
+     so this works out whether to say so, from the same field it used. Compared as
+     calendar days in Toronto, because a reader in another timezone should see the
+     same answer the routing service gave. */
   const expiredThrough = useMemo(() => {
     const validThrough = sourceData?.source?.validThrough;
     if (typeof validThrough !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(validThrough)) return null;
@@ -406,11 +406,11 @@ export default function VehicleTracker({
             already carries the live-region semantics a screen reader reads. */}
         {expiredThrough && (
           <output className="division-expired">
-            <strong>{t('Garage assignments are unavailable', '車廠分配資料暫時未能提供')}</strong>
+            <strong>{t('Using the last published garage allocations', '使用最後一份公布嘅車廠分配')}</strong>
             <p>
               {t(
-                `The TTC allocation source covers service through ${expiredThrough} and a newer Service Summary has not been published. Live vehicles are still shown; none of them can be matched to a home garage until the next one is out.`,
-                `TTC 配車資料只涵蓋至 ${expiredThrough}，而新一份 Service Summary 未出。即時車輛照樣顯示，但喺新資料出之前，冇一架可以對到所屬車廠。`,
+                `The TTC summary these come from covers service through ${expiredThrough}, and the next one is not out yet. Garages are still shown, because allocations move slowly and the last published answer beats no answer, but they describe that period rather than today.`,
+                `呢啲資料嚟自涵蓋至 ${expiredThrough} 嘅 TTC 摘要，下一份未出。車廠照樣顯示，因為配車轉得慢，有個最後公布嘅答案好過乜都冇；不過佢講嘅係嗰段時間，唔係今日。`,
               )}
             </p>
             {safe(data?.source?.publisherPage) && (
@@ -518,8 +518,8 @@ export default function VehicleTracker({
               </strong>
             </span>
           </div>
-          {selected.division?.state === 'unknown' && <p className="division-evidence-note">{selected.division.reason === 'allocation-source-expired'
-            ? t('The official allocation source is outside its validity dates. A new source is needed to verify this assignment.', '官方配車來源已過有效日期，需要新資料先可以核實。')
+          {selected.division?.state === 'unknown' && <p className="division-evidence-note">{selected.division.reason === 'allocation-source-not-yet-in-effect'
+            ? t('The official allocation source covers a period that has not started, so it cannot describe today.', '官方配車來源已過有效日期，需要新資料先可以核實。')
             : selected.division.reason === 'multi-garage-fleet-allocation'
               ? t('This fleet series belongs to more than one garage, so this unit’s home garage cannot be confirmed from the series alone.', '呢個車隊系列分配到多個車廠，單靠系列未能核實呢架車嘅所屬車廠。')
               : t('The available route, fleet or observation evidence is insufficient to verify this garage assignment.', '現有路線、車隊或位置資料不足以核實呢個車廠分配。')}</p>}

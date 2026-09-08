@@ -24,6 +24,7 @@ const FONTS_DIRECTORY = resolve(REPOSITORY_DIRECTORY, 'public', 'fonts');
  */
 const ICON_NAMES = [
   'add', 'alt_route', 'arrow_back', 'arrow_forward', 'bookmark', 'calendar_month',
+  'check_circle',
   'chevron_right', 'close', 'dark_mode', 'directions_bus', 'directions_walk',
   'expand_less', 'expand_more', 'flag', 'garage', 'history', 'layers', 'light_mode',
   'map', 'more_horiz', 'my_location', 'place', 'public', 'refresh', 'remove',
@@ -472,8 +473,14 @@ async function vendorFamily(family) {
   const fontPaths = [...sourceToFileName.values()].map((fileName) => resolve(OUTPUT_DIRECTORY, fileName));
   await mkdir(OUTPUT_DIRECTORY, { recursive: true });
 
+  /* Tracked, not just written. Reporting only the css and licence meant a run
+     that replaced a font binary and nothing else announced itself as "already
+     current", which is the opposite of what happened. */
+  const changedFonts = [];
   for (const [sourceUrl, fileName] of sourceToFileName) {
-    await writeIfChanged(resolve(OUTPUT_DIRECTORY, fileName), fontBuffers.get(sourceUrl));
+    if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, fileName), fontBuffers.get(sourceUrl))) {
+      changedFonts.push(fileName);
+    }
   }
 
   const inspection = inspectWithFontTools(fontPaths, family);
@@ -540,7 +547,7 @@ async function vendorFamily(family) {
     inspection,
   };
 
-  const changed = [];
+  const changed = [...changedFonts];
   if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, `${family.slug}.css`), localCssBytes)) {
     changed.push(`${family.slug}.css`);
   }
