@@ -1,0 +1,453 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-08T07:21:28.845Z",
+  "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+  "reference": "GTHA Transit Redesign v2.dc.html",
+  "viewer": "scripts/design/reference-viewer.mjs",
+  "app": "https://toronto-transit.org/",
+  "rows": [
+    {
+      "id": "plan",
+      "referenceScreen": "Plan",
+      "appDestination": "Plan",
+      "appHeadingObserved": "Plan your next connection",
+      "state": "default, no journey planned",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:20:50.698Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 81,
+        "controlsWithoutInlineLiteralColour": 81,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 961545,
+        "differingShare": 0.7419,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/plan-reference.png",
+        "app": "docs/design/parity/plan-app.png",
+        "sideBySide": "docs/design/parity/plan-side-by-side.png",
+        "diff": "docs/design/parity/plan-diff.png"
+      },
+      "hashes": {
+        "reference": "550f15d8baef73dc084746211f720a4831775c9ef5ecd3f70ebc9ae8bce39b63",
+        "app": "6a923adf74be2e0d501dd71c8cd5f7ecc6b074eab4ef445c226dfca0c8588f7d",
+        "sideBySide": "96174c840008da374decc2b173c3a114588556578a9ad6920893217b74fc58e3",
+        "diff": "1aa8771784d4b4fbd98b782ce869690e79b952f8b1cbe9f1c0f61af3d91308a6"
+      },
+      "deviations": [
+        {
+          "what": "The reference draws the map as a placeholder slot; the application draws a real map.",
+          "why": "A design cannot carry live tiles. The comparison is of layout, chrome and type, not of map content."
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "referenceScreen": "Live",
+      "appDestination": "Live",
+      "appHeadingObserved": "The network, right now",
+      "state": "default",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:20:56.017Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 86,
+        "controlsWithoutInlineLiteralColour": 86,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 186478,
+        "differingShare": 0.1439,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/live-reference.png",
+        "app": "docs/design/parity/live-app.png",
+        "sideBySide": "docs/design/parity/live-side-by-side.png",
+        "diff": "docs/design/parity/live-diff.png"
+      },
+      "hashes": {
+        "reference": "46d5f822a3bedecb0095a246918d09890cc2cae4f4748524328d7d3507a4b62d",
+        "app": "11f86b0250850e611eb452b72df49827df98a6598a9ff7474bb0c711e8cc74ca",
+        "sideBySide": "715daac42712849d2f40690b157811ada89b4f781ebb953dd05601465ef8443b",
+        "diff": "a656871479b11843ba5b9cbf678e019e6ee49a2723acef17eca444e38b9642ab"
+      },
+      "deviations": [
+        {
+          "what": "Alert counts and line states differ.",
+          "why": "The reference holds placeholder values; the application shows what the network is actually doing at capture time."
+        }
+      ]
+    },
+    {
+      "id": "fleet",
+      "referenceScreen": "Fleet",
+      "appDestination": "Vehicles",
+      "appHeadingObserved": "Find your next ride",
+      "state": "default, no vehicle selected",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:01.562Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 200,
+        "controlsWithoutInlineLiteralColour": 100,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 833632,
+        "differingShare": 0.6432,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/fleet-reference.png",
+        "app": "docs/design/parity/fleet-app.png",
+        "sideBySide": "docs/design/parity/fleet-side-by-side.png",
+        "diff": "docs/design/parity/fleet-diff.png"
+      },
+      "hashes": {
+        "reference": "9e4fc594c27f706d75908584c5fefce7480ec3f3638908fedc0e62cfcef3e69a",
+        "app": "90928e0ce1b0c52d20deaf733c5cb28dcc12d8d9761d1dcdae466c0c16de42b6",
+        "sideBySide": "2806cec6a0202bff519951a0961569792874aa65d47249ee449f2fef93118302",
+        "diff": "82f8ad1a19eda520ae072907977a7ce926a92631c106cd7de213668b4fd25514"
+      },
+      "deviations": [
+        {
+          "what": "The reference shows one selected vehicle card; the captured application state has none selected.",
+          "why": "Which vehicle is running is live data, so a selected card cannot be reproduced deterministically. The card itself is driven and captured by the interaction ledger instead."
+        }
+      ]
+    },
+    {
+      "id": "race",
+      "referenceScreen": "Race",
+      "appDestination": "Race",
+      "appHeadingObserved": "Race across the region",
+      "state": "default, no room created",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:06.769Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 80,
+        "controlsWithoutInlineLiteralColour": 80,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 287775,
+        "differingShare": 0.222,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/race-reference.png",
+        "app": "docs/design/parity/race-app.png",
+        "sideBySide": "docs/design/parity/race-side-by-side.png",
+        "diff": "docs/design/parity/race-diff.png"
+      },
+      "hashes": {
+        "reference": "5f2db6007f8ff0c24f4dfeb8ff3cfba34c1b7d58e02b8707191bf519f13ad9a8",
+        "app": "01700e47d2200cc6e31e73cdceb17cd5853290ce4fc1cc57f9c72948d873b123",
+        "sideBySide": "5273e88fff744af55b36247ae6378b588b173c7db9fc32f32617c0277b3ac49d",
+        "diff": "554d89ec56fc6d48cb57f59d38fb9071117b2892aab6681dc6eacd096294b3fb"
+      },
+      "deviations": []
+    },
+    {
+      "id": "page",
+      "referenceScreen": "Page",
+      "appDestination": "History",
+      "appHeadingObserved": "The service record",
+      "state": "default preset",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:11.774Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 132,
+        "controlsWithoutInlineLiteralColour": 132,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 251574,
+        "differingShare": 0.1941,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/page-reference.png",
+        "app": "docs/design/parity/page-app.png",
+        "sideBySide": "docs/design/parity/page-side-by-side.png",
+        "diff": "docs/design/parity/page-diff.png"
+      },
+      "hashes": {
+        "reference": "c0b2b8bd64fbd55f2441cf16c43918fdb1815366bacaab924294ee5cafab63f9",
+        "app": "97802d15a1791074d74760d1887ce1b20fd978e7e1239cd42910c831c3f11c86",
+        "sideBySide": "16042c93f0c62b8b0487c0e3fb0eecf35458bbdbf4c7842a87ff2c6189a01531",
+        "diff": "d24b90bec17165b377130ac5206d34a2d5dfbc2edf2c66c77ad95681b134cd91"
+      },
+      "deviations": [
+        {
+          "what": "The reference screen is a generic content page: a note, some actions, optional statistics and a table. It names no destination.",
+          "why": "It is a template rather than a screen, so it is compared against the application's own stats-and-table surface, the service record. This mapping is an interpretation and is recorded as one rather than presented as something the design stated. The earlier revision of this design called the same screen Board page."
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "referenceScreen": "Settings",
+      "appDestination": "Settings",
+      "appHeadingObserved": "Make yourself at home",
+      "state": "first tab",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:17.077Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 116,
+        "controlsWithoutInlineLiteralColour": 116,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 498784,
+        "differingShare": 0.3849,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/settings-reference.png",
+        "app": "docs/design/parity/settings-app.png",
+        "sideBySide": "docs/design/parity/settings-side-by-side.png",
+        "diff": "docs/design/parity/settings-diff.png"
+      },
+      "hashes": {
+        "reference": "9995aecae73bd0ef6dc4678642bb0f6f45ee62ad7f66a1cc313441771a481eed",
+        "app": "69bf262239a541e7cdb5f55a6659207be3b8f0595ce5e6037198714b31dc7244",
+        "sideBySide": "d8576134da9c93cbf055118ea642ae8bf19df0b5f44a27b27a5c9b09e78c7c88",
+        "diff": "bad2ac01e6bce22cbbbde9bd6a98618ab1214c8f43d12af8c2da53a9ed8f2a93"
+      },
+      "deviations": [
+        {
+          "what": "The application's settings surface carries more sections than the reference draws, including the narrator voice pickers and the personal vocabulary upload.",
+          "why": "The reference draws the sections it was designed for. Removing a shipped control to match a picture would be a product change rather than a restyle."
+        }
+      ]
+    },
+    {
+      "id": "phone",
+      "referenceScreen": "Phone",
+      "appDestination": "Plan",
+      "appHeadingObserved": "Plan your next connection",
+      "state": "phone width",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:22.252Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 81,
+        "controlsWithoutInlineLiteralColour": 81,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 390,
+        "comparedHeight": 844,
+        "referenceSize": {
+          "width": 390,
+          "height": 844
+        },
+        "appSize": {
+          "width": 390,
+          "height": 844
+        },
+        "differingPixels": 162238,
+        "differingShare": 0.4929,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/phone-reference.png",
+        "app": "docs/design/parity/phone-app.png",
+        "sideBySide": "docs/design/parity/phone-side-by-side.png",
+        "diff": "docs/design/parity/phone-diff.png"
+      },
+      "hashes": {
+        "reference": "7dcf596bbbd9018a5a4f0da4756cbec0fc80cf0e2a589084fb2aa281101b2a1e",
+        "app": "e0e5639d66266115d4b0b5cef8fef5f3a0718d08db95a5872f32f992eed1ed64",
+        "sideBySide": "4aac62eaec590a4a490a34945b0399637849bfd0e61b0de004e9925c2e1784f9",
+        "diff": "0653371ae5efe9d499d9de3fd07cdb29eabccbf640659b10b84c47ce16f7d56d"
+      },
+      "deviations": [
+        {
+          "what": "The reference draws three phone frames side by side inside a desktop-width canvas.",
+          "why": "It is a presentation of one phone screen in several states, not a 390px page. The application is captured at a real 390px viewport, which is the thing the design is describing."
+        }
+      ]
+    },
+    {
+      "id": "bilingual",
+      "referenceScreen": "Bilingual",
+      "appDestination": "Plan",
+      "appHeadingObserved": "Plan your next connection · 規劃你嘅下一程",
+      "state": "bilingual language mode",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scale": 1,
+      "sourceCommit": "92153d654934defbdc2433d630f3075121a38e3b",
+      "capturedAt": "2026-09-08T07:21:28.843Z",
+      "materialAudit": {
+        "styleSheets": 2,
+        "controlsInspected": 81,
+        "controlsWithoutInlineLiteralColour": 81,
+        "chromeCarryingLiteralColour": [],
+        "primaryToken": "#ffb74a",
+        "surfaceToken": "#071327"
+      },
+      "comparison": {
+        "comparedWidth": 1440,
+        "comparedHeight": 900,
+        "referenceSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "appSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "differingPixels": 1167394,
+        "differingShare": 0.9008,
+        "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
+      },
+      "files": {
+        "reference": "docs/design/parity/bilingual-reference.png",
+        "app": "docs/design/parity/bilingual-app.png",
+        "sideBySide": "docs/design/parity/bilingual-side-by-side.png",
+        "diff": "docs/design/parity/bilingual-diff.png"
+      },
+      "hashes": {
+        "reference": "0b5546cb00ef09655102ab5384378c4eb9557e79e42759855057d4b1267218f0",
+        "app": "2e60efd4ee10910c7b258e88518b1b42c3d369791dcd901fa10587e702d1cab1",
+        "sideBySide": "3d1b4fe0b00bcfbb7375f410836bb6e4e216faecde01e36d7d02edd7759d39e8",
+        "diff": "a0d8b5ddddb5282a17c6476ff00dd6fc350819b3fb1506d34d47bb7c2f0a1303"
+      },
+      "deviations": [
+        {
+          "what": "The reference shows bilingual pairs on a single option card.",
+          "why": "The application applies bilingual mode across every surface, so the captured state is the whole composer in bilingual rather than one card."
+        }
+      ]
+    }
+  ]
+}

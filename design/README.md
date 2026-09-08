@@ -6,11 +6,20 @@ what was verified.
 
 ## Route taken, and why
 
-Material Designer is the preferred route for an interface redesign. It is not
-available in this environment: `DesignSync` reports that design-system
-authorization needs `/design-login`, which requires an interactive terminal.
-That is the exact blocker, and the sanctioned fallback was used instead — the
-project's own React and CSS, with the design files kept here.
+The redesign was authored in the design tool by the owner and handed over as an
+export. That export is checked in under `design/reference/`, byte for byte, and it
+is the specification: the implementation is compared against it rather than against
+a description of it.
+
+An earlier note here recorded that the design tool was unavailable because
+authorization needed an interactive terminal. That blocker no longer applies and
+the note was wrong for as long as it stayed, which is the reason it is called out
+here rather than quietly deleted.
+
+The implementation is the project's own React and CSS. A design is data: what it
+describes is built, and where it hard-codes something the project's contracts
+forbid, the intent is implemented through the sanctioned path and the difference is
+recorded rather than copied.
 
 ## What generates what
 
@@ -22,9 +31,18 @@ committed file still matches. The check also runs as a test.
 
 | Role source | Value | Where it came from |
 | --- | --- | --- |
-| Primary | `#006b68` | the teal every primary action already used |
-| Tertiary | `#d2f574` | the lime of the brand mark |
-| Secondary, neutral, neutral variant, error | derived | Material's own role structure |
+| Primary | `#ffb545` | the amber the design puts on every primary action |
+| Secondary | `#8a7355` | the warm brown the design uses beside it |
+| Tertiary | `#006b68` | the teal the previous identity used, kept as the third role |
+| Neutral | `#5c5a52` light, `#243248` dark | warm paper by day, blue ink by night |
+| Neutral variant | `#5f5b4f` light, `#28364c` dark | the same pair, one step cooler |
+| Error | `#ba1a1a` | Material's own error source |
+
+The neutral sources differ per scheme on purpose. The design is warm paper in the
+day and blue ink at night, and one neutral cannot be both: a single source would
+have made one of the two schemes a tinted version of the other rather than its own
+surface. This table is generated from nothing, so it is checked against
+`scripts/design/build-material-theme.mjs` by hand when a source changes.
 
 **Tones are solved in OKLCH, not HCT.** Material builds its tonal palettes in
 HCT; this is a different perceptually uniform space with the same tone numbering
@@ -59,7 +77,7 @@ Measured on the built interface before any of this existed:
 
 ## Navigation
 
-Four destinations earn a permanent place — Plan, Live, Vehicles, Saved — and
+Four destinations earn a permanent place (Plan, Live, Vehicles, Saved), and
 everything else sits behind one More target. A Material navigation rail at 80px
 on desktop, a navigation bar on mobile below the 905px breakpoint. One list feeds
 both, so they cannot drift apart. The active indicator is a shape behind the
@@ -72,7 +90,7 @@ decision each component makes. The third-party map controls are included, becaus
 a library default is not an exemption.
 
 **The one exemption is an inline link inside a sentence**, whose height is set by
-the text around it — WCAG 2.5.8 names that case. Measuring without it reported 52
+the text around it, which is the case WCAG 2.5.8 names. Measuring without it reported 52
 failures on a screen that had three, and "fixing" the other 49 would have been 49
 wrong changes to correct code. Any further exemption is a named selector with a
 written reason in `tests/material-theme.test.mjs`.
@@ -151,3 +169,41 @@ evidence or its reason.
 
 Suggested articles: [interface verification](../docs/interface/ui-verification.md),
 [the journey smoke test](../docs/verification/journey-smoke-test.md).
+
+## Design parity
+
+The reference is checked in, so the parity contract applies and is not optional.
+
+`scripts/design/reference-viewer.mjs` is a committed developer tool that serves the
+checked-in reference files as exported. It never copies or redraws them: a viewer
+that rebuilt its own reference would be comparing the implementation against itself.
+Each screen is addressable at `/screen/<label>`, so a capture names its whole tuple
+in the URL rather than depending on the order things were clicked.
+
+`design/parity-inventory.json` is hand-written and names every screen the reference
+declares, exactly once, with its viewer route, the application destination it is
+compared against, the state, theme, viewport and scale, and any deviation with the
+reason it was accepted. It is hand-written because deriving it from the reference
+would let a screen that vanished from both disappear without a word.
+
+`scripts/design/parity-capture.mjs` photographs both sides at that one tuple through
+the isolated headless route, builds a labelled side-by-side and a machine-readable
+diff, and measures the Material audit on the running page rather than asserting it.
+`tests/design-parity.test.mjs` fails closed on a missing screen, an incomplete tuple,
+a tuple that differs between the two sides, a capture that is absent or stale, a
+missing audit, or a deviation with no reason. Each of those eight boundaries was
+broken on purpose, watched going red, and restored.
+
+**What the diff is not.** The reference is a mock: its map, live counts and vehicle
+lists are placeholder slots, and its data bindings render as unresolved template
+expressions outside the design tool, because the export carries the template and not
+the data. The application has real ones. So a large pixel difference is expected by
+construction, it is recorded for review rather than gated on, and a threshold on it
+would either pass everything or block every honest change. What the comparison is
+actually for is layout, chrome, spacing and type.
+
+**The reference requests remote fonts.** The export links them from a font CDN. The
+product does not: all three families are vendored locally with digests, per the
+asset rules. The viewer serves the export unmodified, so opening it makes those
+requests from the machine running it. That is a developer tool rather than a shipped
+surface, and it is stated here rather than left to be discovered.

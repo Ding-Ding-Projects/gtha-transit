@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "note": "Hand-written. Every screen the target reference declares appears here exactly once. Deriving this list from the reference file would let a screen that disappeared from both vanish without a word, which is the one thing this is for.",
+  "reference": "GTHA Transit Redesign v2.dc.html",
+  "viewer": "scripts/design/reference-viewer.mjs",
+  "evidenceDirectory": "docs/design/parity",
+  "rows": [
+    {
+      "id": "plan",
+      "referenceScreen": "Plan",
+      "viewerRoute": "/screen/Plan?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Plan",
+      "appHeading": "Plan your next connection",
+      "state": "default, no journey planned",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The reference draws the map as a placeholder slot; the application draws a real map.",
+          "why": "A design cannot carry live tiles. The comparison is of layout, chrome and type, not of map content."
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "referenceScreen": "Live",
+      "viewerRoute": "/screen/Live?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Live",
+      "appHeading": "The network, right now",
+      "state": "default",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "Alert counts and line states differ.",
+          "why": "The reference holds placeholder values; the application shows what the network is actually doing at capture time."
+        }
+      ]
+    },
+    {
+      "id": "fleet",
+      "referenceScreen": "Fleet",
+      "viewerRoute": "/screen/Fleet?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Vehicles",
+      "appHeading": "Find your next ride",
+      "state": "default, no vehicle selected",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The reference shows one selected vehicle card; the captured application state has none selected.",
+          "why": "Which vehicle is running is live data, so a selected card cannot be reproduced deterministically. The card itself is driven and captured by the interaction ledger instead."
+        }
+      ]
+    },
+    {
+      "id": "race",
+      "referenceScreen": "Race",
+      "viewerRoute": "/screen/Race?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Race",
+      "appHeading": "Race across the region",
+      "state": "default, no room created",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": []
+    },
+    {
+      "id": "page",
+      "referenceScreen": "Page",
+      "viewerRoute": "/screen/Page?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "History",
+      "appHeading": "The service record",
+      "state": "default preset",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The reference screen is a generic content page: a note, some actions, optional statistics and a table. It names no destination.",
+          "why": "It is a template rather than a screen, so it is compared against the application's own stats-and-table surface, the service record. This mapping is an interpretation and is recorded as one rather than presented as something the design stated. The earlier revision of this design called the same screen Board page."
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "referenceScreen": "Settings",
+      "viewerRoute": "/screen/Settings?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Settings",
+      "appHeading": "Make yourself at home",
+      "state": "first tab",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The application's settings surface carries more sections than the reference draws, including the narrator voice pickers and the personal vocabulary upload.",
+          "why": "The reference draws the sections it was designed for. Removing a shipped control to match a picture would be a product change rather than a restyle."
+        }
+      ]
+    },
+    {
+      "id": "phone",
+      "referenceScreen": "Phone",
+      "viewerRoute": "/screen/Phone?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Plan",
+      "appHeading": "Plan your next connection",
+      "state": "phone width",
+      "theme": "dark",
+      "viewport": { "width": 390, "height": 844 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The reference draws three phone frames side by side inside a desktop-width canvas.",
+          "why": "It is a presentation of one phone screen in several states, not a 390px page. The application is captured at a real 390px viewport, which is the thing the design is describing."
+        }
+      ]
+    },
+    {
+      "id": "bilingual",
+      "referenceScreen": "Bilingual",
+      "viewerRoute": "/screen/Bilingual?file=GTHA%20Transit%20Redesign%20v2.dc.html",
+      "appDestination": "Plan",
+      "appHeading": "Plan your next connection",
+      "state": "bilingual language mode",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "scale": 1,
+      "deviations": [
+        {
+          "what": "The reference shows bilingual pairs on a single option card.",
+          "why": "The application applies bilingual mode across every surface, so the captured state is the whole composer in bilingual rather than one card."
+        }
+      ]
+    }
+  ]
+}
