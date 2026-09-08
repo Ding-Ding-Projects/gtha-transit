@@ -9,7 +9,6 @@ import {
   Clock,
   Footprints,
   MapPin,
-  Map as MapIcon,
   Route,
   ShieldCheck,
   TrainFront,
@@ -1059,6 +1058,14 @@ export default function Home() {
                   ].join(' · ')
                 : t('Service coverage is being read', '正在讀取服務資料')}
             </p>
+            {/* What the planner does, in the design's chip row. These moved here
+                from a welcome panel on the map side, which is the one place the
+                claims were least needed and took the most room. */}
+            <ul className="plan-chips">
+              <li><Icon name="directions_walk" size={15} />{t('Walking connections', '步行接駁')}</li>
+              <li><Icon name="alt_route" size={15} />{t('Cross-agency routes', '跨公司路線')}</li>
+              <li><Icon name="public" size={15} />{t('Clear data sources', '資料來源清晰')}</li>
+            </ul>
           </form>
           {!!dateGaps.length && (
             <div className="error" role="status">
@@ -1126,25 +1133,20 @@ export default function Home() {
           {tab === 'coverage' && <RealtimeCoverage t={t} />}
           {tab === 'plan' && (
             <>
+              {/* The eyebrow above this heading said "MAKE THE CONNECTION", which
+                  is the heading again in capitals. The design has neither, and the
+                  map is what this surface is for. */}
               <div className="content-heading">
-                <div>
-                  <span className="eyebrow">
-                    {t('MAKE THE CONNECTION', '接通每一程')}
-                  </span>
-                  <h2>
-                    {planned
-                      ? t('Your journey options', '你嘅行程選擇')
-                      : t(
-                          'Your region, within reach.',
-                          '全個地區，一程接一程。',
-                        )}
-                  </h2>
-                </div>
+                <h2>
+                  {planned
+                    ? t('Compare options', '比較行程')
+                    : t('Your region, within reach.', '全個地區，一程接一程。')}
+                </h2>
                 <button
                   className="pill"
                   onClick={() => setMapVisible(!mapVisible)}
                 >
-                  <MapIcon size={16} />
+                  <Icon name="map" size={16} />
                   {mapVisible
                     ? t('Hide map', '收起地圖')
                     : t('Show map', '顯示地圖')}
@@ -1190,43 +1192,11 @@ export default function Home() {
                   )}
                 </div>
               </div>
-              {!planned && (
-                <div className="welcome">
-                  <div className="connection-art" aria-hidden="true">
-                    <span>A</span>
-                    <i />
-                    <TrainFront size={34} />
-                    <i />
-                    <span>B</span>
-                  </div>
-                  <h3>
-                    {t(
-                      'The whole trip. Not just your first ride.',
-                      '由起點到終點，每一程都清楚。',
-                    )}
-                  </h3>
-                  <p>
-                    {t(
-                      'Find connections across Toronto, Hamilton, Durham, Halton, Peel and York. Start with a place or a station.',
-                      '跨越多倫多、咸美頓、杜林、荷頓、皮爾同約克。由地點或車站開始。',
-                    )}
-                  </p>
-                  <div className="benefits">
-                    <span>
-                      <Footprints size={17} />
-                      {t('Walking connections', '步行接駁')}
-                    </span>
-                    <span>
-                      <ArrowDownUp size={17} />
-                      {t('Cross-agency routes', '跨公司路線')}
-                    </span>
-                    <span>
-                      <ShieldCheck size={17} />
-                      {t('Clear data sources', '資料來源清晰')}
-                    </span>
-                  </div>
-                </div>
-              )}
+              {/* The welcome panel that stood here restated the page heading and
+                  then listed what the planner does, on the one surface where the
+                  map already shows it. Its three claims were worth keeping, so
+                  they moved to a chip row under the composer, which is where the
+                  design puts them. The empty state is the region on a map. */}
               {loading && (
                 <div className="empty" role="status">
                   <RefreshCw className="spin" />

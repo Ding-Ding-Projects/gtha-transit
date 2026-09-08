@@ -163,7 +163,13 @@
     scrollbar-width: thin;
     min-height: 0;
   }
-  .m3-nav__item { flex: none; }
+  /* Nine destinations at 70px each, plus the brand and the tail, came to 893px in
+     an 874px rail on a 900px laptop, so Settings sat below the fold behind a
+     scrollbar. The design's own item is about 56px; this brings ours to 60 and
+     the whole rail to roughly 800. The list still scrolls on a shorter window,
+     which is the honest fallback rather than the everyday state. */
+  .m3-nav__item { flex: none; padding: 5px 0 6px; gap: 3px; }
+  .m3-nav__label { font: var(--md-sys-typescale-label-small); }
   /* The rail lists every destination, so there is nothing left for More to hold.
      display, not visibility: a hidden focusable control traps the keyboard. */
   .m3-nav__item--more { display: none; }

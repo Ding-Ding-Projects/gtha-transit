@@ -364,3 +364,86 @@ button:disabled { cursor: not-allowed; }
   .build-stamp { text-align: left; margin: 8px 0 16px; }
   .journey { break-inside: avoid; box-shadow: none; }
 }
+
+/* ------------------------------------------------------- plan is map-first -- */
+/* The design makes the map the surface and floats the composer beside it, rather
+   than giving each a column of a padded page. What that changes in practice: the
+   map bleeds to the right and bottom edges instead of sitting as a rounded box in
+   the corner of a much larger empty area, and it takes the height it is given
+   rather than a fixed 340px.
+
+   The composer stays a real column rather than an overlay on top of the map. The
+   design puts the map at inset 0 0 0 408px, which is beside the composer and not
+   under it, so an overlay would be a different layout that merely resembles this
+   one from a screenshot. */
+@media (min-width: 905px) {
+  .shell[data-tab='plan'] .workspace {
+    grid-template-columns: 408px minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    align-items: stretch;
+  }
+  .shell[data-tab='plan'] .planner {
+    margin: 24px;
+    align-self: start;
+    /* Sticky, so scrolling the options list does not scroll the form away from
+       the map it is describing. */
+    position: sticky;
+    top: 24px;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    box-shadow: var(--md-sys-elevation-level3);
+  }
+  .shell[data-tab='plan'] .content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+  }
+  .shell[data-tab='plan'] .content-heading { margin: 0; padding: 24px 28px 14px; }
+  /* The map takes what is left, with a floor so it never collapses to a strip. */
+  .shell[data-tab='plan'] .map-wrap.visible {
+    flex: 1 1 auto;
+    min-height: 420px;
+    height: auto;
+    border: 0;
+    border-left: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 0;
+  }
+  /* Everything else in the column is prose and needs its margins back. */
+  .shell[data-tab='plan'] .content > :not(.map-wrap):not(.content-heading) {
+    margin-left: 28px;
+    margin-right: 28px;
+  }
+  /* The margins are not enough on their own. This item spans the whole grid and
+     kept its area's full width regardless, so the 24px each side pushed it 9px
+     past the viewport into a sideways scroll. max-width caps the box itself,
+     which is the one instruction that cannot be reinterpreted. */
+  .shell[data-tab='plan'] .status-rail {
+    margin: 0 24px 24px;
+    min-width: 0;
+    max-width: calc(100% - 48px);
+  }
+}
+
+/* The claims that used to fill a welcome panel on the map side. */
+.plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-chips li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-small);
+}
