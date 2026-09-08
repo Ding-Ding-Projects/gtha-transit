@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import NarratorSettings from './narrator-settings';
 import ComfortSettings from './comfort-settings';
+import SchoolMode from './school-mode';
+import { schoolName, type SchoolState } from '../lib/school-mode';
 import type { NarratorController } from '../lib/narrator';
 import { useLocalSetting } from '../lib/use-local-setting';
 import { SETTINGS_SECTION_KEY, SETTINGS_SECTIONS, settingsCatalog, type SettingsEntry, type SettingsSection } from '../lib/settings-catalog';
@@ -41,7 +43,7 @@ function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: S
 const englishPreviews = ['Clear directions, at your pace.', 'Plan a straightforward journey.', 'A smoother route to your next stop.', 'Find your route and let the region connect.', 'Your next connection. Minus the timetable gymnastics.'];
 const cantonesePreviews = ['按需要規劃行程。', '清晰規劃每一程。', '下一站，輕鬆到達。', '搵好路線，出門就放心啲。', '轉車可以，轉到頭暈就唔使喇。'];
 
-export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary }: {
+export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool }: {
   lang: Lang; setLang: (value: Lang) => void;
   dark: boolean; setDark: (value: boolean) => void;
   funEn: number; setFunEn: (value: number) => void;
@@ -49,19 +51,28 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
   narrator: NarratorController; t: Translate;
   adhd: AdhdState; setAdhd: (next: AdhdState | ((current: AdhdState) => AdhdState)) => void;
   vocabulary: VocabularyFile | null; setVocabulary: (next: VocabularyFile | null) => void;
+  school: SchoolState; setSchool: (next: SchoolState) => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
   const storedTab = useLocalSetting(SETTINGS_SECTION_KEY);
-  const active: Section = (SETTINGS_SECTIONS as readonly string[]).includes(storedTab.value || '') ? storedTab.value as Section : 'appearance';
+  const stored = (SETTINGS_SECTIONS as readonly string[]).includes(storedTab.value || '') ? storedTab.value as Section : 'appearance';
+  /* Somebody who was on the Language tab when the mode came on lands on Appearance
+     rather than on a tab that no longer exists. Their stored choice is untouched
+     and returns with the tab. */
+  const active: Section = school.on && stored === 'language' ? 'appearance' : stored;
+  /* The whole Language tab goes while School mode is on, rather than staying as
+     an empty or greyed one. A tab labelled "Language" with nothing in it still
+     announces what was taken away. */
   const sections = [
     { id: 'appearance', label: t('Appearance', '外觀'), icon: Palette },
-    { id: 'language', label: t('Language', '語言'), icon: Languages },
+    ...(school.on ? [] : [{ id: 'language', label: t('Language', '語言'), icon: Languages }]),
     { id: 'comfort', label: t('Comfort', '舒適'), icon: Accessibility },
     { id: 'narrator', label: t('Narrator', '旁白'), icon: Mic2 },
     { id: 'privacy', label: t('Privacy', '私隱'), icon: ShieldCheck },
   ];
   const entries = settingsCatalog({ t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator,
+    school: { on: school.on, name: schoolName(school) },
     comfort: { modes: adhd.modes, toggleMode: mode => setAdhd(current => toggleMode(current, mode as AdhdMode)), vocabularyEntries: entryCount(vocabulary) } });
   const [navigationTarget, setNavigationTarget] = useState<SearchEntry | null>(null);
   const previewVoiceAvailable = narrator.settings.language === 'en' ? !!narrator.englishVoice.voice : narrator.settings.language === 'zh' ? !!narrator.cantoneseVoice.voice : !!(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
@@ -99,7 +110,7 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
           <p className="settings-default">{t('Default: Light. Changes apply immediately throughout the planner.', '預設：淺色。變更會即時套用到整個規劃工具。')}</p>
         </section>
       </TabsContent>
-      <TabsContent value="language" className="settings-section" keepMounted>
+      {!school.on && <TabsContent value="language" className="settings-section" keepMounted>
         {findIn('language')}
         <section className="preference-card" aria-labelledby={id + '-language'}>
           <div className="preference-card-heading"><Languages size={23} aria-hidden="true" /><div><h3 id={id + '-language'}>{t('Language', '語言')}</h3><p>{t('Use one language or see both together.', '用一種語言，或者同時睇兩種。')}</p></div></div>
@@ -112,10 +123,12 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
           {[{ key: 'english', label: t('English playfulness', '英文趣味程度'), value: funEn, update: setFunEn, preview: englishPreviews, language: 'en' }, { key: 'cantonese', label: t('Cantonese playfulness', '廣東話趣味程度'), value: funZh, update: setFunZh, preview: cantonesePreviews, language: 'zh-Hant' }].map(item => <section key={item.key} className="preference-card tone-card"><header><label htmlFor={'settings-' + item.key + '-tone'}>{item.label}</label><output htmlFor={'settings-' + item.key + '-tone'}>{item.value}<small>/5</small></output></header><input id={'settings-' + item.key + '-tone'} type="range" min="1" max="5" step="1" value={item.value} onChange={event => item.update(Number(event.target.value))} /><div className="tone-scale"><span>{t('Serious', '認真')}</span><span>{t('Playful', '有趣')}</span></div><blockquote lang={item.language}>{item.preview[Math.max(0, Math.min(4, Math.floor(item.value) - 1))]}</blockquote><button type="button" className="settings-reset" onClick={() => item.update(5)}><RotateCcw size={14} aria-hidden="true" />{t('Reset to 5', '重設為 5')}</button></section>)}
         </div>
         <p className="settings-default">{t('English and Cantonese each default to level 5. Tone changes wording, including warnings and errors, without changing route facts.', '英文同廣東話預設各為第 5 級。語氣會改變包括警告同錯誤嘅用詞，但唔會改變路線事實。')}</p>
-      </TabsContent>
+      </TabsContent>}
       <TabsContent value="comfort" className="settings-section" keepMounted>
         {findIn('comfort')}
-        <ComfortSettings t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} />
+        <ComfortSettings t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} hideVocabulary={school.on} />
+        {/* Always here, whatever it is hiding: it is the only way back out. */}
+        <SchoolMode t={t} state={school} setState={setSchool} />
       </TabsContent>
       <TabsContent value="narrator" className="settings-section" keepMounted>
         {findIn('narrator')}

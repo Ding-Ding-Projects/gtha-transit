@@ -114,7 +114,26 @@ export type SettingsCatalogInput = {
     toggleMode: (mode: string) => void;
     vocabularyEntries: number;
   };
+  /**
+   * School mode, when the caller has it.
+   *
+   * The catalog is where suppression has to happen rather than at each surface,
+   * because the settings search and the command palette both read this list. A
+   * row removed from the workspace but left here is a mode that hides a control
+   * and then lets the palette teleport straight to it.
+   */
+  school?: { on: boolean; name: string };
 };
+
+/**
+ * The settings School mode takes away.
+ *
+ * Named here rather than checked at each row, so a reviewer reads one list and a
+ * new language or wording control has one place to join. Every one of these is
+ * removed from the catalog while the mode is on, so it leaves the settings search
+ * and the command palette together; the mode's own row never joins this list.
+ */
+export const HIDDEN_BY_SCHOOL: readonly string[] = ['language', 'english-tone', 'cantonese-tone', 'personal-vocabulary'];
 
 /** The playfulness sliders share one shape, and both ship at 5. */
 export const TONE_RANGE = Object.freeze({ min: 1, max: 5, step: 1, shipped: 5 });
@@ -159,6 +178,9 @@ export function narrationUnavailability(narrator: NarratorLike, t: Translate): s
  */
 export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
   const { t, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator } = input;
+  /* Omitted, not disabled: a row that stays in the search saying "Cantonese
+     (unavailable)" announces exactly what was turned off. */
+  const hidden = input.school?.on === true;
   const narration = narrationUnavailability(narrator, t);
   const englishVoices = voicesForLanguage(narrator.voices, 'en');
   const cantoneseVoices = voicesForLanguage(narrator.voices, 'zh');
@@ -173,7 +195,7 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
   const englishVoiceGap = voiceUnavailability(narrator, t, 'en');
   const cantoneseVoiceGap = voiceUnavailability(narrator, t, 'zh');
 
-  return [
+  const entries: SettingsEntry[] = [
     {
       id: 'theme',
       section: 'appearance',
@@ -227,6 +249,22 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       selector: '#settings-cantonese-tone',
       control: { kind: 'range', value: funZh, min: TONE_RANGE.min, max: TONE_RANGE.max, step: TONE_RANGE.step, apply: setFunZh },
     },
+    /*
+     * The mode itself is never hidden, whatever it hides. It is the only way back
+     * out, so a search that cannot find it is a person locked out of their own
+     * planner by the search box.
+     */
+    ...(input.school ? [{
+      id: 'school-mode', section: 'comfort' as const,
+      label: input.school.name,
+      description: t('Plain English, with the playful parts put away', '淨係英文，收起玩味嘅部分'),
+      value: input.school.on ? t('On', '開') : t('Off', '關'),
+      selector: '.school-mode',
+      control: {
+        kind: 'none' as const,
+        reason: t('Turning it on or off is done at the control itself, which asks for your word.', '開關要喺個控制項度做，會問你嗰個字。'),
+      },
+    }] : []),
     ...(input.comfort ? [
       {
         id: 'comfort-focus', section: 'comfort' as const,
@@ -420,4 +458,8 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       control: { kind: 'none', reason: t('This explains where the answers come from. There is nothing to change.', '呢段講解答案嘅來源，冇嘢需要更改。') },
     },
   ];
+  /* Removed from the catalog, which is what removes them from both readers at
+     once. A row left here and hidden only in the workspace is a control the
+     palette can still teleport straight to. */
+  return hidden ? entries.filter((entry) => !HIDDEN_BY_SCHOOL.includes(entry.id)) : entries;
 }

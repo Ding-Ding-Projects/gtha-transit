@@ -168,3 +168,86 @@
 @media (prefers-reduced-motion: reduce) {
   .shell.adhd-focus .m3-nav__item:not(.is-active) { transition: none; }
 }
+
+/* ------------------------------------------------------------- School mode -- */
+
+/*
+ * The control sits in Comfort because that is where the modes live, and it is
+ * the one card that stays whatever the mode is hiding: it is the way back out.
+ */
+.school-mode__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  align-items: end;
+  margin-top: 12px;
+}
+.school-mode__row label {
+  grid-column: 1 / -1;
+  font: var(--md-sys-typescale-body-medium);
+  color: var(--md-sys-color-on-surface-variant);
+}
+.school-mode__row input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+}
+.school-mode__row input:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+.school-mode__row button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.school-mode__row button:disabled {
+  background: color-mix(in oklab, var(--md-sys-color-on-surface) 12%, transparent);
+  color: color-mix(in oklab, var(--md-sys-color-on-surface) 38%, transparent);
+  cursor: not-allowed;
+}
+.school-mode__on {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font: var(--md-sys-typescale-body-medium);
+}
+.school-mode__wrong,
+.school-mode__hint {
+  display: block;
+  margin-top: 8px;
+  font: var(--md-sys-typescale-body-medium);
+}
+.school-mode__wrong { color: var(--md-sys-color-error); }
+.school-mode__hint { color: var(--md-sys-color-on-surface-variant); }
+/*
+ * The honesty line is part of the control, not a footnote under it. Somebody
+ * setting a lock they may forget should read how to get back in at the moment
+ * they set it, not go looking for it after they have.
+ */
+.school-mode__honesty {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+}
+.school-mode__honesty strong { color: var(--md-sys-color-on-surface); }
+
+/* Two columns at a phone width would put a 48px field beside a 48px button. */
+@media (max-width: 560px) {
+  .school-mode__row { grid-template-columns: 1fr; }
+  .school-mode__row button { width: 100%; }
+}

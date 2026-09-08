@@ -162,7 +162,7 @@ test('it dismisses itself, and can be dismissed', () => {
 
 test('low stimulation hides it, because an unrequested picture is more, not less', () => {
   assert.match(source('app', 'dim-sum.css'), /\.shell\.adhd-low-stimulation \.dim-sum \{ display: none; \}/);
-  assert.match(source('app', 'page.tsx'), /suppressed=\{isOn\(adhd, 'lowStimulation'\)\}/);
+  assert.match(source('app', 'page.tsx'), /suppressed=\{isOn\(adhd, 'lowStimulation'\) \|\| suppresses\(school, 'dim-sum'\)\}/);
 });
 
 test('the shell never surprises somebody mid-task', () => {

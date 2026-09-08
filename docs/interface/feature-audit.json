@@ -213,12 +213,21 @@
     {
       "id": "school-mode",
       "name": "Universal renamable School mode with a shared unlock credential",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "lib/school-mode.ts",
+        "components/school-mode.tsx",
+        "lib/settings-catalog.ts",
+        "components/settings-workspace.tsx",
+        "components/comfort-settings.tsx",
+        "components/workspace-navigation.tsx",
+        "app/comfort.css",
+        "app/page.tsx"
+      ],
+      "documentation": "docs/interface/school-mode.md",
+      "test": "tests/school-mode.test.mjs",
       "capture": null,
-      "reason": "Not built. It depends on a shared application-data record and a credential store that a browser-only surface does not have, so shipping it would need a different persistence story first."
+      "missing": "Built and wired. It ships off, is renamable so the shipped name disappears once a name is chosen, and omits rather than disables: Cantonese, both languages, both playfulness sliders, the personal-wording file and the dim sum surprise leave the interface, the settings search and the command palette together, through one named list. What somebody chose is read through rather than overwritten, so it returns untouched when the mode goes off. The credential is PBKDF2-SHA256 at 210,000 iterations over a random salt, and the control states in those words that it is a speed bump rather than a lock on their data, with the recovery route and what it costs beside it. Seventeen boundaries were broken and watched go red. It is partial for two reasons, both stated in the article. The universal contract asks for one record shared across every app on a machine with the credential in the operating-system vault; a browser has neither, so this is one origin's own storage and cannot propagate to a sibling application. And it has not yet been driven in the built artifact or captured, so the suppression is proven by guards over the source rather than by a picture of the interface with the mode on."
     },
     {
       "id": "personal-vocabulary-upload",

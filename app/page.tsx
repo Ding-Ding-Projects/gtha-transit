@@ -48,6 +48,17 @@ import DimSum from '../components/dim-sum';
 import { emptyNotifications, notify, type NotificationState, type Severity } from '../lib/notifications';
 import { adhdClassNames, emptyAdhdState, isOn, type AdhdState } from '../lib/adhd-modes';
 import { buildReplacer, parseVocabularyCache, VOCABULARY_STORAGE_KEY, type VocabularyFile } from '../lib/personal-vocabulary';
+import {
+  SCHOOL_STORAGE_KEY,
+  schoolName,
+  effectiveFunLevel,
+  effectiveLanguage,
+  emptySchoolState,
+  parseSchool,
+  serializeSchool,
+  suppresses,
+  type SchoolState,
+} from '../lib/school-mode';
 import { destinationHeading, workspaceDestinations } from '../lib/destinations';
 import { settingsCatalog } from '../lib/settings-catalog';
 import { workspaceActions } from '../lib/command-palette';
@@ -348,6 +359,7 @@ export default function Home() {
     [notifications, setNotifications] = useState<NotificationState>(emptyNotifications),
     [adhd, setAdhd] = useState<AdhdState>(emptyAdhdState),
     [vocabulary, setVocabulary] = useState<VocabularyFile | null>(null),
+    [school, setSchool] = useState<SchoolState>(emptySchoolState),
     [picking, setPicking] = useState<string | null>(null),
     [mapVisible, setMapVisible] = useState(true);
   const [status, setStatus] = useState<TransitStatus | null>(null),
@@ -373,7 +385,8 @@ export default function Home() {
   useEffect(() => setSelectedId(null), [vehicleCriteria, vehicleOptions]);
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
-    hydrated = useRef(false);
+    hydrated = useRef(false),
+    schoolRestored = useRef(false);
   /**
    * Somebody's own wording, applied at the one boundary every surface goes through.
    *
@@ -383,13 +396,27 @@ export default function Home() {
    * the sentence, so it renames what is actually shown.
    */
   const replaceWords = useMemo(() => buildReplacer(vocabulary), [vocabulary]);
+  /**
+   * What the planner actually renders in, once School mode has had its say.
+   *
+   * Read through here rather than by overwriting the settings themselves, so what
+   * somebody chose is still their choice: it sits untouched in its own state and
+   * comes back the moment the mode goes off. Overwriting would turn a temporary
+   * mode into a permanent edit of somebody's preferences.
+   */
+  const shownLang = effectiveLanguage(school, lang) as Lang;
+  const shownFunEn = effectiveFunLevel(school, funEn);
+  const shownFunZh = effectiveFunLevel(school, funZh);
   const t = useCallback(
     (en: string, zh: string) => {
-      const a = copyAt(en, 'en', funEn),
-        b = copyAt(zh, 'zh', funZh);
-      return replaceWords(lang === 'zh' ? b : lang === 'both' ? `${a} · ${b}` : a);
+      const a = copyAt(en, 'en', shownFunEn),
+        b = copyAt(zh, 'zh', shownFunZh);
+      const line = shownLang === 'zh' ? b : shownLang === 'both' ? `${a} · ${b}` : a;
+      /* A loaded file is not cleared, only unapplied, so the words return with
+         the card rather than having to be chosen again. */
+      return suppresses(school, 'vocabulary') ? line : replaceWords(line);
     },
-    [lang, funEn, funZh, replaceWords],
+    [shownLang, shownFunEn, shownFunZh, replaceWords, school],
   );
 
   /**
@@ -416,11 +443,20 @@ export default function Home() {
      or truncated cache cannot reach the interface by a shorter path. */
   useEffect(() => {
     try { setVocabulary(parseVocabularyCache(localStorage.getItem(VOCABULARY_STORAGE_KEY))); } catch { /* storage refused; the shipped wording stands */ }
+    try { setSchool(parseSchool(localStorage.getItem(SCHOOL_STORAGE_KEY))); } catch { /* storage refused; the mode stays off */ }
+    schoolRestored.current = true;
   }, []);
+  /* Written only after the restore, or the first render would overwrite a stored
+     lock with the empty one it starts from -- which would turn the mode off for
+     everybody who reloaded the page. */
+  useEffect(() => {
+    if (!schoolRestored.current) return;
+    try { localStorage.setItem(SCHOOL_STORAGE_KEY, serializeSchool(school)); } catch { /* storage refused; the mode holds for this session */ }
+  }, [school]);
   const paletteDestinations = useMemo(() => workspaceDestinations(t), [t]);
   const paletteSettings = useMemo(
-    () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator }),
-    [t, lang, dark, funEn, funZh, narrator],
+    () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) } }),
+    [t, lang, dark, funEn, funZh, narrator, school],
   );
   const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh }), [t, dark]);
   /**
@@ -445,7 +481,7 @@ export default function Home() {
       (Date.parse(calendarDay(new Date(at))) - Date.parse(calendarDay(new Date()))) / 86_400_000,
     );
     const withinTheWeek = daysAway >= 0 && daysAway <= 6;
-    return new Intl.DateTimeFormat(lang === 'zh' ? 'zh-HK' : 'en-CA', {
+    return new Intl.DateTimeFormat(shownLang === 'zh' ? 'zh-HK' : 'en-CA', {
       timeZone: zone,
       weekday: 'short',
       ...(withinTheWeek ? {} : { day: 'numeric', month: 'short' }),
@@ -454,7 +490,9 @@ export default function Home() {
   })();
   const translate = t;
   const narrate = (category: string, en: string, zh: string, critical = false) =>
-    narrator.announce({ category, en: copyAt(en, 'en', funEn), zh: copyAt(zh, 'zh', funZh), critical });
+    /* The spoken line takes the same playfulness the screen took, so the narrator
+       never reads a sentence the page is not showing. */
+    narrator.announce({ category, en: copyAt(en, 'en', shownFunEn), zh: copyAt(zh, 'zh', shownFunZh), critical });
   const statusRequest = useRef<AbortController | null>(null),
     statusGeneration = useRef(0);
   const activeInputs = useRef('');
@@ -600,7 +638,7 @@ export default function Home() {
   useEffect(() => { reportPokeGuys(); }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+    document.documentElement.lang = shownLang === 'zh' ? 'zh-Hant' : 'en';
     if (hydrated.current)
       try {
         localStorage.setItem(
@@ -946,7 +984,7 @@ export default function Home() {
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
-      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={lang} onLang={setLang} t={t} />
+      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={shownLang} onLang={setLang} t={t} hideLanguages={school.on} />
       <CommandPalette t={t} destinations={paletteDestinations} settings={paletteSettings} actions={paletteActions} onNavigate={setTab} />
       <div className="workspace-topline">
         <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{destinationHeading(t, tab)}</h1></div>
@@ -958,7 +996,7 @@ export default function Home() {
         <NotificationCentre state={notifications} setState={setNotifications} t={t} />
         {/* A one-in-ten chance, never while something has gone wrong and never
             while a request is in flight: a surprise mid-task is an interruption. */}
-        <DimSum t={t} error={Boolean(error)} busy={loading} suppressed={isOn(adhd, 'lowStimulation')} />
+        <DimSum t={t} error={Boolean(error)} busy={loading} suppressed={isOn(adhd, 'lowStimulation') || suppresses(school, 'dim-sum')} />
       </div>
       <main id="main" className="workspace">
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
@@ -2144,7 +2182,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} />}
+          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">

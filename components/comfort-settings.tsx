@@ -38,6 +38,14 @@ export type ComfortSettingsProps = {
   setAdhd: (next: AdhdState | ((current: AdhdState) => AdhdState)) => void;
   vocabulary: VocabularyFile | null;
   setVocabulary: (next: VocabularyFile | null) => void;
+  /**
+   * Leave the wording card out entirely.
+   *
+   * School mode sets this. A card that stayed and refused would say what had been
+   * turned off, and a loaded file is not cleared -- it is simply not applied, and
+   * it comes back with the card.
+   */
+  hideVocabulary?: boolean;
 };
 
 /**
@@ -84,7 +92,7 @@ const MODE_COPY: Record<AdhdMode, { title: [string, string]; detail: [string, st
  * entirely local: nothing here is sent anywhere, and nothing here is on until
  * somebody turns it on.
  */
-export default function ComfortSettings({ t, adhd, setAdhd, vocabulary, setVocabulary }: ComfortSettingsProps) {
+export default function ComfortSettings({ t, adhd, setAdhd, vocabulary, setVocabulary, hideVocabulary }: ComfortSettingsProps) {
   const id = useId().replaceAll(':', '');
   const storedAdhd = useLocalSetting(ADHD_STORAGE_KEY);
   const storedVocabulary = useLocalSetting(VOCABULARY_STORAGE_KEY);
@@ -214,7 +222,7 @@ export default function ComfortSettings({ t, adhd, setAdhd, vocabulary, setVocab
         )}
       </section>
 
-      <section className="preference-card comfort-vocabulary" aria-labelledby={`${id}-vocabulary`}>
+      {!hideVocabulary && <section className="preference-card comfort-vocabulary" aria-labelledby={`${id}-vocabulary`}>
         <div className="preference-card-heading">
           <Icon name="translate" size={23} />
           <div>
@@ -283,7 +291,7 @@ export default function ComfortSettings({ t, adhd, setAdhd, vocabulary, setVocab
             </strong>
           </p>
         </details>
-      </section>
+      </section>}
     </div>
   );
 }

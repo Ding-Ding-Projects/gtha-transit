@@ -33,10 +33,17 @@ type Props = {
   onTheme: () => void;
   lang: Language;
   onLang: (value: Language) => void;
+  /**
+   * Leave the language buttons out entirely, rather than disabling them.
+   *
+   * A greyed-out row still reads "Cantonese" to everybody looking at the screen,
+   * which is exactly what somebody who turned that mode on did not want.
+   */
+  hideLanguages?: boolean;
   t: (en: string, zh: string) => string;
 };
 
-export default function WorkspaceNavigation({ active, onChange, dark, onTheme, lang, onLang, t }: Props) {
+export default function WorkspaceNavigation({ active, onChange, dark, onTheme, lang, onLang, t, hideLanguages }: Props) {
   const [moreOpen, setMoreOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
@@ -121,7 +128,7 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, l
       <div className="m3-nav__tail">
         {/* fieldset rather than role="group": the native element carries the
             grouping semantics, which is what assistive technology reads first. */}
-        <fieldset className="m3-nav__langs" aria-label={t('Language', '語言')}>
+        {!hideLanguages && <fieldset className="m3-nav__langs" aria-label={t('Language', '語言')}>
           {languages.map((option) => (
             <button
               key={option.id}
@@ -134,7 +141,7 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, l
               {option.short}
             </button>
           ))}
-        </fieldset>
+        </fieldset>}
         <button
           type="button"
           className="m3-nav__theme"
