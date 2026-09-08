@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { annotateJourneyDivisions, applyJourneyDivisionPreference } from '../vehicles/journey-divisions.mjs';
+import { divisionEvidenceCoverage } from '../vehicles/journey-division-preference.mjs';
 
 const NOW = Date.parse('2026-09-05T12:00:00Z');
 const registry = { source: { validFrom: '2026-07-26', validThrough: '2026-09-05', sha256: 'test' }, garageNames: { Wil: 'Wilson', MtD: 'Mount Dennis' }, routesByGarage: { MtD: ['29'], Wil: ['7'] }, fleetAllocations: [{ first: 7000, last: 7133, garages: ['Wil'] }, { first: 9000, last: 9152, garages: ['Wil', 'MtD'] }] };
@@ -63,7 +64,45 @@ test('cached division evidence loses its boost after the observation or source e
   assert.equal(expired.itineraries[0].id, 'normal');
   assert.equal(expired.matched, 0);
   assert.equal(expired.reasons['division-evidence-expired'], 1);
+  /*
+   * Crossing midnight out of the summary's period used to drop the boost and hide
+   * the badge, on the same data the vehicle tracker went on showing with a dated
+   * caveat. Two surfaces disagreeing about one fact, and neither saying so. The
+   * last published allocation answers here now, and says which period it describes.
+   */
   const midnight = Date.parse('2026-09-06T04:00:00Z');
   const before = annotateJourneyDivisions([{ id: 'out', legs: [assigned({ startTime: midnight - 60000, endTime: midnight + 60000, vehicle: { ...assigned().vehicle, timestamp: midnight - 1000 } })] }], registry, { now: midnight - 500 });
-  assert.equal(applyJourneyDivisionPreference(before.itineraries, { enabled: true, now: midnight }).matched, 0);
+  const across = applyJourneyDivisionPreference(before.itineraries, { enabled: true, now: midnight });
+  assert.equal(across.matched, 1, 'the period ended overnight and the last published allocation still answers');
+  assert.equal(divisionEvidenceCoverage(before.itineraries[0].legs[0].vehicleDivision, { now: midnight }), 'last-published');
+});
+
+test('a summary whose period has not started is still refused, because that is a claim about the future', () => {
+  /*
+   * Two paths reach this, and they report it differently on purpose.
+   *
+   * Fresh annotation never gets here: classifyOutOfDivision already refuses a
+   * source that has not started and returns unknown with its own reason, which
+   * is the one that surfaces.
+   */
+  const future = { ...registry, source: { ...registry.source, validFrom: '2026-12-01', validThrough: '2027-01-31' } };
+  const annotated = annotateJourneyDivisions([{ id: 'out', legs: [assigned()] }], future, { now: NOW });
+  const preferred = applyJourneyDivisionPreference(annotated.itineraries, { enabled: true, now: NOW });
+  assert.equal(preferred.matched, 0);
+  assert.equal(preferred.reasons['allocation-source-not-yet-in-effect'], 1);
+
+  /*
+   * Cached evidence does get here: it was classified while its source was in
+   * effect and is re-read later against a source window that has moved. It must
+   * not be reported as an expiry, which is the opposite problem and has the
+   * opposite answer.
+   */
+  const cached = annotateJourneyDivisions([{ id: 'out', legs: [assigned()] }], registry, { now: NOW });
+  const evidence = cached.itineraries[0].legs[0].vehicleDivision;
+  const notYet = { id: 'out', legs: [{ ...cached.itineraries[0].legs[0], vehicleDivision: { ...evidence, source: { validFrom: '2026-12-01', validThrough: '2027-01-31' } } }] };
+  const held = applyJourneyDivisionPreference([notYet], { enabled: true, now: NOW });
+  assert.equal(held.matched, 0);
+  assert.equal(held.reasons['division-source-not-yet-in-effect'], 1,
+    'reported as its own reason rather than as an expiry, which is a different problem');
+  assert.equal(divisionEvidenceCoverage(notYet.legs[0].vehicleDivision, { now: NOW }), 'not-yet-in-effect');
 });

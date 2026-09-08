@@ -1,5 +1,88 @@
 # Implementation handoff
 
+## TTC garage refresh and the expired-source split, 8 September 2026
+
+The garage source was three days out of its period, and two parts of the planner
+disagreed about what that meant. Both are fixed.
+
+### The refresh
+
+The TTC had published *Service Summary, September 6 to October 31, 2026*. The registry is
+refreshed to it: 1,610,076 bytes, SHA-256 `980A04D2...`, allocation updated 28 August.
+
+The document states each route's division three times, so all three lists were read and only
+their agreement was taken. 233 routes agreed; four needed settling against their own entry in
+the body, and each is recorded with the sentence it came from. Route 996's cell bled across a
+column boundary in one list. Routes 306 and 506 Carlton are the only two cells in the whole
+document that wrap, and the wrap drops the leading `Rus`, so the index pages render
+`/BIR/MTD/QSY` with a leading slash. Route 386 Scarborough is absent from all four index
+pages, which is an omission in the summary's own index rather than in the reading.
+
+**249 route assignments, up from 207.** That is not 42 routes moving in one board period; the
+previous extraction was under-complete and had missed entries the document plainly carried,
+including 8 Broadview, 10 Van Horne and 62 Mortimer. Ten routes genuinely moved. One
+correction is worth naming: 320 Yonge was recorded as Queensway, and the document says
+`ALL BUT QSY` — Queensway is precisely the division that does not run it. That reads exactly
+like a parser that took the last token of the cell.
+
+Three fleet allocation changes: `1200-1423` gains Arrow Road, `6600-6735` loses Mount Dennis,
+and the `8000-8099` Queensway series is gone from the document entirely. A new carhouse,
+`Rus` (Russell), is carried for the first time; it operates one route, 303 Kingston Rd.
+
+Reading geometry does not work on these tables and two attempts proved it. Pairing a route to
+the nearest division code by position fails, because a code is right-aligned in its column and
+sits closer to the next column's route number than to its own — that produced 120
+disagreements between two lists of the same fact. Pairing by index within a visual row fails
+too, because the four columns are not aligned in y and rows bleed together. The PDF's content
+stream is written column by column, so a route's line is immediately followed by its own
+division code, and no geometry is needed at all.
+
+### The split
+
+Once a period ends, the tracker, the garage picker and the division verdict each kept
+answering with a dated caveat. The journey-level preference and the route opportunity beside
+it read the window as closed at both ends and went silent: from 6 September, "prefer
+out-of-division vehicles" quietly stopped moving anything and the *Verified out of division*
+badge disappeared. Nothing on either surface said why, and the three days it ran were only
+visible by reading both modules.
+
+All four now agree, and only the near end of the window is a boundary. A summary whose period
+has not started is still refused, because that is a claim about the future. `isCurrentDivisionEvidence`
+was renamed `isUsableDivisionEvidence`, because a function that returns true for evidence from
+an ended period is not answering the question its name asks. A new
+`divisionEvidenceCoverage` reports `current`, `last-published` or `not-yet-in-effect`, and the
+journey badge now names the period when it is answering from an ended one.
+
+### What is guarded, and what deliberately is not
+
+`tests/division-disclosure.test.mjs` guards the caveat, not the freshness. Every date in it is
+supplied by the test. A check that failed because the shipped allocation was out of its period
+would be red for days at a time over the state the owner has chosen — keep showing the last
+published answer, labelled — and a check that is routinely red for the intended behaviour is
+one everybody learns to ignore. What it asserts is that an ended period still answers, that a
+period which has not started still refuses, and that all four surfaces still render the
+sentence saying which period they describe. Six boundaries were broken on purpose and watched
+go red.
+
+`scripts/check-ttc-summary.mjs` reports how far past its period the shipped receipt is and
+whether a newer summary has been posted. It reports and never gates, and it is not in
+`npm test` because it makes a real network request.
+
+`scripts/check-sources.mjs` listed `vehicles/divisions.mjs`, which contains no URL at all. The
+garage receipt's `url` and `publisherPage` live in the JSON beside it, which was not listed,
+so the two citations this project leans on hardest were checked by nothing. The data file is
+listed now.
+
+### Evidence
+
+| | State |
+| --- | --- |
+| Tests | 527 pass, 0 fail, up from 520 |
+| Type check | clean |
+| Break tests | 10 boundaries broken on purpose, each watched red, each restored green |
+| Deployed | **no**; the server loads the registry once at boot, so it needs a restart to serve this |
+
+
 ## Command palette, 8 September 2026
 
 The palette is built, driven in the built artifact, captured, tested and
@@ -512,7 +595,7 @@ Current frontend: `9531de6afb1e667c44bb7d9a3010e261571198c5`, built `2026-09-06T
 4. Verify the next-stop name repair in the built follower. Agency-qualified IDs and exact stop-index name lookup are implemented, with cancellation/deadline and nine focused tests. Vehicle-only and journey simulation require actual rendered checks.
 5. Verify contextual place suggestions. Warden map station now receives explicitly nearby route data without moving the destination; the distant same-name location remains separate. Three focused tests pass. Address/landmark context remains limited to published source fields.
 6. Continue all-agency fleet details/photo/capacity research. 72 Barp.ca series plus 11 directly reviewed Milton records are implemented. Browser-extracted CPTDB tables for nine agencies are retained privately and mostly unreviewed. Punctuated Burlington fleet numbers require exact parsing; build year must not be inferred from fleet number. Standing capacity and photo reuse rights remain incomplete.
-7. Refresh expired TTC garage evidence from a new official source. The current document ended September 5. The HTTP test expecting MtD now fails correctly against expired evidence; never extend the source validity without publication proof.
+7. Done, 8 September 2026. The TTC published the September 6 to October 31 summary and the registry is refreshed to it. Two things in the older sections below are now wrong and are left as written because they were true when written: the garage-evidence HTTP test does not fail, and has not since the classification stopped refusing an ended period; and the suite counts they quote predate this work. The rule that outlived all of it stands: never extend the source validity without publication proof. `node scripts/check-ttc-summary.mjs` now reports when the next one is posted.
 8. Verify the deployed vehicle chooser, staged cancellation/apply, nested search stars and narrow footer/recovery focus. Complete the wider language/theme/scale and physical-device evidence separately.
 
 ### Latest decisive evidence

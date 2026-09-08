@@ -39,8 +39,16 @@ const asJson = process.argv.includes('--json');
    browser, and several wikis answer differently too. */
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36';
 
-/** Files that carry citations. Hand-written: a new one has to be added here. */
-const SOURCES = ['vehicles/fleet-registry.mjs', 'vehicles/regional-fleet.mjs', 'vehicles/index.mjs', 'vehicles/divisions.mjs'];
+/**
+ * Files that carry citations. Hand-written: a new one has to be added here.
+ *
+ * `vehicles/divisions.mjs` was on this list and holds no URL at all: the garage
+ * receipt's `url` and `publisherPage` live in the JSON beside it, which was not
+ * listed, so the two links this project leans on hardest were checked by nothing.
+ * The module stays because it may cite something later; the data file is what
+ * actually needed to be here.
+ */
+const SOURCES = ['vehicles/fleet-registry.mjs', 'vehicles/regional-fleet.mjs', 'vehicles/index.mjs', 'vehicles/divisions.mjs', 'data/ttc-divisions.json'];
 
 /**
  * Reasons a non-200 is expected rather than a defect. Each one is argued, so an

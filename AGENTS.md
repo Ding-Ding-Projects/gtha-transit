@@ -1,6 +1,10 @@
 # Project instructions
 
-This public repository contains an independent browser-based GTHA transit planner. The current approved scope is transit planning, map/place search, live TTC status, local saved trips, accessible multilingual presentation and documentation. Unrelated universal utility features and desktop installers are deferred by the owner.
+This public repository contains an independent browser-based GTHA transit planner. The approved scope is transit planning, map/place search, live TTC status, local saved trips, accessible multilingual presentation and documentation, together with the shared interface feature set tracked in `docs/interface/feature-audit.json`.
+
+The owner previously deferred the general-purpose interface features and has since asked for all of them except a local file converter and a local model-runner manager, which remain out of scope and are recorded as such in the audit. Desktop installers remain deferred: this ships as a website.
+
+`components/ui/` holds a large vendored component set of which one file is used. Every shipped surface is hand-written over native `dialog`, `details` and `fieldset` elements with this project's own Material tokens, and new surfaces follow that idiom rather than adopting the vendored one, which has never been type-checked in this build. `react-day-picker` is a real dependency and may be used directly.
 
 Preserve user data and unrelated work. Never commit secrets, local addresses, downloaded feed archives, map databases, dependency directories or generated caches. Public records use ordinary professional language. Do not copy private conversational vocabulary into this repository.
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { annotateJourneyRouteOpportunities } from '../vehicles/journey-route-opportunities.mjs';
-import { applyJourneyRouteOpportunityPreference, currentRouteOpportunity } from '../vehicles/journey-route-opportunity-preference.mjs';
+import { applyJourneyRouteOpportunityPreference, usableRouteOpportunity } from '../vehicles/journey-route-opportunity-preference.mjs';
 const NOW=Date.parse('2026-09-05T12:00:00Z');
 const registry={source:{validFrom:'2026-07-26',validThrough:'2026-09-05'},garageNames:{Wil:'Wilson',MtD:'Mount Dennis'},routesByGarage:{MtD:['29'],Wil:['7']},fleetAllocations:[{first:7000,last:7133,garages:['Wil']}]};
 const leg=(overrides={})=>({mode:'BUS',agencyFeedId:'ttc',routeId:'29',startTime:NOW+600000,endTime:NOW+1200000,...overrides});
@@ -9,17 +9,27 @@ const snapshot={state:'live',agencyId:'ttc',vehicles:[{id:'7001',fleetNumber:'70
 test('adds aggregate route evidence without creating a vehicle assignment or copying coordinates',()=>{const input=[{id:'a',legs:[leg()]}],out=annotateJourneyRouteOpportunities(input,snapshot,registry,{now:NOW});const evidence=out.itineraries[0].legs[0].routeDivisionOpportunity;assert.equal(evidence.state,'observed');assert.equal(evidence.vehicleCount,1);assert.deepEqual(evidence.vehicleIds,['7001']);assert.equal(out.itineraries[0].legs[0].vehicle,undefined);assert.equal(out.itineraries[0].legs[0].vehicleAssignment,undefined);assert.equal(JSON.stringify(evidence).includes('lat'),false);assert.equal(input[0].legs[0].routeDivisionOpportunity,undefined);});
 test('does not boost a different route and expires aggregate evidence',()=>{const annotated=annotateJourneyRouteOpportunities([{id:'other',legs:[leg({routeId:'7'})]},{id:'match',legs:[leg()]}],snapshot,registry,{now:NOW});assert.equal(annotated.itineraries[0].legs[0].routeDivisionOpportunity.state,'unknown');const ranked=applyJourneyRouteOpportunityPreference(annotated.itineraries,{enabled:true,now:NOW});assert.deepEqual(ranked.itineraries.map(x=>x.id),['match','other']);const expired=applyJourneyRouteOpportunityPreference(annotated.itineraries,{enabled:true,now:NOW+120001});assert.equal(expired.itineraries[0].id,'other');});
 test('returns unknown for stale snapshots and ignores walking legs',()=>{const stale=annotateJourneyRouteOpportunities([{legs:[leg()]}],{...snapshot,state:'stale'},registry,{now:NOW});assert.equal(stale.itineraries[0].legs[0].routeDivisionOpportunity.reason,'snapshot-not-live-ttc');const walk=annotateJourneyRouteOpportunities([{legs:[leg({mode:'WALK'})]}],snapshot,registry,{now:NOW});assert.equal(walk.itineraries[0].legs[0].routeDivisionOpportunity.state,'ignored');});
-test('rechecks Toronto source expiry and retains only fresh observations from a bounded freshest-first list',()=>{const many={...snapshot,vehicles:Array.from({length:21},(_,i)=>({id:String(7000+i),fleetNumber:String(7000+i),agencyId:'ttc',routeId:'29',timestamp:NOW-(i*1000),stale:false}))};const evidence=annotateJourneyRouteOpportunities([{legs:[leg()]}],many,registry,{now:NOW}).itineraries[0].legs[0].routeDivisionOpportunity;assert.equal(evidence.truncated,true);assert.equal(evidence.observations.length,20);assert.equal(evidence.observations[0].id,'7000');assert.equal(JSON.stringify(evidence).match(/lat|lon|bearing|speed/),null);assert.ok(currentRouteOpportunity(evidence,{now:NOW+119001}));assert.equal(currentRouteOpportunity(evidence,{now:Date.parse('2026-09-06T04:00:00Z')}),null);});
+test('rechecks Toronto source expiry and retains only fresh observations from a bounded freshest-first list',()=>{const many={...snapshot,vehicles:Array.from({length:21},(_,i)=>({id:String(7000+i),fleetNumber:String(7000+i),agencyId:'ttc',routeId:'29',timestamp:NOW-(i*1000),stale:false}))};const evidence=annotateJourneyRouteOpportunities([{legs:[leg()]}],many,registry,{now:NOW}).itineraries[0].legs[0].routeDivisionOpportunity;assert.equal(evidence.truncated,true);assert.equal(evidence.observations.length,20);assert.equal(evidence.observations[0].id,'7000');assert.equal(JSON.stringify(evidence).match(/lat|lon|bearing|speed/),null);assert.ok(usableRouteOpportunity(evidence,{now:NOW+119001}));assert.equal(usableRouteOpportunity(evidence,{now:Date.parse('2026-09-06T04:00:00Z')}),null,'the observations themselves are two minutes old by then');});
 
 
-test('source midnight and missing provenance reject otherwise fresh observations', () => {
+test('a board period ending does not reject the observations, but missing provenance does', () => {
+  /*
+   * Crossing out of the summary's period used to return null here, which is what
+   * made this go quiet the morning a board period rolled over while the vehicle
+   * tracker carried on answering the same question with a dated caveat. Only the
+   * observation clock rejects now; the far end of the period does not.
+   */
   const midnight = Date.parse('2026-09-06T04:00:00Z'), before = midnight - 30000;
   const observed = { ...snapshot, vehicles: [{ ...snapshot.vehicles[0], timestamp: String(before) }] };
   const evidence = annotateJourneyRouteOpportunities([{ legs: [leg({ startTime: before, endTime: midnight + 600000 })] }], observed, registry, { now: before }).itineraries[0].legs[0].routeDivisionOpportunity;
-  assert.equal(currentRouteOpportunity(evidence, { now: before }).vehicleCount, 1);
-  assert.equal(currentRouteOpportunity(evidence, { now: midnight }), null);
-  assert.equal(currentRouteOpportunity({ ...evidence, source: {} }, { now: before }), null);
-  assert.equal(currentRouteOpportunity({ ...evidence, observations: {} }, { now: before }), null);
+  assert.equal(usableRouteOpportunity(evidence, { now: before }).vehicleCount, 1);
+  assert.equal(usableRouteOpportunity(evidence, { now: midnight }).vehicleCount, 1,
+    'the period ended overnight and the last published allocation still answers');
+  // A period that has not started is still refused: that would be a claim about the future.
+  const future = { ...evidence, source: { validFrom: '2026-12-01', validThrough: '2027-01-31' } };
+  assert.equal(usableRouteOpportunity(future, { now: before }), null);
+  assert.equal(usableRouteOpportunity({ ...evidence, source: {} }, { now: before }), null);
+  assert.equal(usableRouteOpportunity({ ...evidence, observations: {} }, { now: before }), null);
 });
 
 

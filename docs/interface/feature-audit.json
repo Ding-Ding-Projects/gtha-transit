@@ -36,15 +36,16 @@
     {
       "id": "narrator",
       "name": "Spoken narrator with language choice",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
-        "components/settings-workspace.tsx",
-        "lib/narrator.ts"
+        "lib/narrator.ts",
+        "components/narrator-settings.tsx",
+        "components/settings-workspace.tsx"
       ],
-      "documentation": "docs/interface/ui-verification.md",
+      "documentation": "docs/accessibility/narrator.md",
       "test": "tests/narrator.test.mjs",
       "capture": "docs/interface/ledger/1440-light-1x.json",
-      "missing": "No per-language voice picker. The contract asks for one selection per narrated language, with the platform's own voice list, rate and pitch, and an honest state when a chosen voice is not installed."
+      "note": "The per-language voice picker this row once recorded as absent has shipped all along. components/narrator-settings.tsx renders one radiogroup per narrated language, filtered by supportsNarratorLanguage, with an automatic option, a network-backed warning, and an honest state when a chosen voice is not installed that keeps the choice rather than resetting it. Rate and pitch are there too. They sit inside a collapsed details element, which is the likeliest reason an audit concluded they did not exist. resolveNarratorVoice, missingSelection and networkBacked are covered by tests/narrator.test.mjs."
     },
     {
       "id": "regex-builder",

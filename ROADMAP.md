@@ -26,7 +26,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [ ] Complete closure/shuttle integration, exact bus assignment mapping and the remaining rendered verification. Preserve the distinction between deployed code and verified behavior.
 
 - [ ] Verify follower next-stop name resolution in the built interface after agency-qualified ID matching and exact stop lookup. Nine local identity/progress tests pass.
-- [ ] Refresh the TTC garage source when a new official summary is published. The last one covers service through 2026-09-05 and no replacement exists yet. Answers now come from that last published summary rather than refusing, because allocations move slowly and a dated answer beats none, and every result says which period it describes. Do not extend the validity date, and do not present it as current.
+- [x] Refresh the TTC garage source when a new official summary is published. Refreshed to the September 6 to October 31, 2026 summary, read from the document's three route lists with four routes settled against their own entries. 249 route assignments, up from 207, and three fleet allocation changes. Answers outside the period come from the last published summary rather than refusing, on every surface including the journey preference, and each says which period it describes. `node scripts/check-ttc-summary.mjs` reports when a newer one is posted.
 
 - [ ] Verify contextual suggestion cards on the built interface: exact timetable routes, explicitly nearby routes, place-specific type/address fields and washroom presence. Warden source mismatch is repaired without changing destination identity; broader address enrichment remains source-dependent.
 

@@ -6,11 +6,11 @@ import path from 'node:path';
 import { classifyOutOfDivision, getOutOfDivisionVehicles, loadTtcDivisionRegistry, routeGarages } from '../vehicles/divisions.mjs';
 import { createVehicleSightingStore } from '../history/vehicle-sightings.mjs';
 
-const NOW = Date.parse('2026-09-05T12:00:00Z');
-const vehicle = (overrides = {}) => ({ id: '7001', label: '7001', fleetNumber: '7001', agencyId: 'ttc', routeId: '29', timestamp: '2026-09-05T11:59:30.000Z', stale: false, ...overrides });
+const NOW = Date.parse('2026-09-15T12:00:00Z');
+const vehicle = (overrides = {}) => ({ id: '7001', label: '7001', fleetNumber: '7001', agencyId: 'ttc', routeId: '29', timestamp: '2026-09-15T11:59:30.000Z', stale: false, ...overrides });
 
 test('loads the current official allocation receipt and preserves many-to-many routes', async () => {
-  const registry = await loadTtcDivisionRegistry(); assert.equal(registry.source.sha256, '5A81E7680049BDFADDD9187C1867AE966939B0E5D35085E4EF583D77CEE1466C'); assert.equal(Object.values(registry.routesByGarage).flat().length, 207); assert.deepEqual(routeGarages(registry, 'ttc:301').sort(), ['Qsy', 'Ron']); assert.deepEqual(routeGarages(registry, '29'), ['MtD']);
+  const registry = await loadTtcDivisionRegistry(); assert.equal(registry.source.sha256, '980A04D2378C73501B3926D6D45FC4688CA05EBFBE2005077AF96CC50E1EC234'); assert.equal(Object.values(registry.routesByGarage).flat().length, 249); assert.deepEqual(routeGarages(registry, 'ttc:301').sort(), ['Qsy', 'Ron']); assert.deepEqual(routeGarages(registry, '29'), ['MtD']);
 });
 
 test('classifies only fresh vehicles from single-garage fleet allocations', async () => {
@@ -35,7 +35,7 @@ test('fails closed on expired evidence, stale observations, non-TTC vehicles, an
   /* Fresh at that moment, not at NOW. The fixture's timestamp is fixed, so a
      vehicle reused at a later date is two months stale and would fail freshness
      for a reason that has nothing to do with the source period. */
-  const later = Date.parse('2026-09-06T12:00:00Z');
+  const later = Date.parse('2026-11-01T12:00:00Z');
   const afterItEnds = classifyOutOfDivision(vehicle({ timestamp: new Date(later - 30_000).toISOString() }), '29', registry, { now: later });
   assert.equal(afterItEnds.sourceCoverage, 'last-published', 'the last published summary should still answer');
   assert.notEqual(afterItEnds.reason, 'allocation-source-expired', 'it no longer refuses once the period ends');

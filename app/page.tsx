@@ -49,8 +49,8 @@ import { workspaceActions } from '../lib/command-palette';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
 import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
-import { applyJourneyDivisionPreference, isCurrentDivisionEvidence } from '../vehicles/journey-division-preference.mjs';
-import { applyJourneyRouteOpportunityPreference, currentRouteOpportunity } from '../vehicles/journey-route-opportunity-preference.mjs';
+import { applyJourneyDivisionPreference, divisionEvidenceCoverage, isUsableDivisionEvidence } from '../vehicles/journey-division-preference.mjs';
+import { applyJourneyRouteOpportunityPreference, usableRouteOpportunity } from '../vehicles/journey-route-opportunity-preference.mjs';
 import { TTC_FLEET_RANGES, OTHER_FLEET_RANGES } from '../vehicles/fleet-registry.mjs';
 import { copyAt } from '../lib/copy';
 import { rideMetrics, kilometres } from '../lib/ride-metrics';
@@ -1580,8 +1580,8 @@ export default function Home() {
                                   )}
                                   {leg.mode !== 'WALK' &&
                                     <WashroomBadge washroom={leg.from.washroom} t={t} />}
-                                  {leg.vehicleDivision?.state === 'out-of-division' && isCurrentDivisionEvidence(leg.vehicleDivision, { now: divisionNow }) && <p className="journey-division-evidence"><strong>{t('Verified out of division', '已核實跨車廠')}</strong><span>{leg.vehicleDivision.homeGarageName} → {leg.vehicleDivision.assignedGarageNames?.join(', ')}</span><small>{t('Allocation valid through', '配車資料有效至')} {leg.vehicleDivision.source?.validThrough}</small></p>}
-                                  {(() => { const observed = currentRouteOpportunity(leg.routeDivisionOpportunity, { now: divisionNow }); return observed ? <div className="journey-division-evidence"><strong>{t('Out-of-division vehicles observed on this route', '此路線有跨車廠車輛觀察')}</strong><span>{observed.fleetNumbers.join(', ')}</span><small>{t('Current route observations do not identify your departure vehicle.', '目前路線觀察未能確認你班次嘅車輛。')}{observed.truncated ? ' ' + t('The identity list is limited to 20 vehicles.', '編號清單最多列出 20 架車輛。') : ''}</small></div> : null; })()}
+                                  {leg.vehicleDivision?.state === 'out-of-division' && isUsableDivisionEvidence(leg.vehicleDivision, { now: divisionNow }) && <p className="journey-division-evidence"><strong>{t('Verified out of division', '已核實跨車廠')}</strong><span>{leg.vehicleDivision.homeGarageName} → {leg.vehicleDivision.assignedGarageNames?.join(', ')}</span><small>{divisionEvidenceCoverage(leg.vehicleDivision, { now: divisionNow }) === 'last-published' ? t('From the last published allocation summary, covering service through ', '嚟自最後一份配車摘要，涵蓋服務至 ') + leg.vehicleDivision.source?.validThrough + t('. A newer one is not out, so this describes that period rather than today.', '。新一份未出，所以呢個講嘅係嗰段時間，唔係今日。') : t('Allocation valid through', '配車資料有效至') + ' ' + leg.vehicleDivision.source?.validThrough}</small></p>}
+                                  {(() => { const observed = usableRouteOpportunity(leg.routeDivisionOpportunity, { now: divisionNow }); return observed ? <div className="journey-division-evidence"><strong>{t('Out-of-division vehicles observed on this route', '此路線有跨車廠車輛觀察')}</strong><span>{observed.fleetNumbers.join(', ')}</span><small>{t('Current route observations do not identify your departure vehicle.', '目前路線觀察未能確認你班次嘅車輛。')}{observed.truncated ? ' ' + t('The identity list is limited to 20 vehicles.', '編號清單最多列出 20 架車輛。') : ''}</small></div> : null; })()}
                                   {leg.mode !== 'WALK' &&
                                     (leg.vehicle ? (
                                       <div className="assigned-vehicle">
