@@ -119,6 +119,34 @@ half a history looks complete. A malformed row inside a readable history is skip
 and the rows around it survive. Titles and bodies are clamped on the way back in, so
 a stored blob cannot become the interface.
 
+## Captured from the built artifact
+
+Taken through the debugging protocol against an isolated browser on an off-screen
+desktop, driving the document the production server serves. Both reach the state
+the same way a person would: by opening a malformed shared link. The theme is
+reached through the control a person would use, never by assigning the attribute
+the application rewrites from its own state.
+
+| | |
+| --- | --- |
+| Commit | `5f383682f46fd2cf8a461069203989d2a4dd7438` |
+| Viewport | 1440 x 900, scale 1 |
+
+![The planner in the light theme with a warning card in the bottom corner saying the shared trip contains an invalid destination list, and a Notifications button in the top right carrying a count of one.](captures/notification-toast-1440-light.png)
+
+![The notification centre open in the dark theme, showing its search field with the regex builder beside it, the five severity filters each with a count, the date range, the selection controls, the export format chooser, one warning row, and a disabled Forget button.](captures/notification-centre-1440-dark.png)
+
+| File | SHA-256 |
+| --- | --- |
+| `captures/notification-toast-1440-light.png` | `695a0f758d40b99c53f735af453ff9dff196d59ed1a165ed99495803ac52a2c7` |
+| `captures/notification-centre-1440-dark.png` | `de430fb0b67da065af93b58124ebb3e0aabb240dead68875066f101d9da072e6` |
+
+The first of these found a defect nothing else could. The opener was rendered
+after the footer, which put the only way into the centre at the very bottom of the
+document: every unit check passed, and the browser driver found it with a query
+selector. A person could not see it. It is in the topline now, and the capture
+script refuses to fire unless the opener is actually within the viewport.
+
 ## Verification
 
 `tests/notifications.test.mjs`, `tests/super-confirm.test.mjs` and
