@@ -58,8 +58,12 @@
   --md-sys-typescale-label-large: 600 14px/20px var(--md-ref-typeface-plain);
   --md-sys-typescale-label-medium: 600 12px/16px var(--md-ref-typeface-plain);
   --md-sys-typescale-label-small: 600 11px/16px var(--md-ref-typeface-plain);
-  --md-ref-typeface-brand: Manrope, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-  --md-ref-typeface-plain: Manrope, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  /* The design's faces, vendored locally under public/fonts. The CJK fallbacks
+     stay in the stack because neither Latin face covers Traditional Chinese, and
+     bilingual mode puts both scripts on the same line. */
+  --md-ref-typeface-brand: 'Space Grotesk', 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  --md-ref-typeface-plain: 'Space Grotesk', 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  --md-ref-typeface-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Shape scale. Seventeen ad-hoc radii collapse to these seven. */
   --md-sys-shape-corner-none: 0;

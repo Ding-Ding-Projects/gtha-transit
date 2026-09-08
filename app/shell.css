@@ -216,3 +216,30 @@
 }
 /* An element that is deliberately inline, and sized by its text, says so. */
 :where(.is-inline-target) { min-height: 0; min-width: 0; }
+
+/* Material Symbols. The font-feature-settings line is not decoration: without
+   ligature substitution every icon renders as its own English name, which reads
+   as unfinished copy rather than as a missing font. The vendored stylesheet is
+   left exactly as Google served it, so the behaviour this interface depends on
+   is declared here instead of edited into a fetched file. */
+.m3-icon {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  flex: none;
+  font-feature-settings: 'liga';
+  /* No font-variation-settings here on purpose. The subsetted file is static,
+     fixed at the FILL 0 / wght 300 / GRAD 0 / opsz 24 requested at vendoring
+     time, and fontTools confirms it carries no axes. Declaring axes a font
+     does not have makes the browser synthesize them, silently. */
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}

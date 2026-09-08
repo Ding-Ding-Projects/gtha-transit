@@ -1,5 +1,7 @@
 @import 'leaflet/dist/leaflet.css';
-@import url('/fonts/manrope/manrope.css');
+@import url('/fonts/space-grotesk/space-grotesk.css');
+@import url('/fonts/ibm-plex-mono/ibm-plex-mono.css');
+@import url('/fonts/material-symbols-outlined/material-symbols-outlined.css');
 .fleet-filter-panel { border:1px solid var(--border); border-radius:20px; margin:16px 0; background:var(--surface); }
 .fleet-filter-panel > summary { display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:16px; min-height:52px; cursor:pointer; }
 .fleet-filter-panel > summary span { font-size:13px; color:var(--muted); }

@@ -8,17 +8,95 @@ import { fileURLToPath } from 'node:url';
 
 const SCRIPT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_DIRECTORY = resolve(SCRIPT_DIRECTORY, '..');
-const OUTPUT_DIRECTORY = resolve(
-  REPOSITORY_DIRECTORY,
-  'public',
-  'fonts',
-  'manrope',
-);
+const FONTS_DIRECTORY = resolve(REPOSITORY_DIRECTORY, 'public', 'fonts');
 
-const CSS_SOURCE_URL =
-  'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap';
-const LICENSE_SOURCE_URL =
-  'https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt';
+/**
+ * The icon glyphs this interface actually draws.
+ *
+ * A ligature icon font is addressed by writing the glyph's NAME as the element's
+ * text, so a name the font does not carry does not fall back to a box: it renders
+ * the literal English word, in the middle of the interface, looking like copy
+ * somebody forgot to finish. Subsetting makes that cheap to get wrong, because
+ * only the names listed here exist in the shipped file at all.
+ *
+ * tests/icon-glyphs.test.mjs therefore checks every name the source writes
+ * against the ligature table of the binary that actually shipped.
+ */
+const ICON_NAMES = [
+  'add', 'alt_route', 'arrow_back', 'arrow_forward', 'bookmark', 'calendar_month',
+  'chevron_right', 'close', 'dark_mode', 'directions_bus', 'directions_walk',
+  'expand_less', 'expand_more', 'flag', 'garage', 'history', 'layers', 'light_mode',
+  'map', 'more_horiz', 'my_location', 'place', 'public', 'refresh', 'remove',
+  'schedule', 'search', 'sensors', 'settings', 'swap_vert', 'translate', 'tune',
+  'volume_up', 'warning',
+];
+
+/**
+ * Every family this project ships, with the shape each one is expected to have.
+ *
+ * The counts are hand-written and asserted rather than derived from whatever
+ * arrives. Deriving them would make the check grade its own homework: a family
+ * that silently lost half its subsets would still pass, because the expectation
+ * would have moved with it.
+ */
+const FAMILIES = [
+  {
+    slug: 'space-grotesk',
+    family: 'Space Grotesk',
+    role: 'interface text',
+    cssUrl: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap',
+    licenseUrl: 'https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/OFL.txt',
+    licenseFile: 'OFL.txt',
+    licenseMarker: 'SIL OPEN FONT LICENSE Version 1.1',
+    weights: ['400', '500', '600', '700'],
+    display: 'swap',
+    expectedFaces: 12,
+    expectedFiles: 3,
+    facesPerFile: 4,
+    // Pinned from the shipped binary, which reports exactly this. Declaring an
+    // axis a font does not have makes the browser synthesize the weight instead.
+    variableAxis: { tag: 'wght', minimum: 300, default: 300, maximum: 700 },
+  },
+  {
+    slug: 'ibm-plex-mono',
+    family: 'IBM Plex Mono',
+    role: 'times, durations and codes',
+    cssUrl: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap',
+    licenseUrl: 'https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/OFL.txt',
+    licenseFile: 'OFL.txt',
+    licenseMarker: 'SIL OPEN FONT LICENSE Version 1.1',
+    weights: ['400', '500', '600'],
+    display: 'swap',
+    expectedFaces: 15,
+    expectedFiles: 15,
+    facesPerFile: 1,
+    variableAxis: null,
+  },
+  {
+    slug: 'material-symbols-outlined',
+    family: 'Material Symbols Outlined',
+    role: 'icons',
+    icons: ICON_NAMES,
+    cssUrl:
+      'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0' +
+      `&icon_names=${ICON_NAMES.join(',')}&display=block`,
+    licenseUrl: 'https://raw.githubusercontent.com/google/material-design-icons/master/LICENSE',
+    licenseFile: 'LICENSE',
+    licenseMarker: 'Apache License',
+    weights: ['300'],
+    display: 'block',
+    expectedFaces: 1,
+    expectedFiles: 1,
+    facesPerFile: 1,
+    // The subset endpoint serves /l/font rather than a .woff2 path, and one
+    // subsetted face carries every requested glyph, so there is no unicode-range.
+    subsetEndpoint: true,
+    requiresUnicodeRange: false,
+    fontFileName: 'material-symbols-outlined.woff2',
+    variableAxis: null,
+  },
+];
+
 const BROWSER_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.4191.62';
 
@@ -26,7 +104,6 @@ const REQUEST_TIMEOUT_MS = 20_000;
 const MAX_CSS_BYTES = 64 * 1024;
 const MAX_FONT_BYTES = 256 * 1024;
 const MAX_LICENSE_BYTES = 32 * 1024;
-const REQUESTED_WEIGHTS = ['400', '500', '600', '700', '800'];
 
 const FONTTOOLS_PROGRAM = String.raw`import json
 import os
@@ -141,9 +218,12 @@ function readDeclaration(faceBody, property) {
   return match[1].trim();
 }
 
-function parseFaces(css) {
+function parseFaces(css, family) {
   const faceBlocks = [...css.matchAll(/@font-face\s*\{([^{}]*)\}/g)];
-  assert(faceBlocks.length === 30, `Expected 30 @font-face blocks, found ${faceBlocks.length}`);
+  assert(
+    faceBlocks.length === family.expectedFaces,
+    `Expected ${family.expectedFaces} @font-face blocks for ${family.family}, found ${faceBlocks.length}`,
+  );
 
   const faces = faceBlocks.map((match) => {
     const body = match[1];
@@ -155,24 +235,26 @@ function parseFaces(css) {
     const sourceUrl = new URL(sourceMatch[2]);
     assertCanonicalUrl(sourceUrl, 'fonts.gstatic.com');
     assert(
-      sourceUrl.pathname.endsWith('.woff2'),
-      `Expected WOFF2 source, received ${sourceUrl.href}`,
+      family.subsetEndpoint ? sourceUrl.pathname === '/l/font' : sourceUrl.pathname.endsWith('.woff2'),
+      `Unexpected font source path, received ${sourceUrl.href}`,
     );
 
     const fontFamily = readDeclaration(body, 'font-family');
     const fontStyle = readDeclaration(body, 'font-style');
     const fontWeight = readDeclaration(body, 'font-weight');
     const fontDisplay = readDeclaration(body, 'font-display');
-    const unicodeRange = readDeclaration(body, 'unicode-range');
+    // A single subsetted face carries every requested glyph, so it declares no range.
+    const wantsRange = family.requiresUnicodeRange !== false;
+    const unicodeRange = wantsRange ? readDeclaration(body, 'unicode-range') : null;
 
-    assert(fontFamily === "'Manrope'", `Unexpected font family ${fontFamily}`);
+    assert(fontFamily === `'${family.family}'`, `Unexpected font family ${fontFamily}`);
     assert(fontStyle === 'normal', `Unexpected font style ${fontStyle}`);
-    assert(REQUESTED_WEIGHTS.includes(fontWeight), `Unexpected font weight ${fontWeight}`);
-    assert(fontDisplay === 'swap', `Unexpected font-display ${fontDisplay}`);
-    assert(unicodeRange.startsWith('U+'), `Unexpected unicode-range ${unicodeRange}`);
+    assert(family.weights.includes(fontWeight), `Unexpected font weight ${fontWeight}`);
+    assert(fontDisplay === family.display, `Unexpected font-display ${fontDisplay}`);
+    if (wantsRange) assert(unicodeRange.startsWith('U+'), `Unexpected unicode-range ${unicodeRange}`);
 
     return {
-      fontFamily: 'Manrope',
+      fontFamily: family.family,
       fontStyle,
       fontWeight,
       fontDisplay,
@@ -181,10 +263,11 @@ function parseFaces(css) {
     };
   });
 
-  for (const weight of REQUESTED_WEIGHTS) {
+  const subsetsPerWeight = family.expectedFaces / family.weights.length;
+  for (const weight of family.weights) {
     assert(
-      faces.filter((face) => face.fontWeight === weight).length === 6,
-      `Expected six Unicode subsets for weight ${weight}`,
+      faces.filter((face) => face.fontWeight === weight).length === subsetsPerWeight,
+      `Expected ${subsetsPerWeight} subsets for ${family.family} weight ${weight}`,
     );
   }
 
@@ -193,16 +276,23 @@ function parseFaces(css) {
     sourceCounts.set(face.sourceUrl, (sourceCounts.get(face.sourceUrl) ?? 0) + 1);
   }
 
-  assert(sourceCounts.size === 6, `Expected six unique WOFF2 files, found ${sourceCounts.size}`);
+  assert(
+    sourceCounts.size === family.expectedFiles,
+    `Expected ${family.expectedFiles} unique WOFF2 files for ${family.family}, found ${sourceCounts.size}`,
+  );
   for (const [sourceUrl, count] of sourceCounts) {
-    assert(count === 5, `Expected ${sourceUrl} to serve five weights, found ${count}`);
+    assert(
+      count === family.facesPerFile,
+      `Expected ${sourceUrl} to serve ${family.facesPerFile} faces, found ${count}`,
+    );
   }
 
   return { faces, sourceCounts };
 }
 
-function outputFileName(sourceUrl) {
-  const fileName = basename(new URL(sourceUrl).pathname);
+function outputFileName(sourceUrl, family) {
+  // The subset endpoint has no filename in its path, so the family names the file.
+  const fileName = family.fontFileName ?? basename(new URL(sourceUrl).pathname);
   assert(
     /^[a-zA-Z0-9._-]+\.woff2$/.test(fileName),
     `Unsafe output filename generated from ${sourceUrl}`,
@@ -226,7 +316,7 @@ function rewriteCssForLocalFiles(css, sourceToFileName, sourceCounts) {
   return localCss;
 }
 
-function inspectWithFontTools(fontPaths) {
+function inspectWithFontTools(fontPaths, family) {
   const commands = [
     { command: 'py', args: ['-3'] },
     { command: 'python', args: [] },
@@ -256,14 +346,31 @@ function inspectWithFontTools(fontPaths) {
     const inspection = JSON.parse(result.stdout);
     assert(inspection.files.length === fontPaths.length, 'fontTools did not inspect every WOFF2 file');
 
+    // Declaring an axis a font does not have makes the browser synthesize the
+    // weight instead of failing, so the expectation is pinned from the binary and
+    // every mismatch reports what the binary actually says.
     for (const file of inspection.files) {
       assert(file.decoded === true, `fontTools did not decode ${file.file}`);
-      assert(file.axes.length === 1, `Expected one variable axis in ${file.file}`);
-      const [axis] = file.axes;
-      assert(axis.tag === 'wght', `Unexpected variable axis ${axis.tag} in ${file.file}`);
-      assert(axis.minimum === 200, `Unexpected wght minimum ${axis.minimum} in ${file.file}`);
-      assert(axis.default === 200, `Unexpected wght default ${axis.default} in ${file.file}`);
-      assert(axis.maximum === 800, `Unexpected wght maximum ${axis.maximum} in ${file.file}`);
+      const observed =
+        file.axes.map((axis) => `${axis.tag} ${axis.minimum}-${axis.maximum} default ${axis.default}`).join(', ') ||
+        'no variable axes';
+      const expected = family.variableAxis;
+      if (!expected) {
+        assert(
+          file.axes.length === 0,
+          `${family.family}: ${file.file} carries ${observed}, but the family declares none. Pin it.`,
+        );
+        continue;
+      }
+      assert(
+        file.axes.length === 1 &&
+          file.axes[0].tag === expected.tag &&
+          file.axes[0].minimum === expected.minimum &&
+          file.axes[0].default === expected.default &&
+          file.axes[0].maximum === expected.maximum,
+        `${family.family}: ${file.file} carries ${observed}, family declares ` +
+          `${expected.tag} ${expected.minimum}-${expected.maximum} default ${expected.default}`,
+      );
     }
 
     return {
@@ -318,14 +425,15 @@ async function writeIfChanged(path, content) {
   return true;
 }
 
-async function main() {
-  const cssBytes = await fetchBuffer(CSS_SOURCE_URL, 'fonts.googleapis.com', MAX_CSS_BYTES, 'text/css');
+async function vendorFamily(family) {
+  const OUTPUT_DIRECTORY = resolve(FONTS_DIRECTORY, family.slug);
+  const cssBytes = await fetchBuffer(family.cssUrl, 'fonts.googleapis.com', MAX_CSS_BYTES, 'text/css');
   const css = new TextDecoder('utf-8', { fatal: true }).decode(cssBytes);
-  const { faces, sourceCounts } = parseFaces(css);
+  const { faces, sourceCounts } = parseFaces(css, family);
 
   const sourceToFileName = new Map();
   for (const sourceUrl of sourceCounts.keys()) {
-    const fileName = outputFileName(sourceUrl);
+    const fileName = outputFileName(sourceUrl, family);
     const existingSource = [...sourceToFileName.entries()].find(([, value]) => value === fileName)?.[0];
     assert(
       !existingSource || existingSource === sourceUrl,
@@ -345,13 +453,13 @@ async function main() {
   }
 
   const licenseBytes = await fetchBuffer(
-    LICENSE_SOURCE_URL,
+    family.licenseUrl,
     'raw.githubusercontent.com',
     MAX_LICENSE_BYTES,
     'text/plain',
   );
   const license = new TextDecoder('utf-8', { fatal: true }).decode(licenseBytes);
-  assert(license.includes('SIL OPEN FONT LICENSE Version 1.1'), 'Unexpected Manrope license text');
+  assert(license.includes(family.licenseMarker), `Unexpected ${family.family} license text`);
   const localLicense = license
     .replace(/\r\n?/g, '\n')
     .split('\n')
@@ -368,7 +476,7 @@ async function main() {
     await writeIfChanged(resolve(OUTPUT_DIRECTORY, fileName), fontBuffers.get(sourceUrl));
   }
 
-  const inspection = inspectWithFontTools(fontPaths);
+  const inspection = inspectWithFontTools(fontPaths, family);
   const manifestPath = resolve(OUTPUT_DIRECTORY, 'manifest.json');
   const existingManifest = await readJsonIfPresent(manifestPath);
   const cssHash = sha256(cssBytes);
@@ -392,31 +500,33 @@ async function main() {
 
   const manifest = {
     schemaVersion: 1,
-    family: 'Manrope',
-    requestedWeights: REQUESTED_WEIGHTS.map(Number),
+    family: family.family,
+    role: family.role,
+    requestedWeights: family.weights.map(Number),
+    ...(family.icons ? { iconNames: family.icons } : {}),
     retrievedAt: sourceContentMatches ? existingManifest.retrievedAt : new Date().toISOString(),
     request: {
-      cssUrl: CSS_SOURCE_URL,
+      cssUrl: family.cssUrl,
       userAgent: BROWSER_USER_AGENT,
     },
     sources: {
       css: {
-        url: CSS_SOURCE_URL,
+        url: family.cssUrl,
         sha256: cssHash,
         bytes: cssBytes.byteLength,
         faceCount: faces.length,
         asset: {
-          file: 'manrope.css',
+          file: `${family.slug}.css`,
           sha256: sha256(localCssBytes),
           bytes: localCssBytes.byteLength,
         },
       },
       license: {
-        url: LICENSE_SOURCE_URL,
+        url: family.licenseUrl,
         sha256: licenseHash,
         bytes: licenseBytes.byteLength,
         asset: {
-          file: 'OFL.txt',
+          file: family.licenseFile,
           sha256: sha256(localLicenseBytes),
           bytes: localLicenseBytes.byteLength,
         },
@@ -431,11 +541,11 @@ async function main() {
   };
 
   const changed = [];
-  if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, 'manrope.css'), localCssBytes)) {
-    changed.push('manrope.css');
+  if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, `${family.slug}.css`), localCssBytes)) {
+    changed.push(`${family.slug}.css`);
   }
-  if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, 'OFL.txt'), localLicenseBytes)) {
-    changed.push('OFL.txt');
+  if (await writeIfChanged(resolve(OUTPUT_DIRECTORY, family.licenseFile), localLicenseBytes)) {
+    changed.push(family.licenseFile);
   }
   if (await writeIfChanged(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)) {
     changed.push('manifest.json');
@@ -443,12 +553,17 @@ async function main() {
 
   console.log(
     changed.length === 0
-      ? 'Manrope assets are already current.'
-      : `Updated Manrope assets: ${changed.join(', ')}`,
+      ? `${family.family} is already current.`
+      : `Updated ${family.family}: ${changed.join(', ')}`,
   );
   console.log(
-    `Verified ${faces.length} face declarations, ${fonts.length} unique WOFF2 files, and ${inspection.status} fontTools inspection.`,
+    `  ${faces.length} face declarations, ${fonts.length} unique WOFF2 files, ` +
+      `${fonts.reduce((total, font) => total + font.bytes, 0)} bytes, ${inspection.status} fontTools inspection.`,
   );
+}
+
+async function main() {
+  for (const family of FAMILIES) await vendorFamily(family);
 }
 
 main().catch((error) => {

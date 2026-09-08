@@ -4,3 +4,8 @@
 # produced it. Line-ending conversion would make the checked-in file differ from
 # the export, and a parity harness reads these bytes.
 design/reference/** -text
+
+# Vendored fonts are fetched bytes with SHA-256 recorded in each manifest.json.
+# Converting line endings would leave the checked-in stylesheet and licence
+# differing from the digests that claim to describe them.
+public/fonts/** -text
