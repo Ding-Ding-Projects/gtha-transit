@@ -34,26 +34,35 @@ not have.
 
 | | State |
 | --- | --- |
-| Tests | 486 pass, 0 fail |
+| Tests | 494 pass, 0 fail |
 | Type check | clean |
 | Interaction ledger | 4 tuples, 56 steps each, 224 captures, all green, 0 console exceptions |
 | Ledger binding | every row bound to `92153d6`, artifact `b8d360d8`, its own viewport, scale and theme |
 | Design parity | 8 screens, 32 captures plus machine-readable evidence, guard green |
 | Parity guard | 8 boundaries each broken on purpose, watched red, restored green |
-| Latest release | `v0.1.0-130.1`, non-draft, targeting `0c703bb` |
-| Deployed | `92153d6` |
+| Latest release | `v0.1.0-136.1`, non-draft, targeting `9eaffa8`, assets downloadable |
+| Deployed | `92153d6`, three application files behind head |
 
 ### Known gaps, stated rather than left to be found
 
-- **The deployment is behind head by four commits, and that is not a stale build.**
-  Nothing app-affecting has changed since `92153d6`: every commit since touches only
-  scripts, tests, documentation and evidence, which is provable with
-  `git diff 92153d6..HEAD` excluding those paths and getting nothing. The running
-  bundle is therefore exactly what head builds, and the ledger and parity evidence
-  bind to `92153d6` truthfully. What is out of date is the commit string in
-  `version.json`. A deploy needs the host variables, which are deliberately not in
-  the repository, so whoever has them should run `scripts/deploy.sh` to bring the
-  label into line.
+- **The deployment is behind head, and three application files are now part of that
+  gap.** For most of this pass the gap was only scripts, tests, documentation and
+  evidence, so the running bundle was exactly what head built. That stopped being
+  true when the route colour lookup was split into its own module so it could be
+  tested without a renderer, and when a sort in the history store was given the
+  explicit comparator its linter asks for. Both are behaviour-preserving and both
+  are covered by tests, but behaviour-preserving is a claim rather than a
+  measurement, and neither has run in production.
+
+  `git diff 92153d6..HEAD -- . ':(exclude)scripts/**' ':(exclude)docs/**'
+  ':(exclude)tests/**' ':(exclude)design/**'` names exactly what is undeployed:
+  `history/store.mjs`, `lib/route-colours.ts`, `lib/use-route-colours.ts`.
+
+  The ledger and design-parity evidence bind to `92153d6`, which is what is
+  actually running, so that evidence remains truthful about the deployed artifact
+  rather than about head. A deploy needs the host variables, which are deliberately
+  not in this repository, so whoever holds them should run `scripts/deploy.sh` and
+  then re-record the ledger at the new commit.
 - **Lint has 132 pre-existing findings**, mostly in the vendored `components/ui`
   tree and mostly `react-compiler` and `jsx-a11y(prefer-tag-over-role)`. Two were
   fixed in passing. This is separate debt and was not created by this work; it has
