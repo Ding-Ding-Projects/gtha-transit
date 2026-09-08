@@ -64,6 +64,11 @@ function catalog(overrides = {}) {
     funZh: overrides.funZh ?? 5,
     setFunZh: (value) => calls.push(['funZh', value]),
     narrator: overrides.narrator ?? narrator({ updateSettings: (patch) => calls.push(['narrator', patch]) }),
+    comfort: overrides.comfort === null ? undefined : {
+      modes: { focus: false, lowStimulation: false, timeAwareness: false, oneThing: false, momentum: false },
+      toggleMode: (mode) => calls.push(['comfort', mode]),
+      vocabularyEntries: 0,
+    },
   });
   return { entries, calls };
 }

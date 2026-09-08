@@ -101,6 +101,7 @@ export function paletteSamples(entries: readonly PaletteEntry[]): string[] {
 export function sectionLabel(section: SettingsSection, t: Translate): string {
   if (section === 'appearance') return t('Appearance', '外觀');
   if (section === 'language') return t('Language', '語言');
+  if (section === 'comfort') return t('Comfort', '舒適');
   if (section === 'narrator') return t('Narrator', '旁白');
   return t('Privacy', '私隱');
 }
@@ -118,6 +119,7 @@ export function sectionLabel(section: SettingsSection, t: Translate): string {
 export function sectionGlyph(section: SettingsSection): string {
   if (section === 'appearance') return 'tune';
   if (section === 'language') return 'translate';
+  if (section === 'comfort') return 'layers';
   if (section === 'narrator') return 'volume_up';
   return 'check_circle';
 }
@@ -192,6 +194,12 @@ export function paletteEntries(input: PaletteInput): PaletteEntry[] {
  */
 export function settingKeywords(id: string, t: Translate): string {
   const map: Record<string, string> = {
+    'comfort-focus': t('adhd attention distraction dim quiet concentrate', '專注 分心 注意力'),
+    'comfort-low-stimulation': t('adhd motion animation quiet calm sensory reduce', '動畫 郁動 安靜 感官'),
+    'comfort-time-awareness': t('adhd time blindness clock elapsed how long', '時間 時鐘 過咗幾耐'),
+    'comfort-one-thing': t('adhd next action task single focus todo', '下一步 一件事 任務'),
+    'comfort-momentum': t('adhd nudge reminder stuck idle prompt', '提醒 停滯 閒置'),
+    'personal-vocabulary': t('vocabulary wording rename words json upload file my words', '用語 字眼 改名 上載 檔案'),
     theme: t('dark mode light mode night day appearance contrast', '深色模式 淺色模式 夜間 日間 外觀'),
     language: t('english cantonese chinese bilingual translate', '英文 廣東話 中文 雙語 翻譯'),
     'english-tone': t('humour humor funny serious playful tone voice wording', '幽默 有趣 認真 語氣 用詞'),

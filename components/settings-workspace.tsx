@@ -1,13 +1,16 @@
 'use client';
 
 import { useId, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, Languages, Mic2, Moon, Palette, Search, ShieldCheck, Sun, RotateCcw } from 'lucide-react';
+import { Accessibility, ArrowRight, Check, Languages, Mic2, Moon, Palette, Search, ShieldCheck, Sun, RotateCcw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import NarratorSettings from './narrator-settings';
+import ComfortSettings from './comfort-settings';
 import type { NarratorController } from '../lib/narrator';
 import { useLocalSetting } from '../lib/use-local-setting';
 import { SETTINGS_SECTION_KEY, SETTINGS_SECTIONS, settingsCatalog, type SettingsEntry, type SettingsSection } from '../lib/settings-catalog';
+import { toggleMode, type AdhdMode, type AdhdState } from '../lib/adhd-modes';
+import { entryCount, type VocabularyFile } from '../lib/personal-vocabulary';
 
 type Lang = 'en' | 'zh' | 'both';
 type Section = SettingsSection;
@@ -38,12 +41,14 @@ function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: S
 const englishPreviews = ['Clear directions, at your pace.', 'Plan a straightforward journey.', 'A smoother route to your next stop.', 'Find your route and let the region connect.', 'Your next connection. Minus the timetable gymnastics.'];
 const cantonesePreviews = ['按需要規劃行程。', '清晰規劃每一程。', '下一站，輕鬆到達。', '搵好路線，出門就放心啲。', '轉車可以，轉到頭暈就唔使喇。'];
 
-export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t }: {
+export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary }: {
   lang: Lang; setLang: (value: Lang) => void;
   dark: boolean; setDark: (value: boolean) => void;
   funEn: number; setFunEn: (value: number) => void;
   funZh: number; setFunZh: (value: number) => void;
   narrator: NarratorController; t: Translate;
+  adhd: AdhdState; setAdhd: (next: AdhdState | ((current: AdhdState) => AdhdState)) => void;
+  vocabulary: VocabularyFile | null; setVocabulary: (next: VocabularyFile | null) => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
@@ -52,10 +57,12 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
   const sections = [
     { id: 'appearance', label: t('Appearance', '外觀'), icon: Palette },
     { id: 'language', label: t('Language', '語言'), icon: Languages },
+    { id: 'comfort', label: t('Comfort', '舒適'), icon: Accessibility },
     { id: 'narrator', label: t('Narrator', '旁白'), icon: Mic2 },
     { id: 'privacy', label: t('Privacy', '私隱'), icon: ShieldCheck },
   ];
-  const entries = settingsCatalog({ t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator });
+  const entries = settingsCatalog({ t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator,
+    comfort: { modes: adhd.modes, toggleMode: mode => setAdhd(current => toggleMode(current, mode as AdhdMode)), vocabularyEntries: entryCount(vocabulary) } });
   const [navigationTarget, setNavigationTarget] = useState<SearchEntry | null>(null);
   const previewVoiceAvailable = narrator.settings.language === 'en' ? !!narrator.englishVoice.voice : narrator.settings.language === 'zh' ? !!narrator.cantoneseVoice.voice : !!(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
   const navigationNotice = !navigationTarget ? '' : !narrator.speechAvailable ? t('This browser does not provide speech synthesis. Voice controls are unavailable here.', '此瀏覽器未提供語音合成，未能使用語音控制。') : !narrator.settings.enabled ? t('Enable narration first to change this voice setting.', '請先開啟旁白，再更改此語音設定。') : navigationTarget.id === 'preview' && narrator.settings.quiet ? t('Turn off quiet narration to hear a preview.', '請關閉靜音旁白以試聽。') : navigationTarget.id === 'preview' && !previewVoiceAvailable ? t('No compatible voice is available for the chosen narration language.', '所選旁白語言未有可用語音。') : '';
@@ -105,6 +112,10 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
           {[{ key: 'english', label: t('English playfulness', '英文趣味程度'), value: funEn, update: setFunEn, preview: englishPreviews, language: 'en' }, { key: 'cantonese', label: t('Cantonese playfulness', '廣東話趣味程度'), value: funZh, update: setFunZh, preview: cantonesePreviews, language: 'zh-Hant' }].map(item => <section key={item.key} className="preference-card tone-card"><header><label htmlFor={'settings-' + item.key + '-tone'}>{item.label}</label><output htmlFor={'settings-' + item.key + '-tone'}>{item.value}<small>/5</small></output></header><input id={'settings-' + item.key + '-tone'} type="range" min="1" max="5" step="1" value={item.value} onChange={event => item.update(Number(event.target.value))} /><div className="tone-scale"><span>{t('Serious', '認真')}</span><span>{t('Playful', '有趣')}</span></div><blockquote lang={item.language}>{item.preview[Math.max(0, Math.min(4, Math.floor(item.value) - 1))]}</blockquote><button type="button" className="settings-reset" onClick={() => item.update(5)}><RotateCcw size={14} aria-hidden="true" />{t('Reset to 5', '重設為 5')}</button></section>)}
         </div>
         <p className="settings-default">{t('English and Cantonese each default to level 5. Tone changes wording, including warnings and errors, without changing route facts.', '英文同廣東話預設各為第 5 級。語氣會改變包括警告同錯誤嘅用詞，但唔會改變路線事實。')}</p>
+      </TabsContent>
+      <TabsContent value="comfort" className="settings-section" keepMounted>
+        {findIn('comfort')}
+        <ComfortSettings t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} />
       </TabsContent>
       <TabsContent value="narrator" className="settings-section" keepMounted>
         {findIn('narrator')}

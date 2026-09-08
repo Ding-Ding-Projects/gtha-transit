@@ -45,6 +45,8 @@ import WorkspaceNavigation from '../components/workspace-navigation';
 import CommandPalette from '../components/command-palette';
 import NotificationCentre from '../components/notification-centre';
 import { emptyNotifications, notify, type NotificationState, type Severity } from '../lib/notifications';
+import { adhdClassNames, emptyAdhdState, isOn, type AdhdState } from '../lib/adhd-modes';
+import { buildReplacer, parseVocabularyCache, VOCABULARY_STORAGE_KEY, type VocabularyFile } from '../lib/personal-vocabulary';
 import { destinationHeading, workspaceDestinations } from '../lib/destinations';
 import { settingsCatalog } from '../lib/settings-catalog';
 import { workspaceActions } from '../lib/command-palette';
@@ -343,6 +345,8 @@ export default function Home() {
     [planned, setPlanned] = useState(false),
     [error, setError] = useState(''),
     [notifications, setNotifications] = useState<NotificationState>(emptyNotifications),
+    [adhd, setAdhd] = useState<AdhdState>(emptyAdhdState),
+    [vocabulary, setVocabulary] = useState<VocabularyFile | null>(null),
     [picking, setPicking] = useState<string | null>(null),
     [mapVisible, setMapVisible] = useState(true);
   const [status, setStatus] = useState<TransitStatus | null>(null),
@@ -369,13 +373,22 @@ export default function Home() {
   const request = useRef<AbortController | null>(null),
     generation = useRef(0),
     hydrated = useRef(false);
+  /**
+   * Somebody's own wording, applied at the one boundary every surface goes through.
+   *
+   * Inside `t` rather than at each call site, because a replacement applied in some
+   * places and not others is an interface speaking two vocabularies at once. It is
+   * the last step, after the language mode and the playfulness level have chosen
+   * the sentence, so it renames what is actually shown.
+   */
+  const replaceWords = useMemo(() => buildReplacer(vocabulary), [vocabulary]);
   const t = useCallback(
     (en: string, zh: string) => {
       const a = copyAt(en, 'en', funEn),
         b = copyAt(zh, 'zh', funZh);
-      return lang === 'zh' ? b : lang === 'both' ? `${a} · ${b}` : a;
+      return replaceWords(lang === 'zh' ? b : lang === 'both' ? `${a} · ${b}` : a);
     },
-    [lang, funEn, funZh],
+    [lang, funEn, funZh, replaceWords],
   );
 
   /**
@@ -398,6 +411,11 @@ export default function Home() {
    * settings entries carry the real setters, so a palette row and the settings
    * page change one value through one piece of code.
    */
+  /* Restored once, through the same reader the file picker uses, so a hand-edited
+     or truncated cache cannot reach the interface by a shorter path. */
+  useEffect(() => {
+    try { setVocabulary(parseVocabularyCache(localStorage.getItem(VOCABULARY_STORAGE_KEY))); } catch { /* storage refused; the shipped wording stands */ }
+  }, []);
   const paletteDestinations = useMemo(() => workspaceDestinations(t), [t]);
   const paletteSettings = useMemo(
     () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator }),
@@ -923,7 +941,7 @@ export default function Home() {
         ? t('Service alert', '服務提示')
         : t('Status unconfirmed', '狀態未確認');
   return (
-    <div className="shell" data-tab={tab}>
+    <div className={`shell ${adhdClassNames(adhd)}`.trimEnd()} data-tab={tab} data-one-thing={isOn(adhd, 'oneThing') && adhd.oneThingText ? adhd.oneThingText : undefined}>
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
@@ -2122,7 +2140,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} />}
+          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">

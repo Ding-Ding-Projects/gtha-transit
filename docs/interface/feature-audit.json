@@ -198,12 +198,17 @@
     {
       "id": "adhd-modes",
       "name": "Focus, low stimulation, time awareness, one thing at a time, momentum",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "present",
+      "implementation": [
+        "lib/adhd-modes.ts",
+        "components/comfort-settings.tsx",
+        "app/comfort.css",
+        "app/page.tsx"
+      ],
+      "documentation": "docs/interface/comfort.md",
+      "test": "tests/adhd-vocabulary.test.mjs",
       "capture": null,
-      "reason": "Not built. This is a genuine gap: a journey planner is exactly the kind of surface where time awareness and one-thing-at-a-time would help, so the absence is an omission rather than a poor fit."
+      "note": "Five modes, each switched on by itself and all shipping off. Focus dims and never removes; low stimulation stops motion rather than slowing it and composes with the platform preference; time awareness states a number and never a judgement; the one thing is typed by the person and rides on the shell; momentum respects a not-now for half an hour. Named for what they do, so using one discloses nothing. Guards read the displayed copy and refuse clinical wording, streaks, scores and congratulation."
     },
     {
       "id": "school-mode",
@@ -218,12 +223,16 @@
     {
       "id": "personal-vocabulary-upload",
       "name": "Local personal-vocabulary JSON upload control",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "present",
+      "implementation": [
+        "lib/personal-vocabulary.ts",
+        "components/comfort-settings.tsx",
+        "app/page.tsx"
+      ],
+      "documentation": "docs/interface/comfort.md",
+      "test": "tests/adhd-vocabulary.test.mjs",
       "capture": null,
-      "reason": "Not built. No control is shown, and no built-in mappings ship, so the surface renders its original wording."
+      "note": "An always-visible local file control that ships with no vocabulary of its own: no mappings, no samples, no templates, and a format panel showing the shape with nothing in it. Bounded and validated over the complete byte payload before a word is displayed, with every refusal named in both languages. A rejected file applies nothing, not even the entries before the bad one. Replacement happens at t, the one boundary every surface passes through, matching whole words and keeping capitalisation. The cache is revalidated by the same reader the picker uses. Nothing leaves the browser."
     },
     {
       "id": "bulk-actions",

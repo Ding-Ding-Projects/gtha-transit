@@ -19,9 +19,9 @@
  * appearing inert and leaving the reader to guess.
  */
 
-export type SettingsSection = 'appearance' | 'language' | 'narrator' | 'privacy';
+export type SettingsSection = 'appearance' | 'language' | 'comfort' | 'narrator' | 'privacy';
 
-export const SETTINGS_SECTIONS: readonly SettingsSection[] = ['appearance', 'language', 'narrator', 'privacy'];
+export const SETTINGS_SECTIONS: readonly SettingsSection[] = ['appearance', 'language', 'comfort', 'narrator', 'privacy'];
 
 /**
  * Where the settings workspace remembers which section is open.
@@ -101,6 +101,19 @@ export type SettingsCatalogInput = {
   funZh: number;
   setFunZh: (value: number) => void;
   narrator: NarratorLike;
+  /**
+   * The comfort surface, when the caller has one.
+   *
+   * Optional so a caller that only wants the language and appearance rows -- a
+   * test, or a surface that does not host the comfort controls -- is not forced
+   * to build state it does not have. When it is absent those rows are simply not
+   * in the catalog, rather than being present and inert.
+   */
+  comfort?: {
+    modes: Record<string, boolean>;
+    toggleMode: (mode: string) => void;
+    vocabularyEntries: number;
+  };
 };
 
 /** The playfulness sliders share one shape, and both ship at 5. */
@@ -214,6 +227,61 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       selector: '#settings-cantonese-tone',
       control: { kind: 'range', value: funZh, min: TONE_RANGE.min, max: TONE_RANGE.max, step: TONE_RANGE.step, apply: setFunZh },
     },
+    ...(input.comfort ? [
+      {
+        id: 'comfort-focus', section: 'comfort' as const,
+        label: t('Focus', '專注'),
+        description: t('Bring what you are working on forward and push the rest back', '突出你做緊嘅嘢，其餘淡化'),
+        value: input.comfort.modes.focus ? t('On', '開') : t('Off', '關'),
+        selector: '.comfort-mode-list input[type="checkbox"]',
+        control: { kind: 'switch' as const, value: input.comfort.modes.focus === true, apply: () => input.comfort!.toggleMode('focus') },
+      },
+      {
+        id: 'comfort-low-stimulation', section: 'comfort' as const,
+        label: t('Low stimulation', '低刺激'),
+        description: t('Fewer moving things, quieter colour, fewer notifications', '少啲郁動，顏色柔和，通知少啲'),
+        value: input.comfort.modes.lowStimulation ? t('On', '開') : t('Off', '關'),
+        selector: '.comfort-mode-list input[type="checkbox"]',
+        control: { kind: 'switch' as const, value: input.comfort.modes.lowStimulation === true, apply: () => input.comfort!.toggleMode('lowStimulation') },
+      },
+      {
+        id: 'comfort-time-awareness', section: 'comfort' as const,
+        label: t('Time awareness', '時間感'),
+        description: t('How long this session has been open, and how long since anything changed', '今次開咗幾耐，同幾耐冇改動'),
+        value: input.comfort.modes.timeAwareness ? t('On', '開') : t('Off', '關'),
+        selector: '.comfort-mode-list input[type="checkbox"]',
+        control: { kind: 'switch' as const, value: input.comfort.modes.timeAwareness === true, apply: () => input.comfort!.toggleMode('timeAwareness') },
+      },
+      {
+        id: 'comfort-one-thing', section: 'comfort' as const,
+        label: t('One thing at a time', '一次一件事'),
+        description: t('Keep one next action visible, chosen by you', '由你揀一件下一步嘅事擺喺眼前'),
+        value: input.comfort.modes.oneThing ? t('On', '開') : t('Off', '關'),
+        selector: '.comfort-mode-list input[type="checkbox"]',
+        control: { kind: 'switch' as const, value: input.comfort.modes.oneThing === true, apply: () => input.comfort!.toggleMode('oneThing') },
+      },
+      {
+        id: 'comfort-momentum', section: 'comfort' as const,
+        label: t('Momentum', '節奏'),
+        description: t('A quiet, dismissible prompt when something has been sitting untouched', '有嘢擺低咗好耐，靜靜哋提你一句'),
+        value: input.comfort.modes.momentum ? t('On', '開') : t('Off', '關'),
+        selector: '.comfort-mode-list input[type="checkbox"]',
+        control: { kind: 'switch' as const, value: input.comfort.modes.momentum === true, apply: () => input.comfort!.toggleMode('momentum') },
+      },
+      {
+        id: 'personal-vocabulary', section: 'comfort' as const,
+        label: t('Your own wording', '你自己嘅用語'),
+        description: t('Load a local JSON file of your words and the planner will use them', '載入你自己用語嘅本機 JSON 檔'),
+        value: input.comfort.vocabularyEntries > 0
+          ? t(`${input.comfort.vocabularyEntries} words in use`, `已套用 ${input.comfort.vocabularyEntries} 個用語`)
+          : t('No file loaded', '未載入檔案'),
+        selector: '.comfort-vocabulary-picker',
+        control: {
+          kind: 'none' as const,
+          reason: t('Choosing a file is done at the control itself, which opens your own file picker.', '揀檔案要喺個控制項度做，會開你自己嘅檔案選擇器。'),
+        },
+      },
+    ] : []),
     {
       id: 'narration',
       section: 'narrator',

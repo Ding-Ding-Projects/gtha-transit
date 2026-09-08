@@ -9,6 +9,7 @@ import './workspace.css';
 import './settings-workspace.css';
 import './journey-time.css';
 import './vehicle-preferences.css';
+import './comfort.css';
 import './notifications.css';
 import './command-palette.css';
 // The shell loads last so its navigation rules win over the old workspace ones.

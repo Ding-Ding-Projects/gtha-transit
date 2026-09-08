@@ -33,7 +33,7 @@ const read = (file) => readFileSync(path.join(root, 'app', file), 'utf8').replac
 const LOAD_ORDER = [
   'material-theme.css', 'globals.css', 'map-controls.css', 'transit-interface.css',
   'workspace.css', 'settings-workspace.css', 'journey-time.css', 'vehicle-preferences.css',
-  'notifications.css', 'command-palette.css', 'shell.css',
+  'comfort.css', 'notifications.css', 'command-palette.css', 'shell.css',
 ];
 
 /** Top-level rules as [selector, body], with comments stripped and at-rules skipped. */

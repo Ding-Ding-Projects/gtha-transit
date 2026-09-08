@@ -1,0 +1,170 @@
+/* ------------------------------------------------------------------ comfort -- */
+
+/*
+ * The ADHD modes and the personal-vocabulary control.
+ *
+ * The mode rules are deliberately gentle. Focus dims and de-emphasises; it never
+ * sets `display: none` on anything, because an interface that disappears work is
+ * a worse problem than a busy one, and everything it quietens comes back the
+ * moment it is hovered or focused.
+ */
+
+.comfort { display: grid; gap: 16px; }
+
+.comfort-mode-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.comfort-mode-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  cursor: pointer;
+}
+.comfort-mode-list label:has(input:checked) {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-surface-container);
+}
+.comfort-mode-list label:has(input:focus-visible) { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.comfort-mode-list span { display: grid; gap: 2px; }
+.comfort-mode-list strong { font: var(--md-sys-typescale-body-large); }
+.comfort-mode-list small { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+
+/* A Material switch rather than a checkbox stretched to switch proportions. */
+.comfort-mode-list input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  cursor: pointer;
+}
+.comfort-mode-list input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-outline);
+  transform: translateY(-50%);
+}
+.comfort-mode-list input[type='checkbox']:checked { border-color: var(--md-sys-color-primary); background: var(--md-sys-color-primary); }
+.comfort-mode-list input[type='checkbox']:checked::after { left: 22px; width: 24px; height: 24px; background: var(--md-sys-color-on-primary); }
+
+.comfort-one-thing { display: grid; gap: 6px; margin-top: 12px; }
+.comfort-one-thing input { min-height: 44px; }
+
+.comfort-clock,
+.comfort-momentum {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+  font: var(--md-sys-typescale-body-small);
+  color: var(--md-sys-color-on-surface-variant);
+}
+.comfort-momentum { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.comfort-momentum button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------- vocabulary -- */
+
+.comfort-vocabulary-control { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* The native input is replaced by its label, which is a real target; hiding it
+   with display:none would take it out of the tab order entirely. */
+.comfort-vocabulary-control input[type='file'] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.comfort-vocabulary-picker,
+.comfort-vocabulary-control button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.comfort-vocabulary-control:has(input[type='file']:focus-visible) .comfort-vocabulary-picker,
+.comfort-vocabulary-control button:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.comfort-vocabulary-state { display: block; margin-top: 10px; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.comfort-vocabulary-format { margin-top: 12px; }
+.comfort-vocabulary-format summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font: var(--md-sys-typescale-label-large); }
+.comfort-vocabulary-format pre {
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-highest);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  overflow-x: auto;
+}
+.comfort-vocabulary-format p { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+
+/* ------------------------------------------------------------- the modes -- */
+
+/*
+ * Focus. Everything that is not the current destination is quietened, and comes
+ * straight back on hover or focus. Nothing is removed, so nothing can be lost.
+ */
+.shell.adhd-focus .m3-nav__item:not(.is-active),
+.shell.adhd-focus .status-rail,
+.shell.adhd-focus .footer { opacity: .45; transition: opacity 120ms ease; }
+.shell.adhd-focus .m3-nav__item:not(.is-active):hover,
+.shell.adhd-focus .m3-nav__item:not(.is-active):focus-visible,
+.shell.adhd-focus .status-rail:hover,
+.shell.adhd-focus .status-rail:focus-within,
+.shell.adhd-focus .footer:hover,
+.shell.adhd-focus .footer:focus-within { opacity: 1; }
+
+/*
+ * Low stimulation. This is the mode asking for less, so it turns motion off
+ * outright rather than slowing it: a slow animation is still motion.
+ */
+.shell.adhd-low-stimulation,
+.shell.adhd-low-stimulation * {
+  animation-duration: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  scroll-behavior: auto !important;
+}
+.shell.adhd-low-stimulation .m3-nav__badge { display: none; }
+
+/*
+ * One thing at a time. The chosen action rides on the shell as a data attribute
+ * and is shown above the workspace, so it survives moving between destinations.
+ */
+.shell[data-one-thing]::before {
+  content: attr(data-one-thing);
+  display: block;
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  padding: 10px 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font: var(--md-sys-typescale-label-large);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell.adhd-focus .m3-nav__item:not(.is-active) { transition: none; }
+}
