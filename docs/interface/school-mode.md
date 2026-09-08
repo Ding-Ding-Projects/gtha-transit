@@ -91,12 +91,73 @@ contract names, in the only store a browser has. What is genuinely not provided 
 propagation to a sibling application, because there is no sibling application to
 propagate to.
 
+## It cannot be set without a secure connection, and it says so
+
+`crypto.subtle` exists only in a secure context, so an origin served over plain
+HTTP — a LAN address, a bare IP, anything but https or localhost — has no
+WebCrypto and cannot derive the hash.
+
+This was found by driving the deployed build, and it had been failing silently:
+the button appeared to do nothing at all, because the promise rejected inside an
+`onClick` where nothing catches it. Every unit test passed, because Node always
+has WebCrypto.
+
+The control now asks before it offers. Where the lock cannot be made, the reason
+replaces the fields rather than sitting under a form that cannot be submitted —
+a dead form reads as the person having got something wrong. Both the lock and
+the unlock report a throw rather than swallowing it.
+
+A lock that cannot be set is a fine outcome. A lock that appears to be set and is
+not would be the dangerous one.
+
+## Driven in the built artifact
+
+`scripts/ui-evidence/drive-school-mode.mjs`, against the real built server through
+an isolated browser proven to expose exactly one page target. **23 of 23 checks
+pass.** It reaches the control the way a person does, sets a name and a word,
+and then asks the running page what is actually there.
+
+It found two defects that reading the source could not, beyond the WebCrypto one
+above:
+
+- **The palette could still reset a playfulness level the interface no longer
+  offered anywhere.** The actions are a *second* registry beside the settings
+  catalog, and filtering one of them is filtering half. That teleport past a
+  hidden control is precisely the thing this design exists to close, and the
+  source guards were blind to it because each file was individually correct.
+- **The honesty guard had stopped guarding.** Narrowing it went through a script
+  that turned every `` into a literal backspace character, so the pattern
+  matched nothing and the module could have claimed to encrypt somebody's data
+  with the test still green.
+
+### Captured from the built artifact
+
+| | |
+| --- | --- |
+| Commit | `e945c9a2dd67eebaa70ffd7a1c01d3c2357da459` |
+| Viewport | 1440 x 900, scale 1, light theme |
+| Reached | Through the navigation and the Comfort tab, named *Exam mode*, locked with a word |
+
+![The Comfort settings with a card headed Exam mode, an amber line reading Exam mode is on, the planner is in plain English, a field to enter your word to turn it off, and a grey panel reading This is a speed bump, not a lock on your data.](captures/school-mode-1440-light.png)
+
+*SHA-256 `189154f6a59fb9e977dd6561cff2911b2ed716a923508f3f3ee3a33f954897b0`*
+
+The heading says **Exam mode**, not the shipped name, and the shipped name appears
+nowhere on the page. The rail down the left has no language buttons on it at all.
+
+![The settings tab strip showing four tabs, Appearance, Comfort, Narrator and Privacy, with no Language tab, above the comfort modes and the Exam mode card.](captures/school-mode-tabs-1440-light.png)
+
+*SHA-256 `16af9a39e717eace3766199027927418466b4e52ced970dae65d3513c8665958`*
+
+Four tabs, not five. The Language tab is gone rather than empty, and the wording
+card is gone from Comfort rather than disabled.
+
 ## Verification
 
 `tests/school-mode.test.mjs` — 26 tests over the lock, the name, the suppression
 list, persistence, and the omission at every surface.
 
-**Seventeen boundaries were broken on purpose and watched go red**, then restored
+**Twenty-four boundaries were broken on purpose and watched go red**, then restored
 and watched go green: the catalog filter removed; a row dropped off
 `HIDDEN_BY_SCHOOL`; the row's label pinned to the shipped name; the Language tab
 and its panel left in the strip; the stored-tab fallback removed; the navigation
@@ -117,3 +178,11 @@ accepted:
 Two existing guards also caught this change and were updated rather than
 loosened: the one pinning the replacer's position inside `t`, and the one pinning
 dim sum's suppression expression.
+
+## What is not done
+
+- The captures cover 1440 in the light theme. Narrow widths, the dark theme and
+  higher display scales are unverified.
+- On an origin without a secure connection the mode cannot be turned on. That is
+  a browser constraint rather than a choice, it is stated on the control, and the
+  planner is otherwise unaffected.

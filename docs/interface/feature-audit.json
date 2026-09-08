@@ -213,11 +213,12 @@
     {
       "id": "school-mode",
       "name": "Universal renamable School mode with a shared unlock credential",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "lib/school-mode.ts",
         "components/school-mode.tsx",
         "lib/settings-catalog.ts",
+        "lib/command-palette.ts",
         "components/settings-workspace.tsx",
         "components/comfort-settings.tsx",
         "components/workspace-navigation.tsx",
@@ -226,8 +227,8 @@
       ],
       "documentation": "docs/interface/school-mode.md",
       "test": "tests/school-mode.test.mjs",
-      "capture": null,
-      "missing": "Built and wired. It ships off, is renamable so the shipped name disappears once a name is chosen, and omits rather than disables: Cantonese, both languages, both playfulness sliders, the personal-wording file and the dim sum surprise leave the interface, the settings search and the command palette together, through one named list. What somebody chose is read through rather than overwritten, so it returns untouched when the mode goes off. The credential is PBKDF2-SHA256 at 210,000 iterations over a random salt, and the control states in those words that it is a speed bump rather than a lock on their data, with the recovery route and what it costs beside it. Seventeen boundaries were broken and watched go red. It is partial for two reasons, both stated in the article. The universal contract asks for one record shared across every app on a machine with the credential in the operating-system vault; a browser has neither, so this is one origin's own storage and cannot propagate to a sibling application. And it has not yet been driven in the built artifact or captured, so the suppression is proven by guards over the source rather than by a picture of the interface with the mode on."
+      "capture": "docs/interface/captures/school-mode-1440-light.png",
+      "reason": "Built, wired, driven in the built artifact and captured. It ships off, is renamable so the shipped name disappears from every surface once a name is chosen, and omits rather than disables: Cantonese, both languages, both playfulness sliders, the personal-wording file and the dim sum surprise leave the interface, the settings search, the palette rows and the palette actions together, through two named lists -- the actions being a second registry that filtering the catalog alone did not reach, which the browser drive found. What somebody chose is read through rather than overwritten, so every setting returns untouched when the mode goes off. The credential is PBKDF2-SHA256 at 210,000 iterations over a random salt, and the control states in those words that it is a speed bump rather than a lock on their data, with the recovery route and what it costs beside it. Where the browser has no secure context there is no WebCrypto and the lock cannot be set; the control says so instead of failing silently, which is how it behaved until the deployed build was driven. 23 of 23 browser checks pass and 24 boundaries were broken and watched go red. Two captures at 1440 in the light theme show the chosen name throughout, a rail with no language buttons, and four settings tabs rather than five."
     },
     {
       "id": "personal-vocabulary-upload",
