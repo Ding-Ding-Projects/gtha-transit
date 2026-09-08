@@ -6,17 +6,17 @@
 .suggestions > button { align-items: flex-start; }
 .suggestions > button > span { min-width: 0; overflow-wrap: anywhere; }
 /* The colour roles live in material-theme.css, which is generated. What stays
-   here is only what this shell adds: the navigation surface, which is a fixed
-   brand ink rather than a role, and the rail width. */
+   here is only what this shell adds: the rail's own surface and its width.
+
+   The rail used to be a fixed navy, hard-coded in both schemes. That made it the
+   one surface that could not follow the theme, and it is why the day scheme had
+   a night-coloured strip down its left edge. The design puts the rail on the
+   same panel surface as everything else, so it is a role now. */
 :root {
-  --lime: var(--md-sys-color-tertiary-container);
-  --nav-bg: #122b35;
-  --nav-text: #e7f0f1;
-  --nav-muted: #a8bec6;
-  --workspace-rail: 80px;
-}
-html[data-theme='dark'] {
-  --nav-bg: #09161e;
+  --nav-bg: var(--md-sys-color-surface-container-lowest);
+  --nav-text: var(--md-sys-color-on-surface);
+  --nav-muted: var(--md-sys-color-on-surface-variant);
+  --workspace-rail: 84px;
 }
 [hidden] { display: none !important; }
 .shell { max-width: none; min-height: 100dvh; background: var(--bg); }.workspace-topline {

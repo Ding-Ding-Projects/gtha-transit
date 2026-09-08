@@ -63,20 +63,18 @@
 .live-follower__stops { max-height:360px; overflow:auto; padding-left:28px; }
 .live-follower__stops li { padding:10px 6px; border-bottom:1px solid var(--border); }
 .live-follower__error { color:var(--alert); background:var(--alert-bg); }
+/* Only the tokens the generated theme does not name. Everything else - --bg,
+   --surface, --text, --muted, --border, --primary, --shadow - is declared once,
+   in material-theme.css, and redeclaring one here would silently win on load
+   order and quietly put the previous palette back. It did exactly that for
+   forty-six tokens, which is why the generated theme was invisible. */
 :root {
-  --bg: #f5f7f3;
-  --surface: #fff;
-  --surface2: #edf2eb;
-  --text: #20362d;
-  --muted: #68776d;
-  --border: #dce4db;
-  --primary: #184d39;
-  --lime: #d2f574;
-  --alert: #8f420e;
-  --alert-bg: #fff0de;
-  --shadow: 0 12px 36px #173c2a0d;
-  --super-express-ink: #ffffff;
-  font-family: Manrope, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  --accent-mark: var(--md-sys-color-primary-container);
+  --accent-mark-ink: var(--md-sys-color-on-primary-container);
+  --alert: var(--md-sys-color-on-error-container);
+  --alert-bg: var(--md-sys-color-error-container);
+  --super-express-ink: var(--md-sys-color-on-primary);
+  font-family: var(--md-ref-typeface-plain);
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -91,18 +89,9 @@ body {
   line-height: 1.5;
 }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+/* Every colour above is already answered by the dark block in material-theme.css,
+   on this exact selector. Only the scheme hint belongs here. */
 html[data-theme='dark'] {
-  --bg: #10251c;
-  --surface: #192f24;
-  --surface2: #243b2e;
-  --text: #e7eee3;
-  --muted: #a5b6a8;
-  --border: #35503f;
-  --primary: #bcdfa5;
-  --lime: #d2f574;
-  --alert: #ffc58e;
-  --alert-bg: #463221;
-  --super-express-ink: #12301f;
   color-scheme: dark;
 }
 button,
@@ -752,10 +741,10 @@ select {
 .connection-art > svg {
   width: 68px;
   height: 68px;
-  background: var(--lime);
+  background: var(--accent-mark);
   padding: 18px;
   border-radius: 23px;
-  color: #183e31;
+  color: var(--accent-mark-ink);
 }
 .welcome h3 {
   font-size: 25px;

@@ -29,15 +29,30 @@ const OUTPUT = path.resolve(here, '..', '..', 'app', 'material-theme.css');
 const checkOnly = process.argv.includes('--check');
 
 /**
- * The source colours. These are the project's existing identity, not new ones:
- * the teal every primary action already used and the lime of the brand mark.
+ * The source colours, read off the owner's own design export in
+ * `design/reference/GTHA Transit Redesign v2.dc.html`.
+ *
+ * A source contributes its hue and its chroma ceiling and nothing else - its own
+ * lightness is discarded, because every tone is solved for the CIE L* the tone
+ * number names. So `#ffb545` is not "the amber" so much as the amber's hue at the
+ * saturation the design asked for, and tone 80 of it lands within five units of
+ * the value the design actually writes down.
+ *
+ * Tertiary is the outgoing teal. The design is a single-accent system and names
+ * no chrome tertiary, but the role has to be something, and a hue the project
+ * already owned beats one invented here. It must not be green or red, which
+ * belong to on-time and delayed, nor any agency's colour.
+ *
+ * A source may name one colour or one per scheme. The design deliberately runs
+ * warm paper by day and blue ink by night; that is two hues, not two lightnesses
+ * of one, and a single tonal palette cannot express it.
  */
 const SOURCES = {
-  primary: '#006b68',
-  secondary: '#4a6360',
-  tertiary: '#d2f574',
-  neutral: '#5c5f5f',
-  neutralVariant: '#586060',
+  primary: '#ffb545',
+  secondary: '#8a7355',
+  tertiary: '#006b68',
+  neutral: { light: '#5c5a52', dark: '#243248' },
+  neutralVariant: { light: '#5f5b4f', dark: '#28364c' },
   error: '#ba1a1a',
 };
 
@@ -110,7 +125,7 @@ const inGamut = (rgb) => rgb.every((channel) => channel >= -0.0001 && channel <=
  * recognisably the brand colour rather than drifting grey the moment it is asked
  * for something light or dark.
  */
-function toneOf(sourceHex, tone) {
+export function toneOf(sourceHex, tone) {
   const [, sourceChroma, hue] = oklabToOklch(rgbToOklab(hexToRgb(sourceHex)));
   if (tone <= 0) return '#000000';
   if (tone >= 100) return '#ffffff';
@@ -134,9 +149,15 @@ function toneOf(sourceHex, tone) {
   return '#' + rgb.map((channel) => Math.round(channel * 255).toString(16).padStart(2, '0')).join('');
 }
 
-const palette = (sourceHex) => Object.fromEntries(TONES.map((tone) => [tone, toneOf(sourceHex, tone)]));
+export const palette = (sourceHex) => Object.fromEntries(TONES.map((tone) => [tone, toneOf(sourceHex, tone)]));
 
-const palettes = Object.fromEntries(Object.entries(SOURCES).map(([name, hex]) => [name, palette(hex)]));
+const sourceFor = (source, scheme) => (typeof source === 'string' ? source : source[scheme]);
+
+/** One full set of palettes per scheme, because a source may differ between them. */
+const palettes = Object.fromEntries(['light', 'dark'].map((scheme) => [
+  scheme,
+  Object.fromEntries(Object.entries(SOURCES).map(([name, source]) => [name, palette(sourceFor(source, scheme))])),
+]));
 
 // ---------------------------------------------------------------------------
 // Role mapping. These tone assignments are Material's, not chosen here.
@@ -187,7 +208,7 @@ const roleTones = {
 
 const roleValue = (scheme, role) => {
   const [source, tone] = roleTones[scheme][role];
-  return palettes[source][tone];
+  return palettes[scheme][source][tone];
 };
 
 // ---------------------------------------------------------------------------
