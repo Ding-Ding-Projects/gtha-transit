@@ -167,6 +167,11 @@ const mime = {
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  /* The dim sum photos are WebP. Without this they went out as
+     application/octet-stream, which browsers sniff past for an <img> and which
+     is wrong in every other context -- a save dialog, a fetch, a proxy that
+     decides what to compress. */
+  '.webp': 'image/webp',
   '.woff2': 'font/woff2',
   '.rsc': 'text/x-component',
 };

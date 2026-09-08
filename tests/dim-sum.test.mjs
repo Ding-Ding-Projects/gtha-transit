@@ -214,3 +214,15 @@ test('sharp is declared, not borrowed from the tree', () => {
   const declared = { ...packageJson.dependencies, ...packageJson.devDependencies };
   assert.ok('sharp' in declared, 'the vendoring script imports it directly');
 });
+
+test('a photo is served as an image, not as an unnamed blob', () => {
+  /*
+   * They went out as application/octet-stream until the deployed site was
+   * checked. A browser sniffs past that for an <img>, which is why nothing looked
+   * wrong, but it is wrong everywhere else -- a save dialog, a fetch, a proxy
+   * deciding what to compress -- and the whole point of serving them from this
+   * origin was to be the one telling the truth about them.
+   */
+  const server = source('server', 'web.mjs');
+  assert.match(server, /^\s*'\.webp': 'image\/webp',$/m);
+});
