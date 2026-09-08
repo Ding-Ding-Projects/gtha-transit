@@ -136,6 +136,18 @@ export default function VehicleTracker({
   const samples = useMemo(() => fleetResult.vehicles.map(vehicle => [vehicle.id, vehicle.fleetNumber, vehicle.label, vehicle.agencyId, vehicle.agencyName, vehicle.routeId, vehicle.cptdb?.manufacturer, vehicle.cptdb?.model, vehicle.cptdb?.year].filter(Boolean).join(' ').slice(0, 512)), [fleetResult.vehicles]);
   const matching = useSearchMatches(samples, search);
   const filterError = fleetResult.error === 'Select a manufacturer before filtering by model.' ? t(fleetResult.error, '請先選擇製造商，再篩選型號。') : fleetResult.error === 'Enter a whole year from 1800 through 3000.' ? t(fleetResult.error, '請輸入 1800 至 3000 之間嘅完整年份。') : fleetResult.error === 'The start year must be the same as or earlier than the end year.' ? t(fleetResult.error, '開始年份必須早於或等於結束年份。') : fleetResult.error;
+  /* The API already refuses to classify from an expired source; this is only the
+     interface working out whether to explain that, from the same field. Compared
+     as calendar days in Toronto, because a reader in another timezone should see
+     the same answer the routing service gave. */
+  const expiredThrough = useMemo(() => {
+    const validThrough = sourceData?.source?.validThrough;
+    if (typeof validThrough !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(validThrough)) return null;
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+    return today > validThrough ? validThrough : null;
+  }, [sourceData]);
   const data = useMemo(() => sourceData ? { ...sourceData, vehicles: matching.busy || matching.error || fleetResult.error ? [] : fleetResult.vehicles.filter((_, index) => matching.matches[index]) } : null, [sourceData, fleetResult, matching.busy, matching.error, matching.matches]);
   const selected = selectedRecord ? data?.vehicles.find(vehicle => identity(vehicle) === identity(selectedRecord)) ?? null : null;
   const page = vehiclePage(
@@ -384,6 +396,30 @@ export default function VehicleTracker({
             ['all', t('All TTC vehicles', '所有 TTC 車輛'), data?.counts?.all],
           ].map(([id, label, count]) => <button key={String(id)} className="pill" aria-pressed={classification === id} onClick={() => { setClassification(String(id)); setSelected(null); }}>{label}{typeof count === 'number' && <strong>{count}</strong>}</button>)}
         </fieldset>
+        {/* When the allocation source has run out, every vehicle classifies as
+            unconfirmed and the surface reads as though it simply found nothing.
+            It found plenty; it cannot say which garage any of it belongs to. The
+            difference between "no answer" and "no question was answerable" is
+            the whole point of this panel, so it is stated rather than left to be
+            inferred from four zeroes and a footnote. */}
+        {/* output rather than a div with role="status": the native element
+            already carries the live-region semantics a screen reader reads. */}
+        {expiredThrough && (
+          <output className="division-expired">
+            <strong>{t('Garage assignments are unavailable', '車廠分配資料暫時未能提供')}</strong>
+            <p>
+              {t(
+                `The TTC allocation source covers service through ${expiredThrough} and a newer Service Summary has not been published. Live vehicles are still shown; none of them can be matched to a home garage until the next one is out.`,
+                `TTC 配車資料只涵蓋至 ${expiredThrough}，而新一份 Service Summary 未出。即時車輛照樣顯示，但喺新資料出之前，冇一架可以對到所屬車廠。`,
+              )}
+            </p>
+            {safe(data?.source?.publisherPage) && (
+              <a href={String(data?.source?.publisherPage)} target="_blank" rel="noreferrer">
+                {t('TTC service planning publications', 'TTC 服務規劃刊物')}
+              </a>
+            )}
+          </output>
+        )}
         <p className="data-note">{t('Allocation source valid through', '配車來源有效至')} {data?.source?.validThrough || t('Unconfirmed', '未確認')}. {t('Counts describe all loaded TTC vehicles before route and text filters. Rarity needs at least seven observed days and is not a prediction.', '數量係路線同文字篩選前已載入嘅全部 TTC 車輛。稀有度需要最少七日觀察，唔係預測。')}</p>
       </section>}
       <div className="source-state">

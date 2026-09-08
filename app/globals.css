@@ -2219,3 +2219,17 @@ input[type='range'] { accent-color: var(--md-sys-color-primary); }
 @media (max-width: 420px) {
   .trip-chips { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* An expired allocation source is not an empty result, and the difference is the
+   whole point of the panel it sits in. */
+.division-expired { display: block;
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+.division-expired strong { display: block; margin-bottom: 6px; }
+.division-expired p { margin: 0 0 8px; color: var(--md-sys-color-on-surface-variant); font-size: 14px; }
+.division-expired a { color: var(--md-sys-color-primary); }

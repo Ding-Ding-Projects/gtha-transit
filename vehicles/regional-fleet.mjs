@@ -9,7 +9,7 @@ export const REGIONAL_FLEET_RANGES = Object.freeze({
     [1901,1902,'Nova Bus','LFS','2019'], [2001,2001,'Nova Bus','LFS','2021'],
     [2201,2205,'Nova Bus','LFS','2022'], [2401,2407,'Nova Bus','LFS','2025'],
     [2501,2506,'New Flyer','XD40','2026'],
-  ].map(([first,last,manufacturer,model,year,propulsion]) => ({first,last,manufacturer,model,year,prefix:'',...(propulsion?{propulsion}:{}),source:{url:'https://cptdb.ca/wiki/index.php?title=Milton_Transit&oldid=857419',title:'CPTDB Milton Transit fleet, revision 857419',retrieved:'2026-09-06',coverage:'Published roster; real-time operating status unconfirmed'}})),
+  ].map(([first,last,manufacturer,model,year,propulsion]) => ({first,last,manufacturer,model,year,prefix:'',...(propulsion?{propulsion}:{}),source:{url:'https://cptdb.ca/wiki/index.php/Milton_Transit',title:'CPTDB Milton Transit fleet',revision:'857419',retrieved:'2026-09-06',coverage:'Published roster; real-time operating status unconfirmed'}})),
   miway: [
     ...group('mississauga','New Flyer','XD40',[[1101,1143,2011],[1301,1314,2013],[1401,1407,2014],[1701,1727,2017]]),
     ...group('mississauga','New Flyer','XDE40',[[2201,2274,2022],[2301,2353,2023],[2401,2482,2024]]),
