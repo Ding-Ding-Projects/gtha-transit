@@ -50,3 +50,5 @@ Suggested articles: [passenger guide](../planning/README.md), [regional data](..
 Failures are recorded by [diagnostics](diagnostics.md), which keeps a route pattern, a
 kind, a bounded message and a duration, and deliberately keeps nothing that could
 identify a rider or where they were going.
+
+- [Surviving a restart](restarting.md) — what brings each stack back on its own, and the outage that proved it did not.
