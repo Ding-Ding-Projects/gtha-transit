@@ -10,15 +10,15 @@ The [travel-time controls](docs/planning/travel-time.md) separate Date and Time,
 
 ## What it looks like
 
-Every picture below is the real built interface at commit `fe468ed`, photographed
+Every picture below is the real built interface at commit `40411b1`, photographed
 through an isolated headless browser as part of the interaction ledger, which
 captures the surface after every one of its 56 clicks. They are copied out by
 `scripts/ui-evidence/publish-captures.mjs`, which selects by the name the ledger
 recorded and refuses any file whose bytes do not match the hash the ledger holds
 for it. None is a mockup and none is hand-edited.
 
-There is also a [walkthrough recording](docs/captures/walkthrough-fe468ed.webm),
-committed here rather than linked to a service that can disappear. It is 293 frames
+There is also a [walkthrough recording](docs/captures/walkthrough-40411b1.webm),
+committed here rather than linked to a service that can disappear. It is 290 frames
 of the real application at that same commit: arriving on the composer, planning with
 a published place, preferring a garage and expanding it, looking at what the network
 is doing, finding a vehicle, asking which garage it lives at, reading the service
@@ -31,47 +31,47 @@ monitor is in it.
 
 <details><summary>Planning a trip</summary>
 
-![The journey composer at desktop width in the dark theme, with the map behind it](docs/captures/plan-dark-fe468ed.png)
+![The journey composer at desktop width in the dark theme, with the map behind it](docs/captures/plan-dark-40411b1.png)
 
-![The same composer in the light theme, amber on warm paper](docs/captures/plan-light-fe468ed.png)
+![The same composer in the light theme, amber on warm paper](docs/captures/plan-light-40411b1.png)
 
-![A garage expanded to the routes it operates and what is running on them now](docs/captures/garage-detail-dark-fe468ed.png)
+![A garage expanded to the routes it operates and what is running on them now](docs/captures/garage-detail-dark-40411b1.png)
 
 </details>
 
 <details><summary>Watching the network</summary>
 
-![Live network status: GO cancellations and every TTC line with its facility notices](docs/captures/live-dark-fe468ed.png)
+![Live network status: GO cancellations and every TTC line with its facility notices](docs/captures/live-dark-40411b1.png)
 
-![The vehicle tracker with its route picker, search workbench and live map](docs/captures/vehicles-dark-fe468ed.png)
+![The vehicle tracker with its route picker, search workbench and live map](docs/captures/vehicles-dark-40411b1.png)
 
-![Out of division: classification filters with live counts and the allocation source named](docs/captures/divisions-dark-fe468ed.png)
+![Out of division: classification filters with live counts and the allocation source named](docs/captures/divisions-dark-40411b1.png)
 
-![A vehicle out of division, with its route in the operator colour on the map](docs/captures/division-verdict-dark-fe468ed.png)
+![A vehicle out of division, with its route in the operator colour on the map](docs/captures/division-verdict-dark-40411b1.png)
 
-![Regional realtime coverage, agency by agency](docs/captures/coverage-dark-fe468ed.png)
+![Regional realtime coverage, agency by agency](docs/captures/coverage-dark-40411b1.png)
 
-![The service record, with its date presets](docs/captures/history-dark-fe468ed.png)
+![The service record, with its date presets](docs/captures/history-dark-40411b1.png)
 
 </details>
 
 <details><summary>Racing, saving, settling in</summary>
 
-![The race workspace before a room is created](docs/captures/race-dark-fe468ed.png)
+![The race workspace before a room is created](docs/captures/race-dark-40411b1.png)
 
-![The speed run checklist: 110 stations across five lines, photo proof required](docs/captures/speed-run-dark-fe468ed.png)
+![The speed run checklist: 110 stations across five lines, photo proof required](docs/captures/speed-run-dark-40411b1.png)
 
-![Saved trips](docs/captures/saved-dark-fe468ed.png)
+![Saved trips](docs/captures/saved-dark-40411b1.png)
 
-![Settings: tabbed sections, each with its own search, and the colour theme choice](docs/captures/settings-dark-fe468ed.png)
+![Settings: tabbed sections, each with its own search, and the colour theme choice](docs/captures/settings-dark-40411b1.png)
 
 </details>
 
 <details><summary>On a phone</summary>
 
-![The composer at 390 pixels, with the bottom navigation bar](docs/captures/plan-phone-dark-fe468ed.png)
+![The composer at 390 pixels, with the bottom navigation bar](docs/captures/plan-phone-dark-40411b1.png)
 
-![The More dialog on a phone, listing the destinations the bar cannot hold](docs/captures/more-phone-light-fe468ed.png)
+![The More dialog on a phone, listing the destinations the bar cannot hold](docs/captures/more-phone-light-40411b1.png)
 
 </details>
 

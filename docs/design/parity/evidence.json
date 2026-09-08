@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-08T08:23:59.579Z",
-  "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
+  "generatedAt": "2026-09-08T08:36:49.543Z",
+  "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
   "reference": "GTHA Transit Redesign v2.dc.html",
   "viewer": "scripts/design/reference-viewer.mjs",
   "app": "https://toronto-transit.org/",
@@ -18,8 +18,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:20.972Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:10.777Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 81,
@@ -39,7 +39,7 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 961522,
+        "differingPixels": 961546,
         "differingShare": 0.7419,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
@@ -50,10 +50,10 @@
         "diff": "docs/design/parity/plan-diff.png"
       },
       "hashes": {
-        "reference": "c9658178653bcbd017de9e0c3b3f628f9537983fff9046f1fbf64efabf8adcbb",
-        "app": "51972baaeef642b00bc3982bb103e727578b8f6edd475c94e0994eb9d72a3f0e",
-        "sideBySide": "a8e70ef6c6c420ca658ab3c1b7a9c6e430651f3ecc079636ee0b0c2d37beb30a",
-        "diff": "dc95461f101c51b08edf456e2edc9b2c34ee4b79eea8677fd6d3dbdc678cc93c"
+        "reference": "550f15d8baef73dc084746211f720a4831775c9ef5ecd3f70ebc9ae8bce39b63",
+        "app": "05406486a9a781b258d76c206623d1e5c8516efba33dca0e77cd54e43866a70c",
+        "sideBySide": "5d811347ef9ac59b67e433feb2ed981c67bfe8be362b95f6c4e90ef3816ad506",
+        "diff": "b978eb200f88665f82bf0cd07a5fd0d5b1713369b6de0894086b1a2f709c357e"
       },
       "deviations": [
         {
@@ -74,8 +74,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:26.288Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:16.145Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 86,
@@ -95,7 +95,7 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 186467,
+        "differingPixels": 186493,
         "differingShare": 0.1439,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
@@ -106,10 +106,10 @@
         "diff": "docs/design/parity/live-diff.png"
       },
       "hashes": {
-        "reference": "624f983b1a74c6d691a3dcbe7301218e454320980ebf3afee83bfacf7235c09f",
-        "app": "7e6013ecc12dfe63a3c00ca5cb57b7e37758b3a73ecf5967e4af111248c7cab3",
-        "sideBySide": "4c0cbcfea910f230bdc7c73c8a19d0848e9900bad4eddbc3861028fb7f4cafa6",
-        "diff": "55cb796db1b2cc2769bf71506a3b6eae57d1cf30b6e4f843af0bcab06286397f"
+        "reference": "b2b9c05539736450c1f678c2aee5497ec5d871304bd295c939096f827eb7cd42",
+        "app": "632150e97424d43e0549489bccfc5726009d9721227abae04678e82a7673a98e",
+        "sideBySide": "5613e07ae2508495b6ee6bc61edd25a954c099fb6d73a6c962e496f76a0ffdbe",
+        "diff": "e838d5fb1daf1cfabb4e19ce00dcdbadea1f9a2bf74c66180ed0308b004d73bc"
       },
       "deviations": [
         {
@@ -130,12 +130,12 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:31.732Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:21.631Z",
       "materialAudit": {
         "styleSheets": 2,
-        "controlsInspected": 203,
-        "controlsWithoutInlineLiteralColour": 103,
+        "controlsInspected": 204,
+        "controlsWithoutInlineLiteralColour": 104,
         "chromeCarryingLiteralColour": [],
         "primaryToken": "#ffb74a",
         "surfaceToken": "#071327"
@@ -151,8 +151,8 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 833474,
-        "differingShare": 0.6431,
+        "differingPixels": 833708,
+        "differingShare": 0.6433,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
       "files": {
@@ -163,9 +163,9 @@
       },
       "hashes": {
         "reference": "9e4fc594c27f706d75908584c5fefce7480ec3f3638908fedc0e62cfcef3e69a",
-        "app": "497c75a69c7f3bf0db2fecde6bfc9e52a5b2d2ae16563e853aa9a121ec3ccd34",
-        "sideBySide": "2b1011aaf18d856b36e46950347398ec408f86e2297816bc36d3fd4f5ca5d48d",
-        "diff": "cf50fa7d9e4cf4df9aa1abea053c331829caf8eb19f32dbddad3ce093ecf39e7"
+        "app": "c365ffac608e5e00b4dbb88b5bb3b6104b2bc398542f66b34121ad6c0eafd37c",
+        "sideBySide": "438be86b2bd55ad1739d65c2cd7324b32e0474e932998eb2eb9e6b5bdd2eeb4d",
+        "diff": "ee2a7459649b85b12eb77760223986b03d09357f7caee4c5d2955178f850f224"
       },
       "deviations": [
         {
@@ -186,8 +186,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:37.036Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:26.829Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 80,
@@ -207,7 +207,7 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 287707,
+        "differingPixels": 287758,
         "differingShare": 0.222,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
@@ -219,9 +219,9 @@
       },
       "hashes": {
         "reference": "5f2db6007f8ff0c24f4dfeb8ff3cfba34c1b7d58e02b8707191bf519f13ad9a8",
-        "app": "caf7875cc8c22fe14399bc33dc64c418981fe10284eb03ddeaec79ae86f59c09",
-        "sideBySide": "d6a38e43ae33c83c0e7a6f2a62d834d3480bcac448d00c98f376ea665de44d0b",
-        "diff": "1716e6ea86cc7148754f3e461d68ea436f82f6b4d016b60263e465553cf1c261"
+        "app": "b8c0e54b22d077f68b25e3a008a62d2a2e9aacdd1a8c3e72337986632b719ce1",
+        "sideBySide": "383f85c4501a2e7d2ea758c34199ac80c1e9b3a25d80df74121478ec6a1dc706",
+        "diff": "9e551d99124f9c7c32fe34787a194a8b6765ee7f823bebe840ae1c4c1ca9a0c1"
       },
       "deviations": []
     },
@@ -237,8 +237,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:42.328Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:32.060Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 132,
@@ -258,7 +258,7 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 251547,
+        "differingPixels": 251585,
         "differingShare": 0.1941,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
@@ -270,9 +270,9 @@
       },
       "hashes": {
         "reference": "c0b2b8bd64fbd55f2441cf16c43918fdb1815366bacaab924294ee5cafab63f9",
-        "app": "ee12ef7392fe2a6c7250341dc28619dced01a9aebf501e4dd8ef3aec96d15085",
-        "sideBySide": "318d9e350dd54a58dbde5917093670fd57f597c98e88b49632775dbb33cdc977",
-        "diff": "109b6344fd5615e1c9a190d97b9607c394e783645618064207b6049b1f6bf6d8"
+        "app": "9cb573fa56ff0a79087f40b959e565819298100bea333c920e196f39147f1646",
+        "sideBySide": "b00c625a486ee95e921021a5fa97162afc79357f39606d9e87d7db234baf32aa",
+        "diff": "a84f126b12d05bd0203b98502057e00d8efa20355b6e60ea5e6ccdbe4d03a77d"
       },
       "deviations": [
         {
@@ -293,8 +293,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:47.597Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:37.467Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 116,
@@ -314,8 +314,8 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 499942,
-        "differingShare": 0.3858,
+        "differingPixels": 498768,
+        "differingShare": 0.3849,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
       "files": {
@@ -326,9 +326,9 @@
       },
       "hashes": {
         "reference": "9995aecae73bd0ef6dc4678642bb0f6f45ee62ad7f66a1cc313441771a481eed",
-        "app": "f7dc266bf6212a787e75141d05a1a614ddd20c8d8255593b18efc52c84fdb3c8",
-        "sideBySide": "12492f9f3ed5c08d9ac9bece82bfc2b277f04e3062f477bc31750215ad9c0f0e",
-        "diff": "9d072de668d5ed6b182af2de7552656911448d491683509532c8031f3d0c1b73"
+        "app": "f8e322339f3a4ed6ddb4d9a1f2e111b1af5b3dca9223be56b17583c6b098ffd9",
+        "sideBySide": "644cd4429c480c42150d8f9ba37c058a6e2c28f6285bdd56a835461d814ed60c",
+        "diff": "e0095c48d82cb323951b1ae2d3d9d7759718d3eef6df8bc02302e2bd74a22c84"
       },
       "deviations": [
         {
@@ -349,8 +349,8 @@
         "height": 844
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:52.767Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:42.687Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 81,
@@ -370,8 +370,8 @@
           "width": 390,
           "height": 844
         },
-        "differingPixels": 162176,
-        "differingShare": 0.4927,
+        "differingPixels": 162224,
+        "differingShare": 0.4928,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
       "files": {
@@ -382,9 +382,9 @@
       },
       "hashes": {
         "reference": "7dcf596bbbd9018a5a4f0da4756cbec0fc80cf0e2a589084fb2aa281101b2a1e",
-        "app": "a8c8b83fda5a20b76c0824fc9fedf71f56a7e16d6cb8b1dc10b84519e4dec3a7",
-        "sideBySide": "e4d4503d61ec23751beab31a9a3699a2fc7aa682c73dbe6c2212ac39101d4320",
-        "diff": "c72087ce089e7629dc2adb403f15bf44f21f9f15251a624d153bf57706374b0d"
+        "app": "bad00955fa25e18b5976d9563a01e65f60b78eaf4e309f39f3c2a41e669d0c92",
+        "sideBySide": "5323a8c869620ff9298b4ced676c3c03c307fb7c7f383392d75ba05e308bfa89",
+        "diff": "2bc3f55bec8c9349e0038c94096a92e5172296778835f88b9ecdab9680010bac"
       },
       "deviations": [
         {
@@ -405,8 +405,8 @@
         "height": 900
       },
       "scale": 1,
-      "sourceCommit": "fe468edf0d02d14d377c7c1dfe467536aaf2952e",
-      "capturedAt": "2026-09-08T08:23:59.576Z",
+      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
+      "capturedAt": "2026-09-08T08:36:49.539Z",
       "materialAudit": {
         "styleSheets": 2,
         "controlsInspected": 81,
@@ -426,8 +426,8 @@
           "width": 1440,
           "height": 900
         },
-        "differingPixels": 1166720,
-        "differingShare": 0.9002,
+        "differingPixels": 1167411,
+        "differingShare": 0.9008,
         "note": "The reference is a mock with placeholder slots and the application has real content, so a large share is expected. This number is for review and for noticing a change between runs; nothing gates on it."
       },
       "files": {
@@ -438,9 +438,9 @@
       },
       "hashes": {
         "reference": "0b5546cb00ef09655102ab5384378c4eb9557e79e42759855057d4b1267218f0",
-        "app": "76adc0395d370cc8108958ba413b118b7c7580e7e0a68e4e744efc01e1d06957",
-        "sideBySide": "5fc03c0063e4bcb3c32b881fe4f780754fbf9cb3c36eab7721028d8eb43f6e16",
-        "diff": "5b61f2868616b9e139d6187922c695d28b6d4e77749944ba54e1ed5caeb41f10"
+        "app": "44a105ce061fb5d04a6c77f893a14bc6e77a47b72549c97252c01a76795b791f",
+        "sideBySide": "a27c2d61bf840d45c9ebd25e2ff56c3d3eef70b58ecb806eb2c96e17411427d2",
+        "diff": "99ed6050c07cb2a609b375f37fcb5408b57f31997dc11f77b06773f65ac7f424"
       },
       "deviations": [
         {

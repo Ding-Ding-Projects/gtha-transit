@@ -2,7 +2,8 @@
 
 ## Evidence pass, 8 September 2026
 
-Head is `fe468edf0d02d14d377c7c1dfe467536aaf2952e`, pushed and deployed, tree clean, one
+The deployed commit is `40411b110a85b7a5b4d26d53017a7d2c4fcc7b26`. Head is one
+commit later and changes only records. Tree clean, one
 local branch and one remote branch, no worktrees and no stashes.
 
 ### What this pass was for
@@ -37,20 +38,28 @@ not have.
 | Tests | 494 pass, 0 fail |
 | Type check | clean |
 | Interaction ledger | 4 tuples, 56 steps each, 224 captures, all green, 0 console exceptions |
-| Ledger binding | every row bound to `fe468ed`, its artifact hash, and its own viewport, scale and theme |
+| Ledger binding | every row bound to `40411b1`, to the hash of the document the site actually serves, and to its own viewport, scale and theme |
 | Design parity | 8 screens, 32 captures plus machine-readable evidence, guard green |
 | Parity guard | 8 boundaries each broken on purpose, watched red, restored green |
-| Latest release | `v0.1.0-137.1`, non-draft, targeting `fe468ed`, assets downloadable |
-| Deployed | `fe468ed`, which is head |
+| Latest release | non-draft, targeting the deployed commit, assets downloadable |
+| Deployed | `40411b1`; the served document hashes to what every ledger row names |
 
 ### Known gaps, stated rather than left to be found
 
-- **Nothing is undeployed, and the evidence binds to what is running.** The public
-  origin serves the head commit, and the interaction ledger, the design-parity
-  evidence and the walkthrough recording all name that same commit. That took
-  re-recording all of it after the last two commits touched application code:
-  evidence that names an older commit is not wrong, but it describes a build
-  nobody is using.
+- **The evidence binds to the artifact the site actually serves, which it did not
+  before.** The ledger's artifact hash used to be the hash of `dist/client/index.html`
+  on whatever machine ran the harness. That sounds like the artifact under test and
+  is not: the run drives a deployed site, and this build is not reproducible, so
+  building the identical source twice gives two different entry documents. The field
+  could never have matched the deployed artifact even when the source agreed. It now
+  hashes the document the run fetched, and all four tuples, the deployment and a
+  fresh fetch agree on one value.
+
+- **Head is one commit ahead of the deployment, and that is the resting state rather
+  than a gap.** The commit that carries the re-recorded evidence changes only records,
+  so the served artifact is unchanged and its hash still matches every row. A commit
+  that touches application code needs a deploy and a re-record; one that touches
+  documentation does not.
 
 - **Lint has 132 pre-existing findings**, mostly in the vendored `components/ui`
   tree and mostly `react-compiler` and `jsx-a11y(prefer-tag-over-role)`. Two were

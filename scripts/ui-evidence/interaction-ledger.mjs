@@ -68,10 +68,27 @@ for (const stale of readdirSync(SHOTS)) {
 }
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-/** The built artifact's own hash, so a row cannot be read as being about another build. */
-function artifactHash() {
-  const entry = path.resolve('dist', 'client', 'index.html');
-  try { return sha256(readFileSync(entry)); } catch { return null; }
+/**
+ * The hash of the artifact this run is actually photographing.
+ *
+ * It used to hash the local `dist/client/index.html`, which sounds like the same
+ * thing and is not. The run drives a deployed site; the local directory is whatever
+ * happened to be built on this machine last. Worse, this build is not reproducible:
+ * building the identical source twice produces two different entry documents, so
+ * the field could never have matched the deployed artifact even when the source
+ * agreed. It read like a binding between the evidence and the build under test and
+ * was a binding between the evidence and an unrelated local file.
+ *
+ * So it hashes the document the run fetched. A row can then be checked against the
+ * thing that was really on screen, and a redeployment changes it while an ordinary
+ * documentation commit does not.
+ */
+async function artifactHash() {
+  try {
+    const response = await fetch(URL_UNDER_TEST, { redirect: 'follow' });
+    if (!response.ok) return null;
+    return sha256(Buffer.from(await response.arrayBuffer()));
+  } catch { return null; }
 }
 
 // --------------------------------------------------------------------- target --
@@ -219,7 +236,7 @@ async function privacyVerdict(imageBytes) {
 }
 
 const rows = [];
-const artifact = artifactHash();
+const artifact = await artifactHash();
 let sequence = 0;
 
 for (const surface of SURFACES) {
