@@ -1,1 +1,6 @@
 *.sh text eol=lf
+
+# The design reference is evidence, so it is stored exactly as the design tool
+# produced it. Line-ending conversion would make the checked-in file differ from
+# the export, and a parity harness reads these bytes.
+design/reference/** -text

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: Manrope, 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.5; background: #f1f4f4; color: #1a1c1c; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #046d6a; text-underline-offset: 3px; }
+  a:hover { color: #005250; }
+  h1, h2, h3, h4, p { margin: 0; }
+  button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+  input, select { font: inherit; color: inherit; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+<div style="min-height: 100dvh; background: #f1f4f4; padding-left: 80px; position: relative;">
+
+  <header style="position: fixed; inset: 0 auto 0 0; width: 80px; height: 100dvh; z-index: 1400; background: #122b35; color: #e7f0f1; display: flex; flex-direction: column; align-items: center; padding: 12px 0 16px; gap: 8px;">
+    <a href="#" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-radius: 12px; text-decoration: none;"><img src="assets/logo.svg" alt="" width="36" height="36" style="display: block; border-radius: 12px;" /></a>
+    <nav style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+        <button type="button" onClick="{{ item.go }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0 10px; min-width: 56px; min-height: 56px; border: 0; background: none; cursor: pointer;">
+          <span style="display: grid; place-items: center; position: relative; width: 56px; height: 32px; border-radius: 9999px; background: {{ item.pill }}; color: {{ item.ink }};">
+            <span style="display: block; width: 24px; height: 24px; line-height: 24px; text-align: center; font-size: 22px; font-family: 'Material Symbols Outlined'; font-weight: 400;">{{ item.glyph }}</span>
+            <sc-if value="{{ item.badge }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 2px; right: 14px; width: 8px; height: 8px; border-radius: 9999px; background: #d0f372; outline: 2px solid #122b35;"></span></sc-if>
+          </span>
+          <span style="font: 600 12px/16px Manrope, sans-serif; text-align: center; color: {{ item.ink2 }};">{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="margin-top: auto;">
+      <button type="button" style="display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 9999px; background: none; color: #a8bec6; font-size: 22px; font-family: 'Material Symbols Outlined';">dark_mode</button>
+    </div>
+  </header>
+
+  <div style="margin-left: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 27px 36px 24px; border-bottom: 1px solid #c0c9c9; background: #ffffff;">
+    <div>
+      <span style="display: block; font-size: 10px; letter-spacing: 1.6px; font-weight: 750; color: #414848; line-height: 1.6;">GREATER TORONTO &amp; HAMILTON</span>
+      <h1 style="margin-top: 5px; font-size: 32px; letter-spacing: -1.2px; font-weight: 750; line-height: 1.25;">{{ pageTitle }}</h1>
+    </div>
+    <div style="flex: 0 1 auto; display: grid; gap: 4px; font-size: 11px; text-align: right; color: #414848; max-width: 270px; font-variant-numeric: tabular-nums;">
+      <strong style="font-size: 11px; color: #1a1c1c;">v0.1.0 · 9c4e3e3</strong>
+      <span>Updated Sep 6, 2026, 13:40:26 EDT</span>
+    </div>
+  </div>
+
+  <main style="display: block; padding: 28px 36px; min-height: calc(100dvh - 180px);">
+
+    <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Plan" style="display: grid; grid-template-columns: minmax(300px, 350px) minmax(0, 1fr); gap: 24px; align-items: start;">
+
+      <aside style="padding: 24px; border: 1px solid #c0c9c9; border-radius: 24px; background: #ffffff; min-width: 0; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15);">
+        <h2 style="font-size: 23px; margin: 0 0 22px; line-height: 1.25; letter-spacing: -.7px;">Where to next?</h2>
+        <div style="position: relative; display: grid; gap: 12px;">
+          <div style="background: #e5e9e9; border: 1px solid transparent; border-radius: 16px; padding: 10px 12px;">
+            <label style="display: block; font-size: 10px; color: #046d6a; letter-spacing: 1.1px; font-weight: 750; margin: 0 0 4px 26px; text-transform: uppercase;">From</label>
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 44px;">
+              <span style="color: #046d6a; font-size: 19px; flex: none; width: 19px; text-align: center; font-family: 'Material Symbols Outlined'; line-height: 1;">place</span>
+              <input value="Dundas West Station" style="border: 0; outline: 0; background: transparent; width: 100%; font-size: 14px; padding: 0; min-height: 44px;" />
+              <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; width: 44px; height: 44px; border-radius: 9999px; background: transparent; color: #414848; font-size: 17px; font-family: 'Material Symbols Outlined';">close</button>
+              <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; width: 44px; height: 44px; border-radius: 9999px; background: transparent; color: #414848; font-size: 17px; font-family: 'Material Symbols Outlined';">map</button>
+            </div>
+            <div style="margin: 4px 0 0 26px; font-size: 12px; color: #414848;">Dundas West Station</div>
+          </div>
+          <div style="display: flex; justify-content: center;">
+            <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px; color: #1a1c1c;"><span style="font-family: 'Material Symbols Outlined'; font-size: 17px; line-height: 1; font-weight: 400; flex: none;">swap_vert</span>Reverse trip</button>
+          </div>
+          <div style="background: #e5e9e9; border: 1px solid transparent; border-radius: 16px; padding: 10px 12px;">
+            <label style="display: block; font-size: 10px; color: #046d6a; letter-spacing: 1.1px; font-weight: 750; margin: 0 0 4px 26px; text-transform: uppercase;">To</label>
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 44px;">
+              <span style="color: #046d6a; font-size: 19px; flex: none; width: 19px; text-align: center; font-family: 'Material Symbols Outlined'; line-height: 1;">place</span>
+              <input value="Kennedy Station" style="border: 0; outline: 0; background: transparent; width: 100%; font-size: 14px; padding: 0; min-height: 44px;" />
+              <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; width: 44px; height: 44px; border-radius: 9999px; background: transparent; color: #414848; font-size: 17px; font-family: 'Material Symbols Outlined';">close</button>
+              <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; width: 44px; height: 44px; border-radius: 9999px; background: transparent; color: #414848; font-size: 17px; font-family: 'Material Symbols Outlined';">map</button>
+            </div>
+            <div style="margin: 4px 0 0 26px; font-size: 12px; color: #414848;">Kennedy Station</div>
+          </div>
+          <button type="button" style="display: flex; align-items: center; gap: 7px; justify-content: flex-start; border: 0; background: transparent; padding: 8px 2px; min-height: 44px; width: fit-content; font-size: 12px; font-weight: 650; color: #046d6a;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">add</span>Add intermediate stop</button>
+        </div>
+        <button type="button" style="display: flex; align-items: center; gap: 7px; margin: 4px 0 18px; padding: 6px 0; font-size: 12px; font-weight: 650; color: #046d6a; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">my_location</span>Use my location</button>
+
+        <details style="margin: 4px 0 16px; border: 1px solid #c0c9c9; border-radius: 16px; background: #f1f4f4; overflow: hidden;">
+          <summary style="display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 16px; cursor: pointer; font: 600 14px/20px Manrope, sans-serif; color: #1a1c1c; list-style: none;">
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">calendar_month</span>
+            <span style="flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Leaving</span>
+            <span style="flex: 1 0 auto; min-width: 0; font: 400 14px/20px Manrope, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;">Sun, Sep 6, 13:42</span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none; color: #414848;">chevron_right</span>
+          </summary>
+        </details>
+
+        <details style="margin: 16px 0 20px; border: 1px solid #c0c9c9; border-radius: 16px; background: #f1f4f4; overflow: hidden;">
+          <summary style="display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 16px; cursor: pointer; font: 600 14px/20px Manrope, sans-serif; color: #1a1c1c; list-style: none;">
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">settings</span>
+            <span style="flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Trip options</span>
+            <span style="flex: 1 0 auto; min-width: 0; font: 400 12px/16px Manrope, sans-serif; color: #414848; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;">Fastest · Garage preference</span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none; color: #414848;">chevron_right</span>
+          </summary>
+        </details>
+
+        <button type="button" style="width: 100%; min-height: 54px; border-radius: 16px; background: #046d6a; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 17px; font-weight: 750; font-size: 15px; margin-top: 18px; box-shadow: 0 5px 0 rgba(4, 109, 106, .17);">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">route</span><span style="flex: 1; text-align: left;">Plan my trip</span><span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">arrow_forward</span>
+        </button>
+
+        <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid #c0c9c9; font-size: 11px;">
+          <span style="font-size: 11px; display: inline-flex; align-items: center; gap: 5px; background: #e5e9e9; border-radius: 6px; padding: 4px 7px; color: #414848;"><span style="font-family: 'Material Symbols Outlined'; font-size: 14px; line-height: 1; font-weight: 400; flex: none;">schedule</span>Scheduled journeys</span>
+          <p style="font-size: 11px; margin: 8px 0; line-height: 1.7; color: #414848;">Independent, open-source, and built for the whole region. No account needed.</p>
+          <a href="#" style="font-size: 12px; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; min-height: 44px;">About this project ↗</a>
+        </div>
+      </aside>
+
+      <section style="padding: 0; min-width: 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 16px;">
+          <div>
+            <span style="display: block; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; color: #046d6a; line-height: 1.6;">MAKE THE CONNECTION</span>
+            <h2 style="margin-top: 5px; font-size: 30px; letter-spacing: -1px; line-height: 1.25;">Your journey options</h2>
+          </div>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 13px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px; flex-shrink: 0;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">map</span>Hide map</button>
+        </div>
+
+        <div style="position: relative; height: clamp(340px, 45vh, 540px); border-radius: 24px; overflow: hidden; border: 1px solid #c0c9c9; background: repeating-linear-gradient(45deg, #dbe5e5 0 1px, transparent 1px 10px), #e9eeee;">
+          <div style="position: absolute; left: 16px; top: 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; padding: 9px 14px; display: flex; gap: 7px; align-items: center; font-size: 11px; box-shadow: 0 2px 10px rgba(0,0,0,.07); z-index: 500;"><span style="font-family: 'Material Symbols Outlined'; font-size: 14px; line-height: 1; font-weight: 400; flex: none;">place</span>Greater Toronto &amp; Hamilton</div>
+          <div style="position: absolute; inset: 0; display: grid; place-items: center; color: #6b7676; font: 400 11px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-align: center;">LEAFLET · OPENSTREETMAP RASTER TILES<br />map canvas renders here</div>
+          <div style="position: absolute; right: 16px; bottom: 40px; display: grid; border: 1px solid #a8b2b2; border-radius: 6px; overflow: hidden; background: #ffffff;">
+            <button type="button" style="width: 44px; height: 44px; font-size: 20px; line-height: 44px; border-bottom: 1px solid #c0c9c9; color: #1a1c1c;">+</button>
+            <button type="button" style="width: 44px; height: 44px; font-size: 20px; line-height: 44px; color: #1a1c1c;">−</button>
+          </div>
+          <div style="position: absolute; right: 0; bottom: 0; background: rgba(255,255,255,.8); font-size: 11px; padding: 2px 6px; color: #333;">Leaflet | © OpenStreetMap contributors</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 12px; margin: 24px 0 14px; color: #414848;">
+          <span>3 options</span>
+          <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+            <button type="button" style="display: flex; align-items: center; gap: 5px; min-height: 44px; color: #046d6a; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">bookmark</span>Save</button>
+            <button type="button" style="display: flex; align-items: center; gap: 5px; min-height: 44px; color: #046d6a; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">share</span>Share locations</button>
+            <button type="button" style="display: flex; align-items: center; gap: 5px; min-height: 44px; color: #046d6a; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">download</span>Export</button>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 13px;">
+          <sc-for list="{{ journeys }}" as="j" hint-placeholder-count="3">
+            <article style="border: 1px solid #c0c9c9; border-radius: 20px; background: #ffffff; overflow: hidden; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); outline: {{ j.ring }};">
+              <button type="button" onClick="{{ j.pick }}" style="padding: 22px; width: 100%; text-align: left; display: block;">
+                <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center;">
+                  <strong style="display: flex; gap: 10px; align-items: center; font-size: 26px; font-variant-numeric: tabular-nums; letter-spacing: -.4px;">{{ j.start }} <span style="font-size: 16px; color: #414848;">→</span> {{ j.end }}</strong>
+                  <b style="font-size: 26px; white-space: nowrap;">{{ j.dur }} <small style="font-size: 12px; font-weight: 500;">min</small></b>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0;">
+                  <sc-for list="{{ j.chain }}" as="leg" hint-placeholder-count="3">
+                    <span style="display: inline-flex; align-items: center; gap: 5px; border-radius: 9px; padding: 6px 10px; font-size: 14px; min-width: 44px; justify-content: center; background: {{ leg.bg }}; color: {{ leg.fg }}; font-weight: {{ leg.weight }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1;">{{ leg.icon }}</span> {{ leg.label }}</span>
+                  </sc-for>
+                </div>
+                <div style="background: #e5e9e9; border-radius: 12px; padding: 10px 12px; font-size: 12px; display: grid; gap: 6px; color: #1a1c1c;">
+                  <span>If you leave at 13:42</span>
+                  <strong>First boarding {{ j.firstBoarding }}</strong>
+                  <span>{{ j.firstWait }} min waiting before first service, walking excluded</span>
+                  <span>{{ j.transferWait }} min transfer waiting</span>
+                </div>
+                <div style="display: flex; gap: 10px; padding-top: 14px; flex-wrap: wrap; font-size: 11px; color: #414848;">
+                  <span style="display: flex; gap: 4px; align-items: center; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">train</span><strong style="color: #1a1c1c;">{{ j.ride }} min</strong> on transit</span>
+                  <span style="display: flex; gap: 4px; align-items: center; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">route</span><strong style="color: #1a1c1c;">{{ j.dist }}</strong> total distance</span>
+                  <span style="display: flex; gap: 4px; align-items: center; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">directions_walk</span><strong style="color: #1a1c1c;">{{ j.walk }}</strong> walking</span>
+                  <span style="display: flex; gap: 4px; align-items: center; font-size: 12px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">schedule</span><strong style="color: #1a1c1c;">{{ j.wait }} min</strong> waiting / transfers</span>
+                  <span style="display: flex; gap: 4px; align-items: center;">{{ j.transfers }} transfers</span>
+                  <span style="display: flex; gap: 4px; align-items: center;">{{ j.feed }}</span>
+                </div>
+              </button>
+
+              <sc-if value="{{ j.open }}" hint-placeholder-val="{{ false }}">
+                <div style="border-top: 1px solid #c0c9c9; padding: 20px;">
+                  <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;">Follow this trip</button>
+                  <sc-for list="{{ legs }}" as="leg" hint-placeholder-count="3">
+                    <div style="display: grid; grid-template-columns: 67px 26px minmax(0, 1fr); gap: 10px; padding-top: 23px; position: relative;">
+                      <div style="font-size: 11px; color: #414848; padding-top: 5px; font-variant-numeric: tabular-nums;">{{ leg.time }}</div>
+                      <div style="height: 25px; width: 25px; border-radius: 50%; display: grid; place-items: center; z-index: 1; font-size: 13px; box-shadow: 0 0 0 4px #ffffff; font-family: 'Material Symbols Outlined'; background: {{ leg.dotBg }}; color: {{ leg.dotFg }};">{{ leg.icon }}</div>
+                      <div>
+                        <strong style="font-size: 13px;">{{ leg.title }}</strong>
+                        <p style="font-size: 13px; color: #414848; margin: 4px 0;">{{ leg.place }}</p>
+                        <small style="font-size: 11px; color: #414848;">{{ leg.meta }}</small>
+                        <sc-if value="{{ leg.wait }}" hint-placeholder-val="{{ false }}">
+                          <p style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: #046d6a; font-size: 13px; margin: 6px 0 0;"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1; font-weight: 400; flex: none;">schedule</span>{{ leg.waitText }}</p>
+                        </sc-if>
+                        <div style="background: #e5e9e9; border-radius: 12px; padding: 10px 12px; gap: 18px; display: flex; margin-top: 8px; align-items: baseline;">
+                          <strong style="font-size: 18px; font-variant-numeric: tabular-nums;">{{ leg.mins }} min</strong>
+                          <span style="font-size: 13px; color: #414848;">{{ leg.km }}</span>
+                        </div>
+                        <sc-if value="{{ leg.vehicle }}" hint-placeholder-val="{{ false }}">
+                          <div style="border-radius: 14px; border: 1px solid #c0c9c9; border-left: 3px solid #046d6a; padding: 14px; margin-top: 12px; background: #e5e9e9;">
+                            <strong style="font-size: 13px;">Currently assigned vehicle {{ leg.fleet }}</strong>
+                            <p style="font-size: 13px; color: #414848; margin: 4px 0;">{{ leg.spec }}</p>
+                            <small style="font-size: 11px; color: #414848;">Live assignments can change before boarding.</small>
+                            <a href="#" style="display: block; font-size: 12px; margin-top: 6px;">Fleet source</a>
+                          </div>
+                        </sc-if>
+                        <p style="font-size: 13px; color: #414848; margin: 12px 0 0;">Get off at <b style="color: #1a1c1c;">{{ leg.alight }}</b></p>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="display: flex; gap: 10px; margin-top: 25px; border-top: 2px solid #046d6a; padding-top: 20px; font-size: 13px; align-items: center;">
+                    <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; font-weight: 400; flex: none; color: #046d6a;">place</span><strong>14:37 · Kennedy Station</strong>
+                  </div>
+                </div>
+              </sc-if>
+            </article>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;">
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1; font-weight: 400; flex: none;">arrow_back</span>30 min earlier</button>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;">30 min later<span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1; font-weight: 400; flex: none;">arrow_forward</span></button>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1; font-weight: 400; flex: none;">swap_vert</span>Plan return trip</button>
+        </div>
+        <p style="font-size: 11px; line-height: 1.7; color: #414848; margin-top: 16px;">Times use Toronto local time. Check live alerts before leaving. Fares are not calculated.</p>
+      </section>
+
+      <aside style="grid-column: 1 / -1; padding: 20px 24px; border: 1px solid #c0c9c9; border-radius: 22px; background: #ffffff; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-width: 0; max-width: 100%;">
+        <h3 style="margin: 0; font-size: 13px;">TTC at a glance</h3>
+        <div style="min-width: 0; max-width: 100%; display: flex; flex: 1 1 100%; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding-bottom: 4px; align-items: stretch;">
+          <sc-for list="{{ lines }}" as="line" hint-placeholder-count="5">
+            <button type="button" onClick="{{ line.go }}" style="display: flex; gap: 10px; align-items: center; border: 0; padding: 10px 12px; background: #e5e9e9; border-radius: 12px; min-height: 56px; flex: 0 0 auto; min-width: 232px; text-align: left;">
+              <span style="border-radius: 8px; width: 32px; height: 32px; min-width: 32px; display: inline-grid; place-items: center; font-weight: 800; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,.7); font-size: 15px; background: {{ line.color }};">{{ line.id }}</span>
+              <span style="min-width: 0; display: grid; gap: 2px; flex: 1;">
+                <strong style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ line.name }}</strong>
+                <small style="font-size: 10px; color: #414848; white-space: normal; display: block; line-height: 1.35;">{{ line.state }}</small>
+              </span>
+              <span style="color: #414848; font-size: 16px; font-family: 'Material Symbols Outlined'; line-height: 1; flex: none;">{{ line.mark }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <button type="button" onClick="{{ goStatus }}" style="display: flex; align-items: center; gap: 8px; width: auto; margin: 0; min-height: 44px; font-size: 11px; font-weight: 600; color: #046d6a;">All service alerts <span style="background: #e5e9e9; border-radius: 4px; padding: 1px 5px; font-size: 10px;">14</span> →</button>
+      </aside>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isStatus }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Live TTC" style="max-width: 1280px; margin: 0 auto;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 16px;">
+        <div>
+          <span style="display: block; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; color: #046d6a; line-height: 1.6;">BEFORE YOU GO</span>
+          <h2 style="margin-top: 5px; font-size: 30px; letter-spacing: -1px; line-height: 1.25;">Live TTC line status</h2>
+        </div>
+        <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 13px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">refresh</span>Refresh</button>
+      </div>
+      <p style="color: #414848; font-size: 14px; line-height: 1.75; max-width: 850px;">Subway and light rail conditions from official TTC sources. Alerts are preserved in their original wording.</p>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 2px; margin: 12px 0 8px; font-size: 12px;">
+        <span style="width: 6px; height: 6px; background: #41835b; border-radius: 50%; display: inline-block; flex-shrink: 0;"></span>
+        Source connected
+        <small style="margin-left: auto; font-size: 11px; color: #414848;">Last fetched 13:40</small>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 22px;">
+        <sc-for list="{{ lines }}" as="line" hint-placeholder-count="5">
+          <div style="border: 1px solid #c0c9c9; border-radius: 20px; overflow: hidden; background: #ffffff; margin: 0;">
+            <button type="button" style="display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; min-height: 98px; padding: 22px;">
+              <span style="border-radius: 8px; width: 32px; height: 32px; min-width: 32px; display: inline-grid; place-items: center; font-weight: 800; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,.7); font-size: 15px; background: {{ line.color }};">{{ line.id }}</span>
+              <strong style="font-size: 14px; flex: 1;">{{ line.name }}</strong>
+              <span style="font-size: 11px; color: {{ line.stateInk }}; font-weight: {{ line.stateWeight }};">{{ line.state }}</span>
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 17px; line-height: 1; font-weight: 400; flex: none; color: #414848;">chevron_right</span>
+            </button>
+            <sc-if value="{{ line.open }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top: 1px solid #c0c9c9; padding: 20px; font-size: 13px; color: #414848;">
+                <h4 style="font-size: 16px; color: #1a1c1c;">{{ line.alertTitle }}</h4>
+                <p style="margin: 8px 0; white-space: pre-wrap;">{{ line.alertBody }}</p>
+                <a href="#" style="display: inline-flex; align-items: center; gap: 5px; min-height: 44px;">Official alert ↗</a>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <h3 style="margin: 26px 0 6px; font-size: 20px;">All active TTC alerts <span style="font-size: 12px; background: #e5e9e9; border-radius: 999px; padding: 4px 10px; min-width: 28px; text-align: center; margin-left: 5px;">14</span></h3>
+      <p style="font-size: 11px; line-height: 1.7; color: #414848; margin-top: 8px;">Alerts affecting multiple modes appear in each relevant group; the overall count is deduplicated.</p>
+      <sc-for list="{{ alertGroups }}" as="group" hint-placeholder-count="5">
+        <details style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 16px; margin: 12px 0; overflow: hidden;">
+          <summary style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 58px; padding: 14px 20px; cursor: pointer;">
+            <strong style="font-size: 14px;">{{ group.title }}</strong>
+            <span style="font-size: 12px; background: #e5e9e9; border-radius: 999px; padding: 4px 10px; min-width: 28px; text-align: center; margin-left: auto;">{{ group.count }}</span>
+            <span style="color: #046d6a; font-size: 24px; line-height: 1;">+</span>
+          </summary>
+          <div style="margin: 0 20px 16px; padding: 16px; border-radius: 12px; background: #e5e9e9; display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; font-weight: 400; flex: none; color: #8f420e; margin-top: 3px;">warning</span>
+            <div><h4 style="font-size: 14px;">{{ group.sampleTitle }}</h4><p style="font-size: 13px; color: #414848; line-height: 1.7; margin: 8px 0;">{{ group.sampleBody }}</p></div>
+          </div>
+        </details>
+      </sc-for>
+      <a href="#" style="display: inline-flex; gap: 8px; align-items: center; margin-top: 25px; font-size: 12px; min-height: 44px;">Check TTC service alerts ↗</a>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isVehicles }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Vehicles" style="max-width: 1280px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: minmax(240px, .85fr) minmax(0, 1.15fr) auto; gap: 16px; margin: 0 0 12px; align-items: start;">
+        <button type="button" style="display: flex; gap: 14px; align-items: center; border: 1px solid #c0c9c9; border-radius: 18px; background: #ffffff; padding: 14px 18px; text-align: left; align-self: start; min-height: 76px;">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 22px; line-height: 1; font-weight: 400; flex: none; color: #046d6a;">route</span>
+          <span style="display: grid; min-width: 0; gap: 3px;"><strong style="font-size: 15px;">All agencies · every route</strong><small style="font-size: 11px; color: #414848;">Choose an agency and route</small></span>
+        </button>
+        <div style="min-width: 0; position: relative;">
+          <label style="display: block; font-size: 12px; font-weight: 650; margin-bottom: 6px;">Vehicle, route or fleet details</label>
+          <div style="display: flex; align-items: center; gap: 8px; min-height: 56px; border: 1px solid #c0c9c9; border-radius: 16px; background: #ffffff; padding: 5px 8px 5px 12px;">
+            <input placeholder="8632" style="border: 0; background: transparent; min-width: 0; width: 100%; min-height: 44px; font-size: 14px; padding: 5px;" />
+            <button type="button" style="display: grid; place-items: center; flex: 0 0 44px; width: 44px; min-height: 44px; border-radius: 50%; color: #046d6a; background: #e5e9e9; font-family: 'Material Symbols Outlined'; font-size: 18px;">star</button>
+          </div>
+        </div>
+        <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px; margin-top: 25px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">refresh</span><span>Refresh</span></button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 2px; margin: 0 0 8px; font-size: 12px;">
+        <span style="width: 6px; height: 6px; background: #41835b; border-radius: 50%; display: inline-block;"></span>
+        Live feed connected
+        <small style="margin-left: auto; font-size: 11px; color: #414848;">1,842 / 2,140 vehicles shown</small>
+      </div>
+      <div style="height: clamp(360px, 53vh, 640px); border-radius: 24px; border: 1px solid #c0c9c9; background: repeating-linear-gradient(45deg, #dbe5e5 0 1px, transparent 1px 10px), #e9eeee; position: relative; overflow: hidden;">
+        <div style="position: absolute; inset: 0; display: grid; place-items: center; color: #6b7676; font: 400 11px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-align: center;">LIVE VEHICLE MAP · LEAFLET CIRCLE MARKERS<br />1,842 reported positions</div>
+      </div>
+      <details style="border: 1px solid #c0c9c9; border-radius: 16px; margin: 10px 0; background: #ffffff;">
+        <summary style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px; min-height: 50px; cursor: pointer;">Fleet filters <span style="font-size: 13px; color: #414848;">Manufacturer, model and build year</span></summary>
+      </details>
+      <details style="margin: 12px 0; font-size: 12px;">
+        <summary style="display: flex; align-items: center; gap: 10px; width: fit-content; min-height: 44px; color: #414848; cursor: pointer;">About these positions and agency feeds <span style="font-size: 18px;">+</span></summary>
+      </details>
+
+      <section style="border-radius: 22px; padding: 26px; border: 1px solid #c0c9c9; border-left: 5px solid #046d6a; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); background: #ffffff; margin: 18px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; font-size: 20px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 22px; line-height: 1; font-weight: 400; flex: none;">directions_bus</span>Vehicle 8632</h3>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; border-radius: 9999px; background: #e5e9e9; font-family: 'Material Symbols Outlined'; font-size: 18px;">close</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px;">
+          <span><small style="display: block; color: #414848; font-size: 12px;">Route</small><strong style="display: block; font-size: 19px;">29</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Manufacturer</small><strong style="display: block; font-size: 19px;">Nova Bus</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Model</small><strong style="display: block; font-size: 19px;">LFS Artic</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Build year</small><strong style="display: block; font-size: 19px;">2018</strong></span>
+        </div>
+        <p style="font-size: 11px; line-height: 1.7; color: #414848; margin-top: 16px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 14px; line-height: 1; font-weight: 400; flex: none;">schedule</span>Last observed 13:40:18 · Reported position</p>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 16px;">
+          <span><small style="display: block; color: #414848; font-size: 12px;">Propulsion</small><strong style="display: block; font-size: 19px;">Diesel</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Length</small><strong style="display: block; font-size: 19px;">18 m</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Capacity</small><strong style="display: block; font-size: 19px;">77</strong></span>
+          <span><small style="display: block; color: #414848; font-size: 12px;">Fleet series</small><strong style="display: block; font-size: 19px;">8600–8730</strong></span>
+        </div>
+        <div style="margin: 18px 0; height: 220px; border-radius: 18px; background: repeating-linear-gradient(45deg, #dbe5e5 0 1px, transparent 1px 10px), #e5e9e9; display: grid; place-items: center; color: #6b7676; font: 400 11px/1.8 ui-monospace, Menlo, monospace; letter-spacing: .08em;">ATTRIBUTED CPTDB FLEET PHOTO</div>
+        <a href="#" style="display: inline-flex; gap: 8px; align-items: center; font-size: 12px; min-height: 44px;">View CPTDB fleet source ↗</a>
+      </section>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 20px;">
+        <sc-for list="{{ vehicles }}" as="v" hint-placeholder-count="6">
+          <button type="button" style="border: 1px solid #c0c9c9; border-radius: 16px; padding: 16px; min-height: 118px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); display: grid; gap: 7px; align-content: start; text-align: left; background: #ffffff; border-left: 5px solid {{ v.color }};">
+            <span style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">directions_bus</span>
+              <strong style="font-size: 25px; letter-spacing: -.8px; font-variant-numeric: tabular-nums; flex: 1;">{{ v.fleet }}</strong>
+              <span style="font-size: 11px; border-radius: 8px; background: #e5e9e9; padding: 5px 9px;">Route {{ v.route }}</span>
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none; color: #414848;">chevron_right</span>
+            </span>
+            <span style="font-size: 11px; font-weight: 750;">{{ v.agency }}</span>
+            <span style="font-size: 12px; color: #414848;">{{ v.spec }}</span>
+            <span style="font-size: 12px; color: #414848;">Built {{ v.year }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <nav style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px;">
+        <button type="button" style="display: inline-flex; align-items: center; justify-content: center; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px; opacity: .55;">Previous</button>
+        <p style="flex: 1; text-align: center; min-width: 120px; font-size: 11px; color: #414848;">1–100 / 1,842 · Page 1 / 19</p>
+        <button type="button" style="display: inline-flex; align-items: center; justify-content: center; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;">Next</button>
+      </nav>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Saved" style="max-width: 1280px; margin: 0 auto;">
+      <span style="display: block; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; color: #046d6a; line-height: 1.6;">READY FOR NEXT TIME</span>
+      <h2 style="margin: 8px 0 14px; font-size: 30px; letter-spacing: -1px;">Your saved trips</h2>
+      <p style="color: #414848; font-size: 14px; line-height: 1.75; max-width: 850px;">Kept only in this browser. Always search again for current schedules.</p>
+      <sc-for list="{{ savedTrips }}" as="s" hint-placeholder-count="3">
+        <article style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 20px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); padding: 22px; margin: 14px 0; display: flex; align-items: center; gap: 8px;">
+          <button type="button" style="display: flex; align-items: center; gap: 12px; flex: 1; text-align: left; min-width: 0;">
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 22px; line-height: 1; font-weight: 400; flex: none; color: #046d6a;">place</span>
+            <span style="flex: 1; min-width: 0;">
+              <strong style="font-size: 14px;">{{ s.from }}</strong>
+              <small style="display: block; color: #414848; margin-top: 3px;">to {{ s.to }}</small>
+            </span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; font-weight: 400; flex: none; color: #414848;">arrow_forward</span>
+          </button>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; border-radius: 9999px; background: #e5e9e9; font-family: 'Material Symbols Outlined'; font-size: 18px;">close</button>
+        </article>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isDivisions }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Out of division" style="max-width: 1280px; margin: 0 auto;">
+      <section style="background: #e5e9e9; border: 1px solid #c0c9c9; border-radius: 24px; padding: 18px; margin: 0 0 18px;">
+        <p style="margin: 0 0 12px; font-size: 14px;">Compare a verified vehicle home garage with the garages assigned to its route. Ambiguous and expired evidence stays unconfirmed.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 14px;">
+          <sc-for list="{{ divisionChips }}" as="chip" hint-placeholder-count="4">
+            <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; border-radius: 9999px; min-height: 48px; font: 600 12px/16px Manrope, sans-serif; border: 1px solid {{ chip.border }}; background: {{ chip.bg }}; color: {{ chip.ink }};">{{ chip.label }}<strong style="font-size: 16px; margin-left: 5px;">{{ chip.count }}</strong></button>
+          </sc-for>
+        </div>
+        <p style="font-size: 11px; line-height: 1.7; color: #414848;">Allocation source valid through 2026-12-31. Counts describe all loaded TTC vehicles before route and text filters. Rarity needs at least seven observed days and is not a prediction.</p>
+      </section>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{ divisionVehicles }}" as="v" hint-placeholder-count="6">
+          <button type="button" style="border: 1px solid #c0c9c9; border-radius: 16px; padding: 16px; min-height: 118px; display: grid; gap: 7px; align-content: start; text-align: left; background: #ffffff; border-left: 5px solid #bf3030; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15);">
+            <span style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">directions_bus</span>
+              <strong style="font-size: 25px; letter-spacing: -.8px; font-variant-numeric: tabular-nums; flex: 1;">{{ v.fleet }}</strong>
+              <span style="font-size: 11px; border-radius: 8px; background: #e5e9e9; padding: 5px 9px;">Route {{ v.route }}</span>
+            </span>
+            <span style="font-size: 11px; font-weight: 750;">TTC</span>
+            <span style="font-size: 12px; color: #414848;">{{ v.spec }}</span>
+            <span style="grid-column: 1 / -1; font-size: 12px; color: #046d6a;">Out of division · {{ v.garage }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="History" style="max-width: 1280px; margin: 0 auto;">
+      <span style="display: block; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; color: #046d6a; line-height: 1.6;">A RECORD OF WHAT WAS REPORTED</span>
+      <h2 style="margin: 8px 0 14px; font-size: 30px; letter-spacing: -1px;">Disruption history</h2>
+      <p style="color: #414848; font-size: 14px; line-height: 1.75; max-width: 850px;">Observed TTC alerts are retained indefinitely. History begins when collection starts, not before. All dates use Toronto time.</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(180px, 1.4fr); padding: 20px; gap: 16px; border: 1px solid #c0c9c9; border-radius: 20px; background: #ffffff; margin-top: 22px;">
+        <label style="min-width: 0; font-size: 12px; display: grid; gap: 6px;">From date<input type="date" value="2026-08-01" style="border: 1px solid #c0c9c9; background: #e5e9e9; min-height: 46px; border-radius: 12px; padding: 10px; font-size: 14px;" /></label>
+        <label style="min-width: 0; font-size: 12px; display: grid; gap: 6px;">Through date<input type="date" value="2026-09-06" style="border: 1px solid #c0c9c9; background: #e5e9e9; min-height: 46px; border-radius: 12px; padding: 10px; font-size: 14px;" /></label>
+        <label style="min-width: 0; font-size: 12px; display: grid; gap: 6px;">Line<select style="border: 1px solid #c0c9c9; background: #e5e9e9; min-height: 46px; border-radius: 12px; padding: 10px; font-size: 14px;"><option>All lines</option></select></label>
+        <label style="min-width: 0; font-size: 12px; display: grid; gap: 6px;">Search recorded alerts<input type="search" placeholder="Station, disruption, or description" style="border: 1px solid #c0c9c9; background: #e5e9e9; min-height: 46px; border-radius: 12px; padding: 10px; font-size: 14px;" /></label>
+      </div>
+      <div style="display: flex; gap: 7px; flex-wrap: wrap; margin: 20px 0 14px;">
+        <button type="button" style="display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;">Today</button>
+        <button type="button" style="display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;">All dates</button>
+        <button type="button" style="display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">refresh</span>Refresh</button>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: #ffffff; border: 1px solid #c0c9c9; border-radius: 9999px; font: 600 12px/16px Manrope, sans-serif; min-height: 44px; text-decoration: none;"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px; line-height: 1; font-weight: 400; flex: none;">download</span>Export matching history</a>
+      </div>
+      <sc-for list="{{ historyRows }}" as="row" hint-placeholder-count="4">
+        <details style="border: 1px solid #c0c9c9; border-left: 4px solid #046d6a; border-radius: 16px; background: #ffffff; margin: 12px 0;">
+          <summary style="padding: 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div><strong style="font-size: 14px;">{{ row.title }}</strong><span style="display: block; font-size: 12px; color: #414848; margin-top: 4px;">{{ row.status }}</span></div>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; font-weight: 400; flex: none; color: #414848;">expand_more</span>
+          </summary>
+        </details>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isCoverage }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Our region" style="max-width: 1280px; margin: 0 auto;">
+      <span style="display: block; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; color: #046d6a; line-height: 1.6;">ONE CONNECTED REGION</span>
+      <h2 style="margin: 8px 0 14px; font-size: 30px; letter-spacing: -1px;">Know what is covered</h2>
+      <p style="color: #414848; font-size: 14px; line-height: 1.75; max-width: 850px;">Coverage is measured from loaded schedules, not from an agency logo. A missing or expired feed is shown here.</p>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px;">
+        <sc-for list="{{ agencies }}" as="a" hint-placeholder-count="6">
+          <article style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 20px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); padding: 20px;">
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 24px; line-height: 1; font-weight: 400; flex: none; color: #046d6a;">train</span>
+            <h3 style="font-size: 16px; margin: 9px 0;">{{ a.name }}</h3>
+            <span style="font-size: 11px; display: inline-flex; align-items: center; gap: 5px; background: #e5e9e9; border-radius: 6px; padding: 4px 7px; color: #414848;">{{ a.state }}</span>
+            <p style="font-size: 11px; color: #414848; margin: 8px 0;">{{ a.dates }}</p>
+            <a href="#" style="font-size: 11px; display: inline-flex; align-items: center; gap: 5px; min-height: 44px;">Official source ↗</a>
+          </article>
+        </sc-for>
+      </div>
+      <div style="background: #e5e9e9; border: 0; border-radius: 20px; padding: 22px; margin-top: 30px;">
+        <h3 style="margin-bottom: 12px; font-size: 18px;">What to know before travelling</h3>
+        <p style="font-size: 14px; color: #414848; line-height: 1.8; margin: 12px 0;">Journeys use scheduled service. Unplanned closures, elevator outages and replacement buses may not be reflected in routing. Live TTC warnings are a separate source.</p>
+        <p style="font-size: 14px; color: #414848; line-height: 1.8; margin: 12px 0;">Map data © OpenStreetMap contributors. Agency data is used under each source licence. This project is not affiliated with TTC, Metrolinx or Triplinx.</p>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isRace }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Race" style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+      <section style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">flag</span>Start a race</h3>
+        <p style="font-size: 11px; line-height: 1.7; color: #414848;">You become the leader. Everyone else joins with the code this gives you.</p>
+        <fieldset style="border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+          <legend style="font-size: 13px; font-weight: 600; padding: 0 0 4px;">Challenge</legend>
+          <label style="display: flex; gap: 9px; align-items: center; min-height: 44px; font-size: 14px;"><input type="radio" name="rmode" checked="checked" style="accent-color: #046d6a; width: 18px; height: 18px;" /><span>Race to a finish</span></label>
+          <label style="display: flex; gap: 9px; align-items: center; min-height: 44px; font-size: 14px;"><input type="radio" name="rmode" style="accent-color: #046d6a; width: 18px; height: 18px;" /><span>Subway speed run with photo proof</span></label>
+        </fieldset>
+        <label style="font-size: 13px; font-weight: 600;">Name this race</label>
+        <input placeholder="Friday dash" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #c0c9c9; background: #f1f4f4; min-height: 44px;" />
+        <button type="button" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: 999px; background: #046d6a; color: #f1f4f4; font-weight: 600; min-height: 44px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 17px; line-height: 1; font-weight: 400; flex: none;">add</span>Create the race</button>
+      </section>
+      <section style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+        <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px;"><span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; font-weight: 400; flex: none;">group</span>Join a race</h3>
+        <label style="font-size: 13px; font-weight: 600;">Race code</label>
+        <input placeholder="ABC234" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #c0c9c9; background: #f1f4f4; min-height: 44px;" />
+        <button type="button" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: 999px; border: 1px solid #c0c9c9; background: #e5e9e9; font-weight: 600; min-height: 44px;">Find this race</button>
+      </section>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Settings" style="max-width: 1080px; margin: 0 auto;">
+      <details style="margin: 0 0 16px; border: 1px solid #c0c9c9; border-radius: 14px; background: #ffffff;">
+        <summary style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 12px 16px; cursor: pointer; font-size: 12px; color: #414848;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px; line-height: 1; font-weight: 400; flex: none;">search</span><span>Find any setting</span><span style="margin-left: auto; font-size: 18px;">+</span></summary>
+      </details>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 5px; padding: 6px; background: #e5e9e9; border: 1px solid #c0c9c9; border-radius: 18px; margin-top: 20px;">
+        <sc-for list="{{ settingsTabs }}" as="tab" hint-placeholder-count="4">
+          <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 10px; border-radius: 13px; font-size: 13px; font-weight: 650; line-height: 1.5; background: {{ tab.bg }}; color: {{ tab.ink }}; box-shadow: {{ tab.shadow }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; flex: none;">{{ tab.glyph }}</span> <span>{{ tab.label }}</span></button>
+        </sc-for>
+      </div>
+      <div style="padding-top: 18px;">
+        <section style="background: #ffffff; border: 1px solid #c0c9c9; border-radius: 22px; padding: 24px; margin-bottom: 18px; box-shadow: 0 1px 2px 0 rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15);">
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
+            <span style="flex: none; color: #046d6a; font-size: 23px;">🎨</span>
+            <div><h3 style="margin: 0; font-size: 21px; line-height: 1.4; letter-spacing: -.5px;">Colour theme</h3><p style="margin: 5px 0 0; color: #414848; font-size: 13px;">Choose the light that feels right.</p></div>
+          </div>
+          <fieldset style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; border: 0; padding: 0; margin: 0; min-width: 0;">
+            <label style="display: flex; align-items: center; gap: 14px; min-height: 132px; padding: 24px 20px; border: 2px solid #046d6a; border-radius: 18px; position: relative; cursor: pointer; color: #152b35; background: #f1f4f6;">
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 28px; line-height: 1; font-weight: 400; flex: none;">light_mode</span>
+              <span style="display: grid; gap: 6px; min-width: 0;"><strong style="font-size: 19px;">Light</strong><small style="font-size: 12px; line-height: 1.6;">Bright surfaces and crisp detail</small></span>
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1; font-weight: 400; flex: none; margin-left: auto;">check</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 14px; min-height: 132px; padding: 24px 20px; border: 2px solid #c0c9c9; border-radius: 18px; position: relative; cursor: pointer; color: #e7f0f2; background: #172a34;">
+              <span style="font-family: 'Material Symbols Outlined'; font-size: 28px; line-height: 1; font-weight: 400; flex: none;">dark_mode</span>
+              <span style="display: grid; gap: 6px; min-width: 0;"><strong style="font-size: 19px;">Dark</strong><small style="font-size: 12px; line-height: 1.6;">Dim surfaces for quieter viewing</small></span>
+            </label>
+          </fieldset>
+          <p style="font-size: 12px; color: #414848; line-height: 1.7; margin-top: 18px;">Default: Light. Changes apply immediately throughout the planner.</p>
+        </section>
+      </div>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="border-top: 1px solid #c0c9c9; background: transparent; padding: 16px 36px; font-size: 10px; display: flex; justify-content: space-between; align-items: center; gap: 18px; color: #414848; font-variant-numeric: tabular-nums;">
+    <span>GTHA Transit <b style="font-weight: 500; margin-left: 7px;">v0.1.0</b></span>
+    <span>Built 2026-09-06, 13:40:26 EDT</span>
+    <a href="#" style="text-decoration: none;">Open source</a>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plan&quot;,&quot;status&quot;,&quot;vehicles&quot;,&quot;saved&quot;,&quot;divisions&quot;,&quot;history&quot;,&quot;coverage&quot;,&quot;race&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;plan&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Recreation&quot;}}">
+class Component extends DCLogic {
+  state = { tab: null, openJourney: 0, openLine: '2' };
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.screen !== this.props.screen) this.setState({ tab: null });
+  }
+
+  renderVals() {
+    const tab = this.state.tab || this.props.screen || 'plan';
+    const go = (id) => () => this.setState({ tab: id });
+    const items = [
+      { id: 'plan', label: 'Plan', glyph: 'route' },
+      { id: 'status', label: 'Live', glyph: 'train', badge: true },
+      { id: 'vehicles', label: 'Vehicles', glyph: 'directions_bus' },
+      { id: 'saved', label: 'Saved', glyph: 'bookmark' },
+      { id: 'more', label: 'More', glyph: 'menu' },
+    ];
+    const inMore = ['race', 'divisions', 'history', 'coverage', 'settings'].includes(tab);
+    const nav = items.map(it => {
+      const active = it.id === 'more' ? inMore : tab === it.id;
+      return {
+        ...it,
+        badge: !!it.badge,
+        pill: active ? '#d0f372' : 'transparent',
+        ink: active ? '#3e4e00' : '#a8bec6',
+        ink2: active ? '#e7f0f1' : '#a8bec6',
+        go: it.id === 'more' ? go('divisions') : go(it.id),
+      };
+    });
+
+    const titles = {
+      plan: 'Plan your next connection', status: 'The network, right now', vehicles: 'Find your next ride',
+      saved: 'Ready when you are', divisions: 'Beyond the usual garage', history: 'The service record',
+      coverage: 'Across the whole region', race: 'Race across the region', settings: 'Make yourself at home',
+    };
+
+    const lineData = [
+      { id: '1', name: 'Yonge–University', color: '#f8c300', state: 'No reported disruption', bad: false },
+      { id: '2', name: 'Bloor–Danforth', color: '#00923f', state: 'Service alert', bad: true, alertTitle: 'Kennedy to Warden: no subway service', alertBody: 'Shuttle buses are operating. Allow extra travel time in both directions.' },
+      { id: '4', name: 'Sheppard', color: '#a21a68', state: 'Running · 2 facility notices', bad: false },
+      { id: '5', name: 'Eglinton', color: '#f47b20', state: 'No reported disruption', bad: false },
+      { id: '6', name: 'Finch West', color: '#009edb', state: 'Status unconfirmed', bad: false },
+    ];
+    const lines = lineData.map(l => ({
+      ...l,
+      mark: l.bad ? 'warning' : 'chevron_right',
+      stateInk: l.bad ? '#8f420e' : '#414848',
+      stateWeight: l.bad ? '650' : '400',
+      open: this.state.openLine === l.id,
+      go: () => this.setState({ tab: 'status', openLine: l.id }),
+    }));
+
+    const walk = { icon: 'directions_walk', bg: 'transparent', fg: '#414848', weight: '400' };
+    const ride = (label) => ({ icon: 'train', label, bg: '#046d6a', fg: '#ffffff', weight: '700' });
+    const raw = [
+      { start: '13:48', end: '14:37', dur: 49, transfers: 1, ride: 34, dist: '11.4 km', walk: '9 min · 0.7 km', wait: '6', feed: 'Includes live predictions', firstBoarding: '13:55', firstWait: 7, transferWait: 3, chain: [{ ...walk, label: '7 min' }, ride('505'), ride('2')] },
+      { start: '13:52', end: '14:46', dur: 54, transfers: 2, ride: 36, dist: '12.1 km', walk: '12 min · 0.9 km', wait: '9', feed: 'Scheduled', firstBoarding: '14:01', firstWait: 9, transferWait: 5, chain: [{ ...walk, label: '5 min' }, ride('29'), ride('2'), ride('86')] },
+      { start: '14:02', end: '14:48', dur: 46, transfers: 1, ride: 33, dist: '11.2 km', walk: '8 min · 0.6 km', wait: '4', feed: 'Includes live predictions', firstBoarding: '14:08', firstWait: 6, transferWait: 2, chain: [{ ...walk, label: '6 min' }, ride('504'), ride('2')] },
+    ];
+    const journeys = raw.map((j, i) => ({
+      ...j,
+      open: this.state.openJourney === i,
+      ring: i === this.state.openJourney ? '2px solid #046d6a' : 'none',
+      pick: () => this.setState({ openJourney: i }),
+    }));
+
+    const legs = [
+      { time: '13:48', icon: 'directions_walk', dotBg: '#e5e9e9', dotFg: '#414848', title: 'Walk to', place: 'Dundas West Station', meta: '550 m · 7 min', mins: 7, km: '0.55 km', wait: false, vehicle: false, alight: 'Dundas West Station' },
+      { time: '13:55', icon: 'train', dotBg: '#046d6a', dotFg: '#ffffff', title: '505 · Broadview Station', place: 'Dundas West Station', meta: 'Toronto Transit Commission · 18 min', mins: 18, km: '5.90 km', wait: true, waitText: '3 min wait before first boarding', vehicle: true, fleet: '4438', spec: 'Bombardier · Flexity Outlook · 2019', alight: 'Broadview Station' },
+      { time: '14:16', icon: 'train', dotBg: '#046d6a', dotFg: '#ffffff', title: '2 · Kennedy', place: 'Broadview Station', meta: 'Toronto Transit Commission · 15 min', mins: 15, km: '5.50 km', wait: true, waitText: '4 min transfer wait before boarding', vehicle: true, fleet: '6058', spec: 'Bombardier · T1 · 1996', alight: 'Kennedy Station' },
+    ];
+
+    const alertGroups = [
+      { title: 'Bus routes', count: 6, sampleTitle: '29 Dufferin: detour at Dufferin and Bloor', sampleBody: 'Buses are diverting both ways via Lansdowne because of construction. Allow extra travel time.' },
+      { title: 'Streetcar routes', count: 3, sampleTitle: '501 Queen: regular service resumed', sampleBody: 'Streetcars are back on Queen Street between Roncesvalles and Neville Park.' },
+      { title: 'Subway & light rail', count: 4, sampleTitle: 'Line 2: no service Kennedy to Warden', sampleBody: 'Shuttle buses operate every few minutes. Use Line 3 replacement buses for Scarborough Centre.' },
+      { title: 'Network-wide notices', count: 1, sampleTitle: 'Reduced overnight service this weekend', sampleBody: 'Some Blue Night routes end early for scheduled track work.' },
+      { title: 'Route not identified', count: 0, sampleTitle: '—', sampleBody: 'No notices in this group in the received snapshot.' },
+    ];
+
+    const vehicles = [
+      { fleet: '8632', route: '29', agency: 'Toronto Transit Commission', spec: 'Nova Bus · LFS Artic', year: '2018', color: '#bf3030' },
+      { fleet: '4438', route: '505', agency: 'Toronto Transit Commission', spec: 'Bombardier · Flexity Outlook', year: '2019', color: '#bf3030' },
+      { fleet: '2205', route: 'LW', agency: 'GO Transit', spec: 'MotivePower · MP40PH-3C', year: '2011', color: '#287641' },
+      { fleet: '1408', route: '19', agency: 'MiWay', spec: 'Nova Bus · LFS HEV', year: '2015', color: '#c45d15' },
+      { fleet: '0703', route: 'UP', agency: 'UP Express', spec: 'Nippon Sharyo · DMU', year: '2014', color: '#79563a' },
+      { fleet: '1811', route: '10', agency: 'Hamilton Street Railway', spec: 'New Flyer · XD40', year: '2018', color: '#2869a7' },
+    ];
+
+    const divisionChips = [
+      { id: 'out-of-division', label: 'Out of division', count: 37 },
+      { id: 'in-division', label: 'Assigned garage', count: 1462 },
+      { id: 'unknown', label: 'Unconfirmed', count: 208 },
+      { id: 'all', label: 'All TTC vehicles', count: 1707 },
+    ].map((c, i) => ({
+      ...c,
+      bg: i === 0 ? '#046d6a' : '#ffffff',
+      ink: i === 0 ? '#f1f4f4' : '#1a1c1c',
+      border: i === 0 ? '#046d6a' : '#c0c9c9',
+    }));
+
+    const divisionVehicles = [
+      { fleet: '8112', route: '35', spec: 'Nova Bus · LFS', garage: 'Arrow Road' },
+      { fleet: '3521', route: '52', spec: 'Nova Bus · LFS Artic', garage: 'Malvern' },
+      { fleet: '9042', route: '32', spec: 'New Flyer · XDE40', garage: 'Birchmount' },
+      { fleet: '8845', route: '96', spec: 'Nova Bus · LFS', garage: 'Queensway' },
+      { fleet: '3389', route: '39', spec: 'Nova Bus · LFS Artic', garage: 'Eglinton' },
+      { fleet: '9167', route: '25', spec: 'New Flyer · XDE40', garage: 'Mount Dennis' },
+    ];
+
+    return {
+      nav, tab, pageTitle: titles[tab] || titles.plan,
+      isPlan: tab === 'plan', isStatus: tab === 'status', isVehicles: tab === 'vehicles',
+      isSaved: tab === 'saved', isDivisions: tab === 'divisions', isHistory: tab === 'history',
+      isCoverage: tab === 'coverage', isRace: tab === 'race', isSettings: tab === 'settings',
+      goStatus: () => this.setState({ tab: 'status' }),
+      lines, journeys, legs, alertGroups, vehicles, divisionChips, divisionVehicles,
+      savedTrips: [
+        { from: 'Dundas West Station', to: 'Kennedy Station' },
+        { from: 'Union Station', to: 'Hamilton GO Centre' },
+        { from: 'Square One Terminal', to: 'York University' },
+      ],
+      historyRows: [
+        { title: 'Line 2: no service Kennedy to Warden', status: 'Still reported at last check' },
+        { title: '501 Queen: diversion via King', status: 'No longer reported' },
+        { title: 'Line 1: elevator out of service at Bloor–Yonge', status: 'Still reported at last check' },
+        { title: 'Line 5: reduced frequency', status: 'No longer reported' },
+      ],
+      agencies: [
+        { name: 'Toronto Transit Commission', state: 'Schedules loaded', dates: '20260817 → 20261212' },
+        { name: 'GO Transit', state: 'Schedules loaded', dates: '20260901 → 20270103' },
+        { name: 'MiWay', state: 'Schedules loaded', dates: '20260906 → 20261219' },
+        { name: 'Brampton Transit', state: 'Schedules loaded', dates: '20260830 → 20261226' },
+        { name: 'York Region Transit', state: 'Not yet verified', dates: '' },
+        { name: 'Hamilton Street Railway', state: 'Schedules loaded', dates: '20260824 → 20261205' },
+      ],
+      settingsTabs: [
+        { id: 'appearance', label: 'Appearance', glyph: 'palette' },
+        { id: 'language', label: 'Language', glyph: 'language' },
+        { id: 'narrator', label: 'Narrator', glyph: 'mic' },
+        { id: 'privacy', label: 'Privacy', glyph: 'shield' },
+      ].map((s, i) => ({
+        ...s,
+        bg: i === 0 ? '#ffffff' : 'transparent',
+        ink: i === 0 ? '#046d6a' : '#414848',
+        shadow: i === 0 ? '0 3px 8px rgba(21,43,53,.04)' : 'none',
+      })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

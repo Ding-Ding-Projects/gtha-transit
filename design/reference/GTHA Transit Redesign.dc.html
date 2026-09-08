@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.45; background: #0a1320; color: #eaf0f8; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  h1, h2, h3, h4, p { margin: 0; }
+  button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+  input, select { font: inherit; color: inherit; }
+  a { color: var(--amber, #ffb03a); text-decoration: none; border-bottom: 1px solid currentColor; }
+  a:hover { color: var(--fg, #eaf0f8); }
+  ::selection { background: #ffb03a; color: #121c29; }
+  @keyframes ping { 0% { transform: scale(1); opacity: .55; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+</style>
+</helmet>
+<div style="--bg: #0a1320; --panel: #101c2c; --panel2: #17273a; --rule: #22384f; --fg: #eaf0f8; --fg2: #94a8c2; --amber: #ffb03a; --amber-ink: #121c29; --live: #4bd48a; --late: #ff7a63; --overlay: rgba(10, 19, 32, .9); --mapbg: #0b1420; --mapline: #16273a; --ttc: #d94b47; --go: #2f9c5f; --up: #b98a55; --miway: #e07a2c; --hsr: #4a90d9; --burl: #8f74c9; min-height: 100dvh; background: var(--bg); color: var(--fg);">
+<div style="{{ theme }}">
+<div style="display: flex; min-height: 100dvh; background: var(--bg); color: var(--fg);">
+
+  <nav style="flex: none; width: 88px; background: var(--panel); border-right: 1px solid var(--rule); display: flex; flex-direction: column; align-items: center; padding: 14px 0 10px; position: sticky; top: 0; height: 100dvh;">
+    <div style="width: 40px; height: 40px; background: var(--amber); color: var(--amber-ink); display: grid; place-items: center; font: 700 15px/1 'IBM Plex Mono', monospace; letter-spacing: .04em; margin-bottom: 16px;">GT</div>
+    <div style="display: grid; gap: 1px; width: 100%;">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
+        <button type="button" onClick="{{ item.go }}" style="display: grid; justify-items: center; gap: 5px; padding: 9px 2px; min-height: 56px; width: 100%; border-left: 3px solid {{ item.bar }}; background: {{ item.bg }}; color: {{ item.ink }};">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 22px; line-height: 1;">{{ item.glyph }}</span>
+          <span style="font: 500 9px/1.2 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; text-align: center;">{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="width: 44px; height: 1px; background: var(--rule); margin: 10px 0;"></div>
+    <div style="display: grid; gap: 1px; width: 100%;">
+      <sc-for list="{{ review }}" as="item" hint-placeholder-count="2">
+        <button type="button" onClick="{{ item.go }}" style="display: grid; justify-items: center; gap: 5px; padding: 8px 2px; min-height: 48px; width: 100%; border-left: 3px solid {{ item.bar }}; background: {{ item.bg }}; color: {{ item.ink }};">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; line-height: 1;">{{ item.glyph }}</span>
+          <span style="font: 400 8px/1.2 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase;">{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; display: grid; gap: 8px; justify-items: center; width: 100%;">
+      <div style="display: grid; gap: 1px; width: 56px; border: 1px solid var(--rule);">
+        <sc-for list="{{ langs }}" as="l" hint-placeholder-count="3">
+          <button type="button" onClick="{{ l.go }}" style="min-height: 26px; font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; background: {{ l.bg }}; color: {{ l.ink }};">{{ l.label }}</button>
+        </sc-for>
+      </div>
+      <button type="button" onClick="{{ toggleTheme }}" style="display: grid; place-items: center; width: 44px; height: 44px; color: var(--fg2); font-family: 'Material Symbols Outlined'; font-size: 20px;">{{ themeGlyph }}</button>
+    </div>
+  </nav>
+
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+
+    <header style="flex: none; height: 56px; border-bottom: 1px solid var(--rule); background: var(--panel); display: flex; align-items: center; gap: 18px; padding: 0 20px;">
+      <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber); flex: none;">{{ boardLabel }}</span>
+      <span style="width: 1px; height: 20px; background: var(--rule); flex: none;"></span>
+      <h1 style="font: 700 17px/1.2 'Space Grotesk', sans-serif; letter-spacing: -.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ title }}</h1>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 16px; flex: none;">
+        <span style="display: flex; align-items: center; gap: 6px; font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--live);"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--live);"></span>LIVE · 5s</span>
+        <span style="font: 600 15px/1 'IBM Plex Mono', monospace; letter-spacing: .04em; font-variant-numeric: tabular-nums;">13:42:08</span>
+        <span style="font: 400 10px/1.4 'IBM Plex Mono', monospace; color: var(--fg2); text-align: right;">v0.1.0 · 9c4e3e3<br />EDT · America/Toronto</span>
+      </div>
+    </header>
+
+    <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ true }}">
+    <main data-screen-label="Plan" style="flex: 1; position: relative; min-height: 640px; overflow: hidden; background: var(--mapbg);">
+      <div style="position: absolute; inset: 0;"><image-slot id="map-plan" shape="rect" placeholder="Drop a map render (MapLibre / OSM vector tiles)"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--mapline) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, var(--mapline) 0 1px, transparent 1px 64px); opacity: .5;"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; display: grid; place-items: center;"><span style="font: 500 10px/1.9 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); text-align: center;">DROP A MAP RENDER HERE<br />MAPLIBRE GL · OSM VECTOR TILES</span></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="12">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 9px; height: 9px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 1px var(--bg);"></span>
+        </sc-for>
+      </div>
+
+      <section style="position: absolute; top: 18px; left: 18px; width: 372px; max-width: calc(100% - 36px); background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--fg2);">TRIP COMPOSER</span>
+          <button type="button" style="display: grid; place-items: center; width: 28px; height: 28px; color: var(--fg2); font-family: 'Material Symbols Outlined'; font-size: 18px;">swap_vert</button>
+        </div>
+        <div style="display: grid;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--amber); width: 34px; flex: none;">FROM</span>
+            <span style="flex: 1; min-width: 0; font: 500 15px/1.3 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Dundas West Station</span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; color: var(--fg2); flex: none;">my_location</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--amber); width: 34px; flex: none;">TO</span>
+            <span style="flex: 1; min-width: 0; font: 500 15px/1.3 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kennedy Station</span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; color: var(--fg2); flex: none;">map</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2); width: 34px; flex: none;">LEAVE</span>
+            <span style="flex: 1; min-width: 0; font: 600 15px/1.3 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums;">SUN 06 SEP · 13:42</span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; color: var(--fg2); flex: none;">chevron_right</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2); width: 34px; flex: none;">OPTS</span>
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 5px 8px; border: 1px solid var(--rule); color: var(--amber);">FASTEST</span>
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 5px 8px; border: 1px solid var(--rule); color: var(--fg2);">STEP-FREE</span>
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 5px 8px; border: 1px solid var(--rule); color: var(--fg2);">GARAGE PREF</span>
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 5px 8px; border: 1px dashed var(--rule); color: var(--fg2);">+ ADD STOP</span>
+          </div>
+        </div>
+        <button type="button" style="display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 50px; padding: 0 16px; background: var(--amber); color: var(--amber-ink); font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .14em;">PLAN THIS TRIP<span style="font-family: 'Material Symbols Outlined'; font-size: 20px;">arrow_forward</span></button>
+        <div style="padding: 10px 16px; font: 400 9px/1.6 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">SCHEDULED · OTP GRAPH 2026-08-30 · 11 AGENCIES LOADED</div>
+      </section>
+
+      <div style="position: absolute; top: 18px; right: 18px; display: grid; gap: 8px; justify-items: end;">
+        <span style="background: var(--overlay); border: 1px solid var(--rule); padding: 8px 12px; font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2); backdrop-filter: blur(14px);">GREATER TORONTO &amp; HAMILTON · 1,842 VEHICLES</span>
+        <div style="display: grid; border: 1px solid var(--rule); background: var(--overlay); backdrop-filter: blur(14px);">
+          <button type="button" style="width: 44px; height: 44px; border-bottom: 1px solid var(--rule); font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg);">add</button>
+          <button type="button" style="width: 44px; height: 44px; border-bottom: 1px solid var(--rule); font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg);">remove</button>
+          <button type="button" style="width: 44px; height: 44px; font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg);">layers</button>
+        </div>
+      </div>
+
+      <section style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 58%; overflow: auto; background: var(--overlay); border-top: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 20px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">COMPARISON BOARD</span>
+          <span style="font: 400 10px/1 'IBM Plex Mono', monospace; letter-spacing: .08em; color: var(--fg2);">{{ boardSummary }}</span>
+          <div style="margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap;">
+            <sc-for list="{{ optionChips }}" as="c" hint-placeholder-count="5">
+              <button type="button" onClick="{{ c.toggle }}" style="display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 10px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.ink }}; font: 500 11px/1 'IBM Plex Mono', monospace; letter-spacing: .04em;"><span style="font-family: 'Material Symbols Outlined'; font-size: 15px;">{{ c.glyph }}</span>{{ c.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: {{ gridCols }}; align-items: stretch;">
+          <div style="padding: 14px 20px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); display: flex; align-items: flex-end;">OPTION</div>
+          <sc-for list="{{ heldOptions }}" as="o" hint-placeholder-count="3">
+            <div style="padding: 12px 18px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: grid; gap: 8px; align-content: start;">
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font: 600 22px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em;">{{ o.depart }}</span>
+                <span style="font: 400 12px/1 'IBM Plex Mono', monospace; color: var(--fg2);">→</span>
+                <span style="font: 600 22px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em;">{{ o.arrive }}</span>
+                <span style="margin-left: auto; font: 600 11px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: {{ o.tagInk }};">{{ o.tag }}</span>
+              </div>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <sc-for list="{{ o.chain }}" as="leg" hint-placeholder-count="2">
+                  <span style="font: 600 11px/1 'IBM Plex Mono', monospace; letter-spacing: .04em; padding: 5px 7px; background: {{ leg.bg }}; color: {{ leg.ink }};">{{ leg.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="15">
+            <div style="padding: 9px 20px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 500 9px/1.4 'IBM Plex Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--fg2); background: {{ row.labelBg }};">{{ row.label }}</div>
+            <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3">
+              <div style="padding: 9px 18px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: flex; align-items: center; gap: 8px; background: {{ cell.bg }};">
+                <span style="font: {{ cell.font }}; font-variant-numeric: tabular-nums; color: {{ cell.ink }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ cell.value }}</span>
+                <sc-if value="{{ cell.best }}" hint-placeholder-val="{{ false }}"><span style="font: 600 8px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--amber-ink); background: var(--amber); padding: 3px 4px; flex: none;">BEST</span></sc-if>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 20px;">
+          <button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">− 30 MIN</button>
+          <button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">+ 30 MIN</button>
+          <button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">SAVE</button>
+          <button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">SHARE</button>
+          <button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">EXPORT JSON</button>
+          <span style="margin-left: auto; font: 400 9px/1.7 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2); max-width: 460px;">TORONTO LOCAL TIME · FARES NOT CALCULATED · ASSIGNMENTS CAN CHANGE BEFORE BOARDING</span>
+        </div>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isStatus }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Live" style="flex: 1; position: relative; min-height: 640px; overflow: hidden; background: var(--mapbg);">
+      <div style="position: absolute; inset: 0;"><image-slot id="map-live" shape="rect" placeholder="Drop a map render with subway lines"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--mapline) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, var(--mapline) 0 1px, transparent 1px 64px); opacity: .5;"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; display: grid; place-items: center;"><span style="font: 500 10px/1.9 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); text-align: center;">DROP A MAP RENDER HERE<br />MAPLIBRE GL · OSM VECTOR TILES</span></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="12">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 9px; height: 9px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 1px var(--bg);"></span>
+        </sc-for>
+        <span style="position: absolute; left: 61%; top: 44%; width: 14px; height: 14px; border-radius: 50%; background: var(--late);"></span>
+        <span style="position: absolute; left: 61%; top: 44%; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--late); animation: ping 2s ease-out infinite;"></span>
+      </div>
+
+      <section style="position: absolute; top: 18px; right: 18px; width: 392px; max-width: calc(100% - 36px); background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">LINE STATUS</span>
+          <span style="font: 400 9px/1 'IBM Plex Mono', monospace; letter-spacing: .08em; color: var(--fg2);">OFFICIAL TTC FEED · 13:40</span>
+        </div>
+        <sc-for list="{{ lines }}" as="line" hint-placeholder-count="5">
+          <button type="button" style="display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="width: 30px; height: 30px; flex: none; display: grid; place-items: center; font: 600 14px/1 'IBM Plex Mono', monospace; background: {{ line.color }}; color: #0d1420;">{{ line.id }}</span>
+            <span style="flex: 1; min-width: 0; display: grid; gap: 3px;">
+              <span style="font: 500 14px/1.2 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ line.name }}</span>
+              <span style="font: 500 9px/1.3 'IBM Plex Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: {{ line.ink }};">{{ line.state }}</span>
+            </span>
+            <span style="font: 400 9px/1.4 'IBM Plex Mono', monospace; color: var(--fg2); text-align: right; flex: none;">{{ line.since }}</span>
+          </button>
+        </sc-for>
+      </section>
+
+      <section style="position: absolute; left: 18px; bottom: 18px; width: 560px; max-width: calc(100% - 36px); background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber); margin-right: 6px;">ACTIVE ALERTS · 14</span>
+          <sc-for list="{{ alertChips }}" as="c" hint-placeholder-count="4">
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 5px 8px; border: 1px solid var(--rule); color: var(--fg2);">{{ c }}</span>
+          </sc-for>
+        </div>
+        <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 500 10px/1.5 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">{{ a.time }}<br />{{ a.kind }}</span>
+            <span style="min-width: 0;">
+              <span style="display: block; font: 500 14px/1.35 'Space Grotesk', sans-serif; color: {{ a.ink }};">{{ a.title }}</span>
+              <span style="display: block; font: 400 12px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 3px;">{{ a.body }}</span>
+            </span>
+          </div>
+        </sc-for>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isVehicles }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Vehicles" style="flex: 1; position: relative; min-height: 640px; overflow: hidden; background: var(--mapbg);">
+      <div style="position: absolute; inset: 0;"><image-slot id="map-vehicles" shape="rect" placeholder="Drop a map render of the region"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--mapline) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, var(--mapline) 0 1px, transparent 1px 64px); opacity: .5;"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; display: grid; place-items: center;"><span style="font: 500 10px/1.9 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); text-align: center;">DROP A MAP RENDER HERE<br />MAPLIBRE GL · OSM VECTOR TILES</span></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="12">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 9px; height: 9px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 1px var(--bg);"></span>
+        </sc-for>
+        <span style="position: absolute; left: 44%; top: 38%; width: 16px; height: 16px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 2px var(--bg);"></span>
+      </div>
+
+      <section style="position: absolute; top: 18px; left: 18px; width: 372px; max-width: calc(100% - 36px); max-height: calc(100% - 36px); overflow: auto; background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">VEHICLE DOSSIER</span>
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; color: var(--fg2);">close</span>
+        </div>
+        <div style="padding: 16px; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-end; gap: 12px;">
+          <span style="font: 600 44px/1 'IBM Plex Mono', monospace; letter-spacing: -.02em; font-variant-numeric: tabular-nums;">8632</span>
+          <span style="display: grid; gap: 4px; padding-bottom: 4px;">
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--ttc);">TTC · TORONTO</span>
+            <span style="font: 500 12px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">ROUTE 29 · RUN 29-07</span>
+          </span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+            <div style="padding: 11px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: grid; gap: 4px; min-width: 0;">
+              <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2);">{{ f.k }}</span>
+              <span style="font: 500 14px/1.3 'Space Grotesk', sans-serif; overflow-wrap: anywhere;">{{ f.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 16px; border-bottom: 1px solid var(--rule);">
+          <div style="height: 168px; border: 1px solid var(--rule);"><image-slot id="fleet-photo-8632" shape="rect" placeholder="Attributed CPTDB fleet photo"></image-slot></div>
+          <p style="font: 400 9px/1.7 'IBM Plex Mono', monospace; letter-spacing: .04em; color: var(--fg2); margin-top: 8px;">REPRESENTATIVE FLEET PHOTO · CREDIT AND LICENCE SHOWN WITH THE IMAGE</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 16px;">
+          <button type="button" style="min-height: 38px; padding: 0 12px; background: var(--amber); color: var(--amber-ink); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em;">FOLLOW THIS VEHICLE</button>
+          <button type="button" style="min-height: 38px; padding: 0 12px; border: 1px solid var(--rule); color: var(--fg2); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em;">CPTDB SOURCE</button>
+        </div>
+      </section>
+
+      <section style="position: absolute; top: 18px; right: 18px; width: 300px; max-width: calc(100% - 36px); background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--fg2);">FILTERS</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <sc-for list="{{ agencyChips }}" as="c" hint-placeholder-count="6">
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; padding: 6px 8px; border: 1px solid {{ c.border }}; color: {{ c.ink }}; background: {{ c.bg }};">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 18px; color: var(--fg2);">search</span>
+          <input placeholder="FLEET, ROUTE, MODEL" style="flex: 1; min-width: 0; border: 0; background: transparent; min-height: 36px; font: 500 11px/1 'IBM Plex Mono', monospace; letter-spacing: .06em; outline: none;" />
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 16px; color: var(--amber);">star</span>
+        </div>
+        <div style="padding: 10px 16px; font: 400 9px/1.7 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">1,842 / 2,140 SHOWN · FEED PARTIAL: YRT, DURHAM</div>
+      </section>
+
+      <section style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 46%; overflow: auto; background: var(--overlay); border-top: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: grid; grid-template-columns: 88px 74px minmax(120px, 1fr) minmax(150px, 1.3fr) 74px minmax(110px, 1fr) 92px 82px;">
+          <sc-for list="{{ fleetHead }}" as="h" hint-placeholder-count="8">
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); background: var(--panel);">{{ h }}</div>
+          </sc-for>
+          <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="7">
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); border-left: 3px solid {{ v.color }}; font: 600 14px/1.2 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; color: {{ v.ink }};">{{ v.fleet }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 500 12px/1.2 'IBM Plex Mono', monospace;">{{ v.route }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 400 12px/1.3 'Space Grotesk', sans-serif; color: var(--fg2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ v.agency }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 500 12px/1.3 'Space Grotesk', sans-serif; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ v.model }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 500 12px/1.2 'IBM Plex Mono', monospace; color: var(--fg2);">{{ v.year }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 400 12px/1.3 'Space Grotesk', sans-serif; color: {{ v.garageInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ v.garage }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 500 11px/1.2 'IBM Plex Mono', monospace; color: var(--fg2);">{{ v.seen }}</div>
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 500 10px/1.2 'IBM Plex Mono', monospace; letter-spacing: .08em; color: {{ v.feedInk }};">{{ v.feed }}</div>
+          </sc-for>
+        </div>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isRace }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Race" style="flex: 1; position: relative; min-height: 640px; overflow: hidden; background: var(--mapbg);">
+      <div style="position: absolute; inset: 0;"><image-slot id="map-race" shape="rect" placeholder="Drop a map render with team positions"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--mapline) 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, var(--mapline) 0 1px, transparent 1px 64px); opacity: .5;"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; display: grid; place-items: center;"><span style="font: 500 10px/1.9 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); text-align: center;">DROP A MAP RENDER HERE<br />MAPLIBRE GL · OSM VECTOR TILES</span></div>
+      <section style="position: absolute; top: 18px; left: 18px; width: 420px; max-width: calc(100% - 36px); background: var(--overlay); border: 1px solid var(--rule); backdrop-filter: blur(14px);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+          <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">RACE · FRIDAY DASH</span>
+          <span style="font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .22em; color: var(--fg2);">JQ4M2X</span>
+        </div>
+        <div style="padding: 16px; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
+          <span style="font: 600 46px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.02em;">00:41:12</span>
+          <span style="font: 500 9px/1.5 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2); text-align: right;">SINCE START<br />4 TEAMS · 12 CHECK-INS</span>
+        </div>
+        <sc-for list="{{ teams }}" as="team" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--rule);">
+            <span style="font: 600 14px/1 'IBM Plex Mono', monospace; color: {{ team.rankInk }};">{{ team.rank }}</span>
+            <span style="min-width: 0; display: grid; gap: 3px;">
+              <span style="font: 500 14px/1.2 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ team.name }}</span>
+              <span style="font: 400 10px/1.3 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">DRAWN {{ team.route }}</span>
+            </span>
+            <span style="font: 600 15px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; color: var(--amber);">{{ team.score }}</span>
+          </div>
+        </sc-for>
+        <div style="padding: 12px 16px; font: 400 9px/1.7 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">A CHECK-IN IS A CLAIM, NOT A VERIFICATION · PHOTOS ARE RE-ENCODED AND STRIPPED OF METADATA</div>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isPage }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Board page" style="flex: 1; padding: 24px; min-width: 0;">
+      <div style="max-width: 1320px; margin: 0 auto;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 18px;">
+          <div>
+            <h2 style="font: 700 26px/1.2 'Space Grotesk', sans-serif; letter-spacing: -.02em;">{{ pageHeading }}</h2>
+            <p style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 6px; max-width: 680px;">{{ pageNote }}</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <sc-for list="{{ pageActions }}" as="a" hint-placeholder-count="3">
+              <button type="button" style="min-height: 38px; padding: 0 12px; border: 1px solid var(--rule); color: var(--fg2); font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em;">{{ a }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasStats }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border: 1px solid var(--rule); margin-bottom: 18px;">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+              <div style="padding: 14px 16px; border-right: 1px solid var(--rule); background: var(--panel); display: grid; gap: 6px;">
+                <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2);">{{ s.k }}</span>
+                <span style="font: 600 26px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; color: {{ s.ink }};">{{ s.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="border: 1px solid var(--rule); background: var(--panel); display: grid; grid-template-columns: {{ tableCols }};">
+          <sc-for list="{{ tableHead }}" as="h" hint-placeholder-count="6">
+            <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: var(--fg2); background: var(--panel2);">{{ h }}</div>
+          </sc-for>
+          <sc-for list="{{ tableCells }}" as="c" hint-placeholder-count="24">
+            <div style="padding: 12px 14px; border-bottom: 1px solid var(--rule); min-width: 0; display: flex; align-items: center; gap: 8px; border-left: {{ c.edge }};">
+              <span style="font: {{ c.font }}; font-variant-numeric: tabular-nums; color: {{ c.ink }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ hasNotes }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 10px; margin-top: 18px; border-left: 3px solid var(--amber); padding: 4px 0 4px 16px;">
+            <sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+              <p style="font: 400 12px/1.7 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 860px;">{{ n }}</p>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Settings" style="flex: 1; padding: 24px; min-width: 0;">
+      <div style="max-width: 1000px; margin: 0 auto; display: grid; gap: 18px;">
+        <section style="border: 1px solid var(--rule); background: var(--panel);">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">APPEARANCE</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));">
+            <button type="button" onClick="{{ setDark }}" style="text-align: left; padding: 18px; border-right: 1px solid var(--rule); background: #0b1420; color: #eaf0f8; display: grid; gap: 10px; min-height: 132px; outline: {{ darkRing }}; outline-offset: -3px;">
+              <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: #ffb03a;">NIGHT BOARD · DEFAULT</span>
+              <span style="font: 700 19px/1.2 'Space Grotesk', sans-serif;">Ink and amber</span>
+              <span style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: #94a8c2;">Reads like a station board after dark. Amber numerals on deep ink.</span>
+            </button>
+            <button type="button" onClick="{{ setLight }}" style="text-align: left; padding: 18px; background: #f1eee6; color: #141c26; display: grid; gap: 10px; min-height: 132px; outline: {{ lightRing }}; outline-offset: -3px;">
+              <span style="font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .16em; color: #9a5400;">DAY BOARD</span>
+              <span style="font: 700 19px/1.2 'Space Grotesk', sans-serif;">Paper and oxide</span>
+              <span style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: #5a6573;">Warm paper for daylight and print. Same board, same grid.</span>
+            </button>
+          </div>
+        </section>
+
+        <section style="border: 1px solid var(--rule); background: var(--panel);">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">LANGUAGE</div>
+          <sc-for list="{{ langRows }}" as="l" hint-placeholder-count="3">
+            <button type="button" onClick="{{ l.go }}" style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--rule);">
+              <span style="width: 16px; height: 16px; flex: none; border: 1px solid {{ l.dotBorder }}; background: {{ l.dot }};"></span>
+              <span style="flex: 1; min-width: 0; display: grid; gap: 3px;">
+                <span style="font: 500 15px/1.2 'Space Grotesk', sans-serif;">{{ l.name }}</span>
+                <span style="font: 400 11px/1.4 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">{{ l.detail }}</span>
+              </span>
+              <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">{{ l.sample }}</span>
+            </button>
+          </sc-for>
+          <div style="padding: 12px 16px; font: 400 9px/1.7 'IBM Plex Mono', monospace; letter-spacing: .06em; color: var(--fg2);">BILINGUAL JOINS BOTH STRINGS WITH A MIDDLE DOT · EVERY BOARD IS MEASURED AGAINST THAT LENGTH</div>
+        </section>
+
+        <section style="border: 1px solid var(--rule); background: var(--panel);">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">NARRATOR</div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 16px; border-bottom: 1px solid var(--rule);">
+            <span style="width: 46px; height: 26px; flex: none; background: var(--panel2); border: 1px solid var(--rule); display: flex; align-items: center; padding: 3px;"><span style="width: 18px; height: 18px; background: var(--fg2);"></span></span>
+            <span style="flex: 1; min-width: 0; display: grid; gap: 3px;">
+              <span style="font: 500 15px/1.2 'Space Grotesk', sans-serif;">Spoken journey updates</span>
+              <span style="font: 400 12px/1.5 'Space Grotesk', sans-serif; color: var(--fg2);">Off by default. Independent English and Cantonese voices, rate, pitch and quiet hours.</span>
+            </span>
+            <span style="font: 500 10px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--fg2);">OFF</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <sc-for list="{{ narratorFacts }}" as="f" hint-placeholder-count="3">
+              <div style="padding: 12px 16px; border-right: 1px solid var(--rule); display: grid; gap: 5px;">
+                <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2);">{{ f.k }}</span>
+                <span style="font: 500 13px/1.3 'Space Grotesk', sans-serif;">{{ f.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="border: 1px solid var(--rule); background: var(--panel);">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); font: 600 10px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">PRIVACY</div>
+          <sc-for list="{{ privacy }}" as="p" hint-placeholder-count="3">
+            <div style="padding: 14px 16px; border-bottom: 1px solid var(--rule); display: grid; gap: 5px;">
+              <span style="font: 500 14px/1.3 'Space Grotesk', sans-serif;">{{ p.t }}</span>
+              <span style="font: 400 12px/1.7 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 780px;">{{ p.b }}</span>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Phone" style="flex: 1; padding: 24px; min-width: 0;">
+      <div style="max-width: 1320px; margin: 0 auto;">
+        <h2 style="font: 700 26px/1.2 'Space Grotesk', sans-serif; letter-spacing: -.02em;">The same board at 390px</h2>
+        <p style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: var(--fg2); margin: 6px 0 22px; max-width: 680px;">The map stays the canvas; the composer becomes a sheet and the comparison board becomes two columns you swipe. Every value keeps its monospace column so the numbers still line up.</p>
+        <div style="display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start;">
+
+          <div style="width: 390px; flex: none; border: 1px solid var(--rule); background: var(--mapbg); position: relative; height: 780px; overflow: hidden;">
+            <div style="height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font: 600 12px/1 'IBM Plex Mono', monospace; border-bottom: 1px solid var(--rule); background: var(--panel);"><span>13:42</span><span style="color: var(--live);">LIVE · 5s</span></div>
+            <div style="position: absolute; top: 44px; left: 0; right: 0; bottom: 0;"><image-slot id="phone-map" shape="rect" placeholder="Map render"></image-slot></div>
+            <div style="position: absolute; top: 44px; left: 0; right: 0; bottom: 0; pointer-events: none; background: repeating-linear-gradient(0deg, var(--mapline) 0 1px, transparent 1px 56px), repeating-linear-gradient(90deg, var(--mapline) 0 1px, transparent 1px 56px); opacity: .5;"></div>
+            <section style="position: absolute; left: 0; right: 0; bottom: 0; background: var(--overlay); border-top: 1px solid var(--rule); backdrop-filter: blur(14px);">
+              <div style="padding: 10px 16px; border-bottom: 1px solid var(--rule); font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">TRIP COMPOSER</div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--rule);"><span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--amber); width: 32px;">FROM</span><span style="flex: 1; min-width: 0; font: 500 15px/1.2 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Dundas West Station</span></div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--rule);"><span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--amber); width: 32px;">TO</span><span style="flex: 1; min-width: 0; font: 500 15px/1.2 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kennedy Station</span></div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--rule);"><span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2); width: 32px;">LEAVE</span><span style="flex: 1; font: 600 14px/1.2 'IBM Plex Mono', monospace;">SUN 06 SEP · 13:42</span></div>
+              <button type="button" style="display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 16px; background: var(--amber); color: var(--amber-ink); font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .14em;">PLAN THIS TRIP<span style="font-family: 'Material Symbols Outlined'; font-size: 20px;">arrow_forward</span></button>
+              <div style="display: flex; height: 56px; border-top: 1px solid var(--rule);">
+                <sc-for list="{{ phoneNav }}" as="p" hint-placeholder-count="5">
+                  <span style="flex: 1; display: grid; justify-items: center; align-content: center; gap: 3px; color: {{ p.ink }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 20px; line-height: 1;">{{ p.glyph }}</span><span style="font: 500 8px/1 'IBM Plex Mono', monospace; letter-spacing: .06em;">{{ p.label }}</span></span>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+
+          <div style="width: 390px; flex: none; border: 1px solid var(--rule); background: var(--bg); height: 780px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font: 600 12px/1 'IBM Plex Mono', monospace; border-bottom: 1px solid var(--rule); background: var(--panel);"><span>13:42</span><span style="color: var(--live);">LIVE · 5s</span></div>
+            <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); background: var(--panel); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <span style="font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .18em; color: var(--amber);">COMPARE · 2 OF 5</span>
+              <span style="font: 400 9px/1 'IBM Plex Mono', monospace; letter-spacing: .08em; color: var(--fg2);">SWIPE FOR MORE</span>
+            </div>
+            <div style="flex: 1; overflow: auto; display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(0, 1fr); align-content: start;">
+              <div style="padding: 12px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 600 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2);">OPTION</div>
+              <div style="padding: 12px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 600 15px/1.2 'IBM Plex Mono', monospace;">13:48<br /><span style="color: var(--fg2); font-weight: 400;">14:37</span></div>
+              <div style="padding: 12px; border-bottom: 1px solid var(--rule); font: 600 15px/1.2 'IBM Plex Mono', monospace;">14:02<br /><span style="color: var(--fg2); font-weight: 400;">14:48</span></div>
+              <sc-for list="{{ phoneRows }}" as="row" hint-placeholder-count="10">
+                <div style="padding: 10px 12px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 500 9px/1.3 'IBM Plex Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--fg2);">{{ row.label }}</div>
+                <div style="padding: 10px 12px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: {{ row.aFont }}; color: {{ row.aInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.a }}</div>
+                <div style="padding: 10px 12px; border-bottom: 1px solid var(--rule); font: {{ row.bFont }}; color: {{ row.bInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.b }}</div>
+              </sc-for>
+            </div>
+            <div style="flex: none; display: flex; height: 56px; border-top: 1px solid var(--rule); background: var(--panel);">
+              <sc-for list="{{ phoneNav }}" as="p" hint-placeholder-count="5">
+                <span style="flex: 1; display: grid; justify-items: center; align-content: center; gap: 3px; color: {{ p.ink }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 20px; line-height: 1;">{{ p.glyph }}</span><span style="font: 500 8px/1 'IBM Plex Mono', monospace; letter-spacing: .06em;">{{ p.label }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="width: 390px; flex: none; border: 1px solid var(--rule); background: var(--bg); height: 780px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font: 600 12px/1 'IBM Plex Mono', monospace; border-bottom: 1px solid var(--rule); background: var(--panel);"><span>13:42</span><span style="color: var(--live);">LIVE · 5s</span></div>
+            <div style="padding: 14px 16px; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-end; gap: 10px;">
+              <span style="font: 600 38px/1 'IBM Plex Mono', monospace; letter-spacing: -.02em;">8632</span>
+              <span style="display: grid; gap: 3px; padding-bottom: 3px;"><span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .1em; color: var(--ttc);">TTC</span><span style="font: 500 11px/1 'IBM Plex Mono', monospace; color: var(--fg2);">ROUTE 29</span></span>
+            </div>
+            <div style="height: 200px; flex: none; border-bottom: 1px solid var(--rule);"><image-slot id="phone-fleet-photo" shape="rect" placeholder="Fleet photo"></image-slot></div>
+            <div style="flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start;">
+              <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+                <div style="padding: 11px 14px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: grid; gap: 4px; min-width: 0;">
+                  <span style="font: 500 9px/1 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2);">{{ f.k }}</span>
+                  <span style="font: 500 13px/1.3 'Space Grotesk', sans-serif; overflow-wrap: anywhere;">{{ f.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button type="button" style="flex: none; min-height: 52px; background: var(--amber); color: var(--amber-ink); font: 600 12px/1 'IBM Plex Mono', monospace; letter-spacing: .14em;">FOLLOW THIS VEHICLE</button>
+          </div>
+
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isBilingual }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Bilingual" style="flex: 1; padding: 24px; min-width: 0;">
+      <div style="max-width: 1320px; margin: 0 auto;">
+        <h2 style="font: 700 26px/1.2 'Space Grotesk', sans-serif; letter-spacing: -.02em;">Measured against the longest string</h2>
+        <p style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: var(--fg2); margin: 6px 0 22px; max-width: 720px;">Bilingual mode joins English and Cantonese with a middle dot, which is where clipping appears first. Labels wrap to two lines; values never truncate, because the value is the answer and the label is only context.</p>
+        <div style="border: 1px solid var(--rule); background: var(--panel); display: grid; grid-template-columns: 210px repeat(3, minmax(150px, 1fr));">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 600 9px/1.4 'IBM Plex Mono', monospace; letter-spacing: .14em; color: var(--fg2); background: var(--panel2);">OPTION · 選項</div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); background: var(--panel2); font: 600 18px/1.2 'IBM Plex Mono', monospace;">13:48 → 14:37</div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); background: var(--panel2); font: 600 18px/1.2 'IBM Plex Mono', monospace;">13:52 → 14:41</div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--rule); background: var(--panel2); font: 600 18px/1.2 'IBM Plex Mono', monospace;">14:02 → 14:48</div>
+          <sc-for list="{{ bilingualRows }}" as="row" hint-placeholder-count="8">
+            <div style="padding: 11px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 500 9px/1.5 'IBM Plex Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--fg2);">{{ row.label }}</div>
+            <div style="padding: 11px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 500 13px/1.4 'IBM Plex Mono', monospace; color: {{ row.aInk }};">{{ row.a }}</div>
+            <div style="padding: 11px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); font: 500 13px/1.4 'IBM Plex Mono', monospace; color: {{ row.bInk }};">{{ row.b }}</div>
+            <div style="padding: 11px 16px; border-bottom: 1px solid var(--rule); font: 500 13px/1.4 'IBM Plex Mono', monospace; color: {{ row.cInk }};">{{ row.c }}</div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 18px;">
+          <sc-for list="{{ bilingualLines }}" as="line" hint-placeholder-count="5">
+            <div style="border: 1px solid var(--rule); background: var(--panel); display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 76px;">
+              <span style="width: 30px; height: 30px; flex: none; display: grid; place-items: center; font: 600 14px/1 'IBM Plex Mono', monospace; background: {{ line.color }}; color: #0d1420;">{{ line.id }}</span>
+              <span style="min-width: 0; display: grid; gap: 4px;">
+                <span style="font: 500 13px/1.35 'Space Grotesk', sans-serif;">{{ line.name }}</span>
+                <span style="font: 500 9px/1.4 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: {{ line.ink }};">{{ line.state }}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+  </div>
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plan&quot;,&quot;status&quot;,&quot;vehicles&quot;,&quot;divisions&quot;,&quot;race&quot;,&quot;history&quot;,&quot;saved&quot;,&quot;coverage&quot;,&quot;settings&quot;,&quot;phone&quot;,&quot;bilingual&quot;],&quot;default&quot;:&quot;plan&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;View&quot;},&quot;appearance&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;View&quot;},&quot;columns&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:2,&quot;max&quot;:3,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Comparison board&quot;},&quot;showBest&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Comparison board&quot;}}">
+class Component extends DCLogic {
+  state = { screen: null, appearance: null, held: [0, 2, 4], lang: 'EN' };
+
+  componentDidUpdate(prev) {
+    if (prev.screen !== this.props.screen) this.setState({ screen: null });
+    if (prev.appearance !== this.props.appearance) this.setState({ appearance: null });
+  }
+
+  renderVals() {
+    const screen = this.state.screen || this.props.screen || 'plan';
+    const appearance = this.state.appearance || this.props.appearance || 'dark';
+    const light = appearance === 'light';
+    const showBest = this.props.showBest !== false;
+    const maxHeld = Number(this.props.columns ?? 3);
+
+    const theme = light
+      ? 'display: contents; --bg: #f1eee6; --panel: #fffdf7; --panel2: #e8e4d8; --rule: #d3ccbb; --fg: #141c26; --fg2: #5a6573; --amber: #9a5400; --amber-ink: #fffdf7; --live: #0d7a44; --late: #ad2517; --overlay: rgba(255, 253, 247, .93); --mapbg: #e7e3d7; --mapline: #d3ccbb;'
+      : 'display: contents;';
+
+    const go = (id) => () => this.setState({ screen: id });
+    const dest = [
+      { id: 'plan', label: 'Plan', glyph: 'route' },
+      { id: 'status', label: 'Live', glyph: 'train' },
+      { id: 'vehicles', label: 'Fleet', glyph: 'directions_bus' },
+      { id: 'divisions', label: 'Garage', glyph: 'warehouse' },
+      { id: 'race', label: 'Race', glyph: 'flag' },
+      { id: 'history', label: 'History', glyph: 'history' },
+      { id: 'saved', label: 'Saved', glyph: 'bookmark' },
+      { id: 'coverage', label: 'Feeds', glyph: 'rss_feed' },
+      { id: 'settings', label: 'Setup', glyph: 'settings' },
+    ];
+    const style = (id) => ({
+      bar: screen === id ? 'var(--amber)' : 'transparent',
+      bg: screen === id ? 'var(--panel2)' : 'transparent',
+      ink: screen === id ? 'var(--fg)' : 'var(--fg2)',
+      go: go(id),
+    });
+    const nav = dest.map(d => ({ ...d, ...style(d.id) }));
+    const review = [
+      { id: 'phone', label: 'Phone', glyph: 'smartphone' },
+      { id: 'bilingual', label: '雙語', glyph: 'translate' },
+    ].map(d => ({ ...d, ...style(d.id) }));
+
+    const langs = ['EN', '廣', '雙'].map(l => ({
+      label: l,
+      bg: this.state.lang === l ? 'var(--amber)' : 'transparent',
+      ink: this.state.lang === l ? 'var(--amber-ink)' : 'var(--fg2)',
+      go: () => this.setState({ lang: l, screen: l === '雙' ? 'bilingual' : this.state.screen }),
+    }));
+
+    const heads = {
+      plan: ['PLAN · 規劃', 'Dundas West Station → Kennedy Station'],
+      status: ['LIVE · 即時', 'TTC subway and light rail, right now'],
+      vehicles: ['FLEET · 車輛', '1,842 vehicles reporting across 6 agencies'],
+      divisions: ['GARAGE · 車廠', 'Vehicles running away from their home garage'],
+      race: ['RACE · 比賽', 'Friday dash · four teams, drawn routes'],
+      history: ['HISTORY · 歷史', 'Every alert ever observed, kept indefinitely'],
+      saved: ['SAVED · 已儲存', 'Kept in this browser only'],
+      coverage: ['FEEDS · 資料', 'What is actually loaded, per agency'],
+      settings: ['SETUP · 設定', 'Appearance, language, narrator, privacy'],
+      phone: ['PHONE · 手機', 'The board at 390 pixels'],
+      bilingual: ['BILINGUAL · 雙語', 'The board at its longest string'],
+    };
+
+    const mono = (size, weight) => `${weight} ${size}px/1.3 'IBM Plex Mono', monospace`;
+    const sans = (size, weight) => `${weight} ${size}px/1.35 'Space Grotesk', sans-serif`;
+
+    const options = [
+      { id: 'A', depart: '13:48', arrive: '14:37', arriveVal: 877, dur: 49, transfers: 1, walkMin: 9, walkKm: 0.7, waitMin: 6, transitMin: 34, distKm: 11.4, chain: ['505', '2'], fleet: '4438', model: 'Flexity Outlook', year: 2019, garage: 'Russell', run: '505-14', delay: 1, feed: 12 },
+      { id: 'B', depart: '13:52', arrive: '14:41', arriveVal: 881, dur: 49, transfers: 2, walkMin: 5, walkKm: 0.4, waitMin: 9, transitMin: 35, distKm: 12.1, chain: ['29', '2', '86'], fleet: '8632', model: 'Nova LFS Artic', year: 2018, garage: 'Arrow Road', run: '29-07', delay: 4, feed: 8 },
+      { id: 'C', depart: '14:02', arrive: '14:48', arriveVal: 888, dur: 46, transfers: 1, walkMin: 8, walkKm: 0.6, waitMin: 3, transitMin: 33, distKm: 11.2, chain: ['504', '2'], fleet: '4501', model: 'Flexity Outlook', year: 2021, garage: 'Roncesvalles', run: '504-22', delay: 0, feed: 5 },
+      { id: 'D', depart: '14:06', arrive: '15:01', arriveVal: 901, dur: 55, transfers: 1, walkMin: 14, walkKm: 1.1, waitMin: 7, transitMin: 34, distKm: 11.9, chain: ['506', '2'], fleet: '4402', model: 'Flexity Outlook', year: 2018, garage: 'Leslie Barns', run: '506-09', delay: 2, feed: 19 },
+      { id: 'E', depart: '14:12', arrive: '15:04', arriveVal: 904, dur: 52, transfers: 2, walkMin: 6, walkKm: 0.5, waitMin: 11, transitMin: 35, distKm: 12.4, chain: ['47', '2', '12'], fleet: '9042', model: 'New Flyer XDE40', year: 2020, garage: 'Birchmount', run: '47-03', delay: 0, feed: 6 },
+    ];
+
+    const held = this.state.held.slice(0, maxHeld);
+    const heldOptions = held.map(i => options[i]).filter(Boolean);
+    const fastest = options.reduce((a, b) => (b.dur < a.dur ? b : a));
+    const earliest = options.reduce((a, b) => (b.arriveVal < a.arriveVal ? b : a));
+
+    const legBg = { '2': 'var(--go)', '505': 'var(--ttc)', '504': 'var(--ttc)', '506': 'var(--ttc)', '29': 'var(--ttc)', '86': 'var(--ttc)', '47': 'var(--ttc)', '12': 'var(--ttc)' };
+    const heldCols = heldOptions.map(o => ({
+      ...o,
+      tag: o === fastest ? 'FASTEST' : o === earliest ? 'EARLIEST' : `OPTION ${o.id}`,
+      tagInk: o === fastest || o === earliest ? 'var(--amber)' : 'var(--fg2)',
+      chain: o.chain.map(label => ({ label, bg: legBg[label] || 'var(--panel2)', ink: '#0d1420' })),
+    }));
+
+    const defs = [
+      { label: 'Depart', get: o => o.depart, mono: true },
+      { label: 'Arrive', get: o => o.arrive, val: o => o.arriveVal, mono: true },
+      { label: 'Duration', get: o => o.dur + ' min', val: o => o.dur, mono: true, big: true },
+      { label: 'Transfers', get: o => String(o.transfers), val: o => o.transfers, mono: true },
+      { label: 'Walking', get: o => o.walkMin + ' min · ' + o.walkKm + ' km', val: o => o.walkMin, mono: true },
+      { label: 'Waiting', get: o => o.waitMin + ' min', val: o => o.waitMin, mono: true },
+      { label: 'On transit', get: o => o.transitMin + ' min', val: o => o.transitMin, mono: true },
+      { label: 'Distance', get: o => o.distKm + ' km', val: o => o.distKm, mono: true },
+      { label: 'Route chain', get: o => o.chain.join(' → '), mono: true },
+      { label: 'Assigned vehicle', get: o => o.fleet, mono: true, big: true, section: true },
+      { label: 'Model · built', get: o => o.model + ' · ' + o.year },
+      { label: 'Home garage', get: o => o.garage },
+      { label: 'Run · block', get: o => o.run, mono: true },
+      { label: 'Live delay', get: o => (o.delay ? '+' + o.delay + ' min' : 'On time'), val: o => o.delay, mono: true, late: true },
+      { label: 'Feed age', get: o => o.feed + ' s ago', val: o => o.feed, mono: true },
+    ];
+
+    const rows = defs.map(def => {
+      const values = heldOptions.map(o => (def.val ? def.val(o) : null));
+      const best = def.val ? Math.min(...values) : null;
+      return {
+        label: def.label,
+        labelBg: def.section ? 'var(--panel2)' : 'transparent',
+        cells: heldOptions.map((o, i) => {
+          const isBest = showBest && def.val && values[i] === best && new Set(values).size > 1;
+          const late = def.late && o.delay > 0;
+          return {
+            value: def.get(o),
+            best: !!isBest,
+            bg: def.section ? 'var(--panel2)' : 'transparent',
+            font: def.mono ? mono(def.big ? 16 : 13, def.big ? 600 : 500) : sans(13, 500),
+            ink: isBest ? 'var(--amber)' : late ? 'var(--late)' : 'var(--fg)',
+          };
+        }),
+      };
+    });
+
+    const optionChips = options.map((o, i) => {
+      const on = held.includes(i);
+      return {
+        label: `${o.depart} · ${o.dur}m`,
+        glyph: on ? 'push_pin' : 'add',
+        border: on ? 'var(--amber)' : 'var(--rule)',
+        bg: on ? 'var(--amber)' : 'transparent',
+        ink: on ? 'var(--amber-ink)' : 'var(--fg2)',
+        toggle: () => this.setState(s => {
+          const next = s.held.includes(i) ? s.held.filter(x => x !== i) : [...s.held, i].slice(-maxHeld);
+          return { held: next.length ? next : [i] };
+        }),
+      };
+    });
+
+    const lineData = [
+      { id: '1', name: 'Yonge–University', color: '#f8c300', state: 'Normal service', since: '13:40\nchecked', ink: 'var(--live)' },
+      { id: '2', name: 'Bloor–Danforth', color: '#00923f', state: 'No service Kennedy → Warden', since: '11:04\nsince', ink: 'var(--late)' },
+      { id: '4', name: 'Sheppard', color: '#a21a68', state: 'Running · 2 facility notices', since: '13:40\nchecked', ink: 'var(--fg2)' },
+      { id: '5', name: 'Eglinton', color: '#f47b20', state: 'Normal service', since: '13:40\nchecked', ink: 'var(--live)' },
+      { id: '6', name: 'Finch West', color: '#009edb', state: 'Status unconfirmed', since: '12:18\nlast ok', ink: 'var(--fg2)' },
+    ];
+
+    const dots = [
+      { left: '12%', top: '28%', color: 'var(--ttc)' }, { left: '21%', top: '52%', color: 'var(--ttc)' },
+      { left: '29%', top: '37%', color: 'var(--miway)' }, { left: '34%', top: '66%', color: 'var(--ttc)' },
+      { left: '41%', top: '22%', color: 'var(--go)' }, { left: '47%', top: '58%', color: 'var(--ttc)' },
+      { left: '53%', top: '31%', color: 'var(--up)' }, { left: '58%', top: '71%', color: 'var(--ttc)' },
+      { left: '66%', top: '26%', color: 'var(--go)' }, { left: '72%', top: '49%', color: 'var(--hsr)' },
+      { left: '79%', top: '35%', color: 'var(--burl)' }, { left: '86%', top: '61%', color: 'var(--go)' },
+      { left: '17%', top: '73%', color: 'var(--go)' }, { left: '63%', top: '15%', color: 'var(--ttc)' },
+    ];
+
+    const fleet = [
+      { fleet: '8632', route: '29', agency: 'Toronto Transit Commission', model: 'Nova Bus LFS Artic', year: '2018', garage: 'Arrow Road', seen: '13:40:18', feed: 'LIVE', color: 'var(--ttc)', out: false },
+      { fleet: '4438', route: '505', agency: 'Toronto Transit Commission', model: 'Bombardier Flexity Outlook', year: '2019', garage: 'Russell', seen: '13:40:22', feed: 'LIVE', color: 'var(--ttc)', out: false },
+      { fleet: '8112', route: '35', agency: 'Toronto Transit Commission', model: 'Nova Bus LFS', year: '2016', garage: 'Malvern → Arrow Road', seen: '13:40:09', feed: 'LIVE', color: 'var(--ttc)', out: true },
+      { fleet: '2205', route: 'LW', agency: 'GO Transit', model: 'MotivePower MP40PH-3C', year: '2011', garage: 'Willowbrook', seen: '13:39:54', feed: 'LIVE', color: 'var(--go)', out: false },
+      { fleet: '1408', route: '19', agency: 'MiWay', model: 'Nova Bus LFS HEV', year: '2015', garage: 'Central Parkway', seen: '13:38:41', feed: 'STALE', color: 'var(--miway)', out: false },
+      { fleet: '0703', route: 'UP', agency: 'UP Express', model: 'Nippon Sharyo DMU', year: '2014', garage: 'Willowbrook', seen: '13:40:02', feed: 'LIVE', color: 'var(--up)', out: false },
+      { fleet: '1811', route: '10', agency: 'Hamilton Street Railway', model: 'New Flyer XD40', year: '2018', garage: 'Mountain', seen: '13:40:11', feed: 'LIVE', color: 'var(--hsr)', out: false },
+    ].map(v => ({
+      ...v,
+      ink: v.fleet === '8632' ? 'var(--amber)' : 'var(--fg)',
+      garageInk: v.out ? 'var(--amber)' : 'var(--fg2)',
+      feedInk: v.feed === 'LIVE' ? 'var(--live)' : 'var(--late)',
+    }));
+
+    const pages = {
+      divisions: {
+        heading: 'Out of division, right now',
+        note: 'A vehicle whose verified home garage is not among the garages assigned to the route it is running. Ambiguous or expired allocation evidence stays unconfirmed rather than being guessed.',
+        actions: ['OUT OF DIVISION · 37', 'ASSIGNED · 1,462', 'UNCONFIRMED · 208', 'EXPORT'],
+        stats: [
+          { k: 'OUT OF DIVISION', v: '37', ink: 'var(--amber)' },
+          { k: 'RAREST TODAY', v: '2.4%', ink: 'var(--fg)' },
+          { k: 'ALLOCATION VALID', v: '2026-12-31', ink: 'var(--fg)' },
+          { k: 'OBSERVED DAYS', v: '61', ink: 'var(--fg)' },
+        ],
+        cols: '92px 74px minmax(130px, 1fr) minmax(150px, 1fr) minmax(120px, 1fr) 100px 96px',
+        head: ['FLEET', 'ROUTE', 'HOME GARAGE', 'ROUTE GARAGES', 'EVIDENCE', 'RARITY', 'SEEN'],
+        rows: [
+          ['8112', '35', 'Malvern', 'Arrow Road', 'Exact trip match', '2.4% rare', '13:40:09'],
+          ['3521', '52', 'Malvern', 'Arrow Road · Queensway', 'Exact trip match', '4.1% rare', '13:39:58'],
+          ['9042', '32', 'Birchmount', 'Arrow Road', 'Route observation', '6.8% uncommon', '13:40:14'],
+          ['8845', '96', 'Queensway', 'Arrow Road', 'Route observation', 'Collecting', '13:39:41'],
+          ['3389', '39', 'Eglinton', 'Malvern', 'Exact trip match', '3.2% rare', '13:40:20'],
+          ['9167', '25', 'Mount Dennis', 'Birchmount', 'Route observation', '9.4% uncommon', '13:38:52'],
+        ],
+        notes: [
+          'A route observation says this route currently reports an out-of-division vehicle. It does not identify the vehicle for your own departure, and observations expire automatically.',
+          'Rarity needs at least seven observed days. It describes what has been seen, not what will run.',
+        ],
+      },
+      history: {
+        heading: 'The service record',
+        note: 'Observed TTC alerts are retained indefinitely. History begins when collection started, not before. Disappearance from the source is not a confirmed resolution.',
+        actions: ['TODAY', 'ALL DATES', 'LINE · ALL', 'EXPORT MATCHING'],
+        stats: [
+          { k: 'RECORDS', v: '4,318', ink: 'var(--fg)' },
+          { k: 'STILL REPORTED', v: '14', ink: 'var(--amber)' },
+          { k: 'COLLECTING SINCE', v: '2026-03-02', ink: 'var(--fg)' },
+          { k: 'LAST WRITE', v: '13:40:26', ink: 'var(--fg)' },
+        ],
+        cols: '112px 112px 76px minmax(240px, 2fr) minmax(120px, 1fr)',
+        head: ['FIRST SEEN', 'LAST SEEN', 'LINE', 'REPORTED AS', 'STATE'],
+        rows: [
+          ['09-06 11:04', '09-06 13:40', '2', 'No subway service Kennedy to Warden', 'Still reported'],
+          ['09-06 07:22', '09-06 09:51', '1', 'Elevator out of service at Bloor–Yonge', 'No longer reported'],
+          ['09-05 16:40', '09-05 22:12', '—', '501 Queen diversion via King', 'No longer reported'],
+          ['09-05 05:58', '09-06 13:40', '5', 'Reduced frequency, Eglinton', 'Still reported'],
+          ['09-04 18:31', '09-04 20:04', '4', 'Sheppard closed for track work', 'No longer reported'],
+          ['09-04 06:12', '09-04 11:47', '6', 'Finch West status unconfirmed', 'No longer reported'],
+        ],
+        notes: ['All dates use Toronto time. An empty history is not proof that no disruption occurred.'],
+      },
+      saved: {
+        heading: 'Ready when you are',
+        note: 'Saved trips live in this browser and nowhere else. Re-running a trip searches current schedules; the saved copy is only the endpoints, the options and the required route.',
+        actions: ['NEW TRIP', 'EXPORT ALL'],
+        stats: [],
+        cols: 'minmax(200px, 1.4fr) minmax(200px, 1.4fr) minmax(120px, 1fr) 120px 96px',
+        head: ['FROM', 'TO', 'OPTIONS HELD', 'LAST RUN', ''],
+        rows: [
+          ['Dundas West Station', 'Kennedy Station', 'Fastest · garage pref', '09-06 13:42', 'RE-RUN'],
+          ['Union Station', 'Hamilton GO Centre', 'Fewer transfers', '09-05 08:14', 'RE-RUN'],
+          ['Square One Terminal', 'York University', 'Less walking · step-free', '09-03 17:51', 'RE-RUN'],
+          ['Long Branch Loop', 'Neville Park Loop', 'Required route 501', '08-29 12:06', 'RE-RUN'],
+        ],
+        notes: ['Clearing browser storage removes every saved trip. A share link carries both endpoints in the URL, so only share what you are comfortable disclosing.'],
+      },
+      coverage: {
+        heading: 'What is actually loaded',
+        note: 'Coverage is measured from loaded schedules and live feeds, not from an agency logo. A missing or expired feed is shown here rather than hidden behind a working search box.',
+        actions: ['REFRESH', 'API DOCS'],
+        stats: [
+          { k: 'AGENCIES TARGETED', v: '11', ink: 'var(--fg)' },
+          { k: 'SCHEDULES LOADED', v: '9', ink: 'var(--fg)' },
+          { k: 'LIVE VEHICLES', v: '6', ink: 'var(--live)' },
+          { k: 'NO LIVE ACCESS', v: '3', ink: 'var(--late)' },
+        ],
+        cols: 'minmax(180px, 1.6fr) 120px minmax(150px, 1fr) 90px 110px 90px 100px',
+        head: ['AGENCY', 'SCHEDULE', 'SERVICE RANGE', 'VEHICLES', 'TRIP UPDATES', 'ALERTS', 'LAST OK'],
+        rows: [
+          ['Toronto Transit Commission', 'Loaded', '08-17 → 12-12', 'Live', 'Live', 'Official', '13:40'],
+          ['GO Transit', 'Loaded', '09-01 → 01-03', 'Live', 'Live', 'Public', '13:40'],
+          ['UP Express', 'Loaded', '09-01 → 01-03', 'Live', 'Live', 'Public', '13:40'],
+          ['MiWay', 'Loaded', '09-06 → 12-19', 'Stale', 'Public', 'Public', '13:38'],
+          ['Brampton Transit', 'Loaded', '08-30 → 12-26', 'None', 'None', 'Public', '—'],
+          ['York Region Transit', 'Not verified', '—', 'Registration', 'Registration', 'None', '—'],
+          ['Hamilton Street Railway', 'Loaded', '08-24 → 12-05', 'Live', 'Public', 'Public', '13:40'],
+          ['Burlington Transit', 'Loaded', '08-24 → 12-05', 'Live', 'None', 'None', '13:39'],
+        ],
+        notes: [
+          'Journeys use scheduled service. Unplanned closures, elevator outages and replacement buses may not be reflected in routing.',
+          'Map data © OpenStreetMap contributors, ODbL. Agency data is used under each publisher licence. Not affiliated with TTC, Metrolinx or Triplinx.',
+        ],
+      },
+    };
+    const page = pages[screen];
+    const tableCells = page
+      ? page.rows.flatMap(row => row.map((v, i) => ({
+          v,
+          font: i === 0 ? mono(14, 600) : (screen === 'coverage' || screen === 'saved') && i > 0 ? sans(13, 400) : mono(12, 500),
+          ink: i === 0 ? 'var(--fg)' : v === 'Still reported' || v === 'RE-RUN' || String(v).includes('rare') ? 'var(--amber)' : v === 'None' || v === 'Not verified' || v === 'Stale' || v === 'Registration' ? 'var(--late)' : v === 'Live' || v === 'Loaded' || v === 'Official' ? 'var(--live)' : 'var(--fg2)',
+          edge: i === 0 ? '3px solid var(--amber)' : '0',
+        })))
+      : [];
+
+    return {
+      theme, nav, review, langs,
+      themeGlyph: light ? 'dark_mode' : 'light_mode',
+      toggleTheme: () => this.setState({ appearance: light ? 'dark' : 'light' }),
+      setDark: () => this.setState({ appearance: 'dark' }),
+      setLight: () => this.setState({ appearance: 'light' }),
+      darkRing: light ? 'none' : '2px solid #ffb03a',
+      lightRing: light ? '2px solid #9a5400' : 'none',
+      boardLabel: (heads[screen] || heads.plan)[0],
+      title: (heads[screen] || heads.plan)[1],
+      isPlan: screen === 'plan', isStatus: screen === 'status', isVehicles: screen === 'vehicles',
+      isRace: screen === 'race', isSettings: screen === 'settings', isPhone: screen === 'phone',
+      isBilingual: screen === 'bilingual', isPage: !!page,
+      heldOptions: heldCols, rows, optionChips,
+      gridCols: `172px repeat(${heldCols.length}, minmax(150px, 1fr))`,
+      boardSummary: `5 OPTIONS · HOLDING ${heldCols.length} · FASTEST ${fastest.dur} MIN · EARLIEST ARRIVAL ${earliest.arrive}`,
+      lines: lineData,
+      dots,
+      alertChips: ['BUS · 6', 'STREETCAR · 3', 'SUBWAY · 4', 'NETWORK · 1'],
+      alerts: [
+        { time: '11:04', kind: 'CLOSURE', title: 'No subway service, Kennedy to Warden', body: 'Shuttle buses operating both ways. Six stops on your held options sit inside the closure.', ink: 'var(--late)' },
+        { time: '12:40', kind: 'DETOUR', title: '29 Dufferin diverting via Lansdowne', body: 'Both directions, construction at Dufferin and Bloor. Allow extra travel time.', ink: 'var(--fg)' },
+        { time: '09:51', kind: 'FACILITY', title: 'Elevator out of service, Bloor–Yonge', body: 'A station facility notice, not a service disruption. Step-free journeys may be affected.', ink: 'var(--fg)' },
+      ],
+      facts: [
+        { k: 'MANUFACTURER', v: 'Nova Bus' }, { k: 'MODEL', v: 'LFS Artic' },
+        { k: 'BUILT', v: '2018' }, { k: 'FLEET SERIES', v: '8600–8730' },
+        { k: 'HOME GARAGE', v: 'Arrow Road' }, { k: 'PROPULSION', v: 'Diesel' },
+        { k: 'LENGTH · CAPACITY', v: '18 m · 77' }, { k: 'LAST OBSERVED', v: '13:40:18' },
+      ],
+      agencyChips: [
+        { label: 'TTC', on: true }, { label: 'GO', on: true }, { label: 'UP', on: true },
+        { label: 'MIWAY', on: false }, { label: 'HSR', on: false }, { label: 'BURL', on: false },
+      ].map(c => ({
+        label: c.label,
+        border: c.on ? 'var(--amber)' : 'var(--rule)',
+        bg: c.on ? 'var(--amber)' : 'transparent',
+        ink: c.on ? 'var(--amber-ink)' : 'var(--fg2)',
+      })),
+      fleetHead: ['FLEET', 'ROUTE', 'AGENCY', 'MODEL', 'BUILT', 'GARAGE', 'SEEN', 'FEED'],
+      fleet,
+      teams: [
+        { rank: '1', name: 'Dim Sum Dashers', route: '505 → 2', score: '7', rankInk: 'var(--amber)' },
+        { rank: '2', name: 'Scarborough Express', route: '29 → 2 → 86', score: '6', rankInk: 'var(--fg2)' },
+        { rank: '3', name: 'Queen Street Crew', route: '504 → 2', score: '4', rankInk: 'var(--fg2)' },
+        { rank: '4', name: 'Night Riders', route: '506 → 2', score: '3', rankInk: 'var(--fg2)' },
+      ],
+      pageHeading: page ? page.heading : '',
+      pageNote: page ? page.note : '',
+      pageActions: page ? page.actions : [],
+      hasStats: !!(page && page.stats.length),
+      stats: page ? page.stats : [],
+      tableCols: page ? page.cols : '1fr',
+      tableHead: page ? page.head : [],
+      tableCells,
+      hasNotes: !!(page && page.notes.length),
+      notes: page ? page.notes : [],
+      langRows: [
+        { key: 'EN', name: 'English', detail: 'ENGLISH THROUGHOUT', sample: 'Plan' },
+        { key: '廣', name: '香港廣東話', detail: 'HONG KONG CANTONESE', sample: '規劃' },
+        { key: '雙', name: 'English + 廣東話', detail: 'BOTH, JOINED BY A MIDDLE DOT', sample: 'Plan · 規劃' },
+      ].map(l => ({
+        ...l,
+        dot: this.state.lang === l.key ? 'var(--amber)' : 'transparent',
+        dotBorder: this.state.lang === l.key ? 'var(--amber)' : 'var(--rule)',
+        go: () => this.setState({ lang: l.key }),
+      })),
+      narratorFacts: [
+        { k: 'ENGLISH VOICE', v: 'Automatic' },
+        { k: 'CANTONESE VOICE', v: 'Automatic' },
+        { k: 'RATE · PITCH', v: '1.0 · 1.0' },
+      ],
+      privacy: [
+        { t: 'Your journey stays yours', b: 'No account, no advertising, no analytics. Saved trips and preferences stay in this browser. Searches reach the routing service to calculate a route; precise locations are not retained in request logs.' },
+        { t: 'Sharing a trip', b: 'A share link contains both endpoint locations and the selected travel time. Only share locations you are comfortable disclosing.' },
+        { t: 'Data and reliability', b: 'This is an independent planner. Allow time for transfers and check official notices before travelling. Fares and specialized transit bookings are not calculated.' },
+      ],
+      phoneNav: [
+        { label: 'PLAN', glyph: 'route', ink: 'var(--amber)' },
+        { label: 'LIVE', glyph: 'train', ink: 'var(--fg2)' },
+        { label: 'FLEET', glyph: 'directions_bus', ink: 'var(--fg2)' },
+        { label: 'SAVED', glyph: 'bookmark', ink: 'var(--fg2)' },
+        { label: 'MORE', glyph: 'menu', ink: 'var(--fg2)' },
+      ],
+      phoneRows: [
+        { label: 'Duration', a: '49 min', b: '46 min', best: 'b' },
+        { label: 'Transfers', a: '1', b: '1', best: '' },
+        { label: 'Walking', a: '9 min', b: '8 min', best: 'b' },
+        { label: 'Waiting', a: '6 min', b: '3 min', best: 'b' },
+        { label: 'Vehicle', a: '4438', b: '4501', best: '' },
+        { label: 'Model', a: 'Flexity 2019', b: 'Flexity 2021', best: '' },
+        { label: 'Garage', a: 'Russell', b: 'Roncesvalles', best: '' },
+        { label: 'Run', a: '505-14', b: '504-22', best: '' },
+        { label: 'Delay', a: '+1 min', b: 'On time', best: 'b' },
+        { label: 'Feed', a: '12 s', b: '5 s', best: 'b' },
+      ].map(r => ({
+        ...r,
+        aFont: mono(13, 500), bFont: mono(13, 500),
+        aInk: r.best === 'a' ? 'var(--amber)' : r.label === 'Delay' ? 'var(--late)' : 'var(--fg)',
+        bInk: r.best === 'b' ? 'var(--amber)' : 'var(--fg)',
+      })),
+      bilingualRows: [
+        { label: 'Duration · 行程時間', a: '49 min · 49 分鐘', b: '49 min · 49 分鐘', c: '46 min · 46 分鐘', cBest: true },
+        { label: 'Transfers · 轉車次數', a: '1', b: '2', c: '1' },
+        { label: 'Walking · 步行', a: '9 min · 0.7 km', b: '5 min · 0.4 km', c: '8 min · 0.6 km', bBest: true },
+        { label: 'Assigned vehicle · 編配車輛', a: '4438', b: '8632', c: '4501' },
+        { label: 'Home garage · 所屬車廠', a: 'Russell · 羅素', b: 'Arrow Road · 箭路', c: 'Roncesvalles · 朗士維' },
+        { label: 'Live delay · 即時延誤', a: '+1 min · 遲 1 分鐘', b: '+4 min · 遲 4 分鐘', c: 'On time · 準時', cBest: true },
+        { label: 'Feed age · 資料時間', a: '12 s · 12 秒', b: '8 s · 8 秒', c: '5 s · 5 秒', cBest: true },
+        { label: 'Evidence · 資料依據', a: 'Exact trip · 確實班次', b: 'Route observed · 路線觀察', c: 'Exact trip · 確實班次' },
+      ].map(r => ({
+        ...r,
+        aInk: r.aBest ? 'var(--amber)' : 'var(--fg)',
+        bInk: r.bBest ? 'var(--amber)' : 'var(--fg)',
+        cInk: r.cBest ? 'var(--amber)' : 'var(--fg)',
+      })),
+      bilingualLines: [
+        { id: '1', name: 'Yonge–University · 央街—大學線', color: '#f8c300', state: 'Normal service · 服務正常', ink: 'var(--live)' },
+        { id: '2', name: 'Bloor–Danforth · 布羅—丹佛線', color: '#00923f', state: 'No service Kennedy → Warden · 堅尼地至沃頓停駛', ink: 'var(--late)' },
+        { id: '4', name: 'Sheppard · 些普轄線', color: '#a21a68', state: 'Running · 2 facility notices · 正常行駛 · 2 項設施通告', ink: 'var(--fg2)' },
+        { id: '5', name: 'Eglinton · 愛靜閣線', color: '#f47b20', state: 'Normal service · 服務正常', ink: 'var(--live)' },
+        { id: '6', name: 'Finch West · 芬治西線', color: '#009edb', state: 'Status unconfirmed · 狀態未確認', ink: 'var(--fg2)' },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

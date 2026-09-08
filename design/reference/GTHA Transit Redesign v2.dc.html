@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.5; background: #0e1521; color: #f2f5fa; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  h1, h2, h3, h4, p { margin: 0; }
+  button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+  input, select { font: inherit; color: inherit; }
+  a { color: var(--accent, #ffb545); text-decoration: none; }
+  a:hover { color: var(--fg, #f2f5fa); }
+  ::selection { background: #ffb545; color: #10192a; }
+  @keyframes ping { 0% { transform: scale(1); opacity: .5; } 70%, 100% { transform: scale(2.8); opacity: 0; } }
+</style>
+</helmet>
+<div style="--bg: #0e1521; --panel: #161f2e; --panel2: #1f2a3b; --line: rgba(255, 255, 255, .09); --fg: #f2f5fa; --fg2: #9aa8bd; --fg3: #8b9db5; --accent: #ffb545; --accent-ink: #10192a; --accent-soft: rgba(255, 181, 69, .15); --good: #52d69b; --warn: #ff8a6b; --mapbg: #101927; --glass: rgba(20, 29, 43, .97); --shadow: 0 18px 44px rgba(0, 0, 0, .45); --ttc: #e0605c; --go: #43ac72; --up: #c69a68; --miway: #e8894a; --hsr: #5b9de0; --burl: #9b83d4; min-height: 100dvh; background: var(--bg); color: var(--fg);">
+<div style="{{ theme }}">
+<div style="display: flex; min-height: 100dvh; background: var(--bg); color: var(--fg);">
+
+  <nav style="flex: none; width: 84px; background: var(--panel); display: flex; flex-direction: column; align-items: center; padding: 18px 10px 14px; gap: 18px; position: sticky; top: 0; height: 100dvh;">
+    <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 700 16px/1 'Space Grotesk', sans-serif; letter-spacing: -.02em; flex: none;">gt</div>
+    <div style="display: grid; gap: 4px; width: 100%;">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
+        <button type="button" onClick="{{ item.go }}" style="display: grid; justify-items: center; gap: 5px; padding: 9px 2px 8px; border-radius: 14px; min-height: 56px; width: 100%; background: {{ item.bg }}; color: {{ item.ink }};">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 22px; line-height: 1; color: {{ item.iconInk }};">{{ item.glyph }}</span>
+          <span style="font: 500 10px/1.2 'Space Grotesk', sans-serif; text-align: center; letter-spacing: .01em;">{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="width: 28px; height: 1px; background: var(--line);"></div>
+    <div style="display: grid; gap: 4px; width: 100%;">
+      <sc-for list="{{ review }}" as="item" hint-placeholder-count="2">
+        <button type="button" onClick="{{ item.go }}" style="display: grid; justify-items: center; gap: 4px; padding: 8px 2px; border-radius: 14px; min-height: 48px; width: 100%; background: {{ item.bg }}; color: {{ item.ink }};">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 19px; line-height: 1; color: {{ item.iconInk }};">{{ item.glyph }}</span>
+          <span style="font: 500 9px/1.2 'Space Grotesk', sans-serif;">{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; display: grid; gap: 10px; justify-items: center;">
+      <div style="display: flex; padding: 3px; border-radius: 999px; background: var(--panel2); gap: 2px;">
+        <sc-for list="{{ langs }}" as="l" hint-placeholder-count="3">
+          <button type="button" onClick="{{ l.go }}" style="min-width: 22px; min-height: 26px; border-radius: 999px; font: 500 11px/1 'Space Grotesk', sans-serif; background: {{ l.bg }}; color: {{ l.ink }};">{{ l.label }}</button>
+        </sc-for>
+      </div>
+      <button type="button" onClick="{{ toggleTheme }}" style="display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; color: var(--fg2); font-family: 'Material Symbols Outlined'; font-size: 20px;">{{ themeGlyph }}</button>
+    </div>
+  </nav>
+
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+
+    <header style="flex: none; min-height: 68px; display: flex; align-items: center; gap: 20px; padding: 14px 28px; background: var(--bg); box-shadow: inset 0 -1px 0 var(--line);">
+      <div style="min-width: 0;">
+        <h1 style="font: 600 19px/1.25 'Space Grotesk', sans-serif; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ title }}</h1>
+        <p style="font: 400 13px/1.4 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ subtitle }}</p>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; flex: none;">
+        <span style="display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: var(--panel); font: 500 12px/1 'Space Grotesk', sans-serif; color: var(--fg2);"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--good);"></span>Live · 5s ago</span>
+        <span style="font: 500 16px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em;">13:42</span>
+        <span style="font: 400 11px/1.4 'Space Grotesk', sans-serif; color: var(--fg3); text-align: right;">v0.1.0 · 9c4e3e3<br />Toronto time</span>
+      </div>
+    </header>
+
+    <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ true }}">
+    <main data-screen-label="Plan" style="flex: 1; display: grid; grid-template-rows: minmax(524px, 1fr) auto; min-height: 900px; background: var(--mapbg);">
+      <div style="position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0 0 0 408px;"><image-slot id="v2-map-plan" shape="rect" placeholder="Drop a map render — MapLibre GL, OSM vector tiles"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="14">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 10px; height: 10px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 3px var(--mapbg);"></span>
+        </sc-for>
+      </div>
+
+      <section style="position: absolute; top: 24px; left: 24px; width: 384px; max-width: calc(100% - 48px); max-height: calc(100% - 48px); overflow: auto; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif;">Where to next?</h2>
+          <button type="button" style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--panel2); color: var(--fg2); font-family: 'Material Symbols Outlined'; font-size: 18px;">swap_vert</button>
+        </div>
+        <div style="display: grid; gap: 10px;">
+          <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: flex; align-items: center; gap: 12px;">
+            <span style="display: grid; gap: 2px; flex: 1; min-width: 0;">
+              <span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">From</span>
+              <span style="font: 500 16px/1.3 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Dundas West Station</span>
+            </span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg3); flex: none;">my_location</span>
+          </div>
+          <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: flex; align-items: center; gap: 12px;">
+            <span style="display: grid; gap: 2px; flex: 1; min-width: 0;">
+              <span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">To</span>
+              <span style="font: 500 16px/1.3 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kennedy Station</span>
+            </span>
+            <span style="font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg3); flex: none;">map</span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
+            <button type="button" style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; text-align: left; display: grid; gap: 2px;">
+              <span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">Leaving</span>
+              <span style="font: 500 15px/1.3 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums;">Sun 13:42</span>
+            </button>
+            <button type="button" style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; text-align: left; display: grid; gap: 2px;">
+              <span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">Priority</span>
+              <span style="font: 500 15px/1.3 'Space Grotesk', sans-serif;">Fastest</span>
+            </button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 16px;">
+          <sc-for list="{{ planChips }}" as="c" hint-placeholder-count="4">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; font: 500 12px/1 'Space Grotesk', sans-serif; background: {{ c.bg }}; color: {{ c.ink }};">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: 600 15px/1 'Space Grotesk', sans-serif;">Plan this trip<span style="font-family: 'Material Symbols Outlined'; font-size: 20px;">arrow_forward</span></button>
+        <p style="font: 400 11px/1.6 'Space Grotesk', sans-serif; color: var(--fg3); margin-top: 12px;">Scheduled service · 11 agencies loaded · graph built 30 Aug</p>
+      </section>
+
+      <div style="position: absolute; top: 24px; right: 24px; width: max-content; display: grid; gap: 10px; justify-items: end;">
+        <span style="display: flex; gap: 8px;"><span style="padding: 9px 14px; border-radius: 999px; background: var(--panel); box-shadow: var(--shadow); font: 500 12px/1 'Space Grotesk', sans-serif; color: var(--fg2);">Greater Toronto &amp; Hamilton</span><span style="padding: 9px 14px; border-radius: 999px; background: var(--panel); box-shadow: var(--shadow); font: 500 12px/1 'Space Grotesk', sans-serif; color: var(--fg);">1,842 live</span></span>
+        <div style="display: grid; border-radius: 14px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow);">
+          <button type="button" style="width: 44px; height: 44px; font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg);">add</button>
+          <button type="button" style="width: 44px; height: 44px; font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg); box-shadow: inset 0 1px 0 var(--line);">remove</button>
+          <button type="button" style="width: 44px; height: 44px; font-family: 'Material Symbols Outlined'; font-size: 20px; color: var(--fg); box-shadow: inset 0 1px 0 var(--line);">layers</button>
+        </div>
+      </div>
+
+      </div>
+
+      <section style="position: relative; z-index: 1; max-height: 54vh; overflow: auto; border-radius: 22px 22px 0 0; background: var(--panel); box-shadow: var(--shadow); padding: 18px 28px 22px;">
+        <div style="width: 44px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto 16px;"></div>
+        <div style="display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 18px;">
+          <div style="min-width: 0;">
+            <h2 style="font: 600 17px/1.3 'Space Grotesk', sans-serif;">Compare options</h2>
+            <p style="font: 400 13px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 2px;">{{ boardSummary }}</p>
+          </div>
+          <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+            <sc-for list="{{ optionChips }}" as="c" hint-placeholder-count="5">
+              <button type="button" onClick="{{ c.toggle }}" style="display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px; border-radius: 999px; background: {{ c.bg }}; color: {{ c.ink }}; font: 500 13px/1 'Space Grotesk', sans-serif;"><span style="font-family: 'Material Symbols Outlined'; font-size: 16px;">{{ c.glyph }}</span>{{ c.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: {{ gridCols }}; column-gap: 18px; align-items: stretch;">
+          <div style="align-self: start; padding: 8px 0 14px; font: 500 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg3);">Option</div>
+          <sc-for list="{{ heldOptions }}" as="o" hint-placeholder-count="3">
+            <div style="padding: 4px 0 14px; display: grid; gap: 8px; align-content: start; min-width: 0;">
+              <div style="display: flex; align-items: baseline; gap: 8px; min-width: 0;">
+                <span style="font: 600 30px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.03em;">{{ o.dur }}</span>
+                <span style="font: 400 13px/1 'Space Grotesk', sans-serif; color: var(--fg2);">min</span>
+              </div>
+              <div style="min-width: 0; overflow: hidden;">
+                <span style="font: 500 14px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; color: var(--fg2); white-space: nowrap;">{{ o.depart }} → {{ o.arrive }}</span>
+              </div>
+              <sc-if value="{{ o.tag }}" hint-placeholder-val="{{ false }}">
+                <div><span style="display: inline-block; padding: 4px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font: 500 11px/1 'Space Grotesk', sans-serif; white-space: nowrap;">{{ o.tag }}</span></div>
+              </sc-if>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <sc-for list="{{ o.chain }}" as="leg" hint-placeholder-count="2">
+                  <span style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; background: var(--panel2); font: 500 12px/1 'Space Grotesk', sans-serif; color: var(--fg);"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{ leg.dot }};"></span>{{ leg.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{ groups }}" as="group" hint-placeholder-count="3">
+            <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 14px 0 8px; box-shadow: inset 0 1px 0 var(--line);">
+              <span style="font: 500 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg3); padding-top: 12px;">{{ group.title }}</span>
+            </div>
+            <sc-for list="{{ group.rows }}" as="row" hint-placeholder-count="5">
+              <div style="padding: 11px 0; font: 400 13px/1.4 'Space Grotesk', sans-serif; color: var(--fg2); box-shadow: inset 0 -1px 0 var(--line);">{{ row.label }}</div>
+              <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3">
+                <div style="padding: 11px 0; display: flex; align-items: center; gap: 8px; min-width: 0; box-shadow: inset 0 -1px 0 var(--line);">
+                  <sc-if value="{{ cell.best }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none;"></span></sc-if>
+                  <span style="font: {{ cell.font }}; font-variant-numeric: tabular-nums; color: {{ cell.ink }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ cell.value }}</span>
+                </div>
+              </sc-for>
+            </sc-for>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 20px;">
+          <sc-for list="{{ planActions }}" as="a" hint-placeholder-count="5">
+            <button type="button" style="display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--panel2); color: var(--fg); font: 500 13px/1 'Space Grotesk', sans-serif;"><span style="font-family: 'Material Symbols Outlined'; font-size: 17px; color: var(--fg2);">{{ a.glyph }}</span>{{ a.label }}</button>
+          </sc-for>
+          <p style="margin-left: auto; font: 400 11px/1.6 'Space Grotesk', sans-serif; color: var(--fg3); max-width: 420px;">Toronto local time. Fares are not calculated, and a live assignment can change before boarding.</p>
+        </div>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isStatus }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Live" style="flex: 1; display: grid; grid-template-rows: minmax(524px, 1fr) auto; min-height: 900px; background: var(--mapbg);">
+      <div style="position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0 420px 0 0;"><image-slot id="v2-map-live" shape="rect" placeholder="Drop a map render with the subway lines"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="14">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 10px; height: 10px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 3px var(--mapbg);"></span>
+        </sc-for>
+        <span style="position: absolute; left: 58%; top: 42%; width: 16px; height: 16px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 0 3px var(--mapbg);"></span>
+        <span style="position: absolute; left: 58%; top: 42%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--warn); animation: ping 2.2s ease-out infinite;"></span>
+      </div>
+
+      <section style="position: absolute; top: 24px; right: 24px; width: 396px; max-width: calc(100% - 48px); max-height: calc(100% - 48px); overflow: auto; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden;">
+        <div style="padding: 18px 20px 14px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif;">Line status</h2>
+          <p style="font: 400 12px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 2px;">Official TTC subway and light rail · checked 13:40</p>
+        </div>
+        <sc-for list="{{ lines }}" as="line" hint-placeholder-count="5">
+          <button type="button" style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 13px 20px; box-shadow: inset 0 1px 0 var(--line);">
+            <span style="width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font: 600 15px/1 'IBM Plex Mono', monospace; background: {{ line.color }}; color: #12202f;">{{ line.id }}</span>
+            <span style="flex: 1; min-width: 0; display: grid; gap: 3px;">
+              <span style="font: 500 15px/1.25 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ line.name }}</span>
+              <span style="font: 400 12px/1.4 'Space Grotesk', sans-serif; color: {{ line.ink }};">{{ line.state }}</span>
+            </span>
+            <span style="font: 500 12px/1.4 'IBM Plex Mono', monospace; color: var(--fg3); flex: none; text-align: right;">{{ line.stamp }}</span>
+          </button>
+        </sc-for>
+      </section>
+
+      </div>
+
+      <section style="position: relative; z-index: 1; max-height: 46vh; overflow: auto; border-radius: 22px 22px 0 0; background: var(--panel); box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 20px 14px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif; margin-right: 6px;">Active alerts</h2>
+          <sc-for list="{{ alertChips }}" as="c" hint-placeholder-count="4">
+            <span style="padding: 6px 11px; border-radius: 999px; background: var(--panel2); font: 500 12px/1 'Space Grotesk', sans-serif; color: var(--fg2);">{{ c }}</span>
+          </sc-for>
+        </div>
+        <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 16px; padding: 14px 20px; box-shadow: inset 0 1px 0 var(--line);">
+            <span style="display: grid; gap: 4px; align-content: start;">
+              <span style="font: 500 13px/1 'IBM Plex Mono', monospace; color: var(--fg2);">{{ a.time }}</span>
+              <span style="padding: 4px 8px; border-radius: 999px; font: 500 10px/1.2 'Space Grotesk', sans-serif; background: {{ a.kindBg }}; color: {{ a.kindInk }}; justify-self: start;">{{ a.kind }}</span>
+            </span>
+            <span style="min-width: 0;">
+              <span style="display: block; font: 500 15px/1.35 'Space Grotesk', sans-serif; color: {{ a.ink }};">{{ a.title }}</span>
+              <span style="display: block; font: 400 13px/1.55 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 3px;">{{ a.body }}</span>
+            </span>
+          </div>
+        </sc-for>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isVehicles }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Fleet" style="flex: 1; display: grid; grid-template-rows: minmax(664px, 1fr) auto; min-height: 980px; background: var(--mapbg);">
+      <div style="position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0 0 0 408px;"><image-slot id="v2-map-fleet" shape="rect" placeholder="Drop a map render of the region"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="14">
+          <span style="position: absolute; left: {{ d.left }}; top: {{ d.top }}; width: 10px; height: 10px; border-radius: 50%; background: {{ d.color }}; box-shadow: 0 0 0 3px var(--mapbg);"></span>
+        </sc-for>
+        <span style="position: absolute; left: 42%; top: 36%; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--mapbg);"></span>
+      </div>
+
+      <section style="position: absolute; top: 24px; left: 24px; width: 384px; max-width: calc(100% - 48px); max-height: calc(100% - 48px); overflow: auto; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 20px 14px;">
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font: 600 40px/1 'IBM Plex Mono', monospace; letter-spacing: -.03em; font-variant-numeric: tabular-nums;">8632</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--panel2); font: 500 12px/1 'Space Grotesk', sans-serif;"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--ttc);"></span>TTC</span>
+            </div>
+            <p style="font: 400 13px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 6px;">Route 29 Dufferin · run 29-07 · northbound</p>
+          </div>
+          <button type="button" style="display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--panel2); color: var(--fg2); font-family: 'Material Symbols Outlined'; font-size: 18px; flex: none;">close</button>
+        </div>
+        <div style="padding: 0 20px 16px;">
+          <div style="height: 178px; border-radius: 14px; overflow: hidden;"><image-slot id="v2-fleet-photo" shape="rounded" radius="14" placeholder="Attributed fleet photo"></image-slot></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 18px; padding: 0 20px 18px;">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+            <div style="padding: 10px 0; display: grid; gap: 3px; min-width: 0; box-shadow: inset 0 -1px 0 var(--line);">
+              <span style="font: 400 11px/1.3 'Space Grotesk', sans-serif; color: var(--fg3);">{{ f.k }}</span>
+              <span style="font: 500 14px/1.35 'Space Grotesk', sans-serif; overflow-wrap: anywhere;">{{ f.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 20px;">
+          <button type="button" style="min-height: 42px; padding: 0 16px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font: 600 13px/1 'Space Grotesk', sans-serif;">Follow this vehicle</button>
+          <button type="button" style="min-height: 42px; padding: 0 16px; border-radius: 999px; background: var(--panel2); color: var(--fg); font: 500 13px/1 'Space Grotesk', sans-serif;">CPTDB source</button>
+        </div>
+      </section>
+
+      <section style="position: absolute; top: 24px; right: 24px; width: 300px; max-width: calc(100% - 48px); max-height: calc(100% - 48px); overflow: auto; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); padding: 18px 20px 16px;">
+        <h2 style="font: 600 15px/1.3 'Space Grotesk', sans-serif; margin-bottom: 12px;">Filters</h2>
+        <div style="display: flex; align-items: center; gap: 10px; border-radius: 12px; background: var(--panel2); padding: 10px 12px; margin-bottom: 12px;">
+          <span style="font-family: 'Material Symbols Outlined'; font-size: 19px; color: var(--fg3);">search</span>
+          <input placeholder="Fleet, route or model" style="flex: 1; min-width: 0; border: 0; background: transparent; min-height: 30px; font: 400 14px/1 'Space Grotesk', sans-serif; outline: none;" />
+        </div>
+        <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+          <sc-for list="{{ agencyChips }}" as="c" hint-placeholder-count="6">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: {{ c.bg }}; color: {{ c.ink }}; font: 500 12px/1 'Space Grotesk', sans-serif;"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{ c.dot }};"></span>{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <p style="font: 400 11px/1.6 'Space Grotesk', sans-serif; color: var(--fg3); margin-top: 12px;">1,842 of 2,140 shown · YRT and Durham feeds unavailable</p>
+      </section>
+
+      </div>
+
+      <section style="position: relative; z-index: 1; max-height: 46vh; overflow: auto; border-radius: 22px 22px 0 0; background: var(--panel); box-shadow: var(--shadow); padding: 16px 28px 20px;">
+        <div style="width: 44px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto 14px;"></div>
+        <div style="display: grid; grid-template-columns: 96px 72px minmax(130px, 1fr) minmax(160px, 1.3fr) 70px minmax(120px, 1fr) 96px 84px; column-gap: 16px;">
+          <sc-for list="{{ fleetHead }}" as="h" hint-placeholder-count="8">
+            <div style="padding: 0 0 10px; font: 500 12px/1.3 'Space Grotesk', sans-serif; color: var(--fg3); box-shadow: inset 0 -1px 0 var(--line);">{{ h }}</div>
+          </sc-for>
+          <sc-for list="{{ fleet }}" as="v" hint-placeholder-count="7">
+            <div style="padding: 13px 0; display: flex; align-items: center; gap: 9px; box-shadow: inset 0 -1px 0 var(--line);"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{ v.color }}; flex: none;"></span><span style="font: 600 15px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; color: {{ v.ink }};">{{ v.fleet }}</span></div>
+            <div style="padding: 13px 0; font: 500 14px/1.3 'IBM Plex Mono', monospace; box-shadow: inset 0 -1px 0 var(--line);">{{ v.route }}</div>
+            <div style="padding: 13px 0; font: 400 13px/1.35 'Space Grotesk', sans-serif; color: var(--fg2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--line);">{{ v.agency }}</div>
+            <div style="padding: 13px 0; font: 400 13px/1.35 'Space Grotesk', sans-serif; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--line);">{{ v.model }}</div>
+            <div style="padding: 13px 0; font: 500 13px/1.3 'IBM Plex Mono', monospace; color: var(--fg2); box-shadow: inset 0 -1px 0 var(--line);">{{ v.year }}</div>
+            <div style="padding: 13px 0; font: 400 13px/1.35 'Space Grotesk', sans-serif; color: {{ v.garageInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--line);">{{ v.garage }}</div>
+            <div style="padding: 13px 0; font: 500 13px/1.3 'IBM Plex Mono', monospace; color: var(--fg2); box-shadow: inset 0 -1px 0 var(--line);">{{ v.seen }}</div>
+            <div style="padding: 13px 0; box-shadow: inset 0 -1px 0 var(--line);"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; background: {{ v.feedBg }}; color: {{ v.feedInk }}; font: 500 11px/1 'Space Grotesk', sans-serif;">{{ v.feed }}</span></div>
+          </sc-for>
+        </div>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isRace }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Race" style="flex: 1; position: relative; min-height: 700px; overflow: hidden; background: var(--mapbg);">
+      <div style="position: absolute; inset: 0 0 0 444px;"><image-slot id="v2-map-race" shape="rect" placeholder="Drop a map render with team positions"></image-slot></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 30%, rgba(0, 0, 0, .28) 100%);"></div>
+      <section style="position: absolute; top: 24px; left: 24px; width: 420px; max-width: calc(100% - 48px); max-height: calc(100% - 48px); overflow: auto; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden;">
+        <div style="padding: 20px 20px 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
+          <div>
+            <p style="font: 400 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg2);">Friday dash · code JQ4M2X</p>
+            <span style="font: 600 42px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.03em; display: block; margin-top: 6px;">41:12</span>
+          </div>
+          <p style="font: 400 12px/1.6 'Space Grotesk', sans-serif; color: var(--fg2); text-align: right;">since the start<br />4 teams · 12 check-ins</p>
+        </div>
+        <sc-for list="{{ teams }}" as="team" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 13px 20px; box-shadow: inset 0 1px 0 var(--line);">
+            <span style="font: 600 15px/1 'IBM Plex Mono', monospace; color: {{ team.rankInk }};">{{ team.rank }}</span>
+            <span style="min-width: 0; display: grid; gap: 3px;">
+              <span style="font: 500 15px/1.25 'Space Grotesk', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ team.name }}</span>
+              <span style="font: 400 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg2);">Drawn route {{ team.route }}</span>
+            </span>
+            <span style="font: 600 17px/1 'IBM Plex Mono', monospace; color: var(--accent);">{{ team.score }}</span>
+          </div>
+        </sc-for>
+        <p style="padding: 14px 20px 18px; font: 400 11px/1.7 'Space Grotesk', sans-serif; color: var(--fg3); box-shadow: inset 0 1px 0 var(--line);">A check-in is a claim, not a verification. Photos are re-encoded and stripped of camera metadata before upload.</p>
+      </section>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isPage }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Page" style="flex: 1; padding: 26px 28px 34px; min-width: 0;">
+      <div style="max-width: 1340px; margin: 0 auto;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 20px;">
+          <p style="font: 400 14px/1.65 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 700px;">{{ pageNote }}</p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <sc-for list="{{ pageActions }}" as="a" hint-placeholder-count="3">
+              <button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--panel); color: var(--fg2); font: 500 13px/1 'Space Grotesk', sans-serif;">{{ a }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasStats }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 22px;">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+              <div style="padding: 18px 20px; border-radius: 16px; background: var(--panel); display: grid; gap: 8px;">
+                <span style="font: 400 12px/1.3 'Space Grotesk', sans-serif; color: var(--fg2);">{{ s.k }}</span>
+                <span style="font: 600 28px/1 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.02em; color: {{ s.ink }};">{{ s.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="border-radius: 18px; background: var(--panel); padding: 8px 22px 14px;">
+          <div style="display: grid; grid-template-columns: {{ tableCols }}; column-gap: 18px;">
+            <sc-for list="{{ tableHead }}" as="h" hint-placeholder-count="6">
+              <div style="padding: 14px 0 12px; font: 500 12px/1.3 'Space Grotesk', sans-serif; color: var(--fg3); box-shadow: inset 0 -1px 0 var(--line);">{{ h }}</div>
+            </sc-for>
+            <sc-for list="{{ tableCells }}" as="c" hint-placeholder-count="24">
+              <div style="padding: 15px 0; min-width: 0; display: flex; align-items: center; gap: 9px; box-shadow: inset 0 -1px 0 var(--line);">
+                <sc-if value="{{ c.pill }}" hint-placeholder-val="{{ false }}">
+                  <span style="padding: 5px 10px; border-radius: 999px; background: {{ c.pillBg }}; color: {{ c.ink }}; font: 500 12px/1 'Space Grotesk', sans-serif;">{{ c.v }}</span>
+                </sc-if>
+                <sc-if value="{{ c.plain }}" hint-placeholder-val="{{ true }}">
+                  <span style="font: {{ c.font }}; font-variant-numeric: tabular-nums; color: {{ c.ink }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.v }}</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasNotes }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 10px; margin-top: 20px; max-width: 900px;">
+            <sc-for list="{{ notes }}" as="n" hint-placeholder-count="2">
+              <p style="font: 400 13px/1.7 'Space Grotesk', sans-serif; color: var(--fg3);">{{ n }}</p>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Settings" style="flex: 1; padding: 26px 28px 34px; min-width: 0;">
+      <div style="max-width: 1000px; margin: 0 auto; display: grid; gap: 16px;">
+        <section style="border-radius: 18px; background: var(--panel); padding: 22px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif;">Appearance</h2>
+          <p style="font: 400 13px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin: 4px 0 16px;">Both themes carry the same layout and the same contrast floor.</p>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+            <button type="button" onClick="{{ setDark }}" style="text-align: left; padding: 18px; border-radius: 16px; background: #101927; color: #f2f5fa; display: grid; gap: 8px; min-height: 128px; outline: {{ darkRing }}; outline-offset: 2px;">
+              <span style="display: flex; gap: 6px;"><span style="width: 22px; height: 22px; border-radius: 7px; background: #ffb545;"></span><span style="width: 22px; height: 22px; border-radius: 7px; background: #1f2a3b;"></span><span style="width: 22px; height: 22px; border-radius: 7px; background: #52d69b;"></span></span>
+              <span style="font: 600 17px/1.3 'Space Grotesk', sans-serif; margin-top: 4px;">Night</span>
+              <span style="font: 400 13px/1.55 'Space Grotesk', sans-serif; color: #9aa8bd;">Amber on deep ink. The default, and easier on a moving vehicle.</span>
+            </button>
+            <button type="button" onClick="{{ setLight }}" style="text-align: left; padding: 18px; border-radius: 16px; background: #f6f4ef; color: #15202f; display: grid; gap: 8px; min-height: 128px; outline: {{ lightRing }}; outline-offset: 2px;">
+              <span style="display: flex; gap: 6px;"><span style="width: 22px; height: 22px; border-radius: 7px; background: #9c5a06;"></span><span style="width: 22px; height: 22px; border-radius: 7px; background: #f0ede6;"></span><span style="width: 22px; height: 22px; border-radius: 7px; background: #10804b;"></span></span>
+              <span style="font: 600 17px/1.3 'Space Grotesk', sans-serif; margin-top: 4px;">Day</span>
+              <span style="font: 400 13px/1.55 'Space Grotesk', sans-serif; color: #5d6b7e;">Warm paper for daylight and for print exports.</span>
+            </button>
+          </div>
+        </section>
+
+        <section style="border-radius: 18px; background: var(--panel); padding: 22px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif;">Language</h2>
+          <p style="font: 400 13px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); margin: 4px 0 14px;">Bilingual joins both strings with a middle dot. Every layout is measured against that length.</p>
+          <div style="display: grid; gap: 10px;">
+            <sc-for list="{{ langRows }}" as="l" hint-placeholder-count="3">
+              <button type="button" onClick="{{ l.go }}" style="display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px; border-radius: 14px; background: {{ l.bg }};">
+                <span style="width: 20px; height: 20px; border-radius: 50%; flex: none; display: grid; place-items: center; background: {{ l.dot }}; color: var(--accent-ink); font-family: 'Material Symbols Outlined'; font-size: 14px;">{{ l.check }}</span>
+                <span style="flex: 1; min-width: 0; display: grid; gap: 2px;">
+                  <span style="font: 500 15px/1.3 'Space Grotesk', sans-serif;">{{ l.name }}</span>
+                  <span style="font: 400 12px/1.45 'Space Grotesk', sans-serif; color: var(--fg2);">{{ l.detail }}</span>
+                </span>
+                <span style="font: 500 13px/1 'Space Grotesk', sans-serif; color: var(--fg3);">{{ l.sample }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="border-radius: 18px; background: var(--panel); padding: 22px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="flex: 1; min-width: 0;">
+              <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif;">Narrator</h2>
+              <p style="font: 400 13px/1.55 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 4px;">Spoken journey updates, off by default. Independent English and Cantonese voices, rate, pitch and quiet hours.</p>
+            </div>
+            <span style="width: 52px; height: 30px; border-radius: 999px; background: var(--panel2); display: flex; align-items: center; padding: 3px; flex: none;"><span style="width: 24px; height: 24px; border-radius: 50%; background: var(--fg3);"></span></span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px;">
+            <sc-for list="{{ narratorFacts }}" as="f" hint-placeholder-count="3">
+              <div style="padding: 13px 15px; border-radius: 14px; background: var(--panel2); display: grid; gap: 4px;">
+                <span style="font: 400 11px/1.3 'Space Grotesk', sans-serif; color: var(--fg2);">{{ f.k }}</span>
+                <span style="font: 500 14px/1.3 'Space Grotesk', sans-serif;">{{ f.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="border-radius: 18px; background: var(--panel); padding: 22px;">
+          <h2 style="font: 600 16px/1.3 'Space Grotesk', sans-serif; margin-bottom: 12px;">Privacy</h2>
+          <div style="display: grid; gap: 14px;">
+            <sc-for list="{{ privacy }}" as="p" hint-placeholder-count="3">
+              <div style="display: grid; gap: 4px;">
+                <span style="font: 500 14px/1.35 'Space Grotesk', sans-serif;">{{ p.t }}</span>
+                <span style="font: 400 13px/1.7 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 820px;">{{ p.b }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Phone" style="flex: 1; padding: 26px 28px 34px; min-width: 0;">
+      <div style="max-width: 1340px; margin: 0 auto;">
+        <p style="font: 400 14px/1.65 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 700px; margin-bottom: 24px;">The map stays the canvas. The composer becomes a sheet you drag, and comparison holds two options at a time — the same rows, the same alignment, one column narrower.</p>
+        <div style="display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start;">
+
+          <div style="width: 390px; flex: none; border-radius: 30px; background: var(--mapbg); position: relative; height: 800px; overflow: hidden; box-shadow: var(--shadow);">
+            <div style="position: absolute; inset: 0;"><image-slot id="v2-phone-map" shape="rect" placeholder="Map render"></image-slot></div>
+            <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(110% 80% at 50% 40%, transparent 35%, rgba(0, 0, 0, .3) 100%);"></div>
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 24px 6px; font: 500 13px/1 'Space Grotesk', sans-serif;"><span style="font-family: 'IBM Plex Mono', monospace;">13:42</span><span style="color: var(--good);">Live</span></div>
+            <section style="position: absolute; left: 0; right: 0; bottom: 0; border-radius: 22px 22px 0 0; background: var(--panel); padding: 14px 20px 18px;">
+              <div style="width: 40px; height: 4px; border-radius: 999px; background: var(--line); margin: 0 auto 14px;"></div>
+              <div style="display: grid; gap: 10px;">
+                <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: grid; gap: 2px;"><span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">From</span><span style="font: 500 16px/1.3 'Space Grotesk', sans-serif;">Dundas West Station</span></div>
+                <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: grid; gap: 2px;"><span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">To</span><span style="font: 500 16px/1.3 'Space Grotesk', sans-serif;">Kennedy Station</span></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: grid; gap: 2px;"><span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">Leaving</span><span style="font: 500 15px/1.3 'IBM Plex Mono', monospace;">Sun 13:42</span></div>
+                  <div style="border-radius: 12px; background: var(--panel2); padding: 11px 14px; display: grid; gap: 2px;"><span style="font: 400 11px/1 'Space Grotesk', sans-serif; color: var(--fg2);">Priority</span><span style="font: 500 15px/1.3 'Space Grotesk', sans-serif;">Fastest</span></div>
+                </div>
+                <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: 600 15px/1 'Space Grotesk', sans-serif;">Plan this trip<span style="font-family: 'Material Symbols Outlined'; font-size: 20px;">arrow_forward</span></button>
+              </div>
+              <div style="display: flex; margin: 16px -20px -18px; padding: 10px 8px 14px; box-shadow: inset 0 1px 0 var(--line);">
+                <sc-for list="{{ phoneNav }}" as="p" hint-placeholder-count="5">
+                  <span style="flex: 1; display: grid; justify-items: center; align-content: center; gap: 4px; color: {{ p.ink }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 21px; line-height: 1;">{{ p.glyph }}</span><span style="font: 500 10px/1 'Space Grotesk', sans-serif;">{{ p.label }}</span></span>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+
+          <div style="width: 390px; flex: none; border-radius: 30px; background: var(--bg); height: 800px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow);">
+            <div style="flex: none; height: 52px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 24px 6px; font: 500 13px/1 'Space Grotesk', sans-serif;"><span style="font-family: 'IBM Plex Mono', monospace;">13:42</span><span style="color: var(--good);">Live</span></div>
+            <div style="flex: none; padding: 12px 20px 14px;">
+              <h2 style="font: 600 17px/1.3 'Space Grotesk', sans-serif;">Compare</h2>
+              <p style="font: 400 12px/1.45 'Space Grotesk', sans-serif; color: var(--fg2); margin-top: 2px;">Holding 2 of 5 · swipe for the rest</p>
+            </div>
+            <div style="flex: none; display: grid; grid-template-columns: 96px 1fr 1fr; column-gap: 14px; padding: 0 20px 10px;">
+              <span></span>
+              <span style="display: grid; gap: 4px;"><span style="font: 600 26px/1 'IBM Plex Mono', monospace; letter-spacing: -.03em;">49</span><span style="font: 500 12px/1 'IBM Plex Mono', monospace; color: var(--fg2);">13:48 → 14:37</span></span>
+              <span style="display: grid; gap: 4px;"><span style="font: 600 26px/1 'IBM Plex Mono', monospace; letter-spacing: -.03em; color: var(--accent);">46</span><span style="font: 500 12px/1 'IBM Plex Mono', monospace; color: var(--fg2);">14:02 → 14:48</span></span>
+            </div>
+            <div style="flex: 1; overflow: auto; padding: 0 20px 16px; display: grid; grid-template-columns: 96px 1fr 1fr; column-gap: 14px; align-content: start;">
+              <sc-for list="{{ phoneRows }}" as="row" hint-placeholder-count="10">
+                <div style="padding: 12px 0; font: 400 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg2); box-shadow: inset 0 -1px 0 var(--line);">{{ row.label }}</div>
+                <div style="padding: 12px 0; font: {{ row.aFont }}; color: {{ row.aInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--line);">{{ row.a }}</div>
+                <div style="padding: 12px 0; font: {{ row.bFont }}; color: {{ row.bInk }}; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: inset 0 -1px 0 var(--line);">{{ row.b }}</div>
+              </sc-for>
+            </div>
+            <div style="flex: none; display: flex; padding: 10px 8px 16px; box-shadow: inset 0 1px 0 var(--line);">
+              <sc-for list="{{ phoneNav }}" as="p" hint-placeholder-count="5">
+                <span style="flex: 1; display: grid; justify-items: center; align-content: center; gap: 4px; color: {{ p.ink }};"><span style="font-family: 'Material Symbols Outlined'; font-size: 21px; line-height: 1;">{{ p.glyph }}</span><span style="font: 500 10px/1 'Space Grotesk', sans-serif;">{{ p.label }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="width: 390px; flex: none; border-radius: 30px; background: var(--bg); height: 800px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow);">
+            <div style="flex: none; height: 52px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 24px 6px; font: 500 13px/1 'Space Grotesk', sans-serif;"><span style="font-family: 'IBM Plex Mono', monospace;">13:42</span><span style="color: var(--good);">Live</span></div>
+            <div style="flex: none; padding: 10px 20px 16px; display: flex; align-items: baseline; gap: 10px;">
+              <span style="font: 600 38px/1 'IBM Plex Mono', monospace; letter-spacing: -.03em;">8632</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--panel); font: 500 12px/1 'Space Grotesk', sans-serif;"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--ttc);"></span>TTC · 29</span>
+            </div>
+            <div style="flex: none; height: 200px; margin: 0 20px; border-radius: 16px; overflow: hidden;"><image-slot id="v2-phone-photo" shape="rounded" radius="16" placeholder="Fleet photo"></image-slot></div>
+            <div style="flex: 1; overflow: auto; padding: 16px 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; align-content: start;">
+              <sc-for list="{{ facts }}" as="f" hint-placeholder-count="8">
+                <div style="padding: 11px 0; display: grid; gap: 3px; min-width: 0; box-shadow: inset 0 -1px 0 var(--line);">
+                  <span style="font: 400 11px/1.3 'Space Grotesk', sans-serif; color: var(--fg3);">{{ f.k }}</span>
+                  <span style="font: 500 14px/1.35 'Space Grotesk', sans-serif; overflow-wrap: anywhere;">{{ f.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button type="button" style="flex: none; margin: 0 20px 20px; min-height: 52px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: 600 15px/1 'Space Grotesk', sans-serif;">Follow this vehicle</button>
+          </div>
+
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+    <sc-if value="{{ isBilingual }}" hint-placeholder-val="{{ false }}">
+    <main data-screen-label="Bilingual" style="flex: 1; padding: 26px 28px 34px; min-width: 0;">
+      <div style="max-width: 1340px; margin: 0 auto;">
+        <p style="font: 400 14px/1.65 'Space Grotesk', sans-serif; color: var(--fg2); max-width: 720px; margin-bottom: 22px;">Bilingual mode joins English and Cantonese with a middle dot, which is where clipping appears first. Labels wrap to two lines; values never truncate, because the value is the answer and the label is only context.</p>
+        <div style="border-radius: 18px; background: var(--panel); padding: 8px 24px 18px;">
+          <div style="display: grid; grid-template-columns: 230px repeat(3, minmax(150px, 1fr)); column-gap: 20px;">
+            <div style="padding: 16px 0 12px; font: 500 12px/1.4 'Space Grotesk', sans-serif; color: var(--fg3); box-shadow: inset 0 -1px 0 var(--line);">Option · 選項</div>
+            <div style="padding: 16px 0 12px; font: 500 15px/1.3 'IBM Plex Mono', monospace; box-shadow: inset 0 -1px 0 var(--line);">13:48 → 14:37</div>
+            <div style="padding: 16px 0 12px; font: 500 15px/1.3 'IBM Plex Mono', monospace; box-shadow: inset 0 -1px 0 var(--line);">13:52 → 14:41</div>
+            <div style="padding: 16px 0 12px; font: 500 15px/1.3 'IBM Plex Mono', monospace; box-shadow: inset 0 -1px 0 var(--line);">14:02 → 14:48</div>
+            <sc-for list="{{ bilingualRows }}" as="row" hint-placeholder-count="8">
+              <div style="padding: 13px 0; font: 400 13px/1.5 'Space Grotesk', sans-serif; color: var(--fg2); box-shadow: inset 0 -1px 0 var(--line);">{{ row.label }}</div>
+              <div style="padding: 13px 0; font: 500 13px/1.5 'Space Grotesk', sans-serif; color: {{ row.aInk }}; box-shadow: inset 0 -1px 0 var(--line);">{{ row.a }}</div>
+              <div style="padding: 13px 0; font: 500 13px/1.5 'Space Grotesk', sans-serif; color: {{ row.bInk }}; box-shadow: inset 0 -1px 0 var(--line);">{{ row.b }}</div>
+              <div style="padding: 13px 0; font: 500 13px/1.5 'Space Grotesk', sans-serif; color: {{ row.cInk }}; box-shadow: inset 0 -1px 0 var(--line);">{{ row.c }}</div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 16px;">
+          <sc-for list="{{ bilingualLines }}" as="line" hint-placeholder-count="5">
+            <div style="border-radius: 16px; background: var(--panel); display: flex; align-items: center; gap: 14px; padding: 16px; min-height: 88px;">
+              <span style="width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font: 600 15px/1 'IBM Plex Mono', monospace; background: {{ line.color }}; color: #12202f;">{{ line.id }}</span>
+              <span style="min-width: 0; display: grid; gap: 4px;">
+                <span style="font: 500 14px/1.4 'Space Grotesk', sans-serif;">{{ line.name }}</span>
+                <span style="font: 400 12px/1.45 'Space Grotesk', sans-serif; color: {{ line.ink }};">{{ line.state }}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+    </sc-if>
+
+  </div>
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plan&quot;,&quot;status&quot;,&quot;vehicles&quot;,&quot;divisions&quot;,&quot;race&quot;,&quot;history&quot;,&quot;saved&quot;,&quot;coverage&quot;,&quot;settings&quot;,&quot;phone&quot;,&quot;bilingual&quot;],&quot;default&quot;:&quot;plan&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;View&quot;},&quot;appearance&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;View&quot;},&quot;columns&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:2,&quot;max&quot;:3,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Comparison&quot;},&quot;showBest&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Comparison&quot;}}">
+class Component extends DCLogic {
+  state = { screen: null, appearance: null, held: [0, 2, 4], lang: 'EN' };
+
+  componentDidUpdate(prev) {
+    if (prev.screen !== this.props.screen) this.setState({ screen: null });
+    if (prev.appearance !== this.props.appearance) this.setState({ appearance: null });
+  }
+
+  renderVals() {
+    const screen = this.state.screen || this.props.screen || 'plan';
+    const appearance = this.state.appearance || this.props.appearance || 'dark';
+    const light = appearance === 'light';
+    const showBest = this.props.showBest !== false;
+    const maxHeld = Number(this.props.columns ?? 3);
+
+    const theme = light
+      ? 'display: contents; --bg: #f6f4ef; --panel: #ffffff; --panel2: #f0ede6; --line: rgba(21, 32, 47, .11); --fg: #15202f; --fg2: #5d6b7e; --fg3: #6a7889; --accent: #9c5a06; --accent-ink: #ffffff; --accent-soft: rgba(156, 90, 6, .12); --good: #10804b; --warn: #b23a1e; --mapbg: #e9e6df; --glass: rgba(255, 255, 255, .97); --shadow: 0 14px 34px rgba(21, 32, 47, .14); --ttc: #c0403c; --go: #22854f; --up: #97703f; --miway: #c2661f; --hsr: #2f6ca8; --burl: #6f57a8;'
+      : 'display: contents;';
+
+    const go = (id) => () => this.setState({ screen: id });
+    const style = (id) => ({
+      bg: screen === id ? 'var(--accent-soft)' : 'transparent',
+      ink: screen === id ? 'var(--fg)' : 'var(--fg2)',
+      iconInk: screen === id ? 'var(--accent)' : 'var(--fg2)',
+      go: go(id),
+    });
+    const nav = [
+      { id: 'plan', label: 'Plan', glyph: 'route' },
+      { id: 'status', label: 'Live', glyph: 'train' },
+      { id: 'vehicles', label: 'Fleet', glyph: 'directions_bus' },
+      { id: 'divisions', label: 'Garage', glyph: 'warehouse' },
+      { id: 'race', label: 'Race', glyph: 'flag' },
+      { id: 'history', label: 'History', glyph: 'history' },
+      { id: 'saved', label: 'Saved', glyph: 'bookmark' },
+      { id: 'coverage', label: 'Feeds', glyph: 'rss_feed' },
+      { id: 'settings', label: 'Setup', glyph: 'settings' },
+    ].map(d => ({ ...d, ...style(d.id) }));
+    const review = [
+      { id: 'phone', label: 'Phone', glyph: 'smartphone' },
+      { id: 'bilingual', label: '雙語', glyph: 'translate' },
+    ].map(d => ({ ...d, ...style(d.id) }));
+
+    const langs = ['EN', '廣', '雙'].map(l => ({
+      label: l,
+      bg: this.state.lang === l ? 'var(--accent)' : 'transparent',
+      ink: this.state.lang === l ? 'var(--accent-ink)' : 'var(--fg2)',
+      go: () => this.setState({ lang: l, screen: l === '雙' ? 'bilingual' : this.state.screen }),
+    }));
+
+    const heads = {
+      plan: ['Plan a trip', 'Dundas West Station → Kennedy Station · Sunday 6 September'],
+      status: ['Live network', 'TTC subway and light rail, as reported right now'],
+      vehicles: ['Fleet', '1,842 vehicles reporting across six agencies'],
+      divisions: ['Out of division', 'Vehicles running away from their home garage'],
+      race: ['Race', 'Friday dash · four teams on drawn routes'],
+      history: ['Disruption history', 'Every alert ever observed, kept indefinitely'],
+      saved: ['Saved trips', 'Held in this browser and nowhere else'],
+      coverage: ['Feed coverage', 'What is actually loaded, agency by agency'],
+      settings: ['Settings', 'Appearance, language, narrator and privacy'],
+      phone: ['Phone', 'The same system at 390 pixels'],
+      bilingual: ['Bilingual', 'The layout measured against its longest string'],
+    };
+
+    const mono = (size, weight) => `${weight} ${size}px/1.35 'IBM Plex Mono', monospace`;
+    const sans = (size, weight) => `${weight} ${size}px/1.4 'Space Grotesk', sans-serif`;
+
+    const options = [
+      { id: 'A', depart: '13:48', arrive: '14:37', arriveVal: 877, dur: 49, transfers: 1, walkMin: 9, walkKm: 0.7, waitMin: 6, transitMin: 34, distKm: 11.4, chain: ['505 Dundas', 'Line 2'], fleet: '4438', model: 'Flexity Outlook', year: 2019, garage: 'Russell', run: '505-14', delay: 1, feed: 12 },
+      { id: 'B', depart: '13:52', arrive: '14:41', arriveVal: 881, dur: 49, transfers: 2, walkMin: 5, walkKm: 0.4, waitMin: 9, transitMin: 35, distKm: 12.1, chain: ['29 Dufferin', 'Line 2', '86 Scarborough'], fleet: '8632', model: 'Nova LFS Artic', year: 2018, garage: 'Arrow Road', run: '29-07', delay: 4, feed: 8 },
+      { id: 'C', depart: '14:02', arrive: '14:48', arriveVal: 888, dur: 46, transfers: 1, walkMin: 8, walkKm: 0.6, waitMin: 3, transitMin: 33, distKm: 11.2, chain: ['504 King', 'Line 2'], fleet: '4501', model: 'Flexity Outlook', year: 2021, garage: 'Roncesvalles', run: '504-22', delay: 0, feed: 5 },
+      { id: 'D', depart: '14:06', arrive: '15:01', arriveVal: 901, dur: 55, transfers: 1, walkMin: 14, walkKm: 1.1, waitMin: 7, transitMin: 34, distKm: 11.9, chain: ['506 Carlton', 'Line 2'], fleet: '4402', model: 'Flexity Outlook', year: 2018, garage: 'Leslie Barns', run: '506-09', delay: 2, feed: 19 },
+      { id: 'E', depart: '14:12', arrive: '15:04', arriveVal: 904, dur: 52, transfers: 2, walkMin: 6, walkKm: 0.5, waitMin: 11, transitMin: 35, distKm: 12.4, chain: ['47 Lansdowne', 'Line 2', '12 Kingston'], fleet: '9042', model: 'New Flyer XDE40', year: 2020, garage: 'Birchmount', run: '47-03', delay: 0, feed: 6 },
+    ];
+
+    const held = this.state.held.slice(0, maxHeld);
+    const heldOptions = held.map(i => options[i]).filter(Boolean);
+    const fastest = options.reduce((a, b) => (b.dur < a.dur ? b : a));
+    const earliest = options.reduce((a, b) => (b.arriveVal < a.arriveVal ? b : a));
+
+    const legDot = (label) => (label.startsWith('Line 2') ? 'var(--go)' : 'var(--ttc)');
+    const heldCols = heldOptions.map(o => ({
+      ...o,
+      tag: o === fastest ? 'Fastest' : o === earliest ? 'Earliest' : '',
+      chain: o.chain.map(label => ({ label, dot: legDot(label) })),
+    }));
+
+    const defs = [
+      { group: 'Timing', label: 'Departs', get: o => o.depart, mono: true },
+      { group: 'Timing', label: 'Arrives', get: o => o.arrive, val: o => o.arriveVal, mono: true },
+      { group: 'Timing', label: 'Waiting before boarding', get: o => o.waitMin + ' min', val: o => o.waitMin, mono: true },
+      { group: 'Timing', label: 'Time on transit', get: o => o.transitMin + ' min', val: o => o.transitMin, mono: true },
+      { group: 'Effort', label: 'Transfers', get: o => String(o.transfers), val: o => o.transfers, mono: true },
+      { group: 'Effort', label: 'Walking', get: o => o.walkMin + ' min · ' + o.walkKm + ' km', val: o => o.walkMin, mono: true },
+      { group: 'Effort', label: 'Total distance', get: o => o.distKm + ' km', val: o => o.distKm, mono: true },
+      { group: 'Effort', label: 'Route', get: o => o.chain.join(' → ') },
+      { group: 'Vehicle', label: 'Assigned vehicle', get: o => o.fleet, mono: true, big: true },
+      { group: 'Vehicle', label: 'Model and build year', get: o => o.model + ' · ' + o.year },
+      { group: 'Vehicle', label: 'Home garage', get: o => o.garage },
+      { group: 'Vehicle', label: 'Run and block', get: o => o.run, mono: true },
+      { group: 'Vehicle', label: 'Live delay', get: o => (o.delay ? '+' + o.delay + ' min' : 'On time'), val: o => o.delay, mono: true, late: true },
+      { group: 'Vehicle', label: 'Position reported', get: o => o.feed + ' s ago', val: o => o.feed, mono: true },
+    ];
+
+    const buildRow = (def) => {
+      const values = heldOptions.map(o => (def.val ? def.val(o) : null));
+      const best = def.val ? Math.min(...values) : null;
+      return {
+        label: def.label,
+        cells: heldOptions.map((o, i) => {
+          const isBest = showBest && def.val && values[i] === best && new Set(values).size > 1;
+          const late = def.late && o.delay > 0;
+          return {
+            value: def.get(o),
+            best: !!isBest,
+            font: def.mono ? mono(def.big ? 16 : 14, def.big ? 600 : 500) : sans(14, 400),
+            ink: isBest ? 'var(--accent)' : late ? 'var(--warn)' : 'var(--fg)',
+          };
+        }),
+      };
+    };
+    const groups = ['Timing', 'Effort', 'Vehicle'].map(title => ({
+      title,
+      rows: defs.filter(d => d.group === title).map(buildRow),
+    }));
+
+    const optionChips = options.map((o, i) => {
+      const on = held.includes(i);
+      return {
+        label: `${o.depart} · ${o.dur} min`,
+        glyph: on ? 'push_pin' : 'add',
+        bg: on ? 'var(--accent-soft)' : 'var(--panel2)',
+        ink: on ? 'var(--accent)' : 'var(--fg2)',
+        toggle: () => this.setState(s => {
+          const next = s.held.includes(i) ? s.held.filter(x => x !== i) : [...s.held, i].slice(-maxHeld);
+          return { held: next.length ? next : [i] };
+        }),
+      };
+    });
+
+    const lines = [
+      { id: '1', name: 'Yonge–University', color: '#f8c300', state: 'Normal service', stamp: '13:40', ink: 'var(--good)' },
+      { id: '2', name: 'Bloor–Danforth', color: '#5ec27f', state: 'No service, Kennedy to Warden', stamp: 'since 11:04', ink: 'var(--warn)' },
+      { id: '4', name: 'Sheppard', color: '#c579a8', state: 'Running · 2 facility notices', stamp: '13:40', ink: 'var(--fg2)' },
+      { id: '5', name: 'Eglinton', color: '#f9a05c', state: 'Normal service', stamp: '13:40', ink: 'var(--good)' },
+      { id: '6', name: 'Finch West', color: '#6cc6ea', state: 'Status unconfirmed', stamp: 'last ok 12:18', ink: 'var(--fg2)' },
+    ];
+
+    const dots = [
+      { left: '11%', top: '26%', color: 'var(--ttc)' }, { left: '20%', top: '54%', color: 'var(--ttc)' },
+      { left: '28%', top: '36%', color: 'var(--miway)' }, { left: '33%', top: '68%', color: 'var(--ttc)' },
+      { left: '40%', top: '21%', color: 'var(--go)' }, { left: '46%', top: '59%', color: 'var(--ttc)' },
+      { left: '52%', top: '30%', color: 'var(--up)' }, { left: '57%', top: '72%', color: 'var(--ttc)' },
+      { left: '65%', top: '25%', color: 'var(--go)' }, { left: '71%', top: '50%', color: 'var(--hsr)' },
+      { left: '78%', top: '34%', color: 'var(--burl)' }, { left: '85%', top: '62%', color: 'var(--go)' },
+      { left: '16%', top: '74%', color: 'var(--go)' }, { left: '62%', top: '14%', color: 'var(--ttc)' },
+    ];
+
+    const fleet = [
+      { fleet: '8632', route: '29', agency: 'Toronto Transit Commission', model: 'Nova Bus LFS Artic', year: '2018', garage: 'Arrow Road', seen: '13:40:18', feed: 'Live', color: 'var(--ttc)', out: false },
+      { fleet: '4438', route: '505', agency: 'Toronto Transit Commission', model: 'Bombardier Flexity Outlook', year: '2019', garage: 'Russell', seen: '13:40:22', feed: 'Live', color: 'var(--ttc)', out: false },
+      { fleet: '8112', route: '35', agency: 'Toronto Transit Commission', model: 'Nova Bus LFS', year: '2016', garage: 'Malvern → Arrow Road', seen: '13:40:09', feed: 'Live', color: 'var(--ttc)', out: true },
+      { fleet: '2205', route: 'LW', agency: 'GO Transit', model: 'MotivePower MP40PH-3C', year: '2011', garage: 'Willowbrook', seen: '13:39:54', feed: 'Live', color: 'var(--go)', out: false },
+      { fleet: '1408', route: '19', agency: 'MiWay', model: 'Nova Bus LFS HEV', year: '2015', garage: 'Central Parkway', seen: '13:38:41', feed: 'Stale', color: 'var(--miway)', out: false },
+      { fleet: '0703', route: 'UP', agency: 'UP Express', model: 'Nippon Sharyo DMU', year: '2014', garage: 'Willowbrook', seen: '13:40:02', feed: 'Live', color: 'var(--up)', out: false },
+      { fleet: '1811', route: '10', agency: 'Hamilton Street Railway', model: 'New Flyer XD40', year: '2018', garage: 'Mountain', seen: '13:40:11', feed: 'Live', color: 'var(--hsr)', out: false },
+    ].map(v => ({
+      ...v,
+      ink: v.fleet === '8632' ? 'var(--accent)' : 'var(--fg)',
+      garageInk: v.out ? 'var(--accent)' : 'var(--fg2)',
+      feedBg: v.feed === 'Live' ? 'var(--panel2)' : 'var(--accent-soft)',
+      feedInk: v.feed === 'Live' ? 'var(--good)' : 'var(--warn)',
+    }));
+
+    const pages = {
+      divisions: {
+        note: 'A vehicle whose verified home garage is not among the garages assigned to the route it is running. Ambiguous or expired allocation evidence stays unconfirmed rather than being guessed.',
+        actions: ['Out of division · 37', 'Assigned · 1,462', 'Unconfirmed · 208', 'Export'],
+        stats: [
+          { k: 'Out of division now', v: '37', ink: 'var(--accent)' },
+          { k: 'Rarest sighting today', v: '2.4%', ink: 'var(--fg)' },
+          { k: 'Allocation valid through', v: '31 Dec', ink: 'var(--fg)' },
+          { k: 'Observed days', v: '61', ink: 'var(--fg)' },
+        ],
+        cols: '104px 76px minmax(130px, 1fr) minmax(160px, 1fr) minmax(140px, 1fr) 120px 100px',
+        head: ['Fleet', 'Route', 'Home garage', 'Route garages', 'Evidence', 'Rarity', 'Reported'],
+        rows: [
+          ['8112', '35', 'Malvern', 'Arrow Road', 'Exact trip match', '2.4% rare', '13:40:09'],
+          ['3521', '52', 'Malvern', 'Arrow Road · Queensway', 'Exact trip match', '4.1% rare', '13:39:58'],
+          ['9042', '32', 'Birchmount', 'Arrow Road', 'Route observation', '6.8% uncommon', '13:40:14'],
+          ['8845', '96', 'Queensway', 'Arrow Road', 'Route observation', 'Collecting', '13:39:41'],
+          ['3389', '39', 'Eglinton', 'Malvern', 'Exact trip match', '3.2% rare', '13:40:20'],
+          ['9167', '25', 'Mount Dennis', 'Birchmount', 'Route observation', '9.4% uncommon', '13:38:52'],
+        ],
+        notes: [
+          'A route observation says this route currently reports an out-of-division vehicle. It does not identify the vehicle for your own departure, and observations expire automatically.',
+          'Rarity needs at least seven observed days. It describes what has been seen, not what will run.',
+        ],
+      },
+      history: {
+        note: 'Observed TTC alerts are retained indefinitely. History begins when collection started, not before, and disappearance from the source is not a confirmed resolution.',
+        actions: ['Today', 'All dates', 'All lines', 'Export matching'],
+        stats: [
+          { k: 'Records held', v: '4,318', ink: 'var(--fg)' },
+          { k: 'Still reported', v: '14', ink: 'var(--accent)' },
+          { k: 'Collecting since', v: '2 Mar', ink: 'var(--fg)' },
+          { k: 'Last write', v: '13:40', ink: 'var(--fg)' },
+        ],
+        cols: '118px 118px 70px minmax(240px, 2fr) minmax(150px, 1fr)',
+        head: ['First observed', 'Last observed', 'Line', 'Reported as', 'State'],
+        rows: [
+          ['6 Sep 11:04', '6 Sep 13:40', '2', 'No subway service, Kennedy to Warden', 'Still reported'],
+          ['6 Sep 07:22', '6 Sep 09:51', '1', 'Elevator out of service at Bloor–Yonge', 'No longer reported'],
+          ['5 Sep 16:40', '5 Sep 22:12', '—', '501 Queen diverting via King', 'No longer reported'],
+          ['5 Sep 05:58', '6 Sep 13:40', '5', 'Reduced frequency on Eglinton', 'Still reported'],
+          ['4 Sep 18:31', '4 Sep 20:04', '4', 'Sheppard closed for track work', 'No longer reported'],
+          ['4 Sep 06:12', '4 Sep 11:47', '6', 'Finch West status unconfirmed', 'No longer reported'],
+        ],
+        notes: ['All dates use Toronto time. An empty history is not proof that no disruption occurred.'],
+      },
+      saved: {
+        note: 'Saved trips live in this browser. Re-running one searches current schedules; the saved copy holds only the endpoints, the options and any required route.',
+        actions: ['New trip', 'Export all'],
+        stats: [],
+        cols: 'minmax(200px, 1.4fr) minmax(200px, 1.4fr) minmax(150px, 1fr) 130px 110px',
+        head: ['From', 'To', 'Options held', 'Last run', ''],
+        rows: [
+          ['Dundas West Station', 'Kennedy Station', 'Fastest · garage preference', '6 Sep 13:42', 'Re-run'],
+          ['Union Station', 'Hamilton GO Centre', 'Fewer transfers', '5 Sep 08:14', 'Re-run'],
+          ['Square One Terminal', 'York University', 'Less walking · step-free', '3 Sep 17:51', 'Re-run'],
+          ['Long Branch Loop', 'Neville Park Loop', 'Required route 501', '29 Aug 12:06', 'Re-run'],
+        ],
+        notes: ['Clearing browser storage removes every saved trip. A share link carries both endpoints, so only share what you are comfortable disclosing.'],
+      },
+      coverage: {
+        note: 'Coverage is measured from loaded schedules and live feeds, not from an agency logo. A missing or expired feed is shown here rather than hidden behind a working search box.',
+        actions: ['Refresh', 'API documentation'],
+        stats: [
+          { k: 'Agencies targeted', v: '11', ink: 'var(--fg)' },
+          { k: 'Schedules loaded', v: '9', ink: 'var(--fg)' },
+          { k: 'Live vehicle feeds', v: '6', ink: 'var(--good)' },
+          { k: 'No live access', v: '3', ink: 'var(--warn)' },
+        ],
+        cols: 'minmax(190px, 1.6fr) 130px minmax(160px, 1fr) 110px 130px 110px 110px',
+        head: ['Agency', 'Schedule', 'Service range', 'Vehicles', 'Trip updates', 'Alerts', 'Last ok'],
+        rows: [
+          ['Toronto Transit Commission', 'Loaded', '17 Aug → 12 Dec', 'Live', 'Live', 'Official', '13:40'],
+          ['GO Transit', 'Loaded', '1 Sep → 3 Jan', 'Live', 'Live', 'Public', '13:40'],
+          ['UP Express', 'Loaded', '1 Sep → 3 Jan', 'Live', 'Live', 'Public', '13:40'],
+          ['MiWay', 'Loaded', '6 Sep → 19 Dec', 'Stale', 'Public', 'Public', '13:38'],
+          ['Brampton Transit', 'Loaded', '30 Aug → 26 Dec', 'None', 'None', 'Public', '—'],
+          ['York Region Transit', 'Not verified', '—', 'Registration', 'Registration', 'None', '—'],
+          ['Hamilton Street Railway', 'Loaded', '24 Aug → 5 Dec', 'Live', 'Public', 'Public', '13:40'],
+          ['Burlington Transit', 'Loaded', '24 Aug → 5 Dec', 'Live', 'None', 'None', '13:39'],
+        ],
+        notes: [
+          'Journeys use scheduled service. Unplanned closures, elevator outages and replacement buses may not be reflected in routing.',
+          'Map data © OpenStreetMap contributors, ODbL. Agency data is used under each publisher licence. Not affiliated with TTC, Metrolinx or Triplinx.',
+        ],
+      },
+    };
+    const page = pages[screen];
+    const pillWords = new Set(['Live', 'Loaded', 'Official', 'Public', 'None', 'Stale', 'Registration', 'Not verified', 'Still reported', 'No longer reported', 'Re-run']);
+    const inkFor = (v) => {
+      if (v === 'Still reported' || v === 'Re-run' || String(v).includes('rare')) return 'var(--accent)';
+      if (v === 'None' || v === 'Not verified' || v === 'Stale' || v === 'Registration') return 'var(--warn)';
+      if (v === 'Live' || v === 'Loaded' || v === 'Official') return 'var(--good)';
+      return 'var(--fg2)';
+    };
+    const tableCells = page
+      ? page.rows.flatMap(row => row.map((v, i) => {
+          const pill = i > 0 && pillWords.has(v);
+          return {
+            v,
+            pill,
+            plain: !pill,
+            pillBg: v === 'Re-run' || v === 'Still reported' ? 'var(--accent-soft)' : 'var(--panel2)',
+            font: i === 0 ? (screen === 'divisions' ? mono(15, 600) : sans(14, 500)) : sans(14, 400),
+            ink: i === 0 ? 'var(--fg)' : inkFor(v),
+          };
+        }))
+      : [];
+
+    return {
+      theme, nav, review, langs,
+      themeGlyph: light ? 'dark_mode' : 'light_mode',
+      toggleTheme: () => this.setState({ appearance: light ? 'dark' : 'light' }),
+      setDark: () => this.setState({ appearance: 'dark' }),
+      setLight: () => this.setState({ appearance: 'light' }),
+      darkRing: light ? 'none' : '2px solid var(--accent)',
+      lightRing: light ? '2px solid var(--accent)' : 'none',
+      title: (heads[screen] || heads.plan)[0],
+      subtitle: (heads[screen] || heads.plan)[1],
+      isPlan: screen === 'plan', isStatus: screen === 'status', isVehicles: screen === 'vehicles',
+      isRace: screen === 'race', isSettings: screen === 'settings', isPhone: screen === 'phone',
+      isBilingual: screen === 'bilingual', isPage: !!page,
+      heldOptions: heldCols, groups, optionChips,
+      gridCols: `210px repeat(${heldCols.length}, minmax(150px, 1fr))`,
+      boardSummary: `5 options found · holding ${heldCols.length} · fastest ${fastest.dur} min · earliest arrival ${earliest.arrive}`,
+      planChips: [
+        { label: 'Step-free', bg: 'var(--accent-soft)', ink: 'var(--accent)' },
+        { label: 'Prefer washrooms', bg: 'var(--panel2)', ink: 'var(--fg2)' },
+        { label: 'Garage preference', bg: 'var(--accent-soft)', ink: 'var(--accent)' },
+        { label: '+ Add a stop', bg: 'var(--panel2)', ink: 'var(--fg2)' },
+      ],
+      planActions: [
+        { label: '30 min earlier', glyph: 'arrow_back' },
+        { label: '30 min later', glyph: 'arrow_forward' },
+        { label: 'Save', glyph: 'bookmark' },
+        { label: 'Share', glyph: 'share' },
+        { label: 'Export', glyph: 'download' },
+      ],
+      lines, dots,
+      alertChips: ['Bus · 6', 'Streetcar · 3', 'Subway · 4', 'Network · 1'],
+      alerts: [
+        { time: '11:04', kind: 'Closure', kindBg: 'var(--accent-soft)', kindInk: 'var(--warn)', title: 'No subway service, Kennedy to Warden', body: 'Shuttle buses run both ways. Six stops on your held options sit inside the closure.', ink: 'var(--warn)' },
+        { time: '12:40', kind: 'Detour', kindBg: 'var(--panel2)', kindInk: 'var(--fg2)', title: '29 Dufferin diverting via Lansdowne', body: 'Both directions, construction at Dufferin and Bloor. Allow extra travel time.', ink: 'var(--fg)' },
+        { time: '09:51', kind: 'Facility', kindBg: 'var(--panel2)', kindInk: 'var(--fg2)', title: 'Elevator out of service, Bloor–Yonge', body: 'A station facility notice, not a service disruption. Step-free journeys may be affected.', ink: 'var(--fg)' },
+      ],
+      facts: [
+        { k: 'Manufacturer', v: 'Nova Bus' }, { k: 'Model', v: 'LFS Artic' },
+        { k: 'Build year', v: '2018' }, { k: 'Fleet series', v: '8600–8730' },
+        { k: 'Home garage', v: 'Arrow Road' }, { k: 'Propulsion', v: 'Diesel' },
+        { k: 'Length and capacity', v: '18 m · 77' }, { k: 'Last observed', v: '13:40:18' },
+      ],
+      agencyChips: [
+        { label: 'TTC', on: true, dot: 'var(--ttc)' }, { label: 'GO', on: true, dot: 'var(--go)' },
+        { label: 'UP', on: true, dot: 'var(--up)' }, { label: 'MiWay', on: false, dot: 'var(--miway)' },
+        { label: 'HSR', on: false, dot: 'var(--hsr)' }, { label: 'Burlington', on: false, dot: 'var(--burl)' },
+      ].map(c => ({
+        ...c,
+        bg: c.on ? 'var(--accent-soft)' : 'var(--panel2)',
+        ink: c.on ? 'var(--accent)' : 'var(--fg2)',
+      })),
+      fleetHead: ['Fleet', 'Route', 'Agency', 'Model', 'Built', 'Garage', 'Reported', 'Feed'],
+      fleet,
+      teams: [
+        { rank: '1', name: 'Dim Sum Dashers', route: '505 → Line 2', score: '7', rankInk: 'var(--accent)' },
+        { rank: '2', name: 'Scarborough Express', route: '29 → Line 2 → 86', score: '6', rankInk: 'var(--fg3)' },
+        { rank: '3', name: 'Queen Street Crew', route: '504 → Line 2', score: '4', rankInk: 'var(--fg3)' },
+        { rank: '4', name: 'Night Riders', route: '506 → Line 2', score: '3', rankInk: 'var(--fg3)' },
+      ],
+      pageNote: page ? page.note : '',
+      pageActions: page ? page.actions : [],
+      hasStats: !!(page && page.stats.length),
+      stats: page ? page.stats : [],
+      tableCols: page ? page.cols : '1fr',
+      tableHead: page ? page.head : [],
+      tableCells,
+      hasNotes: !!(page && page.notes.length),
+      notes: page ? page.notes : [],
+      langRows: [
+        { key: 'EN', name: 'English', detail: 'English throughout the planner', sample: 'Plan' },
+        { key: '廣', name: '香港廣東話', detail: 'Hong Kong Cantonese', sample: '規劃' },
+        { key: '雙', name: 'English + 廣東話', detail: 'Both languages, joined by a middle dot', sample: 'Plan · 規劃' },
+      ].map(l => ({
+        ...l,
+        bg: this.state.lang === l.key ? 'var(--accent-soft)' : 'var(--panel2)',
+        dot: this.state.lang === l.key ? 'var(--accent)' : 'transparent',
+        check: this.state.lang === l.key ? 'check' : '',
+        go: () => this.setState({ lang: l.key }),
+      })),
+      narratorFacts: [
+        { k: 'English voice', v: 'Automatic' },
+        { k: 'Cantonese voice', v: 'Automatic' },
+        { k: 'Rate and pitch', v: '1.0 · 1.0' },
+      ],
+      privacy: [
+        { t: 'Your journey stays yours', b: 'No account, no advertising, no analytics. Saved trips and preferences stay in this browser. Searches reach the routing service to calculate a route; precise locations are not retained in request logs.' },
+        { t: 'Sharing a trip', b: 'A share link contains both endpoint locations and the selected travel time. Only share locations you are comfortable disclosing.' },
+        { t: 'Data and reliability', b: 'This is an independent planner. Allow time for transfers and check official notices before travelling. Fares and specialized transit bookings are not calculated.' },
+      ],
+      phoneNav: [
+        { label: 'Plan', glyph: 'route', ink: 'var(--accent)' },
+        { label: 'Live', glyph: 'train', ink: 'var(--fg2)' },
+        { label: 'Fleet', glyph: 'directions_bus', ink: 'var(--fg2)' },
+        { label: 'Saved', glyph: 'bookmark', ink: 'var(--fg2)' },
+        { label: 'More', glyph: 'menu', ink: 'var(--fg2)' },
+      ],
+      phoneRows: [
+        { label: 'Arrives', a: '14:37', b: '14:48', best: 'a' },
+        { label: 'Transfers', a: '1', b: '1', best: '' },
+        { label: 'Walking', a: '9 min', b: '8 min', best: 'b' },
+        { label: 'Waiting', a: '6 min', b: '3 min', best: 'b' },
+        { label: 'On transit', a: '34 min', b: '33 min', best: 'b' },
+        { label: 'Vehicle', a: '4438', b: '4501', best: '' },
+        { label: 'Model', a: 'Flexity 2019', b: 'Flexity 2021', best: '' },
+        { label: 'Garage', a: 'Russell', b: 'Roncesvalles', best: '' },
+        { label: 'Live delay', a: '+1 min', b: 'On time', best: 'b' },
+        { label: 'Reported', a: '12 s ago', b: '5 s ago', best: 'b' },
+      ].map(r => ({
+        ...r,
+        aFont: mono(14, 500), bFont: mono(14, 500),
+        aInk: r.best === 'a' ? 'var(--accent)' : r.label === 'Live delay' ? 'var(--warn)' : 'var(--fg)',
+        bInk: r.best === 'b' ? 'var(--accent)' : 'var(--fg)',
+      })),
+      bilingualRows: [
+        { label: 'Duration · 行程時間', a: '49 min · 49 分鐘', b: '49 min · 49 分鐘', c: '46 min · 46 分鐘', cBest: true },
+        { label: 'Transfers · 轉車次數', a: '1', b: '2', c: '1' },
+        { label: 'Walking · 步行', a: '9 min · 0.7 km', b: '5 min · 0.4 km', c: '8 min · 0.6 km', bBest: true },
+        { label: 'Assigned vehicle · 編配車輛', a: '4438', b: '8632', c: '4501' },
+        { label: 'Home garage · 所屬車廠', a: 'Russell · 羅素', b: 'Arrow Road · 箭路', c: 'Roncesvalles · 朗士維' },
+        { label: 'Live delay · 即時延誤', a: '+1 min · 遲 1 分鐘', b: '+4 min · 遲 4 分鐘', c: 'On time · 準時', cBest: true },
+        { label: 'Position reported · 位置時間', a: '12 s · 12 秒前', b: '8 s · 8 秒前', c: '5 s · 5 秒前', cBest: true },
+        { label: 'Evidence · 資料依據', a: 'Exact trip · 確實班次', b: 'Route observed · 路線觀察', c: 'Exact trip · 確實班次' },
+      ].map(r => ({
+        ...r,
+        aInk: r.aBest ? 'var(--accent)' : 'var(--fg)',
+        bInk: r.bBest ? 'var(--accent)' : 'var(--fg)',
+        cInk: r.cBest ? 'var(--accent)' : 'var(--fg)',
+      })),
+      bilingualLines: [
+        { id: '1', name: 'Yonge–University · 央街—大學線', color: '#f8c300', state: 'Normal service · 服務正常', ink: 'var(--good)' },
+        { id: '2', name: 'Bloor–Danforth · 布羅—丹佛線', color: '#5ec27f', state: 'No service Kennedy → Warden · 堅尼地至沃頓停駛', ink: 'var(--warn)' },
+        { id: '4', name: 'Sheppard · 些普轄線', color: '#c579a8', state: 'Running · 2 facility notices · 正常行駛 · 2 項設施通告', ink: 'var(--fg2)' },
+        { id: '5', name: 'Eglinton · 愛靜閣線', color: '#f9a05c', state: 'Normal service · 服務正常', ink: 'var(--good)' },
+        { id: '6', name: 'Finch West · 芬治西線', color: '#6cc6ea', state: 'Status unconfirmed · 狀態未確認', ink: 'var(--fg2)' },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>
