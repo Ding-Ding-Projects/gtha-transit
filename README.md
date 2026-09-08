@@ -17,6 +17,18 @@ captures the surface after every one of its 56 clicks. They are copied out by
 recorded and refuses any file whose bytes do not match the hash the ledger holds
 for it. None is a mockup and none is hand-edited.
 
+There is also a [walkthrough recording](docs/captures/walkthrough-92153d6.webm),
+committed here rather than linked to a service that can disappear. It is 294 frames
+of the real application at that same commit: arriving on the composer, planning with
+a published place, preferring a garage and expanding it, looking at what the network
+is doing, finding a vehicle, asking which garage it lives at, reading the service
+record, and changing the appearance. Its provenance is in
+[walkthrough.json](docs/captures/walkthrough.json).
+
+It records the page and never the screen. Frames come from the renderer through the
+debugging protocol, on an off-screen desktop, so nothing that happened to be on a
+monitor is in it.
+
 <details><summary>Planning a trip</summary>
 
 ![The journey composer at desktop width in the dark theme, with the map behind it](docs/captures/plan-dark-92153d6.png)

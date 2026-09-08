@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -179,6 +180,36 @@ test('the README shows the captures that were actually published', async () => {
     assert.ok(alt && alt.length > 10, 'a published capture has no useful alt text');
     assert.ok(readme.includes('![' + alt + ']'), `the README does not carry the alt text for: ${alt}`);
   }
+});
+
+test('the walkthrough recording is real, and is the one it claims to be', () => {
+  /* A recording of an interface the project no longer builds is confidently wrong,
+     and a reader watching it cannot tell which version they are looking at. The
+     manifest binds it to a commit, and the bytes are checked against it: a file
+     that was replaced, truncated, or is not a video at all fails here rather than
+     when somebody opens it. */
+  const manifestPath = path.join(root, 'docs', 'captures', 'walkthrough.json');
+  assert.ok(existsSync(manifestPath), 'no walkthrough recording has been made');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+
+  assert.match(manifest.sourceCommit, /^[0-9a-f]{40}$/, 'the recording names no source commit');
+  const file = path.join(root, manifest.file);
+  assert.ok(existsSync(file), `${manifest.file} is recorded and not on disk`);
+
+  const bytes = readFileSync(file);
+  assert.equal(bytes.length, manifest.bytes, 'the recording is not the size its manifest names');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), manifest.sha256,
+    'the recording is not the file its manifest hashes');
+
+  // EBML, which is what a Matroska or WebM container starts with. A renamed
+  // something-else passes every check above and fails this one.
+  assert.equal(bytes.subarray(0, 4).toString('hex'), '1a45dfa3', 'the recording is not a WebM container');
+  assert.match(bytes.subarray(0, 4096).toString('latin1'), /V_VP[89]/, 'the recording carries no video track');
+
+  assert.ok(manifest.frames > 60, `${manifest.frames} frames is not a walkthrough`);
+  assert.ok(manifest.steps.length >= 10, 'the walkthrough covers too little to be one');
+  assert.ok(manifest.file.includes(manifest.sourceCommit.slice(0, 7)),
+    'the recording filename does not name the commit it came from');
 });
 
 test('the inventory is hand-written and every step is named once', () => {
