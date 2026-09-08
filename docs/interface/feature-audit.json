@@ -270,8 +270,8 @@
       ],
       "documentation": "docs/interface/dim-sum.md",
       "test": "tests/dim-sum.test.mjs",
-      "capture": null,
-      "missing": "Built and wired: a one-in-ten draw taken once per launch before anything is fetched, a dish named in both languages with its catalog alt text, dismissing itself after nine seconds, never during a first run, an error or an in-flight request, and with no setting anywhere. Photos come from the public catalog through scripts/vendor-dim-sum.mjs into a gitignored directory and are served from this origin, downscaled from 2.4 MB native-lossless PNG to about 24 KB WebP with the transformation recorded. It is partial because the rendered card has not been seen in a browser: the draw is a random event, and the vendoring is not part of the build, so a deployment that has never run the script shows nothing at all."
+      "capture": "docs/interface/captures/dim-sum-1440-light.png",
+      "missing": "Built, wired and seen rendering in a browser after launching until the one-in-ten draw came up, which took six launches. A dish named in both languages with its catalog alt text, an aside rather than a dialog, taking no focus, dismissing itself, never during a first run, an error or an in-flight request, and with no setting anywhere. It is partial only because the photos are fetched rather than committed, so a deployment that has never run scripts/vendor-dim-sum.mjs shows nothing at all: the surprise is a deploy-time step rather than a build-time one, and the deployed site has not had that step run."
     },
     {
       "id": "app-logo-customization",
