@@ -111,9 +111,25 @@ settings catalog, so they are reachable from the settings search and from the
 command palette. The palette knows the words people actually type: searching
 `adhd` finds all five modes, though none of them is called that.
 
+## Captured from the built artifact
+
+| | |
+| --- | --- |
+| Commit | `378f89c13e85b6769d7c072ab03c8f6903531f78` |
+| Viewport | 1440 x 900, scale 1 |
+| SHA-256 | `9e60224784849b92f4398b22b200894af1cf29e39e6a2fb3f9d1af49ca9ca917` |
+
+![The Comfort tab in settings, showing the five modes as Material switches with their descriptions. Time awareness is on; the other four are off, which is how all five ship.](captures/comfort-1440-light.png)
+
 ## Verification
 
-`tests/adhd-vocabulary.test.mjs`. Six boundaries were broken on purpose and
+`tests/adhd-vocabulary.test.mjs`, plus 22 checks against the running build through
+`scripts/ui-evidence/drive-comfort.mjs`. The driver hands a real file to the real
+picker and confirms in a browser that the renamed word changes on screen, that
+clearing restores the original immediately, and that a file the reader refuses is
+refused in words and applies nothing.
+
+Six boundaries were broken on purpose and
 watched go red: a mode shipping switched on, a "not now" stopping being respected,
 the vocabulary no longer applied at the text boundary, focus removing things
 instead of quietening them, the format panel shipping a sample vocabulary, and the
