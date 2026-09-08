@@ -1,0 +1,67 @@
+/* -------------------------------------------------------------- dim sum -- */
+
+/*
+ * A one-in-ten delight, anchored out of the way.
+ *
+ * Everything here exists to make an un-optable surprise polite: it takes no
+ * pointer events except on itself, it sits above nothing that matters, and it
+ * has no backdrop, no dialog semantics and no focus trap. It is a picture that
+ * appeared, not a thing to be dealt with.
+ */
+
+.dim-sum {
+  position: fixed;
+  inset: auto auto calc(16px + env(safe-area-inset-bottom, 0px)) 16px;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(340px, calc(100vw - 32px));
+  padding: 10px 10px 10px 12px;
+  box-sizing: border-box;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.dim-sum img {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+
+.dim-sum__text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.dim-sum__text small { font: var(--md-sys-typescale-label-small); color: var(--md-sys-color-on-surface-variant); text-transform: uppercase; letter-spacing: .6px; }
+.dim-sum__text strong { font: var(--md-sys-typescale-body-large); overflow-wrap: anywhere; }
+
+.dim-sum__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+}
+.dim-sum__close:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dim-sum { animation: dim-sum-arrive 220ms ease-out; }
+  @keyframes dim-sum-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+}
+
+/* The notification stack owns the other corner; on a phone they would collide. */
+@media (max-width: 520px) {
+  .dim-sum { inset: auto 8px calc(150px + env(safe-area-inset-bottom, 0px)) 8px; width: auto; }
+}
+
+/* Low stimulation is a request for less, and an unrequested picture is more. */
+.shell.adhd-low-stimulation .dim-sum { display: none; }
+
+@media print { .dim-sum { display: none !important; } }

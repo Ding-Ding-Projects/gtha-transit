@@ -55,3 +55,5 @@ __pycache__/
 # transition it belongs to: the hash is the tamper-evident part, and the images are
 # reproduced with `node scripts/ui-evidence/interaction-ledger.mjs`.
 docs/interface/ledger/shots-*/
+# Fetched from the public dim sum catalog and downscaled; never committed here.
+/public/dim-sum/

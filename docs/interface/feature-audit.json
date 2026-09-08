@@ -260,14 +260,18 @@
     {
       "id": "dim-sum-surprise",
       "name": "Ten per cent chance of a dim sum dish at startup",
-      "verdict": "absent",
+      "verdict": "partial",
       "implementation": [
-        "scripts/dim-sum-code-name.mjs"
+        "lib/dim-sum.ts",
+        "components/dim-sum.tsx",
+        "app/dim-sum.css",
+        "scripts/vendor-dim-sum.mjs",
+        "app/page.tsx"
       ],
-      "documentation": "docs/deployment/container-images.md",
-      "test": "tests/release-code-name.test.mjs",
+      "documentation": "docs/interface/dim-sum.md",
+      "test": "tests/dim-sum.test.mjs",
       "capture": null,
-      "reason": "Release code names and their photos ship. The in-app startup surprise is not built."
+      "missing": "Built and wired: a one-in-ten draw taken once per launch before anything is fetched, a dish named in both languages with its catalog alt text, dismissing itself after nine seconds, never during a first run, an error or an in-flight request, and with no setting anywhere. Photos come from the public catalog through scripts/vendor-dim-sum.mjs into a gitignored directory and are served from this origin, downscaled from 2.4 MB native-lossless PNG to about 24 KB WebP with the transformation recorded. It is partial because the rendered card has not been seen in a browser: the draw is a random event, and the vendoring is not part of the build, so a deployment that has never run the script shows nothing at all."
     },
     {
       "id": "app-logo-customization",

@@ -44,6 +44,7 @@ import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import CommandPalette from '../components/command-palette';
 import NotificationCentre from '../components/notification-centre';
+import DimSum from '../components/dim-sum';
 import { emptyNotifications, notify, type NotificationState, type Severity } from '../lib/notifications';
 import { adhdClassNames, emptyAdhdState, isOn, type AdhdState } from '../lib/adhd-modes';
 import { buildReplacer, parseVocabularyCache, VOCABULARY_STORAGE_KEY, type VocabularyFile } from '../lib/personal-vocabulary';
@@ -955,6 +956,9 @@ export default function Home() {
             by a query selector and invisible to anybody. The stack and both
             dialogs are fixed, so only the opener's position changes here. */}
         <NotificationCentre state={notifications} setState={setNotifications} t={t} />
+        {/* A one-in-ten chance, never while something has gone wrong and never
+            while a request is in flight: a surprise mid-task is an interruption. */}
+        <DimSum t={t} error={Boolean(error)} busy={loading} suppressed={isOn(adhd, 'lowStimulation')} />
       </div>
       <main id="main" className="workspace">
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>

@@ -9,6 +9,7 @@ import './workspace.css';
 import './settings-workspace.css';
 import './journey-time.css';
 import './vehicle-preferences.css';
+import './dim-sum.css';
 import './comfort.css';
 import './notifications.css';
 import './command-palette.css';
