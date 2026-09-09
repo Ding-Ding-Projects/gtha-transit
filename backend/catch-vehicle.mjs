@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { routeStopAnchors } from "./stop-routes.mjs";
+import { tripStopTimesWithOtp, patternAlignedTimesWithOtp } from "./otp-client.mjs";
 const feeds = JSON.parse(readFileSync(new URL("../data/feeds.json", import.meta.url), "utf8")).agencies;
 const MAX_STOPS = 40;
 const MAX_CANDIDATES = 3;
@@ -48,11 +50,14 @@ export function collectorSnapshot(raw, now = Date.now()) {
   if (candidates.length !== 1) return null;
   const feedId = candidates[0].id;
   const id = scopedId(item.id, item.agencyId, item.agencyId);
-  const tripId = scopedId(item.tripId, item.agencyId, feedId);
-  if (!id || !tripId || item.vehicleKey !== id) return null;
+  const tripId = item.tripId == null || item.tripId === "" ? null : scopedId(item.tripId, item.agencyId, feedId);
+  const routeId = item.routeId == null || item.routeId === "" ? null : scopedId(item.routeId, item.agencyId, feedId);
+  if (!id || item.tripId && !tripId || item.routeId && !routeId || !tripId && !routeId || item.vehicleKey !== id) return null;
+  if (item.lat != null && (!finite(item.lat) || Math.abs(item.lat) > 90) || item.lon != null && (!finite(item.lon) || Math.abs(item.lon) > 180) || item.bearing != null && (!finite(item.bearing) || item.bearing < 0 || item.bearing >= 360)) return null;
+  const position = finite(item.lat) && finite(item.lon) && finite(item.bearing) ? { lat: item.lat, lon: item.lon, bearing: item.bearing } : null;
   const nextStopId = item.nextStopId == null ? null : scopedId(item.nextStopId, item.agencyId, feedId);
   if (item.nextStopId != null && !nextStopId) return null;
-  return { id, vehicleKey: id, agencyId: item.agencyId, tripId, serviceDate, serviceDateSource: item.startDate == null ? "observation-calendar" : "publisher", timestamp: new Date(timestamp).toISOString(), nextStopId };
+  return { id, vehicleKey: id, agencyId: item.agencyId, feedId, routeId, tripId, serviceDate, serviceDateSource: item.startDate == null ? "observation-calendar" : "publisher", timestamp: new Date(timestamp).toISOString(), nextStopId, position };
 }
 
 /** Choose only upcoming, non-cancelled publisher times that leave a safety margin. */
@@ -62,7 +67,45 @@ export function interceptCandidates({ stops, now = Date.now(), nextStopId = null
   const start = nextStopId ? ordered.findIndex((stop) => stop?.id === nextStopId) : 0;
   if (start < 0) return [];
   return ordered.slice(start, start + MAX_STOPS).filter((stop) => {
-    const at = Date.parse(stop?.arrivalAt ?? stop?.departureAt ?? stop?.scheduledArrivalAt ?? stop?.scheduledDepartureAt ?? "");
+    const at = Date.parse(stop?.basis === "aligned-timetable" ? stop.alignedArrival : stop?.arrivalAt ?? stop?.departureAt ?? stop?.scheduledArrivalAt ?? stop?.scheduledDepartureAt ?? "");
     return finite(at) && at > now + safetyMarginSeconds * 1000 && !["CANCELED", "CANCELLED", "SKIPPED"].includes(stop?.realtimeState) && qualified(stop?.id) && finite(stop?.lat) && Math.abs(stop.lat) <= 90 && finite(stop?.lon) && Math.abs(stop.lon) <= 180;
-  }).slice(0, MAX_STOPS).slice(0, MAX_CANDIDATES).map((stop) => { const arrivalAt = stop.arrivalAt ?? stop.departureAt ?? stop.scheduledArrivalAt ?? stop.scheduledDepartureAt; return { ...stop, basis: stop.arrivalAt || stop.departureAt ? "realtime" : "scheduled", arriveByAt: new Date((Date.parse(arrivalAt) - safetyMarginSeconds * 1000)).toISOString() }; });
+  }).slice(0, MAX_STOPS).slice(0, MAX_CANDIDATES).map((stop) => { const aligned = stop.basis === "aligned-timetable"; const arrivalAt = aligned ? stop.alignedArrival : stop.arrivalAt ?? stop.departureAt ?? stop.scheduledArrivalAt ?? stop.scheduledDepartureAt; return { ...stop, basis: aligned ? "aligned-timetable" : stop.arrivalAt || stop.departureAt ? "realtime" : "scheduled", arriveByAt: new Date((Date.parse(arrivalAt) - safetyMarginSeconds * 1000)).toISOString() }; });
+}
+
+const anchorCache = new Map();
+export async function cachedRouteAnchors(reference, { date, now = Date.now(), loader = routeStopAnchors } = {}) {
+  const key = `${reference.feedId}/${reference.routeId}/${date}`; const previous = anchorCache.get(key);
+  if (previous && previous.loader === loader && now >= previous.at && now - previous.at < 600000) return previous.value;
+  const value = await loader(reference, { date });
+  if (anchorCache.size >= 64) anchorCache.delete(anchorCache.keys().next().value);
+  anchorCache.set(key, { at: now, value, loader }); return value;
+}
+
+/** Private POST only: the web collector supplies position, never the rider request. */
+export async function upcomingForCollector(input, { otpUrl, timeoutMs = 8000, now = Date.now(), signal, anchorsLoader = routeStopAnchors, tripLoader = tripStopTimesWithOtp, alignedLoader = patternAlignedTimesWithOtp } = {}) {
+  const snapshot = collectorSnapshot(input, now);
+  if (!snapshot) return { state: "invalid-input", code: "INVALID_COLLECTOR_SNAPSHOT", candidates: [] };
+  const { position, ...vehicle } = snapshot;
+  const started = Date.now(); const deadline = started + Math.min(8000, Math.max(1, timeoutMs));
+  const remaining = () => { signal?.throwIfAborted(); const time = deadline - Date.now(); if (time <= 0) throw new Error("Upcoming deadline exceeded"); return time; };
+  const unavailable = (state = "unavailable") => ({ state, fetchedAt: new Date(now + Date.now() - started).toISOString(), vehicle, candidates: [] });
+  try {
+    const trip = snapshot.tripId ? await tripLoader({ otpUrl, timeoutMs: remaining(), tripId: snapshot.tripId, serviceDate: snapshot.serviceDate, signal }) : null;
+    remaining();
+    if (now + Date.now() - started - Date.parse(snapshot.timestamp) > MAX_AGE_MS) return unavailable("stale");
+    if (trip?.id === snapshot.tripId) {
+      const candidates = interceptCandidates({ stops: trip.stops.filter((stop) => stop.id.startsWith(`${snapshot.feedId}:`)), nextStopId: snapshot.nextStopId, now: now + Date.now() - started });
+      return { ...unavailable(candidates.length ? "live" : "trip-ended"), method: "trip-id", confirmedTrip: true, trip: { id: trip.id, headsign: trip.headsign, routeId: trip.routeId, confirmed: true }, candidates };
+    }
+    if (!position || !snapshot.routeId) return unavailable();
+    const date = `${snapshot.serviceDate.slice(0, 4)}-${snapshot.serviceDate.slice(4, 6)}-${snapshot.serviceDate.slice(6, 8)}`;
+    const routeId = snapshot.routeId.split(":")[1];
+    const anchors = await cachedRouteAnchors({ feedId: snapshot.agencyId, routeId }, { date, now, loader: anchorsLoader });
+    const result = await alignedLoader({ otpUrl, timeoutMs: remaining(), feedId: snapshot.feedId, routeId, ...position, atMillis: Date.parse(snapshot.timestamp), anchors, signal });
+    remaining();
+    if (now + Date.now() - started - Date.parse(snapshot.timestamp) > MAX_AGE_MS) return unavailable("stale");
+    if (result.state !== "aligned") return unavailable(result.state);
+    const candidates = interceptCandidates({ stops: result.stops, now: now + Date.now() - started });
+    return { ...unavailable(candidates.length ? "live" : "trip-ended"), method: result.method, confirmedTrip: false, disclosure: result.disclosure, alignment: result.alignment, trip: result.trip, candidates };
+  } catch { return unavailable(); }
 }
