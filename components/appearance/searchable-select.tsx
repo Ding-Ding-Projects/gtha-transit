@@ -158,6 +158,7 @@ export default function SearchableSelect({ id, label, value, options, onChange, 
             tabIndex={-1}
             ref={listRef}
             className="appearance-select__list"
+            data-ui="appearance.listbox"
             aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
             onKeyDown={onListKeyDown}
           >
