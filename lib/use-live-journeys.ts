@@ -62,6 +62,12 @@ export type UseLiveJourneysResult = {
 
 type TrackableLeg = { legId: string; tripId?: string; serviceDate?: string; fromStopId?: string; toStopId?: string };
 
+export function compactServiceDate(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.replaceAll('-', '') : value;
+  return /^\d{8}$/.test(date) ? date : undefined;
+}
+
 const toInstant = (value: unknown): number | null => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value !== 'string' || !value) return null;
@@ -84,7 +90,7 @@ export function trackableLegs(journeys: Itinerary[], now: number): TrackableLeg[
       legs.push({
         legId: leg.legId,
         ...(leg.tripId ? { tripId: leg.tripId } : {}),
-        ...(leg.serviceDate ? { serviceDate: leg.serviceDate } : {}),
+        ...(compactServiceDate(leg.serviceDate) ? { serviceDate: compactServiceDate(leg.serviceDate) } : {}),
         ...(leg.from?.stopId ? { fromStopId: leg.from.stopId } : {}),
         ...(leg.to?.stopId ? { toStopId: leg.to.stopId } : {}),
       });
