@@ -69,6 +69,9 @@ test("OTP query uses the real planConnection GraphQL operation", () => {
   assert.match(graphqlDocument, /legGeometry/);
   assert.match(graphqlDocument, /trip \{ gtfsId \}/);
   assert.match(graphqlDocument, /agency \{ gtfsId name \}/);
+  // A leg's own live-tracking identity, so a client can re-check it later
+  // through `POST /api/journeys/live` without OTP re-planning the trip.
+  assert.match(graphqlDocument, /mode id realtimeState serviceDate realTime/);
 });
 
 test("native OTP planning submits ordered visit points in one request", async (context) => {
@@ -379,6 +382,9 @@ test("HTTP planning returns a neutral empty result when OTP finds no itinerary",
   assert.deepEqual(payload.coverage, { date: "2026-09-04", unavailableAgencies: [] });
   assert.equal(payload.agency, undefined);
   assert.equal(payload.error, undefined);
+  assert.equal(payload.liveCoverage.feeds.miway.state, "applied");
+  assert.equal(payload.liveCoverage.feeds.ttc.state, "published-unjoinable");
+  assert.equal(typeof payload.liveCoverage.checkedAt, "string");
 
   const incomplete = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 43.66, lon: -79.5, name: "Required stop" }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00", maxWalkDistance: 1500, preference: "waiting" }) });
   const incompletePayload = await incomplete.json();
@@ -407,4 +413,126 @@ test("HTTP planning returns a neutral empty result when OTP finds no itinerary",
   const oversizedLabel = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, via: [{ lat: 43.66, lon: -79.5, name: "a".repeat(201) }], to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-04T20:08:00-04:00" }) });
   assert.equal(oversizedLabel.status, 400);
   assert.match((await oversizedLabel.json()).error, /via\[0\]\.name must be at most 200 bytes/);
+});
+
+test("live coverage reports each static feed's applied/unjoinable/none state without needing OTP", async (context) => {
+  const probe = http.createServer(); await new Promise((resolve) => probe.listen(0, "127.0.0.1", resolve)); const port = probe.address().port; await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["server.mjs"], { cwd: new URL(".", import.meta.url), env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", OTP_URL: "http://127.0.0.1:1" }, stdio: "ignore" });
+  context.after(() => child.kill());
+  let ready = false;
+  for (let attempt = 0; attempt < 40; attempt += 1) { try { const response = await fetch(`http://127.0.0.1:${port}/api/live-coverage`); if (response.ok) { ready = true; break; } } catch {} await new Promise((resolve) => setTimeout(resolve, 50)); }
+  assert.equal(ready, true);
+  const payload = await (await fetch(`http://127.0.0.1:${port}/api/live-coverage`)).json();
+  assert.equal(typeof payload.checkedAt, "string");
+  assert.equal(payload.feeds.miway.state, "applied");
+  assert.equal(payload.feeds.hsr.state, "applied");
+  assert.equal(payload.feeds.go.state, "applied");
+  assert.equal(payload.feeds.up.state, "applied");
+  assert.equal(payload.feeds.yrt.state, "applied");
+  assert.equal(payload.feeds.ttc.state, "published-unjoinable");
+  assert.match(payload.feeds.ttc.reason, /trip-identifiers\.md/);
+  assert.equal(payload.feeds["ttc-next"].state, "published-unjoinable");
+  assert.equal(payload.feeds.burlington.state, "published-unjoinable");
+  assert.match(payload.feeds.burlington.reason, /0 of 103/);
+  assert.equal(payload.feeds.brampton.state, "none");
+  assert.equal(payload.feeds.drt.state, "none");
+  assert.equal(payload.feeds.oakville.state, "none");
+  assert.equal(payload.feeds.milton.state, "none");
+});
+
+test("journey live-status resolves a leg directly, falls back to trip stoptimes, and enforces the batch bound", async (context) => {
+  const mock = http.createServer(async (request, response) => {
+    let body = ""; for await (const chunk of request) body += chunk;
+    const payload = JSON.parse(body);
+    if (payload.query.includes("query LegStatus")) {
+      const data = payload.variables.id === "otp-leg-live"
+        ? { leg: {
+            id: "otp-leg-live", realtimeState: "UPDATED", serviceDate: "20260906",
+            start: { scheduledTime: "2026-09-06T08:00:00-04:00", estimated: { time: "2026-09-06T08:03:00-04:00", delay: "PT180S" } },
+            end: { scheduledTime: "2026-09-06T08:20:00-04:00", estimated: { time: "2026-09-06T08:22:00-04:00", delay: "PT120S" } },
+            intermediatePlaces: [{ stop: { gtfsId: "ttc:mid" }, arrival: { scheduledTime: "2026-09-06T08:10:00-04:00" }, departure: { scheduledTime: "2026-09-06T08:11:00-04:00" } }],
+          } }
+        : { leg: null };
+      response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data })); return;
+    }
+    if (payload.query.includes("query TripStoptimesForDate")) {
+      const data = { trip: { stoptimesForDate: [
+        { stop: { gtfsId: "yrt:board" }, realtimeState: "UPDATED", realtimeArrival: 28800, realtimeDeparture: 28860, arrivalDelay: 0, departureDelay: 60, scheduledArrival: 28800, scheduledDeparture: 28800, serviceDay: 1788660000, stopPosition: 1, realtime: true },
+        { stop: { gtfsId: "yrt:alight" }, realtimeState: "UPDATED", realtimeArrival: 29700, realtimeDeparture: 29700, arrivalDelay: 300, departureDelay: 0, scheduledArrival: 29400, scheduledDeparture: 29400, serviceDay: 1788660000, stopPosition: 5, realtime: true },
+      ] } };
+      response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data })); return;
+    }
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data: { stop: { name: "Union Station GO" } } }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const probe = http.createServer(); await new Promise((resolve) => probe.listen(0, "127.0.0.1", resolve)); const port = probe.address().port; await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["server.mjs"], { cwd: new URL(".", import.meta.url), env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", OTP_URL: `http://127.0.0.1:${mock.address().port}` }, stdio: "ignore" });
+  context.after(() => child.kill());
+  let healthy = false; for (let attempt = 0; attempt < 40; attempt += 1) { try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { healthy = true; break; } } catch {} await new Promise((resolve) => setTimeout(resolve, 50)); }
+  assert.equal(healthy, true);
+
+  const response = await fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ legs: [
+    { legId: "otp-leg-live" },
+    { legId: "otp-leg-expired", tripId: "yrt:trip-1", serviceDate: "20260906", fromStopId: "yrt:board", toStopId: "yrt:alight" },
+    { legId: "otp-leg-unresolvable" },
+  ] }) });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  const payload = await response.json();
+  assert.equal(payload.legs.length, 3);
+  const live = payload.legs.find((leg) => leg.legId === "otp-leg-live");
+  assert.equal(live.source, "leg-refetch");
+  assert.equal(live.realtimeState, "UPDATED");
+  assert.equal(live.departureDelaySeconds, 180);
+  assert.equal(live.arrivalDelaySeconds, 120);
+  assert.equal(live.intermediateStops[0].stopId, "ttc:mid");
+  const fallback = payload.legs.find((leg) => leg.legId === "otp-leg-expired");
+  assert.equal(fallback.source, "trip-stoptimes");
+  assert.equal(fallback.departureDelaySeconds, 60);
+  assert.equal(fallback.arrivalDelaySeconds, 300);
+  assert.equal(typeof fallback.startTime, "string");
+  const unresolvable = payload.legs.find((leg) => leg.legId === "otp-leg-unresolvable");
+  assert.equal(unresolvable.error, "unavailable");
+
+  const tooMany = await fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ legs: Array.from({ length: 41 }, (_, index) => ({ legId: `leg-${index}` })) }) });
+  assert.equal(tooMany.status, 400);
+  assert.equal((await tooMany.json()).code, "INVALID_LIVE_REQUEST");
+
+  const malformed = await fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ legs: [{ legId: "" }] }) });
+  assert.equal(malformed.status, 400);
+  assert.equal((await malformed.json()).code, "INVALID_LIVE_REQUEST");
+});
+
+test("plan itineraries report whether OTP actually applied a live update, and from which agency", async (context) => {
+  const mock = http.createServer(async (request, response) => {
+    let body = ""; for await (const chunk of request) body += chunk;
+    const payload = JSON.parse(body);
+    const data = payload.query.includes("planConnection") ? { planConnection: { edges: [{ node: {
+      start: "2026-09-06T08:00:00-04:00", end: "2026-09-06T08:20:00-04:00", duration: "PT20M", walkDistance: 0, numberOfTransfers: 0,
+      legs: [{
+        mode: "BUS", id: "miway-leg-1", realtimeState: "UPDATED", serviceDate: "20260906", realTime: true,
+        start: { scheduledTime: "2026-09-06T08:00:00-04:00", estimated: { time: "2026-09-06T08:03:00-04:00", delay: "PT180S" } },
+        end: { scheduledTime: "2026-09-06T08:20:00-04:00" },
+        duration: "PT20M", distance: 5000, from: { name: "Origin", lat: 43.68, lon: -79.61 }, to: { name: "Destination", lat: 43.64, lon: -79.38 },
+        route: { gtfsId: "miway:19", shortName: "19", longName: "Rathburn", agency: { gtfsId: "miway:1", name: "MiWay" } }, trip: { gtfsId: "miway:trip1" },
+      }],
+    } }] } } : { stop: { name: "Union Station GO" } };
+    response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ data }));
+  });
+  await new Promise((resolve) => mock.listen(0, "127.0.0.1", resolve));
+  context.after(() => mock.close());
+  const probe = http.createServer(); await new Promise((resolve) => probe.listen(0, "127.0.0.1", resolve)); const port = probe.address().port; await new Promise((resolve) => probe.close(resolve));
+  const child = spawn(process.execPath, ["server.mjs"], { cwd: new URL(".", import.meta.url), env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", OTP_URL: `http://127.0.0.1:${mock.address().port}` }, stdio: "ignore" });
+  context.after(() => child.kill());
+  let healthy = false; for (let attempt = 0; attempt < 40; attempt += 1) { try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { healthy = true; break; } } catch {} await new Promise((resolve) => setTimeout(resolve, 50)); }
+  assert.equal(healthy, true);
+  const response = await fetch(`http://127.0.0.1:${port}/api/plan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: { lat: 43.68, lon: -79.61 }, to: { lat: 43.64, lon: -79.38 }, dateTime: "2026-09-06T08:00:00-04:00" }) });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.itineraries.length, 1);
+  assert.deepEqual(payload.itineraries[0].realtime, { applied: true, agencies: ["miway"] });
+  assert.equal(payload.itineraries[0].legs[0].legId, "miway-leg-1");
+  assert.equal(payload.itineraries[0].legs[0].departureDelaySeconds, 180);
+  assert.equal(Object.hasOwn(payload.itineraries[0].legs[0], "arrivalDelaySeconds"), false);
 });

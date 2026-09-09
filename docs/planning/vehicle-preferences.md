@@ -10,6 +10,8 @@ The optional `yearFrom` and `yearTo` form an inclusive requested build-year inte
 
 Use `match: 'all'` for every supplied criterion, or `match: 'any'` for either criterion. Evaluations are three-valued: `true`, `false`, or `unknown`.
 
+`propulsion: 'electric'` is a separate criterion. It accepts published battery-electric vehicles and electrically powered streetcars. A hybrid, diesel, or natural-gas vehicle is a confirmed non-match. A missing or unrecognised published propulsion is `unknown`, never an electric match. The classifier reads only the existing `propulsion` fact, except for regional rows explicitly documented as a manufacturer-backed model designation.
+
 ## Policy
 
 Walking legs are ignored. A prefer policy is a stable soft boost: itineraries with a verified matching assigned vehicle move ahead of other retained itineraries while preserving their original order. Unknown assignments are retained and explicitly labelled.
@@ -17,6 +19,8 @@ Walking legs are ignored. A prefer policy is a stable soft boost: itineraries wi
 An avoid policy removes an itinerary with a known matching assigned vehicle leg. Because an unconfirmed vehicle cannot prove that a traveller will avoid the requested vehicle, avoid also removes itineraries with any unconfirmed non-walking vehicle assignment by default. Set `includeUnconfirmed: true` to retain those itineraries.
 
 `evaluateJourneyPreferences(itinerary, criteria, options)` returns per-leg evidence. `applyJourneyPreferences(itineraries, criteria, options)` returns retained and excluded itinerary records with reasons and that evidence, without changing the supplied data.
+
+For the electric control, `matchedCount` and `unknownCount` describe retained results. In Avoid mode, excluded records identify whether they were hidden for a verified electric match or an unconfirmed assignment, so the status text can report the reason without guessing from the rendered list.
 
 ## Preference panel integration
 

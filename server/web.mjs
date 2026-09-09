@@ -159,6 +159,8 @@ const routes = new Set([
   '/api/coverage',
   '/api/plan',
   '/api/departures',
+  '/api/live-coverage',
+  '/api/journeys/live',
   '/api/integrations/status',
 ]);
 const mime = {
@@ -669,8 +671,8 @@ const server = http.createServer(async (req, res) => {
           error: 'Too many searches. Please wait a minute.',
         });
       if (
-        (['/api/plan', '/api/plan-washroom-detour'].includes(url.pathname) && req.method !== 'POST') ||
-        (!['/api/plan', '/api/plan-washroom-detour'].includes(url.pathname) && req.method !== 'GET')
+        (['/api/plan', '/api/plan-washroom-detour', '/api/journeys/live'].includes(url.pathname) && req.method !== 'POST') ||
+        (!['/api/plan', '/api/plan-washroom-detour', '/api/journeys/live'].includes(url.pathname) && req.method !== 'GET')
       )
         return send(res, 405, { error: 'Method not allowed.' });
       if (url.pathname === '/api/places') {

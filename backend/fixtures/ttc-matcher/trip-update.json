@@ -1,0 +1,12 @@
+{
+  "note": "Synthetic decoded TripUpdate for backend/ttc-trip-matcher.test.mjs, shaped like ttc-trip-matcher.mjs's decodeFeed() output: route_id is a bare route short name, trip_id is a meaningless negative-hash-like string, and start_time/start_date/direction_id are absent, matching what the live TTC feed actually publishes. Predicted arrival times sit a uniform 45 seconds after trip-501-B's schedule in static-index.json, which is close enough to be the single best-scoring candidate and far enough from trip-501-A/trip-501-C to clear the uniqueness margin - this is the base 'unique match, vehicle position consistent' scenario. Other test cases clone this object and adjust specific fields (stop sequences, arrival times, or the vehicle id).",
+  "id": "entity-1",
+  "trip": { "tripId": "-4821096603845412741", "routeId": "501", "startTime": null, "startDate": null, "scheduleRelationship": null, "directionId": null },
+  "vehicle": { "id": "8901", "label": null, "licensePlate": null },
+  "stopTimeUpdate": [
+    { "stopSequence": 1, "stopId": "9991", "arrival": { "time": 1800000645, "delay": null }, "departure": null },
+    { "stopSequence": 2, "stopId": "9992", "arrival": { "time": 1800000945, "delay": null }, "departure": null },
+    { "stopSequence": 3, "stopId": "9993", "arrival": { "time": 1800001245, "delay": null }, "departure": null }
+  ],
+  "timestamp": 1800000600
+}

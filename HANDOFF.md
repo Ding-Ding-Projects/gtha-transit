@@ -1,5 +1,13 @@
 # Implementation handoff
 
+## Recovery increment, 9 September 2026
+
+The electric preference now has planner controls, persistent Off/Prefer/Avoid state, explicit unknown-assignment handling, and a tracker propulsion filter. Local validation of this increment passed type checking, all 714 root tests, and the production build. Deployment and rendered interaction are pending for this candidate, so this section does not claim the controls are live yet.
+
+The previous public-host uncertainty is resolved: both the public HTTPS origin and the private frontend origin served `61e2d405d88e3161eb52964c77cc941551b68c5f` during recovery inspection on 9 September. Routing and map readiness checks returned ready. The API contains 38,526 stops and 1,015 routes. Preserve those validated indexes during backend changes.
+
+The recovered live-time, appearance, tabs, and vehicle-catching work remains in progress. Original recovery directories are retained. Final integration and cleanup wait until the four resumed lanes are complete.
+
 ## Session closeout, 8 September 2026
 
 Everything below this section predates the work described here. Where an older

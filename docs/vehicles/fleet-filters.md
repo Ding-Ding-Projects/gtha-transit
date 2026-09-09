@@ -6,8 +6,8 @@ or build year from a route, trip, agency, label, or nearby fleet number.
 
 ## Filter values
 
-`FleetFilter` has a manufacturer, model, optional inclusive year bounds, and
-an `includeUnknown` choice. `emptyFleetFilter()` returns a new blank filter for
+`FleetFilter` has a manufacturer, model, optional inclusive year bounds, an
+optional `propulsion: 'electric'` criterion, and an `includeUnknown` choice. `emptyFleetFilter()` returns a new blank filter for
 each caller.
 
 Manufacturer and model comparisons are exact after Unicode NFKC normalization,
@@ -39,6 +39,10 @@ whose published range is 2007 through 2010. This is a comparison of the
 published fleet range, not a claim about an individual vehicle's exact build
 date. Missing or malformed published year metadata is unknown rather than a
 match.
+
+## Electric vehicles
+
+The Electric-only control matches only published `Battery electric` and `Electric` propulsion facts. It includes electrically powered streetcars, while hybrid, diesel, and natural-gas facts are known non-matches. Missing or unrecognised propulsion is unknown, never silently electric. The tracker can keep those unknown rows through `includeUnknown`, and its result counts say how many were omitted because confirmation was unavailable.
 
 ## Unknown metadata and counts
 

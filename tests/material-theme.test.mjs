@@ -51,6 +51,32 @@ test('every text pair meets the 4.5:1 minimum in both themes', () => {
   assert.deepEqual(contrastReport(), [], 'a theme nobody can read is not a theme');
 });
 
+/**
+ * The delay-severity roles the live-status chip renders from.
+ *
+ * Hand-written, same as REQUIRED_ROLES above: a rule that only checks "every
+ * role present is well-formed" would pass on a theme that never grew these
+ * roles at all, because it never looked for them.
+ */
+const REQUIRED_STATUS_ROLES = ['early', 'on-time', 'late', 'very-late'];
+
+test('every live-status role exists in both themes', () => {
+  const light = theme.slice(theme.indexOf(':root'), theme.indexOf("html[data-theme='dark']"));
+  const dark = theme.slice(theme.indexOf("html[data-theme='dark']"));
+  for (const role of REQUIRED_STATUS_ROLES) {
+    for (const suffix of ['container', 'on']) {
+      assert.match(light, new RegExp(`--gt-status-${role}-${suffix}:\\s*#[0-9a-f]{6};`), `light is missing ${role}-${suffix}`);
+      assert.match(dark, new RegExp(`--gt-status-${role}-${suffix}:\\s*#[0-9a-f]{6};`), `dark is missing ${role}-${suffix}`);
+    }
+  }
+  // Cancelled is not a hue of its own: it borrows the error role outright, so it
+  // is a var() alias rather than a generated hex value.
+  for (const suffix of ['container', 'on']) {
+    assert.match(light, new RegExp(`--gt-status-cancelled-${suffix}:\\s*var\\(--md-sys-color-`), `light is missing cancelled-${suffix}`);
+    assert.match(dark, new RegExp(`--gt-status-cancelled-${suffix}:\\s*var\\(--md-sys-color-`), `dark is missing cancelled-${suffix}`);
+  }
+});
+
 test('the type, shape, elevation, state and motion scales are all present', () => {
   for (const size of ['display-large', 'headline-small', 'title-medium', 'body-medium', 'label-large', 'label-medium']) {
     assert.match(theme, new RegExp(`--md-sys-typescale-${size}:`), `missing type step ${size}`);

@@ -31,3 +31,15 @@ test('regional source evidence does not invent capacity, photo permission or cur
     assert.match(row.source.coverage,/unconfirmed/);
   }
 });
+test('model-designation propulsion facts carry their manufacturer sources and leave unrelated models unknown', () => {
+  const rows = Object.values(REGIONAL_FLEET_RANGES).flat();
+  const modelDesignation = rows.filter((row) => row.propulsionBasis === 'model-designation');
+  assert.ok(modelDesignation.length > 0);
+  for (const row of modelDesignation) {
+    assert.match(row.propulsion, /Battery electric|Diesel-electric hybrid/);
+    assert.ok(row.propulsionSource?.url.startsWith('https://'));
+    assert.ok(row.propulsionSource?.title);
+  }
+  assert.ok(rows.some((row) => row.model === 'XD40' && row.propulsion === undefined));
+  assert.ok(rows.some((row) => row.model === 'LFS' && row.propulsion === undefined));
+});

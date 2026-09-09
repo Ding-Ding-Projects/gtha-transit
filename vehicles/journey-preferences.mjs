@@ -3,6 +3,8 @@
  * This module deliberately never infers a vehicle from a route, trip, or agency.
  */
 
+import { isElectric, propulsionClass } from './propulsion.mjs';
+
 const WALKING_MODES = new Set(['WALK', 'WALKING']);
 const isPresent = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 const normalise = (value) => String(value).normalize('NFKC').trim().toLocaleLowerCase();
@@ -23,6 +25,10 @@ function requestedYear(value, field, validationErrors) {
 function requestedCriteria(criteria = {}) {
   const manufacturer = isPresent(criteria.manufacturer) ? normalise(criteria.manufacturer) : null;
   const model = isPresent(criteria.model) ? normalise(criteria.model) : null;
+  /* 'electric' is the only supported value today. Anything else - including a
+     typo or a future value this build does not know yet - is treated as no
+     propulsion criterion rather than silently matched or invented. */
+  const propulsion = criteria.propulsion === 'electric' ? 'electric' : null;
   const validationErrors = [];
   const yearFrom = requestedYear(criteria.yearFrom, 'yearFrom', validationErrors);
   const yearTo = requestedYear(criteria.yearTo, 'yearTo', validationErrors);
@@ -30,7 +36,7 @@ function requestedCriteria(criteria = {}) {
     ? { from: yearFrom ?? MIN_YEAR, to: yearTo ?? MAX_YEAR }
     : null;
   if (range && range.from > range.to) validationErrors.push({ field: 'year', reason: 'The start year must be the same as or earlier than the end year.' });
-  return { manufacturer, model, range, match: criteria.match === 'any' ? 'any' : 'all', valid: validationErrors.length === 0, validationErrors };
+  return { manufacturer, model, range, propulsion, match: criteria.match === 'any' ? 'any' : 'all', valid: validationErrors.length === 0, validationErrors };
 }
 
 function publishedYearRange(value) {
@@ -75,6 +81,20 @@ function evaluateAssignedVehicle(cptdb, criteria) {
     const result = evaluateYear(publishedYearRange(cptdb?.year), criteria.range);
     checks.push({ field: 'year', ...result });
   }
+  if (criteria.propulsion === 'electric') {
+    /* A known, non-electric class is a confirmed false, not an unknown: the
+       roster states a propulsion and it is not an electric one. Only an
+       absent or unrecognised propulsion string counts as unknown, and an
+       unknown propulsion is never treated as electric. */
+    const cls = propulsionClass(cptdb);
+    checks.push({
+      field: 'propulsion',
+      state: isElectric(cls) ? 'true' : cls === 'unknown' ? 'unknown' : 'false',
+      reason: cls === 'unknown'
+        ? 'The assigned vehicle has no recognised published propulsion.'
+        : 'Compared the assigned vehicle published propulsion against the requested electric preference.',
+    });
+  }
   return { state: combine(checks, criteria.match), checks };
 }
 
@@ -82,7 +102,7 @@ function evaluateAssignedVehicle(cptdb, criteria) {
 export function evaluateJourneyPreferences(itinerary, inputCriteria = {}, inputOptions = {}) {
   const criteria = requestedCriteria(inputCriteria);
   const options = { prefer: Boolean(inputOptions.prefer), avoid: Boolean(inputOptions.avoid), includeUnconfirmed: Boolean(inputOptions.includeUnconfirmed) };
-  const active = criteria.valid && Boolean(criteria.manufacturer || criteria.model || criteria.range);
+  const active = criteria.valid && Boolean(criteria.manufacturer || criteria.model || criteria.range || criteria.propulsion);
   const legs = (Array.isArray(itinerary?.legs) ? itinerary.legs : []).map((leg, index) => {
     if (WALKING_MODES.has(String(leg?.mode ?? '').toUpperCase())) return { index, state: 'ignored', reason: 'Walking legs do not have vehicle preferences.', checks: [] };
     if (!criteria.valid) return { index, state: 'unknown', reason: 'Vehicle preferences were not applied because the requested year criteria are invalid.', checks: criteria.validationErrors.map(({ field, reason }) => ({ field, state: 'unknown', reason })) };
@@ -112,13 +132,20 @@ export function applyJourneyPreferences(itineraries, criteria = {}, options = {}
   for (const entry of evaluations) {
     const { evidence } = entry;
     if (avoidActive && evidence.summary.matched) {
-      excluded.push({ itinerary: entry.itinerary, index: entry.index, reason: 'Excluded because an assigned vehicle leg is a verified avoid match.', evidence });
+      excluded.push({ itinerary: entry.itinerary, index: entry.index, cause: 'matched', reason: 'Excluded because an assigned vehicle leg is a verified avoid match.', evidence });
     } else if (avoidActive && evidence.summary.unknown && !options.includeUnconfirmed) {
-      excluded.push({ itinerary: entry.itinerary, index: entry.index, reason: 'Excluded because a non-walking leg has an unconfirmed vehicle assignment while avoid is active.', evidence });
+      excluded.push({ itinerary: entry.itinerary, index: entry.index, cause: 'unknown', reason: 'Excluded because a non-walking leg has an unconfirmed vehicle assignment while avoid is active.', evidence });
     } else {
       kept.push({ ...entry, reason: Boolean(options.prefer) && evidence.active && evidence.summary.matched ? 'Preferred because an assigned vehicle leg is a verified match.' : 'Kept without a verified preference boost.' });
     }
   }
   if (Boolean(options.prefer)) kept.sort((left, right) => Number(right.evidence.active && right.evidence.summary.matched) - Number(left.evidence.active && left.evidence.summary.matched));
-  return { itineraries: kept.map(({ itinerary }) => itinerary), kept: kept.map(({ itinerary, index, reason, evidence }) => ({ itinerary, index, reason, evidence })), excluded, preferenceApplied: evaluations.some((entry) => entry.evidence.active) && (Boolean(options.prefer) || avoidActive) };
+  /* Counts of what is still visible after filtering, so a caller can say why
+     without re-deriving it from `kept`/`excluded` itself. A kept itinerary
+     counts toward `unknownCount` only when it has no verified match either -
+     one confirmed electric leg is reported as a match, never also flagged as
+     merely unknown, even when another leg on the same itinerary is unconfirmed. */
+  const matchedCount = kept.filter((entry) => entry.evidence.active && entry.evidence.summary.matched).length;
+  const unknownCount = kept.filter((entry) => entry.evidence.active && entry.evidence.summary.unknown && !entry.evidence.summary.matched).length;
+  return { itineraries: kept.map(({ itinerary }) => itinerary), kept: kept.map(({ itinerary, index, reason, evidence }) => ({ itinerary, index, reason, evidence })), excluded, matchedCount, unknownCount, preferenceApplied: evaluations.some((entry) => entry.evidence.active) && (Boolean(options.prefer) || avoidActive) };
 }

@@ -126,8 +126,10 @@ export default function VehicleTracker({
     if (!savedFilter.value) return { value: emptyFleetFilter(), invalid: false };
     try {
       const saved = JSON.parse(savedFilter.value), value = saved?.schemaVersion === 1 ? saved.filter : null;
-      if (value && ['manufacturer', 'model', 'yearFrom', 'yearTo'].every(key => typeof value[key] === 'string' && value[key].length <= 100) && typeof value.includeUnknown === 'boolean') {
-        return { value: { manufacturer: value.manufacturer.trim(), model: value.model.trim(), yearFrom: value.yearFrom.trim(), yearTo: value.yearTo.trim(), includeUnknown: value.includeUnknown }, invalid: false };
+      /* propulsion is optional in older persisted records: a missing key defaults to
+         '' (no propulsion filter) rather than invalidating the whole saved value. */
+      if (value && ['manufacturer', 'model', 'yearFrom', 'yearTo'].every(key => typeof value[key] === 'string' && value[key].length <= 100) && typeof value.includeUnknown === 'boolean' && (value.propulsion === undefined || value.propulsion === '' || value.propulsion === 'electric')) {
+        return { value: { manufacturer: value.manufacturer.trim(), model: value.model.trim(), yearFrom: value.yearFrom.trim(), yearTo: value.yearTo.trim(), propulsion: value.propulsion === 'electric' ? 'electric' as const : '' as const, includeUnknown: value.includeUnknown }, invalid: false };
       }
     } catch {}
     return { value: emptyFleetFilter(), invalid: true };
@@ -467,7 +469,7 @@ export default function VehicleTracker({
           '即時車輛地圖，下方清單提供無障礙替代。',
         )}
       />
-      <FleetFilterPanel vehicles={sourceData?.vehicles ?? EMPTY_VEHICLES} value={fleetFilter} onChange={setFleetFilter} error={filterError} storageId={divisionMode ? 'division-fleet-filter' : 'tracker-fleet-filter'} t={t} />
+      <FleetFilterPanel vehicles={sourceData?.vehicles ?? EMPTY_VEHICLES} value={fleetFilter} onChange={setFleetFilter} error={filterError} excludedUnknownCount={fleetResult.excludedUnknownCount} storageId={divisionMode ? 'division-fleet-filter' : 'tracker-fleet-filter'} t={t} />
       <details className="source-details">
         <summary>{t('About these positions and agency feeds', '關於車輛位置同交通公司資料')}</summary>
         <p>{t('Reported vehicle locations from official agency feeds. Select a marker or list entry for fleet details. Vehicles absent from the feed cannot be tracked.', '官方交通公司資料通報嘅車輛位置。揀地圖標記或清單車輛查看車隊資料。來源無提供嘅車輛未能追蹤。')}</p>

@@ -1,7 +1,7 @@
 const GRAPHQL = `query Plan($origin:PlanLabeledLocationInput!,$destination:PlanLabeledLocationInput!,$via:[PlanViaLocationInput!],$dateTime:PlanDateTimeInput!,$first:Int!,$modes:PlanModesInput!,$preferences:PlanPreferencesInput) {
   planConnection(origin:$origin,destination:$destination,via:$via,dateTime:$dateTime,first:$first,modes:$modes,preferences:$preferences) {
     edges { node { start end duration walkDistance numberOfTransfers legs {
-      mode realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } } to { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } }
+      mode id realtimeState serviceDate realTime start { scheduledTime estimated { time delay } } end { scheduledTime estimated { time delay } } duration distance headsign from { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } } to { name lat lon viaLocationType stop { gtfsId locationType parentStation { gtfsId } } }
       intermediatePlaces { name lat lon stop { gtfsId locationType parentStation { gtfsId } } arrival { scheduledTime estimated { time delay } } departure { scheduledTime estimated { time delay } } }
       route { gtfsId shortName longName mode agency { gtfsId name } }
       trip { gtfsId }
@@ -77,7 +77,7 @@ function stopTime(raw) {
   if (!raw || typeof raw !== "object") return null;
   const scheduled = safeText(raw.scheduledTime);
   const estimated = raw.estimated && typeof raw.estimated === "object" ? safeText(raw.estimated.time) : null;
-  const delay = raw.estimated && typeof raw.estimated === "object" ? finiteNumber(raw.estimated.delay) : null;
+  const delay = raw.estimated && typeof raw.estimated === "object" ? signedDurationSeconds(raw.estimated.delay) : null;
   if (!scheduled && !estimated) return null;
   return {
     ...(scheduled ? { scheduledTime: scheduled } : {}),
@@ -114,18 +114,52 @@ function durationSeconds(value) {
   const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?$/.exec(String(value ?? ""));
   return match ? Number(match[1] ?? 0) * 3600 + Number(match[2] ?? 0) * 60 + Number(match[3] ?? 0) : 0;
 }
+/**
+ * A delay exactly as OTP published it, in seconds, keeping its sign.
+ *
+ * OTP serialises `estimated.delay` as a signed ISO-8601 duration string
+ * ("PT13S" running late, "-PT26S" running early, "PT-1M-30S" with a sign on
+ * a component instead of the whole value), never as a plain number.
+ * `durationSeconds()` above is for non-negative leg and trip durations and
+ * clamps away a sign, so it must never be reused for a delay: an early trip
+ * would silently read as on time. This also accepts a bare finite number or
+ * numeric string, in case a caller ever stops wrapping one in a duration.
+ */
+export function signedDurationSeconds(value) {
+  if (value == null) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const text = typeof value === "string" ? value.trim() : "";
+  if (!text) return null;
+  if (/^[+-]?\d+(?:\.\d+)?$/.test(text)) { const plain = Number(text); return Number.isFinite(plain) ? plain : null; }
+  const match = /^(-)?P(?:(-?\d+(?:\.\d+)?)D)?(?:T(?:(-?\d+(?:\.\d+)?)H)?(?:(-?\d+(?:\.\d+)?)M)?(?:(-?\d+(?:\.\d+)?)S)?)?$/.exec(text);
+  if (!match) return null;
+  const [, negative, days, hours, minutes, seconds] = match;
+  if ([days, hours, minutes, seconds].every((part) => part === undefined)) return null;
+  const part = (value) => (value === undefined ? 0 : Number(value));
+  const total = part(days) * 86_400 + part(hours) * 3_600 + part(minutes) * 60 + part(seconds);
+  return negative ? -total : total;
+}
 function normalizeLeg(leg, index) {
   const from = endpoint(leg.from); const to = endpoint(leg.to);
   if (!from || !to) return null;
   const tripId = safeText(leg.trip?.gtfsId); const routeGtfsId = safeText(leg.route?.gtfsId); const routeId = routeGtfsId; const agencyId = safeText(leg.route?.agency?.gtfsId);
+  // A leg's own live-tracking identity: `legId` lets a caller re-check this
+  // exact leg later (see `liveLegStatusWithOtp`), and the delay fields are
+  // omitted rather than zeroed when OTP has not published one, exactly as
+  // `stopTime()` omits `delaySeconds` above.
+  const departureDelaySeconds = signedDurationSeconds(leg.start?.estimated?.delay);
+  const arrivalDelaySeconds = signedDurationSeconds(leg.end?.estimated?.delay);
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
+    legId: safeText(leg.id), realtimeState: safeText(leg.realtimeState), serviceDate: safeText(leg.serviceDate),
     tripId, routeId, routeGtfsId, agencyId, agencyFeedId: publicAgencyFeedId(tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeGtfsId?.includes(":") ? routeGtfsId.slice(0, routeGtfsId.indexOf(":")) : null),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
     agency: leg.route?.agency ? safeText(leg.route.agency.name ?? "") : null,
     headsign: safeText(leg.headsign),
     geometry: leg.legGeometry?.points ? String(leg.legGeometry.points) : null,
+    ...(departureDelaySeconds === null ? {} : { departureDelaySeconds }),
+    ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }),
     intermediateStops: Array.isArray(leg.intermediatePlaces) ? leg.intermediatePlaces.map(point).filter(Boolean).slice(0, 500) : [] };
 }
 async function queryOtp(otpUrl, timeoutMs, query, variables) {
@@ -248,8 +282,10 @@ const ROUTE_BLOCK_TRIPS = `query RouteBlockTrips($id:String!) {
     arrivalStoptime { scheduledArrival serviceDay } } } }
 }`;
 const TRIP_SHAPE_TIMES = `query TripTimes($id:String!,$date:String!) {
-  trip(id:$id) { gtfsId stoptimesForDate(serviceDate:$date) {
-    scheduledArrival scheduledDeparture serviceDay stop { gtfsId name lat lon } } }
+  trip(id:$id) { gtfsId headsign route { gtfsId shortName longName agency { gtfsId name } }
+    stoptimesForDate(serviceDate:$date) {
+      scheduledArrival scheduledDeparture realtimeArrival realtimeDeparture arrivalDelay departureDelay realtime realtimeState serviceDay
+      stop { gtfsId name lat lon } } }
 }`;
 
 const MAX_BLOCK_STOPS = 200;
@@ -316,6 +352,39 @@ export async function blockPredecessorWithOtp({ otpUrl, timeoutMs, tripId, route
   };
 }
 
+/**
+ * Published times for one exact scheduled trip and service date.
+ *
+ * The caller must already hold the qualified trip identifier from a trusted
+ * collector.  This does not accept a route name or a vehicle label, because
+ * either would let a client turn an observation into an invented assignment.
+ */
+export async function tripStopTimesWithOtp({ otpUrl, timeoutMs, tripId, serviceDate }) {
+  const id = qualifiedStopLocationId(tripId);
+  const date = typeof serviceDate === "string" && /^\d{8}$/.test(serviceDate) ? serviceDate : null;
+  if (!id || !date) return null;
+  const data = await queryOtp(otpUrl, timeoutMs, TRIP_SHAPE_TIMES, { id, date });
+  const trip = data?.trip;
+  if (!trip) return null;
+  const stops = (Array.isArray(trip.stoptimesForDate) ? trip.stoptimesForDate : []).slice(0, MAX_BLOCK_STOPS).map((entry, index) => {
+    const stopId = safeText(entry?.stop?.gtfsId); const lat = finiteNumber(entry?.stop?.lat); const lon = finiteNumber(entry?.stop?.lon);
+    const serviceDay = finiteNumber(entry?.serviceDay);
+    if (!stopId || lat === null || lon === null || serviceDay === null) return null;
+    const scheduledArrival = instantFromServiceDay(serviceDay, entry.scheduledArrival);
+    const scheduledDeparture = instantFromServiceDay(serviceDay, entry.scheduledDeparture);
+    const realtimeArrival = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeArrival) : null;
+    const realtimeDeparture = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeDeparture) : null;
+    const arrivalDelaySeconds = signedDurationSeconds(entry.arrivalDelay);
+    const departureDelaySeconds = signedDurationSeconds(entry.departureDelay);
+    return { id: stopId, name: safeText(entry.stop.name) ?? "", lat, lon, index,
+      ...(scheduledArrival ? { scheduledArrivalAt: scheduledArrival } : {}), ...(scheduledDeparture ? { scheduledDepartureAt: scheduledDeparture } : {}),
+      ...(realtimeArrival ? { arrivalAt: realtimeArrival } : {}), ...(realtimeDeparture ? { departureAt: realtimeDeparture } : {}),
+      ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }), ...(departureDelaySeconds === null ? {} : { departureDelaySeconds }),
+      realtimeState: safeText(entry.realtimeState) ?? "SCHEDULED" };
+  }).filter(Boolean);
+  return { id: safeText(trip.gtfsId) ?? id, serviceDate: date, headsign: safeText(trip.headsign), routeId: safeText(trip.route?.gtfsId), route: safeText(trip.route?.shortName ?? trip.route?.longName), agency: safeText(trip.route?.agency?.name), stops };
+}
+
 export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, timeRange = 7200, maxResults = 25 }) {
   const start = finiteNumber(startTime, Math.floor(Date.now() / 1000)); const range = Math.min(86400, Math.max(60, finiteNumber(timeRange, 7200)));
   const data = await queryOtp(otpUrl, timeoutMs, DEPARTURES, { id: String(stopId).slice(0, 200), start, timeRange: range, count: maxResults });
@@ -326,6 +395,126 @@ export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, 
     headsign: safeText(item.headsign), route: item.trip?.route ? safeText(item.trip.route.shortName ?? item.trip.route.longName ?? "") : null,
     agency: item.trip?.route?.agency ? safeText(item.trip.route.agency.name ?? "") : null }));
   return { departures, stop: { id: stop.gtfsId, name: stop.name ?? "", lat: Number(stop.lat), lon: Number(stop.lon) } };
+}
+
+/**
+ * Live status for a bounded batch of already-planned legs.
+ *
+ * A plan response is a snapshot: OTP keeps applying trip updates after it is
+ * sent, so a leg's delay a few minutes later is only available by asking
+ * again. `Query.leg(id)` re-fetches exactly the leg the plan named, but that
+ * identifier can stop resolving once its service day has passed. A caller
+ * that still has the leg's `tripId` and `serviceDate` recovers from that by
+ * reading the same trip's published stop times instead, keyed by the
+ * boarding and alighting stop identifiers rather than by the dead leg id.
+ */
+const LEG_STATUS = `query LegStatus($id:String!) {
+  leg(id:$id) { id realtimeState serviceDate
+    start { scheduledTime estimated { time delay } }
+    end { scheduledTime estimated { time delay } }
+    intermediatePlaces { stop { gtfsId } arrival { scheduledTime estimated { time delay } } departure { scheduledTime estimated { time delay } } }
+  }
+}`;
+const TRIP_STOPTIMES_FOR_DATE = `query TripStoptimesForDate($id:String!,$date:String!) {
+  trip(id:$id) { stoptimesForDate(serviceDate:$date) {
+    stop { gtfsId } realtimeState realtimeArrival realtimeDeparture arrivalDelay departureDelay
+    scheduledArrival scheduledDeparture serviceDay stopPosition realtime
+  } }
+}`;
+const MAX_LIVE_LEGS = 40;
+const LIVE_LEG_CONCURRENCY = 8;
+const MAX_LIVE_INTERMEDIATE_STOPS = 500;
+
+function remainingMs(deadline) { return Math.max(0, deadline - Date.now()); }
+
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function lane() { while (next < items.length) { const index = next++; results[index] = await worker(items[index], index); } }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, lane));
+  return results;
+}
+
+function intermediateLegStops(intermediatePlaces) {
+  return (Array.isArray(intermediatePlaces) ? intermediatePlaces : []).slice(0, MAX_LIVE_INTERMEDIATE_STOPS).map((place) => {
+    const stopId = safeText(place?.stop?.gtfsId);
+    if (!stopId) return null;
+    const arrival = stopTime(place?.arrival); const departure = stopTime(place?.departure);
+    return { stopId, ...(arrival ? { arrival } : {}), ...(departure ? { departure } : {}) };
+  }).filter(Boolean);
+}
+
+function legStatusFromLeg(legId, leg, source) {
+  const departureDelaySeconds = signedDurationSeconds(leg.start?.estimated?.delay);
+  const arrivalDelaySeconds = signedDurationSeconds(leg.end?.estimated?.delay);
+  return {
+    legId, realtimeState: safeText(leg.realtimeState),
+    startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
+    scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null,
+    ...(departureDelaySeconds === null ? {} : { departureDelaySeconds }),
+    ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }),
+    intermediateStops: intermediateLegStops(leg.intermediatePlaces),
+    source,
+  };
+}
+
+function findStoptimeByStopId(stoptimes, stopId) { return stopId ? stoptimes.find((entry) => safeText(entry?.stop?.gtfsId) === stopId) ?? null : null; }
+function instantFromServiceDay(serviceDay, offsetSeconds) {
+  const day = finiteNumber(serviceDay); const offset = finiteNumber(offsetSeconds);
+  return day === null || offset === null ? null : new Date((day + offset) * 1000).toISOString();
+}
+
+/** The same leg status shape, built from a trip's published stop times instead of a live leg. */
+function legStatusFromStoptimes(legId, stoptimes, fromStopId, toStopId) {
+  const boarding = findStoptimeByStopId(stoptimes, fromStopId); const alighting = findStoptimeByStopId(stoptimes, toStopId);
+  if (!boarding || !alighting) return null;
+  const departureDelaySeconds = signedDurationSeconds(boarding.departureDelay);
+  const arrivalDelaySeconds = signedDurationSeconds(alighting.arrivalDelay);
+  return {
+    legId, realtimeState: safeText(boarding.realtimeState) ?? safeText(alighting.realtimeState),
+    startTime: instantFromServiceDay(boarding.serviceDay, boarding.realtimeDeparture),
+    endTime: instantFromServiceDay(alighting.serviceDay, alighting.realtimeArrival),
+    scheduledStartTime: instantFromServiceDay(boarding.serviceDay, boarding.scheduledDeparture),
+    scheduledEndTime: instantFromServiceDay(alighting.serviceDay, alighting.scheduledArrival),
+    ...(departureDelaySeconds === null ? {} : { departureDelaySeconds }),
+    ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }),
+    intermediateStops: [],
+    source: "trip-stoptimes",
+  };
+}
+
+async function resolveLegStatus(entry, deadline, otpUrl) {
+  const legId = safeText(entry?.legId);
+  if (!legId) return { legId: entry?.legId ?? null, error: "unavailable" };
+  let leg = null;
+  try {
+    const remaining = remainingMs(deadline);
+    if (remaining <= 0) throw new Error("deadline exceeded");
+    const data = await queryOtp(otpUrl, remaining, LEG_STATUS, { id: legId.slice(0, 200) });
+    leg = data?.leg ?? null;
+  } catch { leg = null; }
+  if (leg) return legStatusFromLeg(legId, leg, "leg-refetch");
+  const tripId = safeText(entry?.tripId); const serviceDate = safeText(entry?.serviceDate);
+  if (tripId && serviceDate) {
+    try {
+      const remaining = remainingMs(deadline);
+      if (remaining <= 0) throw new Error("deadline exceeded");
+      const data = await queryOtp(otpUrl, remaining, TRIP_STOPTIMES_FOR_DATE, { id: tripId.slice(0, 200), date: serviceDate.slice(0, 8) });
+      const stoptimes = Array.isArray(data?.trip?.stoptimesForDate) ? data.trip.stoptimesForDate : [];
+      const status = legStatusFromStoptimes(legId, stoptimes, safeText(entry?.fromStopId), safeText(entry?.toStopId));
+      if (status) return status;
+    } catch { /* falls through to the shared unavailable result below */ }
+  }
+  return { legId, error: "unavailable" };
+}
+
+/** Re-checks a bounded batch of already-planned legs against OTP, in parallel, within one deadline. */
+export const MAX_LIVE_REFRESH_MS = 15_000;
+export async function liveLegStatusWithOtp({ otpUrl, timeoutMs = MAX_LIVE_REFRESH_MS, legs }) {
+  const requested = (Array.isArray(legs) ? legs : []).slice(0, MAX_LIVE_LEGS);
+  const deadline = Date.now() + Math.min(MAX_LIVE_REFRESH_MS, Math.max(0, finiteNumber(timeoutMs, 0)));
+  const resolved = await mapWithConcurrency(requested, LIVE_LEG_CONCURRENCY, (entry) => resolveLegStatus(entry, deadline, otpUrl));
+  return { checkedAt: new Date().toISOString(), legs: resolved };
 }
 
 export const graphqlDocument = GRAPHQL;

@@ -4,16 +4,19 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { rapidTransitStations } from "./stop-routes.mjs";
-import { blockPredecessorWithOtp, departuresWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
+import { blockPredecessorWithOtp, departuresWithOtp, liveLegStatusWithOtp, otpReady, planWithOtp, tripStopTimesWithOtp } from "./otp-client.mjs";
+import { liveCoverage } from "./live-coverage.mjs";
 import { applyWashroomPreference, resolvedWashroomRegistry, washroomForPublishedPlace } from "./washrooms.mjs";
 import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
 import { publishedStopForId, routeStopAnchors } from "./stop-routes.mjs";
 import { planWithRequiredLine } from "./required-line.mjs";
 import { planWashroomDetour } from "./washroom-detour.mjs";
+import { collectorSnapshot, interceptCandidates, isServiceDate } from "./catch-vehicle.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
 const otpUrl = process.env.OTP_URL ?? config.otpUrl;
+const sourceProvenance = /^[a-f0-9]{40}$/.test(process.env.SOURCE_COMMIT ?? "") ? { sourceCommit: process.env.SOURCE_COMMIT } : {};
 const max = config.maxBodyBytes;
 const json = (res, status, body) => { res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }); res.end(JSON.stringify(body)); };
 const readBody = (req) => new Promise((resolve, reject) => {
@@ -99,12 +102,49 @@ async function attachBlockPredecessors(itineraries, atMillis) {
   }
 }
 
+const MAX_LIVE_LEGS = 40;
+const shortString = (value, maxBytes) => typeof value === "string" && value.length > 0 && Buffer.byteLength(value, "utf8") <= maxBytes && !/[\u0000-\u001f\u007f]/.test(value);
+function liveLegRequest(raw, index) {
+  if (!raw || typeof raw !== "object") throw new Error(`legs[${index}] must be an object`);
+  if (!shortString(raw.legId, 200)) throw new Error(`legs[${index}].legId must be a non-empty string of at most 200 bytes`);
+  const entry = { legId: raw.legId };
+  if (raw.tripId != null) {
+    const tripId = qualifiedStopLocationId(raw.tripId);
+    if (!tripId) throw new Error(`legs[${index}].tripId must be a qualified identifier`);
+    entry.tripId = tripId;
+  }
+  if (raw.serviceDate != null) {
+    if (!isServiceDate(raw.serviceDate)) throw new Error(`legs[${index}].serviceDate must be a real YYYYMMDD date`);
+    entry.serviceDate = raw.serviceDate;
+  }
+  if (raw.fromStopId != null) {
+    if (!shortString(raw.fromStopId, 200)) throw new Error(`legs[${index}].fromStopId must be a string of at most 200 bytes`);
+    entry.fromStopId = raw.fromStopId;
+  }
+  if (raw.toStopId != null) {
+    if (!shortString(raw.toStopId, 200)) throw new Error(`legs[${index}].toStopId must be a string of at most 200 bytes`);
+    entry.toStopId = raw.toStopId;
+  }
+  return entry;
+}
+function parseLiveLegRequests(raw) {
+  if (!Array.isArray(raw)) throw new Error("legs must be an array");
+  if (raw.length > MAX_LIVE_LEGS) throw new Error("legs may contain at most 40 entries");
+  return raw.map((entry, index) => liveLegRequest(entry, index));
+}
+/** Whether OTP actually applied a live update to any of an itinerary's legs, and which agencies supplied it. */
+function annotateItineraryRealtime(itinerary) {
+  const activeLegs = (itinerary.legs ?? []).filter((leg) => leg.realtimeState && leg.realtimeState !== "SCHEDULED");
+  itinerary.realtime = { applied: activeLegs.length > 0, agencies: [...new Set(activeLegs.map((leg) => leg.agencyFeedId).filter(Boolean))] };
+  return itinerary;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, "http://localhost");
     if (req.method === "GET" && url.pathname === "/health") {
-      try { const ready = await otpReady({ otpUrl }); return json(res, ready ? 200 : 503, { ok: ready, service: "gtha-transit-routing", router: ready ? "ready" : "unavailable" }); }
-      catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE" }); }
+      try { const ready = await otpReady({ otpUrl }); return json(res, ready ? 200 : 503, { ok: ready, service: "gtha-transit-routing", router: ready ? "ready" : "unavailable", ...sourceProvenance }); }
+      catch { return json(res, 503, { ok: false, service: "gtha-transit-routing", router: "unavailable", code: "ROUTER_UNAVAILABLE", ...sourceProvenance }); }
     }
     if (req.method === "GET" && url.pathname === "/api/places") {
       const date = url.searchParams.get("date");
@@ -134,6 +174,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, await rapidTransitStations());
     }
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
+    if (req.method === "GET" && url.pathname === "/api/live-coverage") return json(res, 200, liveCoverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
       try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }
       catch { return json(res, 200, { metrolinx: { configured: false, agencies: [{ id: "go", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }, { id: "up", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }] } }); }
@@ -162,6 +203,23 @@ const server = http.createServer(async (req, res) => {
       const stopId = url.searchParams.get("stopId"); if (!stopId) throw new Error("stopId is required");
       return json(res, 200, await departuresWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, stopId, startTime: url.searchParams.get("startTime"), timeRange: url.searchParams.get("timeRange"), maxResults: config.maxResults }));
     }
+    if (req.method === "GET" && url.pathname === "/api/trip-times") {
+      const tripId = qualifiedStopLocationId(url.searchParams.get("tripId")); const serviceDate = url.searchParams.get("date");
+      if (!tripId) throw new Error("tripId must be a qualified identifier");
+      if (!isServiceDate(serviceDate)) throw new Error("date must be a real YYYYMMDD date");
+      const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, tripId, serviceDate });
+      return json(res, trip ? 200 : 404, trip ?? { error: "trip not found", code: "TRIP_NOT_FOUND" });
+    }
+    if (req.method === "POST" && url.pathname === "/api/internal/vehicles/upcoming") {
+      let input; try { input = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: "request body must be valid JSON", code: "INVALID_COLLECTOR_SNAPSHOT" }); }
+      const snapshot = collectorSnapshot(input);
+      if (!snapshot) return json(res, 400, { error: "a fresh exact collector trip snapshot is required", code: "INVALID_COLLECTOR_SNAPSHOT" });
+      const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: Math.min(config.requestTimeoutMs, 8_000), tripId: snapshot.tripId, serviceDate: snapshot.serviceDate });
+      if (!trip || trip.id !== snapshot.tripId) return json(res, 200, { state: "unavailable", code: "TRIP_NOT_FOUND", fetchedAt: new Date().toISOString(), vehicle: snapshot, candidates: [] });
+      const feedPrefix = snapshot.tripId.slice(0, snapshot.tripId.indexOf(":") + 1);
+      const candidates = interceptCandidates({ stops: trip.stops.filter((stop) => stop.id.startsWith(feedPrefix)), nextStopId: snapshot.nextStopId });
+      return json(res, 200, { state: candidates.length ? "live" : "trip-ended", fetchedAt: new Date().toISOString(), vehicle: snapshot, trip: { id: trip.id, headsign: trip.headsign, routeId: trip.routeId }, candidates });
+    }
     if (req.method === "POST" && url.pathname === "/api/plan") {
       const input = JSON.parse(await readBody(req));
       const from = coordinates(input.from, "from"); const to = coordinates(input.to, "to");
@@ -171,13 +229,23 @@ const server = http.createServer(async (req, res) => {
       const via = await resolveViaPlaces(input.via, { date: calendarDateInTimeZone(dateTime, provenance.timezone ?? "America/Toronto") });
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking", "waiting"].includes(preference)) throw new Error("preference must be fastest, transfers, walking, or waiting");
-      const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults };
+      const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults, allowDirectWalking: input.allowDirectWalking === true };
       const result = input.requiredRoute != null ? await planWithRequiredLine({ ...request, requiredRoute: input.requiredRoute }, { planWithOtp, routeStopAnchors }) : await planWithOtp(request);
       if (input.requiredRoute != null && !result.itineraries.length) return json(res, 422, { error: "No complete journey riding the selected line was found in this bounded search", code: "REQUIRED_LINE_UNRESOLVED", requiredLine: result.requiredLine, itineraries: [], data: provenance });
       if (via.length && !result.itineraries.length) return json(res, 422, { error: "No complete itinerary visits every requested stop", code: "MULTI_STOP_INCOMPLETE", itineraries: [], failedSegment: result.failedSegment ?? null, data: provenance, coverage: coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
       const preferred = await applyWashroomPreference(result.itineraries, Boolean(input.preferWashrooms));
       await attachBlockPredecessors(preferred.itineraries, Date.parse(dateTime));
-      return json(res, 200, { ...preferred, requiredLine: result.requiredLine ?? null, data: provenance, coverage: result.itineraries.length ? null : coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
+      preferred.itineraries.forEach(annotateItineraryRealtime);
+      return json(res, 200, { ...preferred, requiredLine: result.requiredLine ?? null, data: provenance, coverage: result.itineraries.length ? null : coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)), liveCoverage: liveCoverage() });
+    }
+    if (req.method === "POST" && url.pathname === "/api/journeys/live") {
+      let liveInput;
+      try { liveInput = JSON.parse(await readBody(req)); }
+      catch { return json(res, 400, { error: "request body must be valid JSON", code: "INVALID_LIVE_REQUEST" }); }
+      let legs;
+      try { legs = parseLiveLegRequests(liveInput?.legs); }
+      catch (error) { return json(res, 400, { error: String(error.message ?? error), code: "INVALID_LIVE_REQUEST" }); }
+      return json(res, 200, await liveLegStatusWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, legs }));
     }
     if (req.method === "POST" && url.pathname === "/api/plan-washroom-detour") {
       const input = JSON.parse(await readBody(req));
@@ -191,5 +259,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 const port = Number(process.env.PORT ?? 8787);
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) server.listen(port, process.env.HOST ?? "0.0.0.0", () => console.log(`routing backend listening on port ${port}`));
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) server.listen(port, process.env.HOST ?? "0.0.0.0", () => console.log(`routing backend listening on port ${server.address().port}`));
 export { server };

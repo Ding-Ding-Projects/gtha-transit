@@ -955,7 +955,7 @@ export default function LiveFollower({
                       : stop.minutesAway === 1
                         ? t('1 min', '1 分鐘')
                         : t(`${stop.minutesAway} min`, `${stop.minutesAway} 分鐘`)}
-                  {stop.basis === 'estimated' && <small>{t('live estimate', '即時預計')}</small>}
+                  {stop.basis === 'estimated' && <small>{t('live estimate', '即時預計')}{typeof stop.delaySeconds === 'number' && Math.abs(stop.delaySeconds) >= 60 ? t(` · ${Math.round(Math.abs(stop.delaySeconds) / 60)} min ${stop.delaySeconds < 0 ? 'early' : 'late'}`, ` · ${stop.delaySeconds < 0 ? '早' : '遲'} ${Math.round(Math.abs(stop.delaySeconds) / 60)} 分鐘`) : ''}{ridingLeg?.liveCheckedAt && now - ridingLeg.liveCheckedAt > 120_000 ? t(' · stale', ' · 已過時') : ''}</small>}
                   {stop.basis === 'scheduled' && <small>{t('timetable', '時間表')}</small>}
                 </span>
               </li>
