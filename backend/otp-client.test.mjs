@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { blockPredecessorWithOtp, orderBlockTrips, planModes, planWithOtp, serviceDateOf } from "./otp-client.mjs";
+import { LIVE_COVERAGE } from "./live-coverage.mjs";
 
 const input = (overrides = {}) => ({
   otpUrl: "http://otp.example",
@@ -205,4 +207,15 @@ test("a previous trip with no published stop times chains nothing", async () => 
     ["TripTimes", { trip: { gtfsId: "ttc:a", stoptimesForDate: [] } }],
   ]);
   assert.deepEqual(result, { blockId: "680880", reason: "no-published-times-for-previous-trip" });
+});
+
+test("live coverage's applied feeds are exactly the router config's stop-time-updater feeds", async () => {
+  const routerConfig = JSON.parse(await readFile(new URL("./otp/router-config.json", import.meta.url), "utf8"));
+  const expectedApplied = routerConfig.updaters.filter((updater) => updater.type === "stop-time-updater").map((updater) => updater.feedId).sort();
+  const actualApplied = Object.entries(LIVE_COVERAGE.feeds).filter(([, feed]) => feed.state === "applied").map(([feedId]) => feedId).sort();
+  assert.deepEqual(actualApplied, expectedApplied);
+  // The two must never silently diverge: an updater added to the router
+  // config without a matching static feed id would otherwise vanish here
+  // instead of failing loudly.
+  for (const feedId of expectedApplied) assert.ok(Object.hasOwn(LIVE_COVERAGE.feeds, feedId), `${feedId} is a stop-time-updater but has no entry in data/feeds.json`);
 });

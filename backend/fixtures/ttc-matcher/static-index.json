@@ -1,0 +1,64 @@
+{
+  "note": "Synthetic fixture for backend/ttc-trip-matcher.test.mjs, shaped like the staticIndex the matcher builds from OpenTripPlanner. Two routes, three trips each, ten-minute headways, three stops per trip five minutes apart. scheduledAt is epoch seconds built from an arbitrary anchor (1800000000) rather than a real calendar date, since only the relative differences between values matter to the matching algorithm.",
+  "serviceDate": "20260909",
+  "routes": {
+    "501": [
+      {
+        "gtfsId": "ttc-next:trip-501-A",
+        "routeGtfsId": "ttc-next:501",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:1001", "lat": 43.7000, "lon": -79.4000, "scheduledAt": 1800000000 },
+          { "seq": 2, "stopId": "ttc-next:1002", "lat": 43.7050, "lon": -79.4000, "scheduledAt": 1800000300 },
+          { "seq": 3, "stopId": "ttc-next:1003", "lat": 43.7100, "lon": -79.4000, "scheduledAt": 1800000600 }
+        ]
+      },
+      {
+        "gtfsId": "ttc-next:trip-501-B",
+        "routeGtfsId": "ttc-next:501",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:1001", "lat": 43.7000, "lon": -79.4000, "scheduledAt": 1800000600 },
+          { "seq": 2, "stopId": "ttc-next:1002", "lat": 43.7050, "lon": -79.4000, "scheduledAt": 1800000900 },
+          { "seq": 3, "stopId": "ttc-next:1003", "lat": 43.7100, "lon": -79.4000, "scheduledAt": 1800001200 }
+        ]
+      },
+      {
+        "gtfsId": "ttc-next:trip-501-C",
+        "routeGtfsId": "ttc-next:501",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:1001", "lat": 43.7000, "lon": -79.4000, "scheduledAt": 1800001200 },
+          { "seq": 2, "stopId": "ttc-next:1002", "lat": 43.7050, "lon": -79.4000, "scheduledAt": 1800001500 },
+          { "seq": 3, "stopId": "ttc-next:1003", "lat": 43.7100, "lon": -79.4000, "scheduledAt": 1800001800 }
+        ]
+      }
+    ],
+    "502": [
+      {
+        "gtfsId": "ttc-next:trip-502-A",
+        "routeGtfsId": "ttc-next:502",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:2001", "lat": 43.8000, "lon": -79.5000, "scheduledAt": 1800000000 },
+          { "seq": 2, "stopId": "ttc-next:2002", "lat": 43.8050, "lon": -79.5000, "scheduledAt": 1800000300 },
+          { "seq": 3, "stopId": "ttc-next:2003", "lat": 43.8100, "lon": -79.5000, "scheduledAt": 1800000600 }
+        ]
+      },
+      {
+        "gtfsId": "ttc-next:trip-502-B",
+        "routeGtfsId": "ttc-next:502",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:2001", "lat": 43.8000, "lon": -79.5000, "scheduledAt": 1800000600 },
+          { "seq": 2, "stopId": "ttc-next:2002", "lat": 43.8050, "lon": -79.5000, "scheduledAt": 1800000900 },
+          { "seq": 3, "stopId": "ttc-next:2003", "lat": 43.8100, "lon": -79.5000, "scheduledAt": 1800001200 }
+        ]
+      },
+      {
+        "gtfsId": "ttc-next:trip-502-C",
+        "routeGtfsId": "ttc-next:502",
+        "stops": [
+          { "seq": 1, "stopId": "ttc-next:2001", "lat": 43.8000, "lon": -79.5000, "scheduledAt": 1800001200 },
+          { "seq": 2, "stopId": "ttc-next:2002", "lat": 43.8050, "lon": -79.5000, "scheduledAt": 1800001500 },
+          { "seq": 3, "stopId": "ttc-next:2003", "lat": 43.8100, "lon": -79.5000, "scheduledAt": 1800001800 }
+        ]
+      }
+    ]
+  }
+}

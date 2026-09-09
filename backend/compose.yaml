@@ -6,11 +6,33 @@ services:
     mem_limit: 9g
     restart: unless-stopped
     volumes: ["./runtime/otp:/var/otp:ro"]
-  api:
+  # The public routing API (server.mjs) runs on a separate host, not here. This
+  # host only needs to feed OTP's own stop-time-updaters, which reach the
+  # Metrolinx key through this proxy at the service alias "api" - the alias
+  # keeps router-config.json's existing updater URLs resolving unchanged.
+  metrolinx-proxy:
     build: {context: .., dockerfile: backend/Dockerfile}
-    ports: ["${ROUTING_BIND_ADDRESS:-127.0.0.1}:8787:8787"]
+    command: ["node", "metrolinx-proxy.mjs"]
+    expose: ["8788"]
+    restart: unless-stopped
+    environment: {METROLINX_KEY_FILE: /run/secrets/metrolinx-api-key}
+    volumes: ["./runtime/secrets:/run/secrets:ro"]
+    networks: {default: {aliases: [api]}}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8788/internal/metrolinx/status').then(r=>r.json()).then(j=>{if(j.credential!=='readable')process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+  # Joins the TTC's live vehicle positions to the loaded timetable by a
+  # verified method other than identifier matching (see
+  # docs/vehicles/trip-identifiers.md). Setting TTC_MATCHER_URL to this
+  # service on the routing-API host is what flips backend/live-coverage.mjs's
+  # TTC state from "published-unjoinable" to "shadow".
+  ttc-matcher:
+    build: {context: .., dockerfile: backend/Dockerfile}
+    command: ["node", "ttc-trip-matcher.mjs"]
+    expose: ["8790"]
+    environment: {OTP_URL: "http://otp:8080", TTC_MATCHER_PORT: "8790"}
     restart: unless-stopped
     depends_on: [otp]
-    expose: ["8788"]
-    environment: {METROLINX_KEY_FILE: /run/secrets/metrolinx-api-key}
-    volumes: ["./runtime/feeds/manifest.json:/data/feeds/manifest.json:ro", "./runtime/otp/graph-provenance.json:/data/graph-provenance.json:ro", "./runtime/secrets:/run/secrets:ro"]
