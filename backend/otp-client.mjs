@@ -282,8 +282,10 @@ const ROUTE_BLOCK_TRIPS = `query RouteBlockTrips($id:String!) {
     arrivalStoptime { scheduledArrival serviceDay } } } }
 }`;
 const TRIP_SHAPE_TIMES = `query TripTimes($id:String!,$date:String!) {
-  trip(id:$id) { gtfsId stoptimesForDate(serviceDate:$date) {
-    scheduledArrival scheduledDeparture serviceDay stop { gtfsId name lat lon } } }
+  trip(id:$id) { gtfsId headsign route { gtfsId shortName longName agency { gtfsId name } }
+    stoptimesForDate(serviceDate:$date) {
+      scheduledArrival scheduledDeparture realtimeArrival realtimeDeparture arrivalDelay departureDelay realtime realtimeState serviceDay
+      stop { gtfsId name lat lon } } }
 }`;
 
 const MAX_BLOCK_STOPS = 200;
@@ -348,6 +350,39 @@ export async function blockPredecessorWithOtp({ otpUrl, timeoutMs, tripId, route
     scope: "same-route-only",
     stops,
   };
+}
+
+/**
+ * Published times for one exact scheduled trip and service date.
+ *
+ * The caller must already hold the qualified trip identifier from a trusted
+ * collector.  This does not accept a route name or a vehicle label, because
+ * either would let a client turn an observation into an invented assignment.
+ */
+export async function tripStopTimesWithOtp({ otpUrl, timeoutMs, tripId, serviceDate }) {
+  const id = qualifiedStopLocationId(tripId);
+  const date = typeof serviceDate === "string" && /^\d{8}$/.test(serviceDate) ? serviceDate : null;
+  if (!id || !date) return null;
+  const data = await queryOtp(otpUrl, timeoutMs, TRIP_SHAPE_TIMES, { id, date });
+  const trip = data?.trip;
+  if (!trip) return null;
+  const stops = (Array.isArray(trip.stoptimesForDate) ? trip.stoptimesForDate : []).slice(0, MAX_BLOCK_STOPS).map((entry, index) => {
+    const stopId = safeText(entry?.stop?.gtfsId); const lat = finiteNumber(entry?.stop?.lat); const lon = finiteNumber(entry?.stop?.lon);
+    const serviceDay = finiteNumber(entry?.serviceDay);
+    if (!stopId || lat === null || lon === null || serviceDay === null) return null;
+    const scheduledArrival = instantFromServiceDay(serviceDay, entry.scheduledArrival);
+    const scheduledDeparture = instantFromServiceDay(serviceDay, entry.scheduledDeparture);
+    const realtimeArrival = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeArrival) : null;
+    const realtimeDeparture = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeDeparture) : null;
+    const arrivalDelaySeconds = signedDurationSeconds(entry.arrivalDelay);
+    const departureDelaySeconds = signedDurationSeconds(entry.departureDelay);
+    return { id: stopId, name: safeText(entry.stop.name) ?? "", lat, lon, index,
+      ...(scheduledArrival ? { scheduledArrivalAt: scheduledArrival } : {}), ...(scheduledDeparture ? { scheduledDepartureAt: scheduledDeparture } : {}),
+      ...(realtimeArrival ? { arrivalAt: realtimeArrival } : {}), ...(realtimeDeparture ? { departureAt: realtimeDeparture } : {}),
+      ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }), ...(departureDelaySeconds === null ? {} : { departureDelaySeconds }),
+      realtimeState: safeText(entry.realtimeState) ?? "SCHEDULED" };
+  }).filter(Boolean);
+  return { id: safeText(trip.gtfsId) ?? id, serviceDate: date, headsign: safeText(trip.headsign), routeId: safeText(trip.route?.gtfsId), route: safeText(trip.route?.shortName ?? trip.route?.longName), agency: safeText(trip.route?.agency?.name), stops };
 }
 
 export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, timeRange = 7200, maxResults = 25 }) {
@@ -474,9 +509,10 @@ async function resolveLegStatus(entry, deadline, otpUrl) {
 }
 
 /** Re-checks a bounded batch of already-planned legs against OTP, in parallel, within one deadline. */
-export async function liveLegStatusWithOtp({ otpUrl, timeoutMs, legs }) {
+export const MAX_LIVE_REFRESH_MS = 15_000;
+export async function liveLegStatusWithOtp({ otpUrl, timeoutMs = MAX_LIVE_REFRESH_MS, legs }) {
   const requested = (Array.isArray(legs) ? legs : []).slice(0, MAX_LIVE_LEGS);
-  const deadline = Date.now() + Math.max(0, finiteNumber(timeoutMs, 0));
+  const deadline = Date.now() + Math.min(MAX_LIVE_REFRESH_MS, Math.max(0, finiteNumber(timeoutMs, 0)));
   const resolved = await mapWithConcurrency(requested, LIVE_LEG_CONCURRENCY, (entry) => resolveLegStatus(entry, deadline, otpUrl));
   return { checkedAt: new Date().toISOString(), legs: resolved };
 }

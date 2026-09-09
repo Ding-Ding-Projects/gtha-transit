@@ -28,7 +28,7 @@ const SHADOW_CANDIDATE_FEED_IDS = new Set(["ttc", "ttc-next"]);
 function appliedFeeds() {
   const applied = new Map();
   for (const updater of routerConfig.updaters ?? []) {
-    if (updater.type === "stop-time-updater" && updater.feedId) applied.set(updater.feedId, { state: "applied", source: updater.url, frequency: updater.frequency });
+    if (updater.type === "stop-time-updater" && updater.feedId) applied.set(updater.feedId, { state: "applied", frequency: updater.frequency });
   }
   return applied;
 }
