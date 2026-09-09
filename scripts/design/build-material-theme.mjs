@@ -24,6 +24,11 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inGamut, oklabToOklch, oklabToRgbTriple, oklchToOklab, toLinear, tripleToOklab } from '../../lib/colour.ts';
+import { palette as sharedPalette, schemeForSeed, toneOf as sharedToneOf } from '../../lib/appearance/token-scheme.mjs';
+
+// Keep this script's public helpers stable for existing test imports while the
+// browser-safe module becomes the shared API for runtime appearance overrides.
+export { sharedPalette as palette, schemeForSeed, sharedToneOf as toneOf };
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT = path.resolve(here, '..', '..', 'app', 'material-theme.css');
@@ -149,12 +154,12 @@ function toneAtHue(hue, sourceChroma, tone) {
   return '#' + rgb.map((channel) => Math.round(channel * 255).toString(16).padStart(2, '0')).join('');
 }
 
-export function toneOf(sourceHex, tone) {
+function toneOf(sourceHex, tone) {
   const [, sourceChroma, hue] = oklabToOklch(rgbToOklab(hexToRgb(sourceHex)));
   return toneAtHue(hue, sourceChroma, tone);
 }
 
-export const palette = (sourceHex) => Object.fromEntries(TONES.map((tone) => [tone, toneOf(sourceHex, tone)]));
+const palette = (sourceHex) => Object.fromEntries(TONES.map((tone) => [tone, toneOf(sourceHex, tone)]));
 
 /** One full status palette per delay-severity hue, at the same tone stops as every other source. */
 const statusPalettes = Object.fromEntries(
