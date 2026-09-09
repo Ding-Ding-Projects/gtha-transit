@@ -276,7 +276,15 @@ export function stripFeedPrefix(id) {
   return separator > 0 ? id.slice(separator + 1) : id;
 }
 
-function numberOr(value, fallback) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+// `Number(null) === 0`, so a naive `Number.isFinite(Number(value)) ? ... : fallback`
+// would silently turn an explicitly-absent field (decoded as `null` for every
+// omitted optional protobuf field - see uint32()/svarint() above) into the
+// number zero instead of falling through to `fallback`. That is reachable in
+// practice: a GTFS-RT publisher may send a StopTimeEvent with a delay but no
+// absolute `time`, or a StopTimeUpdate identified by `stop_id` with no
+// `stop_sequence`, both valid per the GTFS-RT spec. `null`/`undefined` must
+// both mean "not a number" here.
+function numberOr(value, fallback) { if (value === null || value === undefined) return fallback; const n = Number(value); return Number.isFinite(n) ? n : fallback; }
 function predictedTime(update) { const arrival = numberOr(update?.arrival?.time, null); return arrival !== null ? arrival : numberOr(update?.departure?.time, null); }
 
 /**

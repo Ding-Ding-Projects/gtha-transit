@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { blockPredecessorWithOtp, orderBlockTrips, planModes, planWithOtp, serviceDateOf } from "./otp-client.mjs";
+import { blockPredecessorWithOtp, orderBlockTrips, planModes, planWithOtp, serviceDateOf, signedDurationSeconds } from "./otp-client.mjs";
 import { LIVE_COVERAGE } from "./live-coverage.mjs";
 
 const input = (overrides = {}) => ({
@@ -207,6 +207,30 @@ test("a previous trip with no published stop times chains nothing", async () => 
     ["TripTimes", { trip: { gtfsId: "ttc:a", stoptimesForDate: [] } }],
   ]);
   assert.deepEqual(result, { blockId: "680880", reason: "no-published-times-for-previous-trip" });
+});
+
+test("a signed delay is parsed exactly as OTP publishes it, sign on the whole value or on a component", () => {
+  assert.equal(signedDurationSeconds("PT13S"), 13);
+  assert.equal(signedDurationSeconds("-PT26S"), -26);
+  // The sign can sit on the whole ISO-8601 duration ("-PT26S" above) or on one
+  // component instead ("PT-1M-30S" = -1 minute and -30 seconds = -90s); both
+  // are real shapes OTP has been observed to emit for an early trip.
+  assert.equal(signedDurationSeconds("PT-1M-30S"), -90);
+  assert.equal(signedDurationSeconds("PT1H2M3.5S"), 3723.5);
+  // A syntactically valid "P" with no date or time components at all carries
+  // no actual duration and must not silently read as zero seconds late.
+  for (const junk of ["not-a-duration", "P", "PT", "", "   ", "PTS"]) {
+    assert.equal(signedDurationSeconds(junk), null, `expected null for ${JSON.stringify(junk)}`);
+  }
+  assert.equal(signedDurationSeconds(null), null);
+  assert.equal(signedDurationSeconds(undefined), null);
+  assert.equal(signedDurationSeconds(Number.NaN), null);
+  // A bare finite number or numeric string is accepted too, in case a caller
+  // ever stops wrapping a delay in an ISO-8601 duration string.
+  assert.equal(signedDurationSeconds(45), 45);
+  assert.equal(signedDurationSeconds(-45), -45);
+  assert.equal(signedDurationSeconds("45"), 45);
+  assert.equal(signedDurationSeconds("-45.5"), -45.5);
 });
 
 test("live coverage's applied feeds are exactly the router config's stop-time-updater feeds", async () => {
