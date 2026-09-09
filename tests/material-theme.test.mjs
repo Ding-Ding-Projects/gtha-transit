@@ -124,7 +124,7 @@ test('the design system loads before every stylesheet that reads it', () => {
   assert.ok(layout.indexOf("import './shell.css'") > layout.indexOf("import './workspace.css'"));
 });
 
-test('navigation carries four destinations and a More, in one list', () => {
+test('navigation carries the shared destinations in one searchable tab strip', () => {
   // The list moved out to lib/destinations.ts when the command palette arrived,
   // because the rail, the More dialog, the workspace heading and the palette all
   // navigate to the same nine places and each was free to hold its own copy.
@@ -133,9 +133,8 @@ test('navigation carries four destinations and a More, in one list', () => {
   // a second list beside it.
   const ids = [...destinations.matchAll(/\{ id: '([a-z]+)'[^}]*group: 'primary' \}/g)].map((match) => match[1]);
   assert.deepEqual(ids, ['plan', 'status', 'vehicles', 'saved'], 'four destinations earn a permanent place');
-  assert.match(navigation, /aria-haspopup="dialog"/, 'the rest live behind one More target');
-  assert.match(navigation, /^\s*const primary = primaryDestinations\(t\);$/m, 'the rail reads the registry');
-  assert.match(navigation, /^\s*const secondary = secondaryDestinations\(t\);$/m, 'and so does the More dialog');
+  assert.match(navigation, /<TabStrip surface="navigation" tabs=\{workspaceDestinations\(t\)\}/, 'the strip reads the complete registry');
+  assert.doesNotMatch(navigation, /aria-haspopup="dialog"/, 'overflow belongs to the anchored tab tools');
   assert.ok(!/const primary = \[/.test(navigation), 'a second inline list here is the drift the registry prevents');
 });
 

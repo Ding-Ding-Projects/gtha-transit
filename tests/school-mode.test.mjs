@@ -283,7 +283,7 @@ test('the catalog row carries the chosen name, not the shipped one', async () =>
 test('the language tab and its controls are removed rather than disabled', () => {
   const text = source('components', 'settings-workspace.tsx');
   assert.match(text, /^\s*\.\.\.\(school\.on \? \[\] : \[\{ id: 'language',/m, 'the tab itself must leave the strip');
-  assert.match(text, /^\s*\{!school\.on && <TabsContent value="language"/m, 'and its panel with it');
+  assert.match(text, /^\s*\{!school\.on && <section id="settings-panel-language"/m, 'and its panel with it');
   assert.ok(!/disabled=\{school\.on\}/.test(text), 'a disabled control announces what was turned off');
   // Somebody sitting on the Language tab when it goes must land somewhere real.
   assert.match(text, /school\.on && stored === 'language' \? 'appearance' : stored/);

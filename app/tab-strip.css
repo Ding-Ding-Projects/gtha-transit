@@ -1,0 +1,36 @@
+.tab-strip { display: flex; min-width: 0; min-height: 0; gap: 6px; align-items: stretch; }
+.tab-strip[data-dock='left'], .tab-strip[data-dock='right'] { flex-direction: column; }
+.tab-strip__list { display: flex; overflow: auto; min-width: 0; min-height: 0; gap: 4px; scrollbar-width: thin; flex: 1; }
+.tab-strip[data-dock='left'] .tab-strip__list, .tab-strip[data-dock='right'] .tab-strip__list { flex-direction: column; }
+.tab-strip__item { position: relative; display: flex; flex: none; border-radius: var(--md-sys-shape-corner-medium); align-items: stretch; }
+.tab-strip__tab { display: flex; align-items: center; gap: 8px; flex: 1; min-height: 48px; min-width: 0; border: 0; border-radius: var(--md-sys-shape-corner-medium); padding: 10px; background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
+.tab-strip__tab[aria-selected='true'] { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); font-weight: 700; }
+.tab-strip__tab small { font-size: 12px; overflow-wrap: anywhere; }
+.tab-strip__tab:focus-visible, .tab-strip button:focus-visible { outline: 3px solid var(--primary); outline-offset: -3px; }
+.tab-strip__manage, .tab-strip__drag, .tab-strip__overflow { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; background: var(--surface2); border: 0; border-radius: var(--md-sys-shape-corner-medium); color: var(--text); cursor: pointer; }
+.tab-strip__drag { touch-action: none; cursor: grab; }
+.tab-strip__popup { width: min(540px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: var(--md-sys-elevation-level3); }
+.tab-strip__popup:popover-open { display: block; }
+.tab-strip__popup header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tab-strip__popup h2 { margin: 0; font-size: 22px; }
+.tab-strip__popup button { min-height: 44px; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; color: var(--text); background: var(--surface2); cursor: pointer; margin: 3px; }
+.tab-strip__popup button:disabled { opacity: .5; cursor: default; }
+.tab-strip__popup input:not([type='checkbox']):not([type='radio']) { display: block; min-height: 44px; max-width: 100%; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.tab-strip__popup fieldset { min-width: 0; border: 1px solid var(--border); border-radius: 14px; margin-top: 16px; padding: 12px; }
+.tab-strip__popup label { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; padding: 4px; flex-wrap: wrap; font-size: 14px; }
+.tab-strip__popup summary { min-height: 44px; padding: 14px 0; cursor: pointer; font-weight: 700; }
+.tab-strip__results { display: grid; gap: 4px; }
+.tab-strip__results button { display: flex; justify-content: space-between; gap: 16px; text-align: left; }
+.tab-strip__results small { color: var(--muted); }
+.settings-tabs { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 20px; }
+.settings-tabs > .tab-strip { grid-column: 1; grid-row: 1; align-self: start; max-height: 70dvh; }
+.settings-tabs > .settings-section { grid-column: 2; grid-row: 1; min-width: 0; }
+.settings-tabs:has(> .tab-strip[data-dock='right']) { grid-template-columns: minmax(0,1fr) minmax(150px,220px); }
+.settings-tabs:has(> .tab-strip[data-dock='right']) > .tab-strip { grid-column: 2; }
+.settings-tabs:has(> .tab-strip[data-dock='right']) > .settings-section { grid-column: 1; }
+.settings-tabs:has(> .tab-strip[data-dock='top']), .settings-tabs:has(> .tab-strip[data-dock='bottom']) { grid-template-columns: minmax(0,1fr); }
+.settings-tabs:has(> .tab-strip[data-dock='top']) > .settings-section { grid-column: 1; grid-row: 2; }
+.settings-tabs:has(> .tab-strip[data-dock='bottom']) > .tab-strip { grid-row: 2; }
+.settings-tabs:has(> .tab-strip[data-dock='bottom']) > .settings-section { grid-column: 1; grid-row: 1; }
+.settings-tabs > .settings-section[hidden] { display: none !important; }
+@media (max-width: 650px) { .settings-tabs { display: block !important; }.settings-tabs > .tab-strip { max-height: 220px; margin-bottom: 20px; }.tab-strip__drag { display: none; } }
