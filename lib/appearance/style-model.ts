@@ -2,7 +2,7 @@ import { RAINBOW, parseColour } from '../colour.ts';
 import { MAX_ELEMENTS, MAX_LAYERS, type UiState } from './document.ts';
 import { appearanceElement } from './elements.ts';
 
-export const STYLE_PROPS = ['color', 'background-color', 'border-color', 'outline-color', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'border-radius', 'opacity'] as const;
+export const STYLE_PROPS = ['color', 'background-color', 'border-color', 'outline-color', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'border-radius', 'opacity', 'border-width', 'border-style', 'padding', 'margin', 'box-shadow', 'text-shadow', 'background-image', 'transform'] as const;
 export type StyleProp = (typeof STYLE_PROPS)[number];
 export type ElementStyle = Partial<Record<StyleProp, string>>;
 export type ElementOverride = { id: string; states: Partial<Record<UiState, ElementStyle>> };
@@ -10,12 +10,13 @@ export type ElementOverride = { id: string; states: Partial<Record<UiState, Elem
 const PROPERTY_SET = new Set<string>(STYLE_PROPS);
 const SAFE_VALUE = /^[\w\s#(),.%+\-/'"!]+$/u;
 
-export function sanitiseStyle(style: unknown): ElementStyle {
+export function sanitiseStyle(style: unknown, maximumValueLength = 200): ElementStyle {
   if (!style || typeof style !== 'object' || Array.isArray(style)) return {};
   const result: ElementStyle = {};
   for (const [property, value] of Object.entries(style as Record<string, unknown>)) {
     if (!PROPERTY_SET.has(property) || typeof value !== 'string') continue;
-    const cleaned = value.trim().slice(0, 200);
+    const cleaned = value.trim();
+    if (cleaned.length > maximumValueLength) continue;
     if (!cleaned || !SAFE_VALUE.test(cleaned) || /url\s*\(|expression\s*\(|@import|[{};]/iu.test(cleaned)) continue;
     if (property.endsWith('color') && cleaned !== RAINBOW && parseColour(cleaned) === null) continue;
     result[property as StyleProp] = cleaned;
@@ -62,13 +63,13 @@ function declarations(style: ElementStyle): string {
 }
 
 /** Compile only registered data-ui identifiers. No caller supplied selector is accepted. */
-export function compileOverride(override: ElementOverride): string {
+export function compileOverride(override: ElementOverride, maximumValueLength = 200): string {
   if (!appearanceElement(override.id)) return '';
   return (Object.entries(override.states) as [UiState, ElementStyle][])
-    .map(([state, style]) => { const body = declarations(sanitiseStyle(style)); return body ? `${selector(override.id, state)}{${body}}` : ''; })
+    .map(([state, style]) => { const body = declarations(sanitiseStyle(style, maximumValueLength)); return body ? `${selector(override.id, state)}{${body}}` : ''; })
     .join('');
 }
 
 export function compileOverrides(value: unknown): string {
-  return sanitiseOverrides(value).slice(0, MAX_LAYERS).map(compileOverride).join('');
+  return sanitiseOverrides(value).slice(0, MAX_ELEMENTS).map(override => compileOverride(override)).join('');
 }

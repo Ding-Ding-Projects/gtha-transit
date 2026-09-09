@@ -1,8 +1,9 @@
 import { MAX_ELEMENTS, MAX_LAYERS, UI_STATES, type UiState } from './document.ts';
 import { sanitiseOverrides, type ElementOverride, type ElementStyle } from './style-model.ts';
+import { appearanceElement } from './elements.ts';
 
 export type LayerKind = 'fill' | 'border' | 'shadow' | 'glow';
-export type AppearanceLayer = { id: string; kind: LayerKind; name: string; visible: boolean; locked: boolean; opacity: number; value: string };
+export type AppearanceLayer = { id: string; kind: LayerKind; name: string; visible: boolean; locked: boolean; opacity: number; value: string; elementId?: string; state?: UiState };
 export type ElementAppearanceDocument = { version: 1; overrides: ElementOverride[]; layers: AppearanceLayer[] };
 const KINDS = new Set<LayerKind>(['fill', 'border', 'shadow', 'glow']);
 const LAYER_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
@@ -15,9 +16,12 @@ function text(value: unknown, max: number): string | null {
 function readLayer(value: unknown): AppearanceLayer | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const raw = value as Record<string, unknown>; const id = text(raw.id, 64); const name = text(raw.name, 80); const content = text(raw.value, 200);
-  if (!id || !LAYER_ID.test(id) || !name || !content || typeof raw.kind !== 'string' || !KINDS.has(raw.kind as LayerKind)) return null;
+  if (!id || !LAYER_ID.test(id) || !name || !content || /url\s*\(|expression\s*\(|@import/i.test(content) || typeof raw.kind !== 'string' || !KINDS.has(raw.kind as LayerKind)) return null;
+  const elementId = typeof raw.elementId === 'string' ? raw.elementId : 'shell';
+  if (!appearanceElement(elementId)) return null;
+  const state = UI_STATES.includes(raw.state as UiState) ? raw.state as UiState : 'normal';
   const opacity = typeof raw.opacity === 'number' && Number.isFinite(raw.opacity) ? Math.min(1, Math.max(0, raw.opacity)) : 1;
-  return { id, kind: raw.kind as LayerKind, name, visible: raw.visible !== false, locked: raw.locked === true, opacity, value: content };
+  return { id, kind: raw.kind as LayerKind, name, visible: raw.visible !== false, locked: raw.locked === true, opacity, value: content, elementId, state };
 }
 export const EMPTY_ELEMENT_DOCUMENT: ElementAppearanceDocument = Object.freeze({ version: 1, overrides: [], layers: [] });
 export function parseElementDocument(rawText: string | null | undefined): ElementAppearanceDocument {

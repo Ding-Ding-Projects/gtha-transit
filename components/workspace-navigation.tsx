@@ -27,6 +27,7 @@ import { primaryDestinations, secondaryDestinations } from '../lib/destinations'
 type Language = 'en' | 'zh' | 'both';
 
 type Props = {
+  appName?: string;
   active: string;
   onChange: (value: string) => void;
   dark: boolean;
@@ -43,7 +44,7 @@ type Props = {
   t: (en: string, zh: string) => string;
 };
 
-export default function WorkspaceNavigation({ active, onChange, dark, onTheme, lang, onLang, t, hideLanguages }: Props) {
+export default function WorkspaceNavigation({ appName, active, onChange, dark, onTheme, lang, onLang, t, hideLanguages }: Props) {
   const [moreOpen, setMoreOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const moreButton = useRef<HTMLButtonElement>(null);
@@ -100,10 +101,10 @@ export default function WorkspaceNavigation({ active, onChange, dark, onTheme, l
   ];
 
   return <>
-    <header className="m3-nav" aria-label={t('Main navigation', '主要導覽')}>
-      <Link href="/" className="m3-nav__brand" aria-label="GTHA Transit">
+    <header className="m3-nav" data-ui="navigation.rail" aria-label={t('Main navigation', '主要導覽')}>
+      <Link href="/" className="m3-nav__brand" aria-label={appName || 'GTHA Transit'} data-ui="brand.mark">
         <BrandMark size={36} />
-        <span className="m3-nav__brand-text">GTHA<span className="brand-light">transit</span></span>
+        <span className="m3-nav__brand-text" data-ui="brand.name">{appName || <>GTHA<span className="brand-light">transit</span></>}</span>
       </Link>
 
       <nav className="m3-nav__items" aria-label={t('Destinations', '目的地')}>

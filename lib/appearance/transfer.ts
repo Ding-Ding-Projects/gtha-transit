@@ -6,10 +6,11 @@ import { parseElementDocument, type AppearanceLayer } from './element-document.t
 export const TRANSFER_VERSION = 1;
 export const MAX_TRANSFER_BYTES = 256 * 1024;
 export type AppearanceTransfer = { version: 1; kind: 'gtha-appearance'; global: AppearanceGlobal; elements: ElementOverride[]; layers: AppearanceLayer[]; presets: AppearancePreset[] };
-export type TransferFailure = 'empty' | 'too-large' | 'invalid-json' | 'wrong-version' | 'wrong-kind' | 'unknown-field';
+export type TransferFailure = 'empty' | 'too-large' | 'invalid-json' | 'wrong-version' | 'wrong-kind' | 'unknown-field' | 'invalid-content';
 export type TransferResult = { ok: true; value: AppearanceTransfer } | { ok: false; reason: TransferFailure };
 
 const KEYS = new Set(['version', 'kind', 'global', 'elements', 'layers', 'presets']);
+const stable = (value: unknown): string => JSON.stringify(value, (_key, entry) => entry && typeof entry === 'object' && !Array.isArray(entry) ? Object.fromEntries(Object.entries(entry).sort(([a],[b]) => a.localeCompare(b))) : entry);
 
 export function exportAppearance(value: Omit<AppearanceTransfer, 'version' | 'kind'>): string {
   const elementDocument = parseElementDocument(JSON.stringify({ version: 1, overrides: value.elements, layers: value.layers }));
@@ -28,6 +29,9 @@ export function importAppearance(text: string | null | undefined): TransferResul
   if (Object.keys(record).some((key) => !KEYS.has(key))) return { ok: false, reason: 'unknown-field' };
   if (record.version !== TRANSFER_VERSION) return { ok: false, reason: 'wrong-version' };
   if (record.kind !== 'gtha-appearance') return { ok: false, reason: 'wrong-kind' };
+  if (!record.global || typeof record.global !== 'object' || Array.isArray(record.global) || (record.global as Record<string, unknown>).version !== 1 || !Array.isArray(record.elements) || !Array.isArray(record.layers) || !Array.isArray(record.presets)) return { ok: false, reason: 'invalid-content' };
   const elementDocument = parseElementDocument(JSON.stringify({ version: 1, overrides: record.elements, layers: record.layers }));
-  return { ok: true, value: { version: 1, kind: 'gtha-appearance', global: parseGlobal(JSON.stringify(record.global)), elements: elementDocument.overrides, layers: elementDocument.layers, presets: normalisePresets(record.presets) } };
+  const global = parseGlobal(JSON.stringify(record.global)), presets = normalisePresets(record.presets);
+  if (stable(record.global) !== stable(global) || stable(record.elements) !== stable(elementDocument.overrides) || stable(record.layers) !== stable(elementDocument.layers) || stable(record.presets) !== stable(presets)) return { ok: false, reason: 'invalid-content' };
+  return { ok: true, value: { version: 1, kind: 'gtha-appearance', global, elements: elementDocument.overrides, layers: elementDocument.layers, presets } };
 }

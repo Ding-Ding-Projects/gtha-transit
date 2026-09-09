@@ -49,7 +49,14 @@ export const UI_ELEMENTS: readonly AppearanceElement[] = Object.freeze([
 
 const elementMap = new Map(UI_ELEMENTS.map((element) => [element.id, element]));
 
+const destinations = ['plan', 'status', 'vehicles', 'saved', 'race', 'divisions', 'history', 'coverage', 'settings'];
+const settings = ['appearance', 'language', 'comfort', 'narrator', 'privacy'];
+for (const [surface, ids] of [['navigation', destinations], ['settings', settings]] as const) {
+  for (const id of ids) elementMap.set(`tab:${surface}:${id}`, { id: `tab:${surface}:${id}`, label: { en: `${surface}: ${id}`, zh: `${surface}: ${id}` }, surface, inherits: 'navigation.destination', states: allStates });
+}
+
 export function appearanceElement(id: string): AppearanceElement | null {
+  if (/^tab-group:(navigation|settings):group-[a-z0-9]{1,48}$/.test(id)) return { id, label: { en: 'Tab group', zh: '分頁群組' }, surface: 'navigation', inherits: 'navigation.rail', states: allStates };
   return elementMap.get(id) ?? null;
 }
 

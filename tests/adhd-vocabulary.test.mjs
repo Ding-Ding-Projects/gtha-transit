@@ -295,10 +295,11 @@ test('the replacer sits inside t, which is the one boundary every surface goes t
    */
   const page = source('app', 'page.tsx');
   assert.match(page, /^\s*const replaceWords = useMemo\(\(\) => buildReplacer\(vocabulary\), \[vocabulary\]\);$/m);
-  assert.match(page, /const line = shownLang === 'zh' \? b : shownLang === 'both'/,
+  assert.match(page, /const originalLine = shownLang === 'zh' \? b : shownLang === 'both'/,
     'and after the language mode and playfulness have chosen the sentence, so it renames what is shown');
   assert.match(page, /\? line : replaceWords\(line\)/, 'the replacement is the last step, on the finished sentence');
-  assert.match(page, /\[shownLang, shownFunEn, shownFunZh, replaceWords, school\]/, 'a stale replacer would keep the previous wording forever');
+  assert.match(page, /const line = appearance\.global\.showEmoji \? originalLine : originalLine\.replace/);
+  assert.match(page, /\[shownLang, shownFunEn, shownFunZh, replaceWords, school, appearance\.global\.showEmoji\]/, 'wording and decoration changes must invalidate the translated result');
 });
 
 test('the cached vocabulary is revalidated rather than trusted', () => {
