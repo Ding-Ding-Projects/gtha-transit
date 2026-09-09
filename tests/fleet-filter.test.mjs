@@ -236,3 +236,54 @@ test('only admits unknown vehicles when requested and never lets unknown overrid
   assert.equal(included.unknownCount, 3);
   assert.equal(included.excludedUnknownCount, 0);
 });
+
+test('electric propulsion filter matches a verified battery-electric or electric (streetcar) vehicle and excludes a known non-electric one', () => {
+  const vehicles = [
+    { id: 'battery-electric', cptdb: { propulsion: 'Battery electric' } },
+    { id: 'streetcar-electric', cptdb: { propulsion: 'Electric' } },
+    { id: 'diesel', cptdb: { propulsion: 'Diesel' } },
+    { id: 'hybrid', cptdb: { propulsion: 'Diesel-electric hybrid' } },
+    { id: 'cng', cptdb: { propulsion: 'Compressed natural gas' } },
+  ];
+  const result = filterFleetVehicles(vehicles, filter({ propulsion: 'electric' }));
+  assert.deepEqual(ids(result), ['battery-electric', 'streetcar-electric']);
+  assert.equal(result.active, true);
+  assert.equal(result.error, null);
+  assert.equal(result.unknownCount, 0);
+  assert.equal(result.excludedUnknownCount, 0);
+});
+
+test('electric propulsion filter treats a missing or unrecognised propulsion as unknown, never as a match, and reports the excluded-unknown count', () => {
+  const vehicles = [
+    { id: 'electric', cptdb: { propulsion: 'Battery electric' } },
+    { id: 'no-propulsion-field', cptdb: { manufacturer: 'Nova Bus' } },
+    { id: 'no-cptdb-at-all' },
+  ];
+  const excluded = filterFleetVehicles(vehicles, filter({ propulsion: 'electric' }));
+  assert.deepEqual(ids(excluded), ['electric']);
+  assert.equal(excluded.unknownCount, 2);
+  assert.equal(excluded.excludedUnknownCount, 2);
+
+  const included = filterFleetVehicles(
+    vehicles,
+    filter({ propulsion: 'electric', includeUnknown: true }),
+  );
+  assert.deepEqual(ids(included), ['electric', 'no-propulsion-field', 'no-cptdb-at-all']);
+  assert.equal(included.unknownCount, 2);
+  assert.equal(included.excludedUnknownCount, 0);
+});
+
+test('a known propulsion mismatch excludes a vehicle even when includeUnknown is set, and never overrides a manufacturer mismatch either way', () => {
+  const vehicles = [
+    { id: 'match', cptdb: { manufacturer: 'New Flyer', propulsion: 'Battery electric' } },
+    { id: 'right-propulsion-wrong-manufacturer', cptdb: { manufacturer: 'Nova Bus', propulsion: 'Battery electric' } },
+    { id: 'right-manufacturer-wrong-propulsion', cptdb: { manufacturer: 'New Flyer', propulsion: 'Diesel' } },
+  ];
+  const result = filterFleetVehicles(
+    vehicles,
+    filter({ manufacturer: 'new flyer', propulsion: 'electric', includeUnknown: true }),
+  );
+  assert.deepEqual(ids(result), ['match']);
+  assert.equal(result.unknownCount, 0);
+  assert.equal(result.excludedUnknownCount, 0);
+});

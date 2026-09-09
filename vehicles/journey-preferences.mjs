@@ -139,7 +139,7 @@ export function applyJourneyPreferences(itineraries, criteria = {}, options = {}
       kept.push({ ...entry, reason: Boolean(options.prefer) && evidence.active && evidence.summary.matched ? 'Preferred because an assigned vehicle leg is a verified match.' : 'Kept without a verified preference boost.' });
     }
   }
-  if (Boolean(options.prefer)) kept.sort((left, right) => Number(right.evidence.active && right.evidence.summary.matched) - Number(left.evidence.active && left.evidence.summary.matched));
+  if (options.prefer) kept.sort((left, right) => Number(right.evidence.active && right.evidence.summary.matched) - Number(left.evidence.active && left.evidence.summary.matched));
   /* Counts of what is still visible after filtering, so a caller can say why
      without re-deriving it from `kept`/`excluded` itself. A kept itinerary
      counts toward `unknownCount` only when it has no verified match either -

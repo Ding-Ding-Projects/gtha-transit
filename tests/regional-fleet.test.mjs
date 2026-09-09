@@ -43,3 +43,29 @@ test('model-designation propulsion facts carry their manufacturer sources and le
   assert.ok(rows.some((row) => row.model === 'XD40' && row.propulsion === undefined));
   assert.ok(rows.some((row) => row.model === 'LFS' && row.propulsion === undefined));
 });
+
+test('every row whose propulsion is read from a model designation cites a manufacturer source with an https URL and a title', () => {
+  let modelDesignationRows = 0;
+  for (const rows of Object.values(REGIONAL_FLEET_RANGES)) {
+    for (const row of rows) {
+      if (row.propulsionBasis !== 'model-designation') continue;
+      modelDesignationRows += 1;
+      const label = `${row.manufacturer} ${row.model} ${row.first}-${row.last}`;
+      assert.ok(row.propulsion, `${label} carries propulsionBasis without a propulsion string`);
+      assert.ok(row.propulsionSource, `${label} carries propulsionBasis without a propulsionSource`);
+      assert.match(row.propulsionSource.url, /^https:\/\//, `${label} propulsionSource.url must be https`);
+      assert.ok(row.propulsionSource.title && row.propulsionSource.title.trim().length > 0, `${label} propulsionSource.title must not be blank`);
+      // The citation is to the manufacturer's own product page, distinct from the row's
+      // own `source` (the agency roster) - the two may legitimately point elsewhere.
+      assert.notEqual(row.propulsionSource.url, row.source.url, `${label} propulsionSource should not just repeat the roster source`);
+    }
+  }
+  assert.ok(modelDesignationRows > 0, 'expected at least one regional row sourced from a model designation');
+});
+test('a row without propulsionBasis carries no propulsionSource, so the basis and the citation cannot drift apart', () => {
+  for (const rows of Object.values(REGIONAL_FLEET_RANGES)) {
+    for (const row of rows) {
+      if (row.propulsionBasis === undefined) assert.equal(row.propulsionSource, undefined, `${row.manufacturer} ${row.model} ${row.first}-${row.last}`);
+    }
+  }
+});

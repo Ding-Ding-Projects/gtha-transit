@@ -65,7 +65,7 @@ export default function FleetFilterPanel({ vehicles, value, onChange, storageId,
       <section aria-label={t('Propulsion filter', '推進方式篩選')} className="fleet-filter-electric">
         <h3>{t('3. Propulsion', '3. 推進方式')}</h3>
         <label htmlFor={storageId + '-electric'} className="fleet-filter-electric-switch">
-          <input id={storageId + '-electric'} role="switch" type="checkbox" checked={electricOnly} onChange={event => update({ propulsion: event.target.checked ? 'electric' : '' })} />
+          <input id={storageId + '-electric'} role="switch" aria-checked={electricOnly} type="checkbox" checked={electricOnly} onChange={event => update({ propulsion: event.target.checked ? 'electric' : '' })} />
           <span>{t('Electric only', '只限電動')}</span>
         </label>
         <p className="data-note">{t('Matches a verified battery-electric or electric vehicle, such as a streetcar. A vehicle whose propulsion is not published is excluded unless included below.', '只計已核實電池電動或電動車輛（包括電車）。未公布推進方式嘅車輛會被剔除，除非喺下面選擇包括。')}</p>

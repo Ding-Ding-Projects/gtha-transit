@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { manufacturerChoices, modelChoicesForManufacturer, chooseVehicleManufacturer, vehiclePolicy, optionsForPolicy, yearDraftFor, yearDraftError, criteriaFromDraft } from '../lib/journey-vehicle-controls.ts';
+import { manufacturerChoices, modelChoicesForManufacturer, chooseVehicleManufacturer, vehiclePolicy, optionsForPolicy, yearDraftFor, yearDraftError, criteriaFromDraft, DEFAULT_ELECTRIC_PREFERENCE, parseElectricPreference, electricOptions } from '../lib/journey-vehicle-controls.ts';
 
 const facts = [{ manufacturer: 'New Flyer', model: 'Xcelsior' }, { manufacturer: 'Nova Bus', model: 'LFS' }, { manufacturer: 'New Flyer ', model: 'Xcelsior ' }, { manufacturer: null, model: 'Unassigned' }];
 
@@ -58,4 +58,39 @@ test('invalid text and reversed year drafts cannot become applied criteria', () 
   assert.equal(yearDraftError({ from: '2025', to: '2020' }), 'reversed');
   assert.equal(criteriaFromDraft({}, { from: '2025', to: '2020' }), null);
   for (const year of ['1800', '2020', '3000']) assert.equal(yearDraftError({ from: year, to: year }), null);
+});
+
+test('the default electric preference starts off, keeping unconfirmed assignments so it can only narrow results once Avoid is actually chosen', () => {
+  assert.deepEqual(DEFAULT_ELECTRIC_PREFERENCE, { mode: 'off', includeUnconfirmed: true });
+});
+
+test('parseElectricPreference accepts a valid persisted shape and defaults anything untrusted rather than throwing', () => {
+  assert.deepEqual(parseElectricPreference({ mode: 'prefer', includeUnconfirmed: false }), { mode: 'prefer', includeUnconfirmed: false });
+  assert.deepEqual(parseElectricPreference({ mode: 'avoid', includeUnconfirmed: true }), { mode: 'avoid', includeUnconfirmed: true });
+  assert.deepEqual(parseElectricPreference({ mode: 'off', includeUnconfirmed: false }), { mode: 'off', includeUnconfirmed: false });
+
+  // Anything that is not exactly 'prefer' or 'avoid' - a typo, a future value, a stale
+  // legacy shape - falls back to 'off' rather than being guessed at or thrown on.
+  for (const invalidMode of ['on', 'PREFER', 'both', 1, true, null, undefined, [], {}]) {
+    assert.equal(parseElectricPreference({ mode: invalidMode, includeUnconfirmed: false }).mode, 'off', JSON.stringify(invalidMode));
+  }
+
+  // A missing or non-boolean includeUnconfirmed falls back to the default (true), never to false.
+  for (const invalidFlag of [undefined, null, 'true', 1, 0, []]) {
+    assert.equal(parseElectricPreference({ mode: 'avoid', includeUnconfirmed: invalidFlag }).includeUnconfirmed, true, String(invalidFlag));
+  }
+
+  // A value that is not an object at all - the persisted key absent, or corrupted - is
+  // treated exactly like an empty record and returns the full default.
+  for (const notAnObject of [undefined, null, 'prefer', 42, [], true]) {
+    assert.deepEqual(parseElectricPreference(notAnObject), DEFAULT_ELECTRIC_PREFERENCE);
+  }
+});
+
+test('electricOptions converts the compact mode into exclusive prefer/avoid evaluator options', () => {
+  assert.deepEqual(electricOptions({ mode: 'off', includeUnconfirmed: true }), { prefer: false, avoid: false, includeUnconfirmed: true });
+  assert.deepEqual(electricOptions({ mode: 'prefer', includeUnconfirmed: false }), { prefer: true, avoid: false, includeUnconfirmed: false });
+  assert.deepEqual(electricOptions({ mode: 'avoid', includeUnconfirmed: true }), { prefer: false, avoid: true, includeUnconfirmed: true });
+  // Round-tripping a parsed, untrusted value must land on the same exclusive shape.
+  assert.deepEqual(electricOptions(parseElectricPreference({ mode: 'avoid', includeUnconfirmed: false })), { prefer: false, avoid: true, includeUnconfirmed: false });
 });
