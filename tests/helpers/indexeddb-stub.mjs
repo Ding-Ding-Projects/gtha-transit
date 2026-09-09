@@ -111,21 +111,33 @@ function makeIndexedDb(databases) {
     open(name, version) {
       const request = { result: undefined, error: null, onsuccess: null, onerror: null, onupgradeneeded: null };
       queueMicrotask(() => {
-        let entry = databases.get(name);
-        const oldVersion = entry ? entry.version : 0;
-        const newVersion = version ?? (entry ? entry.version : 1);
-        const isNew = !entry;
-        if (isNew) {
-          entry = { name, version: newVersion, stores: new Map() };
-          databases.set(name, entry);
+        try {
+          let entry = databases.get(name);
+          const oldVersion = entry ? entry.version : 0;
+          const newVersion = version ?? (entry ? entry.version : 1);
+          const isNew = !entry;
+          if (isNew) {
+            entry = { name, version: newVersion, stores: new Map() };
+            databases.set(name, entry);
+          }
+          // The handle is on the request before onupgradeneeded fires, matching
+          // real IndexedDB: the handler reads the (upgrading) database off
+          // `request.result`, not off some value handed to it separately.
+          request.result = makeDbHandle(entry);
+          if (isNew || newVersion > oldVersion) {
+            entry.version = newVersion;
+            if (request.onupgradeneeded) request.onupgradeneeded({ target: request, oldVersion, newVersion });
+          }
+          if (request.onsuccess) request.onsuccess({ target: request });
+        } catch (error) {
+          // A bug in a caller's onupgradeneeded should surface as a rejected
+          // promise on the next `await`, not as a permanently pending one: the
+          // first version of this stub fired onupgradeneeded before setting
+          // `result`, and the resulting throw vanished into an unhandled
+          // microtask rejection, hanging every test that touched it.
+          request.error = error;
+          if (request.onerror) request.onerror({ target: request });
         }
-        const handle = makeDbHandle(entry);
-        if (isNew || newVersion > oldVersion) {
-          entry.version = newVersion;
-          if (request.onupgradeneeded) request.onupgradeneeded({ target: request, oldVersion, newVersion });
-        }
-        request.result = handle;
-        if (request.onsuccess) request.onsuccess({ target: request });
       });
       return request;
     },

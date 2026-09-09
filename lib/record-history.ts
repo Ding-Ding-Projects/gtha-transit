@@ -338,6 +338,26 @@ export function queueHistoryWrite<T>(fn: () => Promise<T>): Promise<T> {
 
 /* ----------------------------------------------------------------- write -- */
 
+/**
+ * The `at` for a new commit: the current time, but never earlier than one
+ * millisecond past its parent's `at`.
+ *
+ * `Date.now()` alone ties under rapid writes — Windows commonly reports it at
+ * a resolution coarser than a millisecond, and even a high-resolution clock
+ * ties across writes issued in the same microtask burst. A tie would leave
+ * "newest first" depending on the commit id, a hash unrelated to write
+ * order, for commits whose real order is otherwise fully determined by the
+ * parent chain. Nudging `at` past the parent's keeps it a genuine
+ * epoch-millisecond timestamp while guaranteeing it strictly increases along
+ * one kind's chain, so sorting by `at` always agrees with walking `parent`.
+ */
+async function nextAt(backend: HistoryBackend, parentId: string | null): Promise<number> {
+  const now = Date.now();
+  if (!parentId) return now;
+  const parent = await backend.getCommit(parentId);
+  return parent && parent.at >= now ? parent.at + 1 : now;
+}
+
 /** A snapshot larger than this, canonically encoded, is refused rather than recorded. */
 export const MAX_SNAPSHOT_BYTES = 262_144;
 
@@ -375,7 +395,7 @@ export async function recordHistory(backend: HistoryBackend, input: RecordHistor
 
     return await queueHistoryWrite(async () => {
       const head = await backend.getHead(kind);
-      const at = Date.now();
+      const at = await nextAt(backend, head.commit);
       const id = commitId({ kind, parent: head.commit, snapshot: after, at, action });
       const commit: HistoryCommit = { id, kind, parent: head.commit, snapshot: after, at, action, label, size };
       await backend.putCommit(commit);
@@ -441,7 +461,7 @@ export async function restore(backend: HistoryBackend, kind: HistoryKind, commit
       if (!target || target.kind !== kind) return { restored: false, reason: 'not-found' };
 
       const head = await backend.getHead(kind);
-      const at = Date.now();
+      const at = await nextAt(backend, head.commit);
       const action: HistoryAction = 'restore';
       const snapshot = target.snapshot;
       const id = commitId({ kind, parent: head.commit, snapshot, at, action });

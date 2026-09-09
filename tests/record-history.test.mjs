@@ -283,7 +283,13 @@ withBothBackends('diffCommits treats a missing commit id as absent rather than t
   const r1 = await recordHistory(backend, { kind: 'saved-trips', before: null, after: { trips: ['a'] }, action: 'save' });
   const diff = await diffCommits(backend, r1.commit.id, 'not-a-real-id');
   assert.equal(diff.b, null);
-  assert.ok(diff.entries.some((entry) => entry.kind === 'removed' && entry.path === 'trips[0]'));
+  // A missing commit's snapshot is `undefined`, which is a shape mismatch
+  // against an object exactly like any other shape mismatch: one `changed`
+  // entry for the whole root, not a subtree of synthetic `removed` fields.
+  assert.equal(diff.entries.length, 1);
+  assert.equal(diff.entries[0].kind, 'changed');
+  assert.deepEqual(diff.entries[0].before, { trips: ['a'] });
+  assert.equal(diff.entries[0].after, undefined);
 });
 
 /* ---------------------------------------------------------------- actions */
@@ -317,9 +323,13 @@ test('exportHistory redacts secret-named fields into fingerprints, and the JSON 
   assert.equal(text.includes('hunter2'), false, 'the secret must never appear in the exported text');
   assert.equal(text.includes('sk-live-xyz'), false);
 
+  // exportRecords wraps the array in { note, records } for the json format
+  // whenever a note is supplied, and exportHistory always supplies one.
   const parsed = JSON.parse(text);
-  assert.equal(parsed.length, 1);
-  const exported = parsed[0].snapshot;
+  assert.equal(typeof parsed.note, 'string');
+  assert.match(parsed.note, /password|token|key/i);
+  assert.equal(parsed.records.length, 1);
+  const exported = parsed.records[0].snapshot;
   assert.ok(exported.password.startsWith('fp:'));
   assert.ok(exported.nested.apiKey.startsWith('fp:'));
   assert.equal(exported.nested.label, 'kept', 'a field not named like a secret is left alone');
