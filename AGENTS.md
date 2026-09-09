@@ -4,6 +4,8 @@ This public repository contains an independent browser-based GTHA transit planne
 
 The owner previously deferred the general-purpose interface features and has since asked for all of them except a local file converter and a local model-runner manager, which remain out of scope and are recorded as such in the audit. Desktop installers remain deferred: this ships as a website.
 
+The navigation is the Material navigation rail on wide screens, the bottom bar with its More dialog on phones, and the base-ui tabs in settings. A browser-style tab strip replaced them for one deployment in September 2026, made the interface unusable on phones and cluttered the rail, and the owner asked for the previous design back on 9 September 2026. Do not mount `components/tab-strip.tsx` in the navigation or the settings again without a new decision from the owner; the component, its state model and its tests stay in the tree for that day, and `docs/interface/feature-audit.json` records the decision.
+
 `components/ui/` holds a large vendored component set of which one file is used. Every shipped surface is hand-written over native `dialog`, `details` and `fieldset` elements with this project's own Material tokens, and new surfaces follow that idiom rather than adopting the vendored one, which has never been type-checked in this build. `react-day-picker` is a real dependency and may be used directly.
 
 Preserve user data and unrelated work. Never commit secrets, local addresses, downloaded feed archives, map databases, dependency directories or generated caches. Public records use ordinary professional language. Do not copy private conversational vocabulary into this repository.

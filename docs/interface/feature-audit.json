@@ -144,7 +144,7 @@
     {
       "id": "tabbed-navigation",
       "name": "Browser-style tabs with overflow, pinning, grouping and four searches",
-      "verdict": "partial",
+      "verdict": "absent",
       "implementation": [
         "components/tab-strip.tsx",
         "lib/tabs.ts",
@@ -153,7 +153,8 @@
       "documentation": "docs/interface/tabs.md",
       "test": "tests/tabs.test.mjs",
       "capture": null,
-      "missing": "The strip replaces the rail and the settings sections, docks to all four edges with orientation-aware keyboard navigation, reorders, pins, groups, carries search fields with the regex builder, bulk-closes by text, and offers per-tab appearance from its context menu. The second session reports driving docks, keys, pinning and close on its deployed build, but no capture or drive script is committed, the interaction ledger is still bound to the previous navigation, and the four discovery searches, group appearance editing and the Move into group picker are unverified."
+      "missing": "Nothing mounts the strip. If the owner reopens tabbed navigation, the open items from before still apply: no capture or drive script, the interaction ledger bound to the rail, and the four discovery searches, group appearance editing and the Move into group picker unverified.",
+      "reason": "Owner decision, 9 September 2026: the tab strip that had replaced the navigation rail and the settings sections made the interface a mess on phones and cluttered the desktop rail with per-tab manage and drag buttons, so the owner asked for the previous design back. The Material navigation rail, the phone bottom bar with its More dialog, and the base-ui settings tabs are the shipped navigation again. The strip component, its state model, its registry and their tests stay in the tree unmounted, so a later decision can mount them without rebuilding them."
     },
     {
       "id": "command-palette",

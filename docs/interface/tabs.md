@@ -1,5 +1,15 @@
 # Tabbed navigation
 
+> **Not mounted since 9 September 2026, by owner decision.** The strip replaced the
+> navigation rail and the settings sections for one deployment, made the interface a
+> mess on phones and cluttered the desktop rail with per-tab manage and drag buttons,
+> and the owner asked for the previous design back. The Material navigation rail, the
+> phone bottom bar with its More dialog, and the base-ui settings tabs are the shipped
+> navigation again ([workspaces](workspaces.md), [settings](settings.md)). The strip
+> component, its state model, its registry and their tests remain in the tree unmounted,
+> so a later decision can mount them without rebuilding them. Everything below
+> describes the component as it exists, not what the planner shows today.
+
 The main navigation and settings now use the same tab strip. Plan starts pinned. The tab tools provide search, reopening, docking on any edge, named groups, group colour and collapse, and previews for closing tabs containing or not containing text. Closed destinations remain available through the tab tools and command palette. School mode temporarily hides the Language tab while preserving its underlying tab arrangement.
 
 Arrow keys follow the dock orientation; Home and End select the ends, Control with an arrow reorders, Delete closes an unpinned tab, and Shift+F10 opens tab actions. The active tab scrolls into view. Main navigation moves focus to the workspace heading. All-closed states keep the reopen control available.
