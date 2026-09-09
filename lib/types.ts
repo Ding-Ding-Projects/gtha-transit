@@ -28,7 +28,12 @@ export type Leg = {
   routeDivisionOpportunity?: { state: string; reason?: string; routeId?: string; vehicleCount?: number; checkedAt?: number; validUntil?: number; vehicleIds?: string[]; fleetNumbers?: string[]; observations?: { id: string; fleetNumber: string; validUntil: number }[]; truncated?: boolean; source?: { validFrom?: string; validThrough?: string }; disclosure?: string };
   vehicleDivision?: { state: string; reason?: string; checkedAt?: number; validUntil?: number; homeGarageName?: string; assignedGarageNames?: string[]; source?: { validFrom?: string; validThrough?: string; publisherPage?: string } };
   tripId?: string;
+  legId?: string;
   agencyFeedId?: string;
+  realtimeState?: 'SCHEDULED' | 'UPDATED' | 'CANCELED' | 'ADDED' | 'MODIFIED';
+  serviceDate?: string;
+  departureDelaySeconds?: number;
+  arrivalDelaySeconds?: number;
   vehicle?: {
     id: string;
     label?: string;
@@ -116,4 +121,9 @@ export type TransitStatus = {
   sourceUrl?: string;
   lines: Line[];
   alerts: Alert[];
+};
+/** The shape `GET /api/live-coverage` returns, keyed by agency feed id. */
+export type LiveCoverage = {
+  feeds: Record<string, { state: 'applied' | 'published-unjoinable' | 'none' | 'shadow'; reason?: string; source?: string }>;
+  checkedAt?: string;
 };
