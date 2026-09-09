@@ -34,8 +34,8 @@ function fixture() {
 }
 
 function walking(request, { duration = 60, mode = "WALK" } = {}) {
-  const endTime = new Date(Date.parse(request.dateTime) + duration * 1000).toISOString();
-  return { id: "otp-walk", startTime: request.dateTime, endTime, transfers: 0, duration, walkDistance: 150, legs: [{ mode, from: { ...request.from }, to: { ...request.to }, startTime: request.dateTime, endTime, duration, distance: 150, tripId: null, routeId: null, geometry: "_p~iF~ps|U_ulLnnqC_mqNvxq`@", intermediateStops: [] }] };
+  const startTime = iso(); const endTime = iso(duration);
+  return { id: "otp-walk", startTime, endTime, transfers: 0, duration, walkDistance: 150, legs: [{ mode, from: { ...request.from }, to: { ...request.to }, startTime, endTime, duration, distance: 150, tripId: null, routeId: null, geometry: "_p~iF~ps|U_ulLnnqC_mqNvxq`@", intermediateStops: [] }] };
 }
 
 test("real getVehicleSnapshot output selects the raw vehicle and produces bounded walking options", async (context) => {
@@ -56,7 +56,7 @@ test("real getVehicleSnapshot output selects the raw vehicle and produces bounde
     assert.equal(option.stop.id, `miway:stop-${index}`); assert.equal(option.arrivalAt, iso(300 + index * 120)); assert.equal(option.arriveByAt, iso(180 + index * 120));
     assert.equal(option.basis, "scheduled"); assert.equal(option.slackSeconds, 120 + index * 120);
     assert.equal(option.walk.legs.every((leg) => leg.mode === "WALK"), true);
-    assert.equal(calls.walk[index].allowDirectWalking, true); assert.equal(calls.walk[index].dateTime, iso()); assert.deepEqual(calls.walk[index].from, origin);
+    assert.equal(calls.walk[index].allowDirectWalking, true); assert.equal(calls.walk[index].dateTime, option.arriveByAt); assert.equal(calls.walk[index].arriveBy, true); assert.deepEqual(calls.walk[index].from, origin);
     assert.equal(calls.walk[index].to.stopId, option.stop.id);
     assert.equal(calls.walk[index].signal, calls.snapshot[0].signal);
   }
@@ -79,7 +79,6 @@ test("missing, duplicate and conflicting selected identities cannot reach stop l
     [(snapshot) => { snapshot.vehicles[0].agencyId = "yrt"; }, "vehicle-missing"],
     [(snapshot) => { snapshot.vehicles[0].vehicleKey = "yrt:42"; }, "unavailable"],
     [(snapshot) => { snapshot.vehicles[0].tripId = "yrt:trip"; }, "unavailable"],
-    [(snapshot) => { snapshot.vehicles[0].tripId = ""; }, "unavailable"],
   ]) {
     const { dependencies, snapshot, calls } = fixture(); change(snapshot);
     assert.equal((await planIntercept(input, dependencies)).state, expected); assert.equal(calls.upcoming.length, 0);
@@ -113,7 +112,7 @@ test("transit, late, mismatched, discontinuous and loop journeys are rejected", 
     (walk) => { walk.legs[0].endTime = iso(61); },
     (walk) => { walk.legs[0].realtimeState = "CANCELED"; },
     (walk) => { walk.legs[0].intermediateStops = [{ id: "miway:board" }]; },
-    (walk) => { walk.startTime = iso(-5); walk.legs[0].startTime = walk.startTime; },
+    (walk) => { walk.startTime = iso(-31); walk.legs[0].startTime = walk.startTime; },
     (walk) => { walk.legs = [walk.legs[0], { ...walk.legs[0], from: { lat: 43.8, lon: -79.4 }, startTime: iso(30) }]; },
     (walk) => {
       const original = walk.legs[0]; const mid = { lat: 43.7005, lon: -79.4005 };
@@ -225,7 +224,7 @@ test("normal HTTP OTP planning and normalization supply a genuine direct walking
     const query = JSON.parse(body); requests.push(query);
     const from = query.variables.origin.location.coordinate;
     const to = query.variables.destination.location.coordinate;
-    const start = query.variables.dateTime.earliestDeparture;
+    const start = iso();
     const end = new Date(Date.parse(start) + 60000).toISOString();
     const walk = { start, end, duration: "PT60S", walkDistance: 150, numberOfTransfers: 0, legs: [{ mode: "WALK", start: { scheduledTime: start }, end: { scheduledTime: end }, duration: "PT60S", distance: 150, from: { name: "Current position", lat: from.latitude, lon: from.longitude }, to: { name: "Published stop", lat: to.latitude, lon: to.longitude }, intermediatePlaces: [] }] };
     res.writeHead(200, { "content-type": "application/json" }); res.end(JSON.stringify({ data: { planConnection: { edges: [{ node: walk }] } } }));
@@ -237,7 +236,7 @@ test("normal HTTP OTP planning and normalization supply a genuine direct walking
   const result = await planIntercept(input, dependencies);
   assert.equal(result.state, "catchable"); assert.equal(result.options.length, 3); assert.equal(requests.length, 3);
   assert.equal(result.options[0].walk.duration, 60); assert.equal(result.options[0].walk.legs[0].distance, 150);
-  assert.ok(requests.every((query) => query.query.includes("planConnection") && query.variables.dateTime.earliestDeparture === iso()));
+  assert.ok(requests.every((query) => query.query.includes("planConnection") && Number.isFinite(Date.parse(query.variables.dateTime.latestArrival))));
 });
 
 test("a publisher header that expires during walking invalidates even a newer selected vehicle", async () => {
@@ -245,4 +244,50 @@ test("a publisher header that expires during walking invalidates even a newer se
   let time = NOW; dependencies.now = () => time;
   dependencies.walkPlanner = async (request) => { time = NOW + 11000; return { itineraries: [walking(request)] }; };
   assert.equal((await planIntercept(input, dependencies)).state, "stale");
+});
+
+test("arrive-by interception forwards accessibility preferences and admits a feasible transit connection", async () => {
+  const { dependencies, calls } = fixture();
+  dependencies.walkPlanner = async (request) => {
+    calls.walk.push(request); const journey = walking(request); const original = journey.legs[0];
+    const board = { id: "go:board", lat: 43.7003, lon: -79.4002 };
+    const alight = { id: "go:alight", lat: 43.7008, lon: -79.4007 };
+    journey.legs = [{ ...original, to: board, endTime: iso(20) }, { mode: "BUS", routeId: "go:40", tripId: "go:connection", route: "40", agency: "GO Transit", from: board, to: alight, startTime: iso(20), endTime: iso(40), intermediateStops: [] }, { ...original, from: alight, startTime: iso(40) }];
+    return { itineraries: [journey] };
+  };
+  const result = await planIntercept({ ...input, preferences: { wheelchair: true, maxWalkDistance: 1200 } }, dependencies);
+  assert.equal(result.state, "catchable"); assert.equal(result.options.length, 3);
+  assert.equal(result.options[0].journey.legs[1].tripId, "go:connection"); assert.equal(Object.hasOwn(result.options[0], "walk"), false);
+  assert.equal(calls.walk[0].arriveBy, true); assert.equal(calls.walk[0].dateTime, result.options[0].arriveByAt);
+  assert.equal(calls.walk[0].wheelchair, true); assert.equal(calls.walk[0].maxWalkDistance, 1200); assert.equal(calls.walk[0].preference, "fastest");
+  assert.equal(result.options[0].marginSeconds, 240); assert.equal(result.options[0].leaveInSeconds, 0);
+});
+
+test("transit cannot reuse the target trip, target route or assigned target vehicle", async () => {
+  for (const identity of [{ tripId: "miway:trip-42", routeId: "miway:99" }, { tripId: "miway:another-trip", routeId: "miway:42" }, { tripId: "go:connection", routeId: "go:40", vehicle: { id: "42", agencyId: "miway" } }]) {
+    const { dependencies } = fixture();
+    dependencies.walkPlanner = async (request) => { const journey = walking(request); journey.legs[0] = { ...journey.legs[0], mode: "BUS", from: { ...request.from, id: "go:board" }, to: { ...request.to, id: request.to.id }, ...identity }; return { itineraries: [journey] }; };
+    assert.equal((await planIntercept(input, dependencies)).state, "no-catchable-stop");
+  }
+});
+
+test("position-aligned estimates require disclosure and remain unconfirmed with a journey result", async () => {
+  for (const stripDisclosure of [false, true]) {
+    const { dependencies, snapshot } = fixture(); snapshot.vehicles[0].tripId = "";
+    const upstream = dependencies.upcomingLoader;
+    dependencies.upcomingLoader = async (...args) => {
+      const result = await upstream(...args);
+      return { ...result, method: "position-aligned-timetable", confirmedTrip: false, disclosure: stripDisclosure ? undefined : "Arrival times for this vehicle are timetable estimates aligned to the bus's reported position, not publisher predictions.", alignment: { patternId: "miway:42:north", directionId: "0", anchorStopId: "miway:stop-0", offsetSeconds: -60, distanceMetres: 25, debugUrl: "http://private.invalid" }, candidates: result.candidates.map((stop) => ({ ...stop, basis: "aligned-timetable", alignedArrival: stop.scheduledArrivalAt })) };
+    };
+    const result = await planIntercept(input, dependencies);
+    assert.equal(result.state, stripDisclosure ? "unavailable" : "catchable");
+    if (!stripDisclosure) { assert.equal(result.confirmedTrip, false); assert.equal(result.options[0].basis, "aligned-timetable"); assert.ok(result.options[0].journey); assert.ok(result.options[0].walk); assert.doesNotMatch(JSON.stringify(result), /private[.]invalid|debugUrl/); }
+  }
+});
+
+test("invalid accessibility input and journeys beyond the requested walking limit are refused", async () => {
+  const { dependencies, calls } = fixture();
+  for (const preferences of [{ wheelchair: "true" }, { maxWalkDistance: -1 }, { maxWalkDistance: 20001 }, { unsafe: true }]) assert.equal((await planIntercept({ ...input, preferences }, dependencies)).state, "invalid-input");
+  assert.equal(calls.snapshot.length, 0);
+  assert.equal((await planIntercept({ ...input, preferences: { maxWalkDistance: 100 } }, dependencies)).state, "no-catchable-stop");
 });

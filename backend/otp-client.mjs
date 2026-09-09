@@ -162,11 +162,11 @@ function normalizeLeg(leg, index) {
     ...(arrivalDelaySeconds === null ? {} : { arrivalDelaySeconds }),
     intermediateStops: Array.isArray(leg.intermediatePlaces) ? leg.intermediatePlaces.map(point).filter(Boolean).slice(0, 500) : [] };
 }
-async function queryOtp(otpUrl, timeoutMs, query, variables) {
+async function queryOtp(otpUrl, timeoutMs, query, variables, signal) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     let response;
-    try { response = await fetch(`${otpUrl.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: controller.signal }); }
+    try { response = await fetch(`${otpUrl.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal }); }
     catch (cause) { const error = new Error("routing upstream request failed"); error.code = "UPSTREAM"; error.cause = cause; throw error; }
     if (!response.ok) { const error = new Error("routing upstream request failed"); error.code = "UPSTREAM"; throw error; }
     const payload = await response.json();
@@ -224,7 +224,7 @@ export function planModes({ allowDirectWalking = false } = {}) {
   return allowDirectWalking ? { direct: ["WALK"], transit } : { transitOnly: true, transit };
 }
 
-export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateTime, arriveBy, wheelchair, maxWalkDistance, preference, maxResults, allowDirectWalking = false }) {
+export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateTime, arriveBy, wheelchair, maxWalkDistance, preference, maxResults, allowDirectWalking = false, signal }) {
   const requestedVia = Array.isArray(via) ? via : [];
   const preferences = {};
   if (wheelchair) preferences.accessibility = { wheelchair: { enabled: true } };
@@ -237,7 +237,7 @@ export async function planWithOtp({ otpUrl, timeoutMs, from, to, via = [], dateT
     modes: planModes({ allowDirectWalking }),
     preferences: Object.keys(preferences).length ? preferences : null
   };
-  const data = await queryOtp(otpUrl, timeoutMs, GRAPHQL, variables);
+  const data = await queryOtp(otpUrl, timeoutMs, GRAPHQL, variables, signal);
   const candidates = (data?.planConnection?.edges ?? []).map((edge) => edge.node).filter(Boolean).map((item, index) => {
     const legs = Array.isArray(item.legs) ? item.legs.map(normalizeLeg).filter(Boolean) : [];
     const transferWait = transferWaitDetails(legs);
@@ -359,21 +359,22 @@ export async function blockPredecessorWithOtp({ otpUrl, timeoutMs, tripId, route
  * collector.  This does not accept a route name or a vehicle label, because
  * either would let a client turn an observation into an invented assignment.
  */
-export async function tripStopTimesWithOtp({ otpUrl, timeoutMs, tripId, serviceDate }) {
+export async function tripStopTimesWithOtp({ otpUrl, timeoutMs, tripId, serviceDate, signal }) {
   const id = qualifiedStopLocationId(tripId);
   const date = typeof serviceDate === "string" && /^\d{8}$/.test(serviceDate) ? serviceDate : null;
   if (!id || !date) return null;
-  const data = await queryOtp(otpUrl, timeoutMs, TRIP_SHAPE_TIMES, { id, date });
+  const data = await queryOtp(otpUrl, timeoutMs, TRIP_SHAPE_TIMES, { id, date }, signal);
   const trip = data?.trip;
   if (!trip) return null;
   const stops = (Array.isArray(trip.stoptimesForDate) ? trip.stoptimesForDate : []).slice(0, MAX_BLOCK_STOPS).map((entry, index) => {
     const stopId = safeText(entry?.stop?.gtfsId); const lat = finiteNumber(entry?.stop?.lat); const lon = finiteNumber(entry?.stop?.lon);
     const serviceDay = finiteNumber(entry?.serviceDay);
-    if (!stopId || lat === null || lon === null || serviceDay === null) return null;
-    const scheduledArrival = instantFromServiceDay(serviceDay, entry.scheduledArrival);
-    const scheduledDeparture = instantFromServiceDay(serviceDay, entry.scheduledDeparture);
-    const realtimeArrival = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeArrival) : null;
-    const realtimeDeparture = entry.realtime ? instantFromServiceDay(serviceDay, entry.realtimeDeparture) : null;
+    if (!stopId || ![entry?.stop?.lat, entry?.stop?.lon, entry?.serviceDay].every((value) => typeof value === "number" && Number.isFinite(value)) || Math.abs(lat) > 90 || Math.abs(lon) > 180 || serviceDay === null) return null;
+    const publishedTime = (offset) => typeof offset === "number" && Number.isFinite(offset) ? instantFromServiceDay(serviceDay, offset) : null;
+    const scheduledArrival = publishedTime(entry.scheduledArrival);
+    const scheduledDeparture = publishedTime(entry.scheduledDeparture);
+    const realtimeArrival = entry.realtime ? publishedTime(entry.realtimeArrival) : null;
+    const realtimeDeparture = entry.realtime ? publishedTime(entry.realtimeDeparture) : null;
     const arrivalDelaySeconds = signedDurationSeconds(entry.arrivalDelay);
     const departureDelaySeconds = signedDurationSeconds(entry.departureDelay);
     return { id: stopId, name: safeText(entry.stop.name) ?? "", lat, lon, index,
@@ -383,6 +384,76 @@ export async function tripStopTimesWithOtp({ otpUrl, timeoutMs, tripId, serviceD
       realtimeState: safeText(entry.realtimeState) ?? "SCHEDULED" };
   }).filter(Boolean);
   return { id: safeText(trip.gtfsId) ?? id, serviceDate: date, headsign: safeText(trip.headsign), routeId: safeText(trip.route?.gtfsId), route: safeText(trip.route?.shortName ?? trip.route?.longName), agency: safeText(trip.route?.agency?.name), stops };
+}
+
+export const ALIGNED_TIMETABLE_DISCLOSURE = "Arrival times for this vehicle are timetable estimates aligned to the bus's reported position, not publisher predictions.";
+const validPosition = (place) => [place?.lat, place?.lon].every((value) => typeof value === "number" && Number.isFinite(value)) && Math.abs(place.lat) <= 90 && Math.abs(place.lon) <= 180;
+
+/** Project onto the source pattern's actual ordered stop segments. */
+export function alignedPatternAnchor({ feedId, routeId, lat, lon, bearing, anchors }) {
+  if (!validPosition({ lat, lon }) || typeof bearing !== "number" || !Number.isFinite(bearing) || bearing < 0 || bearing >= 360 || !anchors || !Array.isArray(anchors.patterns) || anchors.patterns.length > 200) return { state: "unavailable" };
+  if (anchors.route?.id !== `${feedId}:${routeId}`) return { state: "unavailable" };
+  const matches = [];
+  for (const pattern of anchors.patterns) {
+    if (typeof pattern.id !== "string" || pattern.id.length > 200 || !Array.isArray(pattern.stops) || pattern.stops.length > 200) return { state: "unavailable" };
+    const segments = [];
+    for (let index = 1; index < pattern.stops.length; index++) {
+      const from = pattern.stops[index - 1]; const to = pattern.stops[index];
+      if (!validPosition(from) || !validPosition(to) || !from.id?.startsWith(`${feedId}:`) || !to.id?.startsWith(`${feedId}:`)) continue;
+      const scaleX = 111320 * Math.cos((from.lat + to.lat + lat) / 3 * Math.PI / 180); const scaleY = 111132;
+      const dx = (to.lon - from.lon) * scaleX; const dy = (to.lat - from.lat) * scaleY; const length = dx * dx + dy * dy;
+      if (length <= 0) continue;
+      const progress = Math.max(0, Math.min(1, (((lon - from.lon) * scaleX) * dx + ((lat - from.lat) * scaleY) * dy) / length));
+      const distanceMetres = Math.hypot((lon - from.lon) * scaleX - dx * progress, (lat - from.lat) * scaleY - dy * progress);
+      const heading = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+      const bearingDifference = Math.abs(((heading - bearing + 540) % 360) - 180);
+      if (distanceMetres <= 150 && bearingDifference <= 60) segments.push({ pattern, index, from, to, progress, distanceMetres });
+    }
+    // At a shared vertex, the forward segment is the downstream interpretation.
+    const forward = segments.filter((segment) => !(segment.progress >= 0.999 && segments.some((next) => next.index === segment.index + 1 && next.progress <= 0.001)));
+    forward.sort((a, b) => a.distanceMetres - b.distanceMetres);
+    if (forward.length > 1 && forward[1].distanceMetres <= forward[0].distanceMetres + 10 && forward[1].to.id !== forward[0].to.id) return { state: "ambiguous" };
+    if (forward.length) matches.push(forward[0]);
+  }
+  if (!matches.length) return { state: "off-pattern" };
+  // Different patterns can share a local segment but branch farther ahead.
+  // Position alone cannot choose a branch, so do not silently pick the first.
+  if (matches.length !== 1) return { state: "ambiguous" };
+  return { state: "aligned", ...matches[0] };
+}
+
+/** Two OTP calls at most; the caller may spend its third on a failed exact join. */
+export async function patternAlignedTimesWithOtp({ otpUrl, timeoutMs = 8000, feedId, routeId, lat, lon, bearing, atMillis = Date.now(), anchors, signal }) {
+  if (!Number.isFinite(atMillis) || !/^[a-z][a-z0-9-]{0,31}$/.test(feedId ?? "") || typeof routeId !== "string" || !routeId || routeId.length > 160 || /[:\s\u0000-\u001f\u007f]/.test(routeId)) return { state: "unavailable", stops: [] };
+  const anchor = alignedPatternAnchor({ feedId, routeId, lat, lon, bearing, anchors });
+  if (anchor.state !== "aligned") return { state: anchor.state, stops: [] };
+  const deadline = Date.now() + Math.min(8000, Math.max(1, Number(timeoutMs) || 8000));
+  const remaining = () => { signal?.throwIfAborted(); const value = deadline - Date.now(); if (value <= 0) throw new Error("Alignment deadline exceeded"); return value; };
+  const data = await queryOtp(otpUrl, remaining(), DEPARTURES, { id: anchor.to.id, start: Math.floor(atMillis / 1000) - 3600, timeRange: 7200, count: 200 }, signal);
+  if (data?.stop?.gtfsId !== anchor.to.id || !Array.isArray(data.stop.stoptimesWithoutPatterns) || data.stop.stoptimesWithoutPatterns.length >= 200) return { state: "unavailable", stops: [] };
+  const departures = data.stop.stoptimesWithoutPatterns.filter((entry) => entry?.trip?.route?.gtfsId === `${feedId}:${routeId}` && typeof entry.trip.gtfsId === "string" && entry.trip.gtfsId.startsWith(`${feedId}:`) && [entry.serviceDay, entry.scheduledArrival ?? entry.scheduledDeparture].every((value) => typeof value === "number" && Number.isFinite(value))).map((entry) => ({ entry, at: (entry.serviceDay + (entry.scheduledArrival ?? entry.scheduledDeparture)) * 1000 })).filter((entry) => Math.abs(entry.at - atMillis) <= 3600000).sort((a, b) => Math.abs(a.at - atMillis) - Math.abs(b.at - atMillis));
+  if (!departures.length) return { state: "unavailable", stops: [] };
+  if (departures.length > 1 && Math.abs(Math.abs(departures[0].at - atMillis) - Math.abs(departures[1].at - atMillis)) <= 1000 && departures[0].entry.trip.gtfsId !== departures[1].entry.trip.gtfsId) return { state: "ambiguous", stops: [] };
+  const chosen = departures[0].entry; const serviceDate = serviceDateOf(chosen.serviceDay * 1000);
+  const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: remaining(), tripId: chosen.trip.gtfsId, serviceDate, signal });
+  remaining();
+  if (!trip || trip.id !== chosen.trip.gtfsId || trip.routeId !== `${feedId}:${routeId}`) return { state: "unavailable", stops: [] };
+  const pairs = trip.stops.map((stop, index) => index > 0 && stop.id === anchor.to.id && trip.stops[index - 1].id === anchor.from.id ? index : -1).filter((index) => index >= 0);
+  if (pairs.length !== 1) return { state: "ambiguous", stops: [] };
+  const index = pairs[0]; const previousAt = Date.parse(trip.stops[index - 1].scheduledDepartureAt ?? trip.stops[index - 1].scheduledArrivalAt ?? "");
+  const nextAt = Date.parse(trip.stops[index].scheduledArrivalAt ?? trip.stops[index].scheduledDepartureAt ?? "");
+  if (!Number.isFinite(previousAt) || !Number.isFinite(nextAt) || nextAt <= previousAt) return { state: "unavailable", stops: [] };
+  const offsetSeconds = (atMillis - (previousAt + anchor.progress * (nextAt - previousAt))) / 1000;
+  if (Math.abs(offsetSeconds) > 3600) return { state: "unavailable", stops: [] };
+  const downstream = trip.stops.slice(index); const patternIds = anchor.pattern.stops.slice(anchor.index).map((stop) => stop.id);
+  if (downstream.length !== patternIds.length || downstream.some((stop, at) => stop.id !== patternIds[at])) return { state: "ambiguous", stops: [] };
+  let priorTime = previousAt;
+  for (const stop of downstream) { const time = Date.parse(stop.scheduledArrivalAt ?? stop.scheduledDepartureAt ?? ""); if (!Number.isFinite(time) || time < priorTime) return { state: "unavailable", stops: [] }; priorTime = time; }
+  const stops = downstream.filter((stop) => !["CANCELED", "CANCELLED", "SKIPPED"].includes(stop.realtimeState)).map((stop) => {
+    const scheduled = Date.parse(stop.scheduledArrivalAt ?? stop.scheduledDepartureAt ?? "");
+    return Number.isFinite(scheduled) ? { id: stop.id, name: stop.name, lat: stop.lat, lon: stop.lon, index: stop.index, scheduledArrivalAt: new Date(scheduled).toISOString(), alignedArrival: new Date(scheduled + offsetSeconds * 1000).toISOString(), basis: "aligned-timetable", realtimeState: "SCHEDULED" } : null;
+  }).filter(Boolean);
+  return { state: stops.length ? "aligned" : "unavailable", method: "position-aligned-timetable", basis: "aligned-timetable", disclosure: ALIGNED_TIMETABLE_DISCLOSURE, confirmedTrip: false, alignment: { patternId: anchor.pattern.id, directionId: anchor.pattern.directionId ?? null, anchorStopId: anchor.to.id, offsetSeconds, distanceMetres: anchor.distanceMetres }, trip: { id: trip.id, routeId: trip.routeId, headsign: trip.headsign, serviceDate, confirmed: false }, stops };
 }
 
 export async function departuresWithOtp({ otpUrl, timeoutMs, stopId, startTime, timeRange = 7200, maxResults = 25 }) {
