@@ -34,3 +34,23 @@
 .settings-tabs:has(> .tab-strip[data-dock='bottom']) > .settings-section { grid-column: 1; grid-row: 1; }
 .settings-tabs > .settings-section[hidden] { display: none !important; }
 @media (max-width: 650px) { .settings-tabs { display: block !important; }.settings-tabs > .tab-strip { max-height: 220px; margin-bottom: 20px; }.tab-strip__drag { display: none; } }
+/* A result row pairs the open/reopen button with the same management menu the
+   strip's own manage button opens, so a phone, where that button is hidden,
+   still reaches pin, close, move and appearance for every tab. */
+.tab-strip__result { display: flex; gap: 4px; align-items: stretch; }
+.tab-strip__result > button:first-child { flex: 1; }
+.tab-strip__result-manage { flex: none; min-width: 44px; }
+/* Narrow: the strip is a horizontal row of compact tabs along one edge, the
+   per-tab manage and drag buttons leave (the tab's own context menu and the
+   tab tools popup carry every action), and nothing stacks vertically. */
+.tab-strip[data-narrow] { flex-direction: row; align-items: center; gap: 4px; }
+.tab-strip[data-narrow] .tab-strip__list { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+.tab-strip[data-narrow] .tab-strip__item { display: flex; width: auto; }
+.tab-strip[data-narrow] .tab-strip__manage, .tab-strip[data-narrow] .tab-strip__drag { display: none; }
+.tab-strip[data-narrow] .tab-strip__overflow { min-width: 44px; min-height: 44px; gap: 2px; padding: 0 6px; }
+.tab-strip[data-narrow] .tab-strip__overflow span { font-size: 12px; }
+@media (max-width: 650px) {
+  .settings-tabs > .tab-strip { max-height: none; margin-bottom: 16px; }
+  .settings-tabs > .tab-strip[data-narrow] .tab-strip__tab { min-height: 44px; padding: 8px 12px; white-space: nowrap; font-size: 13px; }
+}
+.tab-strip__notice { display: block; margin: 8px 0 0; font-size: 14px; color: var(--muted); }

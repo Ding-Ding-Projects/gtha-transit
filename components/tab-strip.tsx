@@ -11,9 +11,31 @@ import { registerStrip, searchAllTabs, unregisterStrip } from '../lib/tab-regist
 type Tab = { id: string; label: string; glyph?: string };
 type Props = { surface: string; tabs: Tab[]; allIds?: readonly string[]; active: string; onChange: (id: string) => void; t: (en: string, zh: string) => string; pinned?: string[]; panelId?: string };
 
+/**
+ * Below this width a docked side strip would spend the one dimension a phone
+ * cannot spare, so the navigation strip always sits along the bottom edge and
+ * the settings strip along the top, whatever edge the person chose for a wide
+ * screen. The choice is kept and returns with the width.
+ */
+const NARROW_QUERY = '(max-width: 904px)';
+const NARROW_SETTINGS_QUERY = '(max-width: 650px)';
+
+function useNarrow(query: string) {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const apply = () => setNarrow(media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, [query]);
+  return narrow;
+}
+
 /** A closed destination stays available in the reopen/search surface. */
 export default function TabStrip({ surface, tabs, allIds, active, onChange, t, pinned = [], panelId }: Props) {
   const stored = useLocalSetting(STRIP_KEY(surface));
+  const narrow = useNarrow(surface === 'navigation' ? NARROW_QUERY : NARROW_SETTINGS_QUERY);
   const renderedIds = tabs.map(tab => tab.id).join('|');
   const idsKey = allIds?.join('|') ?? renderedIds;
   const state = useMemo(() => stored.value ? parseStripState(stored.value, surface, idsKey.split('|')) : createStripState(surface, idsKey.split('|'), { pinned }), [stored.value, surface, idsKey]);
@@ -39,7 +61,12 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
   const allTabs = searchAllTabs(() => true);
   const masterMatches = useSearchMatches(allTabs.map(tab => `${tab.label} ${tab.surface}`), masterFind);
   const visible = openIds.filter(id => !state.groups.some(group => group.collapsed && group.members.includes(id) && id !== active && !state.pinned.includes(id)));
-  const orientation = orientationFor(state.dock);
+  /* The edge the strip really sits on right now: the stored choice on a wide
+     screen, the phone edge on a narrow one. Orientation, arrow keys and the
+     stylesheet all read this rather than the stored value, so a strip that
+     looks horizontal never answers Up and Down. */
+  const dock = narrow ? (surface === 'navigation' ? 'bottom' : 'top') : state.dock;
+  const orientation = orientationFor(dock);
   const query = (find.mode === 'regex' ? find.pattern : find.query).trim();
   const affected = bulk && query && !match.error && !match.busy ? tabs.filter((tab, index) => openIds.includes(tab.id) && (includePinned || !state.pinned.includes(tab.id)) && (bulk === 'contains' ? match.matches[index] : !match.matches[index])).map(tab => tab.id) : [];
   const save = (next: TabStripState) => {
@@ -73,9 +100,9 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
   }, [active]);
   useEffect(() => {
     if (surface !== 'navigation') return;
-    document.documentElement.dataset.navDock = state.dock;
+    document.documentElement.dataset.navDock = dock;
     return () => { delete document.documentElement.dataset.navDock; };
-  }, [surface, state.dock]);
+  }, [surface, dock]);
   useLayoutEffect(() => {
     const node = list.current;
     if (!node) return;
@@ -94,7 +121,7 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
   const showMenu = (id: string) => { setMenuTab(id); menu.current?.showPopover(); };
   const key = (event: React.KeyboardEvent<HTMLButtonElement>, id: string) => {
     if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); showMenu(id); return; }
-    const action = keyForOrientation(state.dock, event.key);
+    const action = keyForOrientation(dock, event.key);
     if (action) {
       event.preventDefault();
       if (event.ctrlKey && (action === 'previous' || action === 'next')) { save(moveRelative(state, id, action === 'previous' ? -1 : 1)); return; }
@@ -103,8 +130,8 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
       if (next) { activate(next); requestAnimationFrame(() => document.getElementById(`tab-${surface}-${next}`)?.focus()); }
     } else if (event.key === 'Delete') { event.preventDefault(); save(close(state, id)); }
   };
-  return <div className="tab-strip" data-surface={surface} data-dock={state.dock}>
-    {!openIds.length && <span className="sr-only" role="status">{t('All tabs are closed. Use tab tools to reopen a destination.','所有分頁已關閉，請使用分頁工具重新開啟目的地。')}</span>}
+  return <div className="tab-strip" data-surface={surface} data-dock={dock} data-narrow={narrow ? 'true' : undefined}>
+    {!openIds.length && <output className="sr-only">{t('All tabs are closed. Use tab tools to reopen a destination.','所有分頁已關閉，請使用分頁工具重新開啟目的地。')}</output>}
     <div className="tab-strip__list" ref={list} role="tablist" aria-label={t('Workspace tabs', '工作區分頁')} aria-orientation={orientation}>
       {visible.map(id => { const tab = tabs.find(item => item.id === id); if (!tab) return null; const group = state.groups.find(item => item.members.includes(id)); return <div className="tab-strip__item" key={id} data-tab-id={id}>
         <button type="button" className="tab-strip__tab" role="tab" id={`tab-${surface}-${id}`} aria-label={tab.label} aria-controls={panelId} aria-selected={active === id} tabIndex={active === id ? 0 : -1} onKeyDown={event => key(event, id)} onClick={() => activate(id)} onContextMenu={event => { event.preventDefault(); if (event.shiftKey) editAppearance(id); else showMenu(id); }} data-ui={`tab:${surface}:${id}`} title={tab.label}>
@@ -118,14 +145,14 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
     <div id={`tabs-popup-${surface}`} ref={popup} popover="auto" className="tab-strip__popup">
       <header><h2>{t('Tabs', '分頁')}</h2><button type="button" onClick={() => { popup.current?.hidePopover(); button.current?.focus(); }} aria-label={t('Close tab tools', '關閉分頁工具')}><X size={20} /></button></header>
       <SearchWorkbench storageId={`tabs-strip-${surface}`} label={t('Find tabs in this strip', '搜尋此列分頁')} value={find} onChange={setFind} samples={tabs.map(tab => tab.label)} t={t} />
-      <div className="tab-strip__results">{tabs.map((tab, index) => (!query || match.matches[index]) && <button type="button" key={tab.id} onClick={() => activate(tab.id)}>{tab.label}<small>{state.closed.includes(tab.id) ? t('Reopen', '重新開啟') : overflow.includes(tab.id) ? t('Outside visible strip', '位於可見分頁列之外') : t('Open', '已開啟')}</small></button>)}</div>
+      <div className="tab-strip__results">{tabs.map((tab, index) => (!query || match.matches[index]) && <div className="tab-strip__result" key={tab.id}><button type="button" onClick={() => activate(tab.id)}>{tab.label}<small>{state.closed.includes(tab.id) ? t('Reopen', '重新開啟') : overflow.includes(tab.id) ? t('Outside visible strip', '位於可見分頁列之外') : t('Open', '已開啟')}</small></button><button type="button" className="tab-strip__result-manage" onClick={() => { popup.current?.hidePopover(); showMenu(tab.id); }} aria-label={t(`Manage ${tab.label}`, `管理 ${tab.label}`)}><Settings2 size={16} /></button></div>)}</div>
       {query && !match.busy && !match.error && !match.matches.some(Boolean) && <p>{t('No matching tabs.', '未有符合分頁。')}</p>}
       <fieldset><legend>{t('Dock edge', '停靠位置')}</legend>{(['left', 'right', 'top', 'bottom'] as const).map((dock, index) => <label key={dock}><input type="radio" name={`dock-${surface}`} checked={state.dock === dock} onChange={() => save(setDock(state, dock))} />{t(['Left', 'Right', 'Top', 'Bottom'][index], ['左', '右', '上', '下'][index])}</label>)}</fieldset>
       <fieldset><legend>{t('Close matching tabs', '關閉配對分頁')}</legend><label><input type="checkbox" checked={includePinned} onChange={event => setIncludePinned(event.target.checked)} />{t('Include pinned tabs', '包括已固定分頁')}</label><button type="button" onClick={() => setBulk('contains')}>{t('Close tabs containing text', '關閉包含文字嘅分頁')}</button><button type="button" onClick={() => setBulk('not-contains')}>{t('Close tabs not containing text', '關閉不包含文字嘅分頁')}</button>{bulk && <div><p>{query ? t(`${affected.length} tabs will close. Saved settings and trips remain.`, `將關閉 ${affected.length} 個分頁；設定同行程會保留。`) : t('Enter text or a valid expression above first.', '請先於上面輸入文字或有效規則。')}</p><button type="button" disabled={!affected.length || !!match.error || match.busy} onClick={() => { save(applyBulkClose(state, { affected, skipped: [], scope: 'strip' })); setBulk(null); }}>{t('Confirm close', '確認關閉')}</button><button type="button" onClick={() => setBulk(null)}>{t('Cancel', '取消')}</button></div>}</fieldset>
       <details><summary>{t('Tab groups', '分頁群組')}</summary><SearchWorkbench storageId={`tabs-groups-${surface}`} label={t('Find groups', '搜尋群組')} value={groupFind} onChange={setGroupFind} samples={groups.map(group => group.name)} t={t} /><label>{t('New group name', '新群組名稱')}<input maxLength={80} value={groupName} onChange={event => setGroupName(event.target.value)} /></label><button type="button" disabled={!groupName.trim()} onClick={() => { save(createGroup(state, { id: 'group-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9), name: groupName.trim(), members: [active] })); setGroupName(''); }}>{t('Create group with active tab', '以目前分頁建立群組')}</button>{groups.map((group, index) => groupMatches.matches[index] && <GroupTools key={group.id} group={group} state={state} tabs={tabs} save={save} t={t} activate={activate} index={index} />)}</details>
       <details><summary>{t('Find across all mounted tab strips', '搜尋所有已開啟分頁列')}</summary><SearchWorkbench storageId={`tabs-master-${surface}`} label={t('Find any tab', '搜尋任何分頁')} value={masterFind} onChange={setMasterFind} samples={allTabs.map(tab => `${tab.label} ${tab.surface}`)} t={t} />{allTabs.map((tab, index) => masterMatches.matches[index] && <button type="button" key={`${tab.surface}:${tab.id}`} onClick={() => { window.dispatchEvent(new CustomEvent('gtha-open-tab', { detail: tab })); popup.current?.hidePopover(); }}>{tab.label} <small>{tab.surface}</small></button>)}</details>
-      {stored.unavailable && <p role="status">{t('Tab changes could not be saved on this browser.', '此瀏覽器未能儲存分頁變更。')}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {stored.unavailable && <output className="tab-strip__notice">{t('Tab changes could not be saved on this browser.', '此瀏覽器未能儲存分頁變更。')}</output>}
+      {notice && <output className="tab-strip__notice">{notice}</output>}
     </div>
     <div ref={menu} popover="auto" className="tab-strip__popup tab-strip__menu"><h3>{tabs.find(tab => tab.id === menuTab)?.label}</h3>{menuTab && <><button type="button" onClick={() => save(state.pinned.includes(menuTab) ? unpin(state, menuTab) : pin(state, menuTab))}>{state.pinned.includes(menuTab) ? t('Unpin tab', '取消固定分頁') : t('Pin tab', '固定分頁')}</button><button type="button" disabled={state.pinned.includes(menuTab)} onClick={() => { save(close(state, menuTab)); menu.current?.hidePopover(); }}>{t('Close tab', '關閉分頁')}</button><button type="button" onClick={() => save(moveRelative(state, menuTab, -1))}>{t('Move earlier', '向前移')}</button><button type="button" onClick={() => save(moveRelative(state, menuTab, 1))}>{t('Move later', '向後移')}</button><button type="button" onClick={() => { editAppearance(menuTab); menu.current?.hidePopover(); }}>{t('Edit tab appearance', '編輯分頁外觀')}</button><button type="button" onClick={() => { menu.current?.hidePopover(); popup.current?.showPopover(); }}>{t('Find, group or bulk-close tabs', '搜尋、分組或批量關閉分頁')}</button><GroupPicker state={state} tabId={menuTab} save={save} t={t} /></>}</div>
   </div>;
