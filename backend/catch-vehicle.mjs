@@ -16,7 +16,7 @@ export function collectorSnapshot(raw, now = Date.now()) {
 /** Choose only upcoming, non-cancelled publisher times that leave a safety margin. */
 export function interceptCandidates({ stops, now = Date.now(), safetyMarginSeconds = SAFETY_MARGIN_SECONDS }) {
   return (Array.isArray(stops) ? stops : []).filter((stop) => {
-    const at = Date.parse(stop?.arrivalAt ?? stop?.departureAt ?? "");
+    const at = Date.parse(stop?.arrivalAt ?? stop?.departureAt ?? stop?.scheduledArrivalAt ?? stop?.scheduledDepartureAt ?? "");
     return finite(at) && at > now + safetyMarginSeconds * 1000 && stop?.realtimeState !== "CANCELED" && qualified(stop?.id) && finite(stop?.lat) && finite(stop?.lon);
-  }).slice(0, MAX_STOPS).slice(0, MAX_CANDIDATES).map((stop) => ({ ...stop, arriveByAt: new Date((Date.parse(stop.arrivalAt ?? stop.departureAt) - safetyMarginSeconds * 1000)).toISOString() }));
+  }).slice(0, MAX_STOPS).slice(0, MAX_CANDIDATES).map((stop) => { const arrivalAt = stop.arrivalAt ?? stop.departureAt ?? stop.scheduledArrivalAt ?? stop.scheduledDepartureAt; return { ...stop, basis: stop.arrivalAt || stop.departureAt ? "realtime" : "scheduled", arriveByAt: new Date((Date.parse(arrivalAt) - safetyMarginSeconds * 1000)).toISOString() }; });
 }
