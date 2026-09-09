@@ -13,6 +13,8 @@ import type { Map as LeafletMap, LayerGroup } from 'leaflet';
 import VehiclePhotoCaption from './vehicle-photo-caption';
 import RoutePicker from './route-picker';
 import FleetFilterPanel from './fleet-filter-panel';
+import CatchVehicle from './catch-vehicle';
+import type { Itinerary } from '../lib/types';
 import { useLocalSetting } from '../lib/use-local-setting';
 import { emptyFleetFilter, filterFleetVehicles } from '../lib/fleet-filter';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
@@ -25,6 +27,7 @@ import { useRouteColours } from '../lib/use-route-colours';
 type Vehicle = {
   id: string;
   agencyId?: string;
+  vehicleKey?: string;
   agencyName?: string;
   label?: string;
   fleetNumber?: string;
@@ -97,11 +100,14 @@ export default function VehicleTracker({
   t,
   divisionMode = false,
   onFollow,
+  onCatchWalk,
 }: {
   t: (a: string, b: string) => string;
   divisionMode?: boolean;
   onFollow?: (vehicle: Vehicle) => void;
+  onCatchWalk?: (journey: Itinerary) => void;
 }) {
+  const [catching, setCatching] = useState(false);
   const [snapshot, setData] = useState<(Snapshot & { scope: string }) | null>(
       null,
     ),
@@ -507,6 +513,8 @@ export default function VehicleTracker({
           </div>
           <div className="vehicle-facts">
             {onFollow && <button type="button" className="pill" onClick={() => onFollow(selected)}>{t('Follow this vehicle', '跟隨此車輛')}</button>}
+            <button type="button" className="pill" onClick={() => setCatching(true)} disabled={!selected.agencyId}>{t('Catch this vehicle', '追上此車輛')}</button>
+            {catching && <CatchVehicle key={`${selected.agencyId}:${selected.id}`} vehicle={selected} t={t} onClose={() => setCatching(false)} onWalk={onCatchWalk} />}
             {selected.division && (
               <DivisionVerdict
                 division={selected.division}

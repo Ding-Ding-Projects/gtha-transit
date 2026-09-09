@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { planIntercept } from './intercept.mjs';
 import { withPlaceContext } from './place-context.mjs';
 import { cachePolicy, validatorFor } from '../lib/static-cache.ts';
 import { stat } from 'node:fs/promises';
@@ -438,6 +439,34 @@ const server = http.createServer(async (req, res) => {
       return send(res, 410, {
         message: 'The one-time integration setup is closed.',
       });
+    if (url.pathname === '/api/vehicles/intercept') {
+      if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' });
+      if (url.search) return send(res, 400, { error: 'Interception parameters belong in the request body.' });
+      if (!allowed(process.env.TRUST_TUNNEL === '1' ? String(req.headers['cf-connecting-ip'] || req.socket.remoteAddress).slice(0,80) : req.socket.remoteAddress)) return send(res, 429, { error: 'Too many searches. Please wait a minute.' });
+      const controller = new AbortController();
+      const closed = () => { if (!res.writableEnded) controller.abort(); };
+      res.on('close', closed);
+      try {
+        const input = JSON.parse((await body(req)).toString('utf8'));
+        const post = async (pathname, data, signal) => {
+          const response = await fetch(routing + pathname, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal });
+          if (!response.ok || !response.body) throw new Error('Routing request unavailable');
+          let size = 0; const parts = [];
+          for await (const chunk of response.body) { size += chunk.length; if (size > 2 * 1024 * 1024) throw new Error('Routing response too large'); parts.push(chunk); }
+          return JSON.parse(Buffer.concat(parts).toString('utf8'));
+        };
+        const result = await planIntercept(input, {
+          signal: controller.signal,
+          snapshotLoader: options => getVehicleSnapshot({ ...options, timeoutMs: 8000 }),
+          upcomingLoader: (vehicle, { signal }) => post('/api/internal/vehicles/upcoming', { snapshot: vehicle }, signal),
+          walkPlanner: ({ signal, ...request }) => post('/api/plan', { ...request, modes: ['WALK'], maxWalkDistance: 5000 }, signal),
+        });
+        if (!controller.signal.aborted) return send(res, result.state === 'invalid-input' ? 400 : 200, result);
+      } catch {
+        if (!controller.signal.aborted) return send(res, 400, { state: 'invalid-input', reason: 'The interception request could not be processed.', options: [] });
+      } finally { res.off('close', closed); }
+      return;
+    }
     if (url.pathname === '/api/vehicles' && req.method === 'GET') {
       const allowed = new Set(['agency', 'q', 'route', 'limit', 'cursor']);
       if ([...url.searchParams.keys()].some(key => !allowed.has(key))) return send(res, 400, { error: 'Unsupported vehicle query parameter.', code: 'INVALID_VEHICLE_QUERY' });

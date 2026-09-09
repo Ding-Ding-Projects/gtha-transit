@@ -1,0 +1,12 @@
+.catch-vehicle { margin-top: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); }
+.catch-vehicle > header { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
+.catch-vehicle h3 { font-size: 20px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.catch-vehicle p { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.catch-vehicle button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: var(--surface2); cursor: pointer; margin: 4px; }
+.catch-vehicle button:disabled { opacity: .5; cursor: default; }
+.catch-places { list-style: none; padding: 0; max-height: 280px; overflow: auto; }
+.catch-places button { display: flex; flex-direction: column; align-items: start; width: calc(100% - 8px); text-align: left; }
+.catch-option { padding: 16px; margin: 14px 0; border: 1px solid var(--border); border-radius: 16px; }
+.catch-option h4 { margin: 0; font-size: 18px; }
+.catch-option p svg { vertical-align: middle; margin-right: 6px; }
+@media (max-width: 500px) { .catch-vehicle { padding: 12px; }.catch-option { padding: 12px; } }
