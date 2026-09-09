@@ -1,4 +1,4 @@
-.catch-vehicle { margin-top: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); }
+.catch-vehicle { grid-column: 1 / -1; width: 100%; min-width: 0; margin-top: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); }
 .catch-vehicle > header { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
 .catch-vehicle h3 { font-size: 20px; margin: 0 0 12px; overflow-wrap: anywhere; }
 .catch-vehicle p { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
@@ -9,4 +9,4 @@
 .catch-option { padding: 16px; margin: 14px 0; border: 1px solid var(--border); border-radius: 16px; }
 .catch-option h4 { margin: 0; font-size: 18px; }
 .catch-option p svg { vertical-align: middle; margin-right: 6px; }
-@media (max-width: 500px) { .catch-vehicle { padding: 12px; }.catch-option { padding: 12px; } }
+@media (max-width: 500px) { .catch-vehicle { grid-column: 1 / -1; width: 100%; min-width: 0; padding: 12px; }.catch-option { padding: 12px; } }

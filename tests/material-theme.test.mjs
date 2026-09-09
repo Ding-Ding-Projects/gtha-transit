@@ -69,11 +69,11 @@ test('every live-status role exists in both themes', () => {
       assert.match(dark, new RegExp(`--gt-status-${role}-${suffix}:\\s*#[0-9a-f]{6};`), `dark is missing ${role}-${suffix}`);
     }
   }
-  // Cancelled is not a hue of its own: it borrows the error role outright, so it
-  // is a var() alias rather than a generated hex value.
+  // Cancelled retains the shipped error colours even when the editable palette changes; it
+  // has fixed generated values rather than mutable role aliases.
   for (const suffix of ['container', 'on']) {
-    assert.match(light, new RegExp(`--gt-status-cancelled-${suffix}:\\s*var\\(--md-sys-color-`), `light is missing cancelled-${suffix}`);
-    assert.match(dark, new RegExp(`--gt-status-cancelled-${suffix}:\\s*var\\(--md-sys-color-`), `dark is missing cancelled-${suffix}`);
+    assert.match(light, new RegExp(`--gt-status-cancelled-${suffix}:\\s*#[0-9a-f]{6};`), `light is missing cancelled-${suffix}`);
+    assert.match(dark, new RegExp(`--gt-status-cancelled-${suffix}:\\s*#[0-9a-f]{6};`), `dark is missing cancelled-${suffix}`);
   }
 });
 

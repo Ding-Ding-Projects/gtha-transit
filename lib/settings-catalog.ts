@@ -61,6 +61,7 @@ export type NarratorSettingsLike = {
  * rather than pretending to be adjustable somewhere they are not.
  */
 export type SettingsControl =
+  | { kind: 'text'; value: string; maxLength: number; apply: (value: string) => void }
   | { kind: 'choice'; value: string; choices: SettingsChoice[]; apply: (value: string) => void }
   | { kind: 'range'; value: number; min: number; max: number; step: number; apply: (value: number) => void }
   | { kind: 'switch'; value: boolean; apply: (value: boolean) => void }
@@ -123,6 +124,11 @@ export type SettingsCatalogInput = {
    * and then lets the palette teleport straight to it.
    */
   school?: { on: boolean; name: string };
+  appearance?: {
+    ready?: boolean;
+    global: { appName: string | null; seed: string | null; density: string; sizeScale: number; showEmoji: boolean };
+    set: (patch: Record<string, unknown>) => void;
+  };
 };
 
 /**
@@ -461,5 +467,16 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
   /* Removed from the catalog, which is what removes them from both readers at
      once. A row left here and hidden only in the workspace is a control the
      palette can still teleport straight to. */
+  if (input.appearance) {
+    const appearance = input.appearance;
+    entries.push(
+      { id: 'appearance-name', section: 'appearance', label: t('Display name', '顯示名稱'), description: t('Rename this browser workspace', '為此瀏覽器工作區改名'), selector: '#appearance-app-name', value: appearance.global.appName ?? '', control: { kind: 'text', value: appearance.global.appName ?? '', maxLength: 40, apply: value => appearance.set({ appName: value || null }) } },
+      { id: 'appearance-size', section: 'appearance', label: t('Text size', '文字大小'), description: t('Scale interface text', '縮放介面文字'), selector: '#appearance-size', value: `${Math.round(appearance.global.sizeScale * 100)}%`, control: { kind: 'range', min: .8, max: 1.5, step: .05, value: appearance.global.sizeScale, apply: value => appearance.set({ sizeScale: value }) } },
+      { id: 'appearance-density', section: 'appearance', label: t('Interface density', '介面密度'), description: t('Compact, default or comfortable spacing', '緊密、預設或寬鬆間距'), selector: '#appearance-density', value: appearance.global.density, control: { kind: 'choice', value: appearance.global.density, choices: ['compact','default','comfortable'].map((value,index) => ({ value, label: t(['Compact','Default','Comfortable'][index],['緊密','預設','寬鬆'][index]) })), apply: value => appearance.set({ density: value }) } },
+      { id: 'appearance-emoji', section: 'appearance', label: t('Decorative emoji', '裝飾表情符號'), description: t('Show decorative emoji in interface wording', '顯示介面文字內嘅裝飾表情符號'), selector: '#appearance-emoji', control: { kind: 'switch', value: appearance.global.showEmoji, apply: value => appearance.set({ showEmoji: value }) } },
+      ...[['appearance-colour','Seed colours and colour formats','基礎顏色同色彩格式','#appearance-colours'],['appearance-elements','Element states and layers','元素狀態同圖層','#appearance-elements'],['appearance-presets','Appearance presets and import/export','外觀預設同匯入匯出','#appearance-presets']].map(([id,en,zh,selector]) => ({ id,section:'appearance' as const,label:t(en,zh),description:t('Open the complete editor and its preview','開啟完整編輯器同預覽'),selector,control:{kind:'none' as const,reason:t('Use the full editor for its preview and validation.','請使用完整編輯器查看預覽同驗證。')}})),
+    );
+    if (appearance.ready === false) for (const entry of entries) if (entry.id.startsWith('appearance-')) entry.unavailable = t('Appearance settings are still loading.', '外觀設定仍在載入中。');
+  }
   return hidden ? entries.filter((entry) => !HIDDEN_BY_SCHOOL.includes(entry.id)) : entries;
 }

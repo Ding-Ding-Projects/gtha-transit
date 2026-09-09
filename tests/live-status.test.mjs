@@ -290,6 +290,11 @@ test('summariseJourney lets a cancelled leg outrank every other state', () => {
   assert.equal(summary.state, 'cancelled');
 });
 
+test('an on-time leg cannot make unconfirmed connections look on time', () => {
+  for (const state of ['stale','live-unmatched','scheduled-only','unknown']) assert.equal(summariseJourney([statusFixture('on-time'),statusFixture(state)]).state,state);
+  assert.equal(summariseJourney([statusFixture('on-time'),statusFixture('on-time')]).state,'on-time');
+});
+
 test('summariseJourney reports the largest delay among several late legs', () => {
   const summary = summariseJourney([statusFixture('late', 5), statusFixture('late', 12), statusFixture('on-time')]);
   assert.equal(summary.state, 'late');

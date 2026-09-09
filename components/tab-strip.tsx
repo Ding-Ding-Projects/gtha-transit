@@ -9,12 +9,13 @@ import { activeTab, applyBulkClose, close, collapseGroup, createGroup, createStr
 import { registerStrip, searchAllTabs, unregisterStrip } from '../lib/tab-registry';
 
 type Tab = { id: string; label: string; glyph?: string };
-type Props = { surface: string; tabs: Tab[]; active: string; onChange: (id: string) => void; t: (en: string, zh: string) => string; pinned?: string[]; panelId?: string };
+type Props = { surface: string; tabs: Tab[]; allIds?: readonly string[]; active: string; onChange: (id: string) => void; t: (en: string, zh: string) => string; pinned?: string[]; panelId?: string };
 
 /** A closed destination stays available in the reopen/search surface. */
-export default function TabStrip({ surface, tabs, active, onChange, t, pinned = [], panelId }: Props) {
+export default function TabStrip({ surface, tabs, allIds, active, onChange, t, pinned = [], panelId }: Props) {
   const stored = useLocalSetting(STRIP_KEY(surface));
-  const idsKey = tabs.map(tab => tab.id).join('|');
+  const renderedIds = tabs.map(tab => tab.id).join('|');
+  const idsKey = allIds?.join('|') ?? renderedIds;
   const state = useMemo(() => stored.value ? parseStripState(stored.value, surface, idsKey.split('|')) : createStripState(surface, idsKey.split('|'), { pinned }), [stored.value, surface, idsKey]);
   const [notice, setNotice] = useState('');
   const [find, setFind] = useState(emptySearchState);
@@ -31,27 +32,28 @@ export default function TabStrip({ surface, tabs, active, onChange, t, pinned = 
   const menu = useRef<HTMLDivElement>(null);
   const drag = useRef<string | null>(null);
   const button = useRef<HTMLButtonElement>(null);
-  const openIds = visibleTabs(state);
+  const openIds = visibleTabs(state).filter(id => tabs.some(tab => tab.id === id));
   const match = useSearchMatches(tabs.map(tab => tab.label), find);
   const groups = groupsInOrder(state);
   const groupMatches = useSearchMatches(groups.map(group => group.name), groupFind);
   const allTabs = searchAllTabs(() => true);
   const masterMatches = useSearchMatches(allTabs.map(tab => `${tab.label} ${tab.surface}`), masterFind);
-  const visible = openIds.filter(id => !state.groups.some(group => group.collapsed && group.members.includes(id) && id !== active));
+  const visible = openIds.filter(id => !state.groups.some(group => group.collapsed && group.members.includes(id) && id !== active && !state.pinned.includes(id)));
   const orientation = orientationFor(state.dock);
   const query = (find.mode === 'regex' ? find.pattern : find.query).trim();
   const affected = bulk && query && !match.error && !match.busy ? tabs.filter((tab, index) => openIds.includes(tab.id) && (includePinned || !state.pinned.includes(tab.id)) && (bulk === 'contains' ? match.matches[index] : !match.matches[index])).map(tab => tab.id) : [];
   const save = (next: TabStripState) => {
     try {
       if (!stored.setValue(serializeStripState(next))) setNotice(t('Tabs work for this session but could not be saved.', '分頁今次仍可使用，但未能儲存。'));
-      const nextActive = activeTab(next, active);
-      if (nextActive !== active) onChange(nextActive ?? '');
+      const nextActive = activeTab({ ...next, order: next.order.filter(id => tabs.some(tab => tab.id === id)) }, active);
+      if (nextActive !== active) { onChange(nextActive ?? ''); requestAnimationFrame(() => { if (nextActive) document.getElementById(`tab-${surface}-${nextActive}`)?.focus(); else button.current?.focus(); }); }
     } catch { setNotice(t('This tab arrangement is too large to save. Remove an unused group first.', '此分頁排列太大，未能儲存。請先移除無用群組。')); }
   };
   const activate = (id: string) => {
     let next = reopen(state, id);
     for (const group of next.groups) if (group.members.includes(id)) next = collapseGroup(next, group.id, false);
     save(next); onChange(id); popup.current?.hidePopover(); menu.current?.hidePopover();
+    requestAnimationFrame(() => { document.getElementById(`tab-${surface}-${id}`)?.scrollIntoView({block:'nearest',inline:'nearest'}); if (surface === 'navigation') document.getElementById('workspace-heading')?.focus({preventScroll:true}); });
   };
   useEffect(() => {
     registerStrip(surface, () => ({ tabs, state }));
@@ -81,7 +83,7 @@ export default function TabStrip({ surface, tabs, active, onChange, t, pinned = 
     };
     const observer = new ResizeObserver(measure); observer.observe(node); measure(); node.addEventListener('scroll', measure);
     return () => { observer.disconnect(); node.removeEventListener('scroll', measure); };
-  }, [orientation, idsKey, stored.value]);
+  }, [orientation, idsKey, renderedIds, stored.value]);
   const editAppearance = (id: string) => window.dispatchEvent(new CustomEvent('gtha-edit-appearance', { detail: { id: `tab:${surface}:${id}` } }));
   const showMenu = (id: string) => { setMenuTab(id); menu.current?.showPopover(); };
   const key = (event: React.KeyboardEvent<HTMLButtonElement>, id: string) => {
@@ -96,10 +98,11 @@ export default function TabStrip({ surface, tabs, active, onChange, t, pinned = 
     } else if (event.key === 'Delete') { event.preventDefault(); save(close(state, id)); }
   };
   return <div className="tab-strip" data-surface={surface} data-dock={state.dock}>
+    {!openIds.length && <span className="sr-only" role="status">{t('All tabs are closed. Use tab tools to reopen a destination.','所有分頁已關閉，請使用分頁工具重新開啟目的地。')}</span>}
     <div className="tab-strip__list" ref={list} role="tablist" aria-label={t('Workspace tabs', '工作區分頁')} aria-orientation={orientation}>
       {visible.map(id => { const tab = tabs.find(item => item.id === id); if (!tab) return null; const group = state.groups.find(item => item.members.includes(id)); return <div className="tab-strip__item" key={id} data-tab-id={id}>
         <button type="button" className="tab-strip__tab" role="tab" id={`tab-${surface}-${id}`} aria-controls={panelId} aria-selected={active === id} tabIndex={active === id ? 0 : -1} onKeyDown={event => key(event, id)} onClick={() => activate(id)} onContextMenu={event => { event.preventDefault(); if (event.shiftKey) editAppearance(id); else showMenu(id); }} data-ui={`tab:${surface}:${id}`} title={tab.label}>
-          {tab.glyph && <Icon name={tab.glyph} size={21} />}<span>{tab.label}</span>{state.pinned.includes(id) && <Pin size={12} aria-label={t('Pinned', '已固定')} />}{group && <small>{group.name}</small>}
+          {tab.glyph && <Icon name={tab.glyph} size={21} />}<span>{tab.label}</span>{state.pinned.includes(id) && <Pin size={12} aria-label={t('Pinned', '已固定')} />}{group && <small style={group.colour ? { borderBottom: '3px solid ' + group.colour } : undefined}>{group.name}</small>}
         </button>
         <button type="button" className="tab-strip__manage" onClick={() => showMenu(id)} aria-label={t(`Manage ${tab.label}`, `管理 ${tab.label}`)}><MoreHorizontal size={16} /></button>
         <button type="button" className="tab-strip__drag" aria-label={t(`Move ${tab.label}; use Control and arrow keys on the tab`, `移動 ${tab.label}；可於分頁使用 Control 加方向鍵`)} onPointerDown={event => { drag.current = id; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerUp={event => { const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>('[data-tab-id]')?.dataset.tabId; if (drag.current && target) save(reorder(state, drag.current, state.order.indexOf(target))); drag.current = null; }} onPointerCancel={() => { drag.current = null; }}><GripVertical size={14} /></button>

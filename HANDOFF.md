@@ -1,5 +1,17 @@
 # Implementation handoff
 
+## Integrated recovery candidate, 9 September 2026
+
+The four interrupted streams have been combined on the recovery integration branch. Final `main` integration and cleanup are deliberately deferred until the complete scoped work and verification finish.
+
+The deployed frontend at `017b3b7c58813a44c0c5add1b7cdead41e166ba2` has verified electric controls and successful live refresh. The browser submitted four real route-320 legs twice; both responses were HTTP 200 and their server timestamps advanced. The exact service-date boundary is now compact `YYYYMMDD`, including a prior service day after midnight. The first interception flow correctly returned no verified catch instead of inventing an option. Its narrow layout defect was traced to nesting the panel in the vehicle facts grid and is repaired in this candidate, pending recapture.
+
+The appearance studio and shared tab strip are integrated and type-check. The preceding combined local suite passed 867 tests. The latest focused checks passed 150 tests after editor bindings, palette integration, focus and layout repairs. A final candidate build and real interaction matrix remain required before these new surfaces are accepted.
+
+The API runs source `0bf45292b76c15fc15662a544ceea105d789c8b1`, preserving 38,526 stops, 1,015 routes and the validated pattern/washroom indexes. YRT updater activation was verified after a 64-second routing-engine restart. The bounded TTC matcher at `16313ac1d2f3aae96cbdd3395a89a463a4744955` is running in shadow mode only. Its first three real polls stayed within 256 MiB and retained uncovered observations in the denominator. Its rolling history is in memory, and neither a full 24-hour confidence record nor TTC routing activation is claimed.
+
+Further work includes the recovered position-aligned timetable interception path, complete public shadow statistics, final rendered evidence, documentation indexes and default-branch integration. Existing recovery copies and rollback images remain retained. Public static builds now emit `asset-manifest.json` and `build-receipt.json`, allowing captures to bind to actual deployed bytes.
+
 ## Recovery increment, 9 September 2026
 
 The electric preference now has planner controls, persistent Off/Prefer/Avoid state, explicit unknown-assignment handling, and a tracker propulsion filter. Local validation of this increment passed type checking, all 714 root tests, and the production build. Deployment and rendered interaction are pending for this candidate, so this section does not claim the controls are live yet.

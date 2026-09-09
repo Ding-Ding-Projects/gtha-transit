@@ -78,11 +78,11 @@ export const LIVE_STATES: readonly LiveState[] = [
   'cancelled',
   'late',
   'early',
-  'on-time',
   'stale',
   'live-unmatched',
   'scheduled-only',
   'unknown',
+  'on-time',
 ];
 
 const SECONDS_PER_MINUTE = 60;

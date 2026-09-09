@@ -495,7 +495,7 @@ export default function VehicleTracker({
         <section
           ref={detail}
           tabIndex={-1}
-          className="vehicle-detail"
+          className="vehicle-detail" data-ui="tracker.row"
           aria-label={t('Selected vehicle details', '所選車輛資料')}
         >
           <div className="content-heading">
@@ -514,7 +514,7 @@ export default function VehicleTracker({
           <div className="vehicle-facts">
             {onFollow && <button type="button" className="pill" onClick={() => onFollow(selected)}>{t('Follow this vehicle', '跟隨此車輛')}</button>}
             <button type="button" className="pill" onClick={() => setCatching(true)} disabled={!selected.agencyId}>{t('Catch this vehicle', '追上此車輛')}</button>
-            {catching && <CatchVehicle key={`${selected.agencyId}:${selected.id}`} vehicle={selected} t={t} onClose={() => setCatching(false)} onWalk={onCatchWalk} />}
+
             {selected.division && (
               <DivisionVerdict
                 division={selected.division}
@@ -546,6 +546,7 @@ export default function VehicleTracker({
               </strong>
             </span>
           </div>
+{catching && <CatchVehicle key={`${selected.agencyId}:${selected.id}`} vehicle={selected} t={t} onClose={() => setCatching(false)} onWalk={onCatchWalk} />}
           {selected.division?.state === 'unknown' && <p className="division-evidence-note">{selected.division.reason === 'allocation-source-not-yet-in-effect'
             ? t('The official allocation source covers a period that has not started, so it cannot describe today.', '官方配車來源已過有效日期，需要新資料先可以核實。')
             : selected.division.reason === 'multi-garage-fleet-allocation'

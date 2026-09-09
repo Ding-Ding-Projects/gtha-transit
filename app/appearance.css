@@ -27,3 +27,5 @@ html[data-appearance-density='compact'] .shell :where(.preference-card,.journey,
 html[data-appearance-density='comfortable'] .shell :where(.preference-card,.journey,.page-panel) { padding: 24px; }
 html[data-appearance-density] .shell :where(button,input,select,textarea) { min-height: 44px; }
 @media (max-width: 500px) { .appearance-editor { padding: 12px; }.appearance-colour > div > input:not([type='color']) { width: calc(100% - 72px); }.appearance-colour > div > label { width: 100%; } }
+.appearance-context { position: fixed; inset: auto; margin: 0; width: 264px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: var(--md-sys-elevation-level3); }
+.appearance-context button { display: block; min-height: 44px; width: 100%; border: 0; border-radius: 10px; padding: 10px; background: var(--surface2); color: var(--text); cursor: pointer; margin: 3px 0; }

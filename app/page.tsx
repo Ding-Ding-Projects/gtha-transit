@@ -497,8 +497,8 @@ export default function Home() {
   }, [school]);
   const paletteDestinations = useMemo(() => workspaceDestinations(t), [t]);
   const paletteSettings = useMemo(
-    () => settingsCatalog({ t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) } }),
-    [t, lang, dark, funEn, funZh, narrator, school],
+    () => settingsCatalog({ appearance: { ready: appearance.ready, global: appearance.global, set: patch => appearance.update({ global: { ...appearance.global, ...patch } }) }, t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) } }),
+    [t, lang, dark, funEn, funZh, narrator, school, appearance],
   );
   const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh, hidden: school.on }), [t, dark, school.on]);
   /**
@@ -1025,7 +1025,7 @@ export default function Home() {
         ? t('Service alert', '服務提示')
         : t('Status unconfirmed', '狀態未確認');
   return (
-    <div className={`shell ${adhdClassNames(adhd)}`.trimEnd()} data-tab={tab} data-one-thing={isOn(adhd, 'oneThing') && adhd.oneThingText ? adhd.oneThingText : undefined}>
+    <div className={`shell ${adhdClassNames(adhd)}`.trimEnd()} data-ui="shell" data-tab={tab} data-one-thing={isOn(adhd, 'oneThing') && adhd.oneThingText ? adhd.oneThingText : undefined}>
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
@@ -1044,7 +1044,7 @@ export default function Home() {
             while a request is in flight: a surprise mid-task is an interruption. */}
         <DimSum t={t} error={Boolean(error)} busy={loading} suppressed={isOn(adhd, 'lowStimulation') || suppresses(school, 'dim-sum')} />
       </div>
-      <main id="main" className="workspace" role="tabpanel" aria-labelledby={`tab-navigation-${tab}`}>
+      <main id="main" className="workspace">
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
           {/* The eyebrow and lede that used to sit here said nothing the heading
               above the workspace does not already say, and they pushed the first
@@ -1307,7 +1307,7 @@ export default function Home() {
             </a>
           </div>
         </aside>
-        <section className="content">
+        <section id="workspace-panel" className="content" role="tabpanel" aria-labelledby={tab ? `tab-navigation-${tab}` : undefined} aria-label={tab ? undefined : t('No open destination', '未開啟目的地')}>
           {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} journey={follower.journey ? journeys.find(item => item.id === follower.journey?.id) ?? follower.journey : undefined} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'race' && <RaceWorkspace t={t} />}

@@ -297,7 +297,7 @@ function SearchWorkbenchSurface({
         <label htmlFor={fieldId}>{label}</label>
         <div className="regex-workbench__input-line" data-has-query={!!activeValue}>
           <Search size={17} aria-hidden="true" />
-          <input
+          <input data-ui="search.workbench.field"
             id={fieldId}
             type="search"
             value={activeValue}
@@ -370,11 +370,11 @@ function SearchWorkbenchSurface({
           <fieldset className="regex-workbench__mode-picker">
             <legend>{t('Search mode', '搜尋模式')}</legend>
             <label>
-              <input type="radio" name={`${id}-mode`} checked={value.mode === 'text'} onChange={() => switchMode('text')} />
+              <input data-ui="search.workbench.field" type="radio" name={`${id}-mode`} checked={value.mode === 'text'} onChange={() => switchMode('text')} />
               {t('Plain text', '純文字')}
             </label>
             <label>
-              <input type="radio" name={`${id}-mode`} checked={value.mode === 'regex'} onChange={() => switchMode('regex')} />
+              <input data-ui="search.workbench.field" type="radio" name={`${id}-mode`} checked={value.mode === 'regex'} onChange={() => switchMode('regex')} />
               {t('Regular expression', '規則')}
             </label>
           </fieldset>
@@ -382,7 +382,7 @@ function SearchWorkbenchSurface({
           <div className="regex-workbench__editor-grid">
             <label>
               {t('Pattern', '規則')}
-              <input
+              <input data-ui="search.workbench.field"
                 ref={patternInputRef}
                 value={value.pattern}
                 maxLength={SEARCH_LIMITS.maxPatternLength}
@@ -395,7 +395,7 @@ function SearchWorkbenchSurface({
             </label>
             <label>
               {t('Flags', '旗標')}
-              <input
+              <input data-ui="search.workbench.field"
                 value={value.flags}
                 maxLength={SEARCH_LIMITS.maxFlags}
                 onChange={(event) => update({ mode: 'regex', flags: event.target.value })}
@@ -520,7 +520,7 @@ function SearchWorkbenchSurface({
             <h4 id={`${id}-replacement`}>{t('Replacement preview', '取代預覽')}</h4>
             <label>
               {t('Replacement template', '取代範本')}
-              <input value={replacement} maxLength={SEARCH_LIMITS.maxReplacementLength} onChange={(event) => setReplacement(event.target.value)} placeholder={t('Example: $<route>', '例子：$<route>')} />
+              <input data-ui="search.workbench.field" value={replacement} maxLength={SEARCH_LIMITS.maxReplacementLength} onChange={(event) => setReplacement(event.target.value)} placeholder={t('Example: $<route>', '例子：$<route>')} />
             </label>
             {evaluation.replacementPreview ? (
               <output>
@@ -542,7 +542,7 @@ function SearchWorkbenchSurface({
                 <div className="regex-workbench__case" key={item.id}>
                   <label>
                     {t('Case text', '案例文字')}
-                    <input value={item.text} maxLength={SEARCH_LIMITS.maxCaseLength} onChange={(event) => updateCase(item.id, { text: event.target.value })} />
+                    <input data-ui="search.workbench.field" value={item.text} maxLength={SEARCH_LIMITS.maxCaseLength} onChange={(event) => updateCase(item.id, { text: event.target.value })} />
                   </label>
                   <label>
                     {t('Expected result', '預期結果')}
@@ -569,7 +569,7 @@ function SearchWorkbenchSurface({
             <div className="regex-workbench__snippet-save">
               <label>
                 {t('Snippet name', '規則名稱')}
-                <input value={snippetName} maxLength={SEARCH_LIMITS.maxSnippetNameLength} onChange={(event) => setSnippetName(event.target.value)} placeholder={t('Example: TTC route code', '例子：TTC 路線代碼')} />
+                <input data-ui="search.workbench.field" value={snippetName} maxLength={SEARCH_LIMITS.maxSnippetNameLength} onChange={(event) => setSnippetName(event.target.value)} placeholder={t('Example: TTC route code', '例子：TTC 路線代碼')} />
               </label>
               <button type="button" onClick={saveSnippet}>{t('Save snippet', '儲存規則')}</button>
             </div>
@@ -598,7 +598,7 @@ function SearchWorkbenchSurface({
               <label className="regex-workbench__file-import">
                 <FileUp size={16} aria-hidden="true" />
                 <span>{t('Choose JSON file', '選擇 JSON 檔案')}</span>
-                <input type="file" accept="application/json,.json" onChange={(event) => {
+                <input data-ui="search.workbench.field" type="file" accept="application/json,.json" onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (!file || file.size > SEARCH_LIMITS.maxSnippetPayloadLength) {
                     if (file) setSnippetNotice('snippet-too-large');
@@ -610,7 +610,7 @@ function SearchWorkbenchSurface({
             </div>
             <label>
               {t('Paste snippet JSON', '貼上規則 JSON')}
-              <textarea value={importText} maxLength={SEARCH_LIMITS.maxSnippetPayloadLength} onChange={(event) => setImportText(event.target.value)} />
+              <textarea data-ui="search.workbench.field" value={importText} maxLength={SEARCH_LIMITS.maxSnippetPayloadLength} onChange={(event) => setImportText(event.target.value)} />
             </label>
             <button type="button" onClick={() => importSnippets()} disabled={!importText.trim()}>{t('Import pasted JSON', '匯入已貼上 JSON')}</button>
             {snippetNotice && <output>{message(t, snippetNotice)}</output>}

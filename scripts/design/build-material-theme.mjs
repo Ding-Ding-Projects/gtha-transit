@@ -179,8 +179,8 @@ const statusBlock = (scheme) => {
 };
 
 /** Cancelled borrows the error role outright, so it is an alias rather than a tone. */
-const STATUS_CANCELLED = `  --gt-status-cancelled-container: var(--md-sys-color-error-container);
-  --gt-status-cancelled-on: var(--md-sys-color-on-error-container);`;
+const statusCancelled = scheme => `  --gt-status-cancelled-container: ${roleValue(scheme, 'error-container')};
+  --gt-status-cancelled-on: ${roleValue(scheme, 'on-error-container')};`;
 
 /**
  * The legacy names every existing rule still uses, mapped onto the roles.
@@ -214,7 +214,7 @@ ${roleBlock('light')}
      identical OKLCH tone path as every role above, at hues no source colour
      owns: early is blue, on time is green, late is amber, very late is red. */
 ${statusBlock('light')}
-${STATUS_CANCELLED}
+${statusCancelled('light')}
 
   /* Type scale. Every size the interface uses comes from here. */
   --md-sys-typescale-display-large: 700 57px/64px var(--md-ref-typeface-brand);
@@ -279,7 +279,7 @@ html[data-theme='dark'] {
 ${roleBlock('dark')}
 
 ${statusBlock('dark')}
-${STATUS_CANCELLED}
+${statusCancelled('dark')}
 
 ${LEGACY}
 }

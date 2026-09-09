@@ -53,8 +53,8 @@
   --gt-status-late-on: #613f00;
   --gt-status-very-late-container: #ffd8d4;
   --gt-status-very-late-on: #890012;
-  --gt-status-cancelled-container: var(--md-sys-color-error-container);
-  --gt-status-cancelled-on: var(--md-sys-color-on-error-container);
+  --gt-status-cancelled-container: #ffd8d2;
+  --gt-status-cancelled-on: #890007;
 
   /* Type scale. Every size the interface uses comes from here. */
   --md-sys-typescale-display-large: 700 57px/64px var(--md-ref-typeface-brand);
@@ -166,8 +166,8 @@ html[data-theme='dark'] {
   --gt-status-late-on: #ffddae;
   --gt-status-very-late-container: #890012;
   --gt-status-very-late-on: #ffd8d4;
-  --gt-status-cancelled-container: var(--md-sys-color-error-container);
-  --gt-status-cancelled-on: var(--md-sys-color-on-error-container);
+  --gt-status-cancelled-container: #890007;
+  --gt-status-cancelled-on: #ffd8d2;
 
   --bg: var(--md-sys-color-surface-container-low);
   --surface: var(--md-sys-color-surface-container-lowest);

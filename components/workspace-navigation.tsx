@@ -59,7 +59,7 @@ export default function WorkspaceNavigation({ appName, active, onChange, dark, o
         <span className="m3-nav__brand-text" data-ui="brand.name">{appName || <>GTHA<span className="brand-light">transit</span></>}</span>
       </Link>
 
-      <TabStrip surface="navigation" tabs={workspaceDestinations(t)} active={active} onChange={onChange} pinned={['plan']} panelId="main" t={t} />
+      <TabStrip surface="navigation" tabs={workspaceDestinations(t)} active={active} onChange={onChange} pinned={['plan']} panelId="workspace-panel" t={t} />
 
       <div className="m3-nav__tail">
         {/* fieldset rather than role="group": the native element carries the

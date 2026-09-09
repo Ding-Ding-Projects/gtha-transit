@@ -1,5 +1,11 @@
 # Tabbed navigation
 
+The main navigation and settings now use the same tab strip. Plan starts pinned. The tab tools provide search, reopening, docking on any edge, named groups, group colour and collapse, and previews for closing tabs containing or not containing text. Closed destinations remain available through the tab tools and command palette. School mode temporarily hides the Language tab while preserving its underlying tab arrangement.
+
+Arrow keys follow the dock orientation; Home and End select the ends, Control with an arrow reorders, Delete closes an unpinned tab, and Shift+F10 opens tab actions. The active tab scrolls into view. Main navigation moves focus to the workspace heading. All-closed states keep the reopen control available.
+
+The strip, group list, individual group and master searches have independent regex workbenches. Tab and group appearance actions open the shared element editor. User group names remain local.
+
 The planner's tab strip is backed by a small, browser-local state record for each mounted surface. It remembers tab order, pinned destinations, closed destinations, groups, and the chosen dock edge. The current format is version 1 and uses the key `gtha-tabs-<surface>-v1`.
 
 Closed destinations are deliberately retained in the record. They can be reopened from the overflow view, the master tab search, or the add-tab list. Pinned destinations always occupy the leading part of the strip and a normal close action leaves them open. A bulk close previews every affected destination first and excludes pinned destinations unless the user explicitly includes them.

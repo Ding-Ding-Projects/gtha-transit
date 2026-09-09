@@ -225,7 +225,7 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
             : t(`${ordered.length} results`, `${ordered.length} 個結果`);
 
   return (
-    <dialog
+    <dialog data-ui="command.palette"
       ref={dialog}
       className={`palette palette--${size}`}
       aria-label={t('Command palette', '指令面板')}
@@ -243,14 +243,14 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
           </h2>
           <div className="palette__tools">
             <fieldset className="palette__size" aria-label={t('Palette size', '面板大小')}>
-              <button
+              <button data-ui="command.palette.option"
                 type="button"
                 aria-pressed={size === 'card'}
                 onClick={() => storedSize.setValue('card')}
               >
                 {t('Card', '卡片')}
               </button>
-              <button
+              <button data-ui="command.palette.option"
                 type="button"
                 aria-pressed={size === 'full'}
                 onClick={() => storedSize.setValue('full')}
@@ -258,7 +258,7 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
                 {t('Full window', '全視窗')}
               </button>
             </fieldset>
-            <button type="button" className="palette__close" onClick={close} aria-label={t('Close', '關閉')}>
+            <button data-ui="command.palette.option" type="button" className="palette__close" onClick={close} aria-label={t('Close', '關閉')}>
               <Icon name="close" size={20} />
             </button>
           </div>
@@ -290,7 +290,7 @@ export default function CommandPalette({ t, destinations, settings, actions, onN
                   const index = ordered.indexOf(entry);
                   return (
                     <li key={entry.id} className="palette-row" data-palette-index={index}>
-                      <button
+                      <button data-ui="command.palette.option"
                         type="button"
                         className="palette-row__go"
                         tabIndex={index === active ? 0 : -1}
@@ -346,10 +346,14 @@ function PaletteRowControl({ entry, idPrefix, t }: { entry: PaletteEntry; idPref
     return <p className="palette-row__note">{blocked}</p>;
   }
 
+  if (control.kind === 'text') {
+    return <div className="palette-row__control"><label htmlFor={`${idPrefix}-text`}>{setting.label}</label><input data-ui="command.palette.field" id={`${idPrefix}-text`} type="text" maxLength={control.maxLength} value={control.value} onChange={event => control.apply(event.target.value)} /></div>;
+  }
+
   if (control.kind === 'switch') {
     return (
       <div className="palette-row__control">
-        <input
+        <input data-ui="command.palette.field"
           id={`${idPrefix}-switch`}
           type="checkbox"
           role="switch"
@@ -365,7 +369,7 @@ function PaletteRowControl({ entry, idPrefix, t }: { entry: PaletteEntry; idPref
     return (
       <div className="palette-row__control">
         <label htmlFor={`${idPrefix}-range`}>{setting.label}</label>
-        <input
+        <input data-ui="command.palette.field"
           id={`${idPrefix}-range`}
           type="range"
           min={control.min}
@@ -394,7 +398,7 @@ function PaletteRowControl({ entry, idPrefix, t }: { entry: PaletteEntry; idPref
     <fieldset className="palette-row__control palette-row__choices" aria-label={setting.label}>
       {control.choices.map((choice) => (
         <label key={choice.value || 'automatic'}>
-          <input
+          <input data-ui="command.palette.field"
             type="radio"
             name={`${idPrefix}-choice`}
             checked={control.value === choice.value}

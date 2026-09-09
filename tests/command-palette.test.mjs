@@ -29,6 +29,19 @@ const root = path.resolve(here, '..');
 /** English mode, so an assertion reads as the sentence a person would see. */
 const t = (en) => en;
 
+test('appearance controls share real setters and exact destinations with the palette', () => {
+  const changes = [];
+  const appearance = { ready: true, global: { appName: 'Metro desk', seed: '#ff0000', density: 'default', sizeScale: 1, showEmoji: true }, set: patch => changes.push(patch) };
+  const entries = catalog({ appearance }).entries;
+  const ids = entries.filter(entry => entry.id.startsWith('appearance-')).map(entry => entry.id);
+  assert.deepEqual(ids, ['appearance-name','appearance-size','appearance-density','appearance-emoji','appearance-colour','appearance-elements','appearance-presets']);
+  entries.find(entry=>entry.id==='appearance-name').control.apply('Trip desk');
+  entries.find(entry=>entry.id==='appearance-size').control.apply(1.25);
+  entries.find(entry=>entry.id==='appearance-emoji').control.apply(false);
+  assert.deepEqual(changes,[{appName:'Trip desk'},{sizeScale:1.25},{showEmoji:false}]);
+  assert.ok(catalog({appearance:{...appearance,ready:false}}).entries.filter(entry=>entry.id.startsWith('appearance-')).every(entry=>entry.unavailable));
+});
+
 function narrator(overrides = {}) {
   return {
     settings: {
@@ -64,6 +77,7 @@ function catalog(overrides = {}) {
     funZh: overrides.funZh ?? 5,
     setFunZh: (value) => calls.push(['funZh', value]),
     narrator: overrides.narrator ?? narrator({ updateSettings: (patch) => calls.push(['narrator', patch]) }),
+    appearance: overrides.appearance,
     comfort: overrides.comfort === null ? undefined : {
       modes: { focus: false, lowStimulation: false, timeAwareness: false, oneThing: false, momentum: false },
       toggleMode: (mode) => calls.push(['comfort', mode]),

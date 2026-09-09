@@ -67,6 +67,7 @@ export function useAppearance(dark: boolean) {
     } catch { setStorageFailed(true); }
   };
   const update = (patch: Partial<Snapshot>) => {
+    if (!ready) return false;
     const previous = { global, document, presets };
     const next = { ...previous, ...patch };
     next.global = parseGlobal(serializeGlobal(next.global));
@@ -84,10 +85,11 @@ export function useAppearance(dark: boolean) {
   const undo = () => { const next = undoAppearanceHistory(history); setHistory(next); persist(next.present); };
   const redo = () => { const next = redoAppearanceHistory(history); setHistory(next); persist(next.present); };
   useEffect(() => {
+    if (!ready) return;
     const emergency = (event: KeyboardEvent) => { if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'Backspace') { event.preventDefault(); reset(); } };
     window.addEventListener('keydown', emergency);
     return () => window.removeEventListener('keydown', emergency);
-  }, [global, document, presets]);
+  }, [global, document, presets, ready]);
   const roles = useMemo(() => global.mode === 'shipped' || !global.seed ? {} : schemeForSeed(formatHex(parseColour(global.seed)!), dark, global.sources ?? {}), [global.mode, global.seed, global.sources, dark]);
   useEffect(() => {
     const root = window.document.documentElement;
