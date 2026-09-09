@@ -1,5 +1,29 @@
 # Implementation handoff
 
+## Routing-host proxy recreated, GO and UP applying again, 9 September 2026
+
+The Metrolinx proxy container on the routing host (`backend-api-1`, compose service
+`api`) had been running for nine hours with a broken embedded resolver: inside the
+container `api.openmetrolinx.com` answered `SERVFAIL`, the proxy reported GO and UP
+as `waiting` with no successful fetch, and OpenTripPlanner had nothing to apply for
+either feed. Recreating the container fixed it:
+
+```
+cd /home/docker/gtha-transit-backend/backend && docker compose up -d --force-recreate --no-deps api
+```
+
+Note the service name. The routing host still runs the older compose file in which
+the proxy is the `api` service; `main`'s `backend/compose.yaml` renames it
+`metrolinx-proxy` with a network alias `api`, but that file has not been deployed
+there yet, so `metrolinx-proxy` answers "no such service" on the host today.
+
+| | State |
+| --- | --- |
+| Resolver | `api.openmetrolinx.com` resolved to `20.104.7.174` eight seconds after the recreate |
+| Proxy status | 25 s after the recreate: GO `live`, 201 entities; UP `live`, 5 entities |
+| OpenTripPlanner log | `feedId=go` 201 of 201 applied (100 %), `feedId=up` 5 of 5 (100 %), `feedId=yrt` 565 of 566 (one `TRIP_NOT_FOUND`, `yrt:2006996`), zero `UnknownHostException` in the three minutes after |
+| Public summary | `https://toronto-transit.org/api/realtime` reports the agencies live |
+
 ## Phone layout regression, 9 September 2026
 
 The owner reported that the site had become "a total mess" on a phone after the
