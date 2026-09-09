@@ -11,6 +11,7 @@ import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
 import { publishedStopForId, routeStopAnchors } from "./stop-routes.mjs";
 import { planWithRequiredLine } from "./required-line.mjs";
 import { planWashroomDetour } from "./washroom-detour.mjs";
+import { collectorSnapshot, interceptCandidates } from "./catch-vehicle.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(await readFile(path.join(here, "config.json"), "utf8"));
@@ -208,6 +209,15 @@ const server = http.createServer(async (req, res) => {
       if (!isServiceDate(serviceDate)) throw new Error("date must be 8 digits");
       const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, tripId, serviceDate });
       return json(res, trip ? 200 : 404, trip ?? { error: "trip not found", code: "TRIP_NOT_FOUND" });
+    }
+    if (req.method === "POST" && url.pathname === "/api/internal/vehicles/upcoming") {
+      let input; try { input = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: "request body must be valid JSON", code: "INVALID_COLLECTOR_SNAPSHOT" }); }
+      const snapshot = collectorSnapshot(input);
+      if (!snapshot) return json(res, 400, { error: "a fresh exact collector trip snapshot is required", code: "INVALID_COLLECTOR_SNAPSHOT" });
+      const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: Math.min(config.requestTimeoutMs, 8_000), tripId: snapshot.tripId, serviceDate: snapshot.serviceDate });
+      if (!trip) return json(res, 200, { state: "unavailable", code: "TRIP_NOT_FOUND", fetchedAt: new Date().toISOString(), vehicle: snapshot, candidates: [] });
+      const candidates = interceptCandidates({ stops: trip.stops });
+      return json(res, 200, { state: candidates.length ? "live" : "trip-ended", fetchedAt: new Date().toISOString(), vehicle: snapshot, trip: { id: trip.id, headsign: trip.headsign, routeId: trip.routeId }, candidates });
     }
     if (req.method === "POST" && url.pathname === "/api/plan") {
       const input = JSON.parse(await readBody(req));
