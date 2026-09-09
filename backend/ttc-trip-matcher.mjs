@@ -389,7 +389,7 @@ export function matchUpdate(tripUpdate, staticIndex, vehiclesById, options = {})
   if (!scored.length) return { ...base, classification: "none" };
 
   const best = scored[0]; const runnerUp = scored[1] ?? null;
-  const diagnostics = { matchedTripId: stripFeedPrefix(best.trip.gtfsId), matchedRouteId: stripFeedPrefix(best.trip.routeGtfsId), score: best.score, runnerUpScore: runnerUp?.score ?? null };
+  const diagnostics = { matchedTripId: stripFeedPrefix(best.trip.gtfsId), matchedRouteId: stripFeedPrefix(best.trip.routeGtfsId), matchedServiceDate: best.trip.serviceDate ?? staticIndex.serviceDate ?? null, score: best.score, runnerUpScore: runnerUp?.score ?? null };
   const isUnique = best.score <= uniqueMaxS && (runnerUp === null || runnerUp.score - best.score >= uniqueMarginS);
   if (!isUnique) return { ...base, ...diagnostics, classification: "ambiguous" };
 
@@ -398,7 +398,8 @@ export function matchUpdate(tripUpdate, staticIndex, vehiclesById, options = {})
   // fresh vehicle position there is nothing to confirm it against.
   const vehicle = lookupVehicle(vehiclesById, tripUpdate?.vehicle?.id ?? null);
   const vehicleTimestampMs = vehicle ? numberOr(vehicle.timestamp, null) : null;
-  const vehicleFresh = Boolean(vehicle) && vehicleTimestampMs !== null && Math.abs(now - vehicleTimestampMs * 1_000) <= vehicleFreshMs;
+  const vehicleAge = now - vehicleTimestampMs * 1_000;
+  const vehicleFresh = Boolean(vehicle) && vehicleTimestampMs !== null && vehicleAge >= -30_000 && vehicleAge <= vehicleFreshMs;
   if (!vehicleFresh) return { ...base, ...diagnostics, classification: "unverified" };
 
   const expectedStop = expectedPositionNow(best.trip, best.signedDelay, now / 1_000);
@@ -434,7 +435,7 @@ export function gateVerdict(counters, thresholds = DEFAULT_THRESHOLDS) {
   const total = counters?.total ?? 0;
   const uniqueRatio = total > 0 ? counters.unique / total : 0;
   const contradictedRatio = total > 0 ? counters.contradicted / total : 0;
-  const alignmentRatio = total > 0 ? (total - (counters.sequenceMisaligned ?? 0)) / total : 0;
+  const alignmentRatio = total > 0 ? (total - (counters.sequenceMisaligned ?? 0) - (counters.unverified ?? 0)) / total : 0;
   const passes = total > 0 && uniqueRatio >= merged.uniqueMin && contradictedRatio <= merged.contradictedMax && alignmentRatio >= merged.alignmentMin;
   return { uniqueRatio, contradictedRatio, alignmentRatio, passes, thresholds: merged };
 }
@@ -548,12 +549,12 @@ async function tripsForRouteOnDate(routeGtfsId, serviceDate, budget) {
   return trips.map((trip) => ({ gtfsId: trip.gtfsId, stops: stopsFromStoptimes(trip.stoptimesForDate, (stoptime) => Number(stoptime.stopPosition) + 1, budget) }));
 }
 
-export const STATIC_INDEX_LIMITS = Object.freeze({ queries: 2000, routes: 400, trips: 40000, stops: 1000000, stopsPerTrip: 500, deadlineMs: 45000 });
+export const STATIC_INDEX_LIMITS = Object.freeze({ queries: 2000, routes: 400, routeWindows: 2, trips: 40000, stops: 1000000, stopsPerTrip: 500, deadlineMs: 45000 });
 
 /** One budget covers all feeds rebuilt during one poll, including fallback queries. */
 export function createStaticIndexBudget({ query = otpGraphQL, limits = {}, now = Date.now } = {}) {
   const cap = Object.fromEntries(Object.entries(STATIC_INDEX_LIMITS).map(([key, value]) => [key, Number.isFinite(limits[key]) && limits[key] > 0 ? Math.min(value, Math.floor(limits[key])) : value]));
-  const counts = { queries: 0, routes: 0, trips: 0, stops: 0 }; const deadline = now() + cap.deadlineMs;
+  const counts = { queries: 0, routes: 0, routeWindows: 0, trips: 0, stops: 0 }; const deadline = now() + cap.deadlineMs;
   const check = () => { if (now() >= deadline) throw new Error("Static index build deadline exceeded"); };
   const take = (key, amount = 1) => { check(); counts[key] += amount; if (counts[key] > cap[key]) throw new Error(`Static index ${key} limit exceeded`); };
   return { counts, take, check, async query(document, variables) {
@@ -577,10 +578,122 @@ export async function loadStaticIndexForFeed(feedId, serviceDate, budget = creat
   budget.check(); return { serviceDate, routes };
 }
 
+/** The cache holds only complete route/date windows, never a truncated candidate set. */
+export const OBSERVED_INDEX_LIMITS = Object.freeze({ buildsPerPoll: 2, cacheEntries: 8, cachedStops: 75_000, windowSeconds: 7200, ttlMs: 30 * 60_000 });
+
+export function updateServiceDates(update, now) {
+  const today = serviceDayToronto(now, { cutoverHour: 0 });
+  const previous = new Date(`${today.slice(0, 4)}-${today.slice(4, 6)}-${today.slice(6, 8)}T12:00:00Z`);
+  previous.setUTCDate(previous.getUTCDate() - 1);
+  const yesterday = previous.toISOString().slice(0, 10).replaceAll("-", "");
+  const supplied = update?.trip?.startDate;
+  // With no publisher date, both calendars are necessary. A 04:00 heuristic
+  // alone can hide a same-time competitor and falsely make a match unique.
+  if (supplied == null || supplied === "") return [today, yesterday];
+  return supplied === today || supplied === yesterday ? [supplied] : [];
+}
+
+const observedKey = (route, date) => `${date}/${route}`;
+const boundedRoute = (route) => typeof route === "string" && route.length <= 100 && route.length > 0 && !/[\u0000-\u001f\u007f]/.test(route);
+const updateFresh = (update, now) => update?.timestamp == null || Number.isFinite(update.timestamp) && now - update.timestamp * 1000 >= -30_000 && now - update.timestamp * 1000 <= FAIL_SAFE_HOLD_MS;
+
+/** Incrementally warm at most two observed route/date windows per poll.
+ * The small route catalog contains identifiers only, not network timetables.
+ * Cache bounds stay independent from the existing query and build deadlines.
+ */
+export function createObservedIndexCache(feedId, { limits = {} } = {}) {
+  const caps = Object.fromEntries(Object.entries(OBSERVED_INDEX_LIMITS).map(([key, value]) => [key, Number.isFinite(limits[key]) && limits[key] > 0 ? Math.min(value, Math.floor(limits[key])) : value]));
+  const entries = new Map(); const attempted = new Map(); let serial = 0; let catalog = null; let catalogAt = null;
+  const stopCount = () => [...entries.values()].reduce((total, entry) => total + entry.stopCount, 0);
+  const usable = (entry, update, now) => {
+    const predicted = predictedTime(update?.stopTimeUpdate?.[0]);
+    return entry && now >= entry.builtAt && now - entry.builtAt <= caps.ttlMs && predicted !== null && predicted - 3600 >= entry.start && predicted + 3600 <= entry.end;
+  };
+  return {
+    stats() { return { cachedEntries: entries.size, cachedStops: stopCount() }; },
+    indexFor(update, now) {
+      const route = update?.trip?.routeId; const dates = updateServiceDates(update, now);
+      if (!boundedRoute(route) || !dates.length || !updateFresh(update, now)) return null;
+      const required = dates.map((date) => entries.get(observedKey(route, date)));
+      if (!required.every((entry) => usable(entry, update, now))) return null;
+      // Every potentially matching calendar contributes to the ambiguity test.
+      return { serviceDate: dates.length === 1 ? dates[0] : null, routes: { [route]: required.flatMap((entry) => entry.trips) } };
+    },
+    async refresh(updates, now, budget = createStaticIndexBudget()) {
+      for (const [key, entry] of entries) if (now < entry.builtAt || now - entry.builtAt > caps.ttlMs) entries.delete(key);
+      const desired = new Map();
+      for (const update of updates) {
+        const route = update?.trip?.routeId; const predicted = predictedTime(update?.stopTimeUpdate?.[0]);
+        if (!boundedRoute(route) || !updateFresh(update, now) || predicted === null || Math.abs(predicted - now / 1000) > caps.windowSeconds - 3600) continue;
+        for (const date of updateServiceDates(update, now)) {
+          const key = observedKey(route, date);
+          if (!usable(entries.get(key), update, now)) desired.set(key, { key, route, date });
+        }
+      }
+      // Forgotten observations cannot grow metadata indefinitely.
+      for (const key of attempted.keys()) if (!desired.has(key) && !entries.has(key)) attempted.delete(key);
+      if (!desired.size) return { built: 0, failed: 0, ...this.stats() };
+      if (!catalog || now < catalogAt || now - catalogAt > caps.ttlMs) {
+        const data = await budget.query("query($feeds:[String]) { routes(feeds:$feeds) { gtfsId shortName } }", { feeds: [feedId] });
+        if (!Array.isArray(data?.routes) || data.routes.length > STATIC_INDEX_LIMITS.routes) throw new Error("Static route catalog limit exceeded");
+        const next = new Map();
+        for (const route of data.routes) {
+          if (!boundedRoute(route.shortName) || typeof route.gtfsId !== "string" || !route.gtfsId.startsWith(`${feedId}:`)) continue;
+          next.set(route.shortName, [...(next.get(route.shortName) ?? []), route.gtfsId]);
+        }
+        catalog = next; catalogAt = now;
+      }
+      let built = 0; let failed = 0;
+      // Adjacent dates of one route warm together. Date-first ordering would
+      // fill and evict yesterday's network before today's matching pair arrives.
+      const pending = [...desired.values()].sort((a, b) => (attempted.get(a.key) ?? -1) - (attempted.get(b.key) ?? -1) || a.route.localeCompare(b.route) || a.date.localeCompare(b.date));
+      for (const target of pending.slice(0, caps.buildsPerPoll)) {
+        attempted.set(target.key, ++serial);
+        try {
+          budget.take("routeWindows"); const start = now / 1000 - caps.windowSeconds; const end = now / 1000 + caps.windowSeconds; const trips = [];
+          // Include every static route sharing this short name, or admit none.
+          const routeIds = catalog.get(target.route);
+          if (!routeIds?.length) { failed++; continue; }
+          for (const routeGtfsId of routeIds) {
+            budget.take("routes");
+            const loaded = await tripsForRouteOnDate(routeGtfsId, target.date, budget);
+            for (const trip of loaded) if (trip.stops.some((stop) => stop.scheduledAt >= start && stop.scheduledAt <= end)) trips.push({ ...trip, routeGtfsId, serviceDate: target.date });
+          }
+          const count = trips.reduce((total, trip) => total + trip.stops.length, 0);
+          if (count > caps.cachedStops) throw new Error("Observed route window exceeds cache stop limit");
+          budget.check(); entries.delete(target.key);
+          while (entries.size >= caps.cacheEntries || stopCount() + count > caps.cachedStops) entries.delete(entries.keys().next().value);
+          entries.set(target.key, { trips, stopCount: count, builtAt: now, start, end }); built++;
+        } catch { failed++; }
+      }
+      return { built, failed, ...this.stats() };
+    },
+  };
+}
+
+/** Omitted work stays in total and unverified, so partial coverage cannot inflate rates. */
+export function classifyObservedBatch(updates, cache, vehiclePositions, options = {}) {
+  const now = options.now ?? Date.now(); const vehicles = new Map();
+  for (const position of vehiclePositions) {
+    const id = position?.vehicle?.id; if (!id) continue;
+    if (!vehicles.has(id) || position.timestamp >= vehicles.get(id).timestamp) vehicles.set(id, position);
+  }
+  const counters = { ...emptyCounters(), coverageUnverified: 0 };
+  const results = updates.map((tripUpdate) => {
+    const publisherFresh = options.publisherTimestamps == null || options.publisherTimestamps.every((timestamp) => timestampFresh(timestamp, now));
+    const index = publisherFresh ? cache.indexFor(tripUpdate, now) : null;
+    const match = index ? matchUpdate(tripUpdate, index, vehicles, options) : { ...emptyMatch(tripUpdate?.trip?.routeId ?? null), classification: "unverified" };
+    counters.total++; counters[CLASSIFICATION_KEYS[match.classification]]++;
+    if (!index) counters.coverageUnverified++;
+    return { tripUpdate, match };
+  });
+  return { counters, results };
+}
+
 // --- Poll loop and HTTP server -----------------------------------------------
 
 function emptyCounters() { return { total: 0, unique: 0, ambiguous: 0, none: 0, contradicted: 0, unverified: 0, sequenceMisaligned: 0 }; }
-function sumCounters(history) { const sum = emptyCounters(); for (const entry of history) for (const key of Object.keys(sum)) sum[key] += entry.counters[key] ?? 0; return sum; }
+function sumCounters(history) { const sum = { ...emptyCounters(), coverageUnverified: 0 }; for (const entry of history) for (const key of Object.keys(sum)) sum[key] += entry.counters[key] ?? 0; return sum; }
 function emptyRewrittenBytes(now) { return encodeFeed({ header: { gtfsRealtimeVersion: "2.0", incrementality: 0, timestamp: Math.floor(now / 1_000) }, tripUpdates: [] }); }
 
 export function failSafeBytes(state, now = Date.now()) {
@@ -588,7 +701,7 @@ export function failSafeBytes(state, now = Date.now()) {
   return Number.isFinite(state.lastGoodAt) && age >= 0 && age <= FAIL_SAFE_HOLD_MS && state.lastRewrittenBytes ? state.lastRewrittenBytes : emptyRewrittenBytes(now);
 }
 
-const feedStates = new Map(FEED_IDS.map((feedId) => [feedId, { staticIndex: null, serviceDate: null, lastRewrittenBytes: null, lastGoodAt: null, history: [] }]));
+const feedStates = new Map(FEED_IDS.map((feedId) => [feedId, { observedCache: createObservedIndexCache(feedId), coverage: null, lastRewrittenBytes: null, lastGoodAt: null, history: [] }]));
 let lastGoodPollAt = null;
 
 function applyFailSafe(feedId, now) {
@@ -596,17 +709,15 @@ function applyFailSafe(feedId, now) {
   state.lastRewrittenBytes = failSafeBytes(state, now);
 }
 
-async function refreshFeedState(feedId, tripUpdates, vehiclePositions, now, budget) {
+async function refreshFeedState(feedId, tripUpdates, vehiclePositions, now, budget, publisherTimestamps) {
   const state = feedStates.get(feedId);
-  const serviceDate = serviceDayToronto(now);
-  if (!state.staticIndex || state.serviceDate !== serviceDate) {
-    try { state.staticIndex = await loadStaticIndexForFeed(feedId, serviceDate, budget); state.serviceDate = serviceDate; }
-    catch (error) { console.error(`[ttc-trip-matcher] static index load failed for feed=${feedId}: ${error.message}`); applyFailSafe(feedId, now); return; }
-  }
-  const { counters, results } = classifyBatch(tripUpdates, state.staticIndex, vehiclePositions, { now, sequenceOffset: SEQUENCE_OFFSET });
+  try { state.coverage = await state.observedCache.refresh(tripUpdates, now, budget); }
+  catch { state.coverage = { built: 0, failed: 1, ...state.observedCache.stats() }; }
+  const observedAt = Date.now();
+  const { counters, results } = classifyObservedBatch(tripUpdates, state.observedCache, vehiclePositions, { now: observedAt, sequenceOffset: SEQUENCE_OFFSET, publisherTimestamps });
   const uniqueUpdates = results.filter((entry) => entry.match.classification === "unique").map(({ tripUpdate, match }) => ({
     id: tripUpdate.id,
-    trip: { tripId: match.matchedTripId, routeId: match.matchedRouteId, scheduleRelationship: 0 },
+    trip: { tripId: match.matchedTripId, routeId: match.matchedRouteId, startDate: match.matchedServiceDate, scheduleRelationship: 0 },
     stopTimeUpdate: match.stopMappings.map((mapping) => ({ stopSequence: mapping.sequence, stopId: mapping.stopId, arrival: { time: mapping.time } })),
     timestamp: Math.floor(now / 1_000),
   }));
@@ -618,19 +729,22 @@ async function refreshFeedState(feedId, tripUpdates, vehiclePositions, now, budg
   console.log(`[ttc-trip-matcher] feed=${feedId} total=${counters.total} unique=${counters.unique} ambiguous=${counters.ambiguous} none=${counters.none} contradicted=${counters.contradicted} unverified=${counters.unverified} sequenceMisaligned=${counters.sequenceMisaligned}`);
 }
 
+export function timestampFresh(timestamp, now) { const age = now - Number(timestamp) * 1000; return Number.isFinite(timestamp) && age >= -30_000 && age <= FAIL_SAFE_HOLD_MS; }
+
 async function pollOnce() {
   const now = Date.now();
   let decodedTu; let decodedVp;
   try {
     const [tripsBytes, vehiclesBytes] = await Promise.all([fetchBounded(TTC_TRIPS_URL), fetchBounded(TTC_VEHICLES_URL)]);
     decodedTu = decodeFeed(tripsBytes); decodedVp = decodeFeed(vehiclesBytes);
+    for (const feed of [decodedTu, decodedVp]) if (!timestampFresh(feed.header.timestamp, Date.now())) throw new Error("Realtime publisher timestamp is stale or invalid");
   } catch (error) {
     console.error(`[ttc-trip-matcher] poll fetch/decode failed: ${error.message}`);
     for (const feedId of FEED_IDS) applyFailSafe(feedId, now);
     return;
   }
   const budget = createStaticIndexBudget();
-  for (const feedId of FEED_IDS) await refreshFeedState(feedId, decodedTu.tripUpdates, decodedVp.vehiclePositions, now, budget);
+  for (const feedId of FEED_IDS) await refreshFeedState(feedId, decodedTu.tripUpdates, decodedVp.vehiclePositions, now, budget, [decodedTu.header.timestamp, decodedVp.header.timestamp]);
 }
 
 function isHealthy() { return lastGoodPollAt !== null && Date.now() - lastGoodPollAt <= 3 * POLL_MS; }
@@ -642,6 +756,7 @@ function matchStatsPayload(feedId) {
     feed: feedId,
     lastPollAt: state.lastGoodAt ? new Date(state.lastGoodAt).toISOString() : null,
     lastPoll: state.history.length ? state.history[state.history.length - 1].counters : emptyCounters(),
+    coverage: state.coverage,
     rolling24h: { ...rolling, polls: state.history.length },
     gate: gateVerdict(rolling, DEFAULT_THRESHOLDS),
   };
