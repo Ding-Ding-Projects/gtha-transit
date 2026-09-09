@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { createMatcherStatsCache } from "./ttc-stats-proxy.mjs";
 
 /**
  * Whether a static feed's live trip updates actually change what a rider is
@@ -35,19 +36,13 @@ function appliedFeeds() {
 
 function buildFeeds() {
   const applied = appliedFeeds();
-  // A separate trip-matching service can join TTC's feed by vehicle position
-  // instead of by identifier. Its presence is what promotes TTC from a flat
-  // "we know this doesn't join" to "something is attempting to join it
-  // safely" - the environment variable is that service's own wiring gate,
-  // not a claim that it has actually cleared its match-rate threshold yet.
-  const shadowActive = Boolean(process.env.TTC_MATCHER_URL);
   const feeds = {};
   for (const agency of staticFeeds.agencies ?? []) {
     const feedId = agency.id;
     if (applied.has(feedId)) { feeds[feedId] = applied.get(feedId); continue; }
     if (Object.hasOwn(PUBLISHED_UNJOINABLE_REASONS, feedId)) {
       const reason = PUBLISHED_UNJOINABLE_REASONS[feedId];
-      feeds[feedId] = shadowActive && SHADOW_CANDIDATE_FEED_IDS.has(feedId) ? { state: "shadow", reason } : { state: "published-unjoinable", reason };
+      feeds[feedId] = { state: "published-unjoinable", reason };
       continue;
     }
     feeds[feedId] = { state: "none" };
@@ -57,6 +52,16 @@ function buildFeeds() {
 
 export const LIVE_COVERAGE = { feeds: buildFeeds() };
 
-export function liveCoverage() { return { ...LIVE_COVERAGE, checkedAt: new Date().toISOString() }; }
+const matcherCache = createMatcherStatsCache({ origin: process.env.TTC_MATCHER_URL });
+
+export function coverageWithMatcher(stats, now = Date.now()) {
+  const feeds = Object.fromEntries(Object.entries(LIVE_COVERAGE.feeds).map(([id, value]) => [id, { ...value }]));
+  if (stats.state === "shadow" && SHADOW_CANDIDATE_FEED_IDS.has(stats.feed) && feeds[stats.feed]?.state !== "applied") feeds[stats.feed].state = "shadow";
+  return { feeds, checkedAt: new Date(now).toISOString(), ttcMatcher: stats };
+}
+
+export function liveCoverage() { void matcherCache.refresh(); return coverageWithMatcher(matcherCache.read()); }
+
+export async function refreshLiveCoverage() { const stats = await matcherCache.refresh(); return coverageWithMatcher(stats); }
 
 export function isApplied(feedId) { return LIVE_COVERAGE.feeds[feedId]?.state === "applied"; }

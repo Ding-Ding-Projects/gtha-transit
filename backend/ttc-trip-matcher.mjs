@@ -703,6 +703,7 @@ export function failSafeBytes(state, now = Date.now()) {
 
 const feedStates = new Map(FEED_IDS.map((feedId) => [feedId, { observedCache: createObservedIndexCache(feedId), coverage: null, lastRewrittenBytes: null, lastGoodAt: null, history: [] }]));
 let lastGoodPollAt = null;
+const matcherProvenance = { sourceCommit: /^[a-f0-9]{40}$/.test(process.env.SOURCE_COMMIT ?? "") ? process.env.SOURCE_COMMIT : null, startedAt: new Date().toISOString(), observationWindow: "since-restart-up-to-24h" };
 
 function applyFailSafe(feedId, now) {
   const state = feedStates.get(feedId);
@@ -754,6 +755,7 @@ function matchStatsPayload(feedId) {
   const rolling = sumCounters(state.history);
   return {
     feed: feedId,
+    provenance: matcherProvenance,
     lastPollAt: state.lastGoodAt ? new Date(state.lastGoodAt).toISOString() : null,
     lastPoll: state.history.length ? state.history[state.history.length - 1].counters : emptyCounters(),
     coverage: state.coverage,

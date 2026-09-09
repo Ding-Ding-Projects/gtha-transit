@@ -5,7 +5,7 @@ import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { rapidTransitStations } from "./stop-routes.mjs";
 import { blockPredecessorWithOtp, departuresWithOtp, liveLegStatusWithOtp, otpReady, planWithOtp, tripStopTimesWithOtp } from "./otp-client.mjs";
-import { liveCoverage } from "./live-coverage.mjs";
+import { liveCoverage, refreshLiveCoverage } from "./live-coverage.mjs";
 import { applyWashroomPreference, resolvedWashroomRegistry, washroomForPublishedPlace } from "./washrooms.mjs";
 import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
 import { publishedStopForId, routeStopAnchors } from "./stop-routes.mjs";
@@ -174,7 +174,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, await rapidTransitStations());
     }
     if (req.method === "GET" && url.pathname === "/api/coverage") return json(res, 200, await coverage());
-    if (req.method === "GET" && url.pathname === "/api/live-coverage") return json(res, 200, liveCoverage());
+    if (req.method === "GET" && url.pathname === "/api/live-coverage") return json(res, 200, await refreshLiveCoverage());
     if (req.method === "GET" && url.pathname === "/api/integrations/status") {
       try { const response = await fetch("http://127.0.0.1:8788/internal/metrolinx/status", { signal: AbortSignal.timeout(2000) }); if (!response.ok) throw new Error(); return json(res, 200, { metrolinx: await response.json() }); }
       catch { return json(res, 200, { metrolinx: { configured: false, agencies: [{ id: "go", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }, { id: "up", state: "unavailable", capabilities: ["trip_updates", "vehicle_positions", "service_alerts"] }] } }); }
