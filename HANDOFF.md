@@ -28,7 +28,7 @@ tab corner. Three `role="status"` paragraphs became `output` elements (lint).
 | Captures | `docs/interface/captures/mobile-navigation-390-light.png`, `mobile-settings-390-light.png`, `mobile-settings-390-dark.png`, `mobile-navigation-390-bilingual.png`, `mobile-settings-320-light.png`, all from the local build of `17ac838` through the headless browser |
 | Tests | root suite 1017 pass, 0 fail at `17ac838`; typecheck clean; `npm run build` exits 0 |
 | Lint | the strip's own findings dropped from 9 to 5; the five that remain (react-compiler memoisation and effect dependencies) predate this change |
-| Deployed | **not yet**: the web host still serves `f5177da`; see the deploy note below |
+| Deployed | **yes**: `scripts/deploy.sh` shipped `main` at `4be48b9` to the web host on 9 September at about 15:50 Toronto time (image `gtha-transit-web:4be48b9…`, container healthy, `https://toronto-transit.org/version.json` reports `4be48b9`); the public site photographed at 390 px afterwards shows `data-nav-dock="bottom"`, the 65 px bar, no manage buttons and the settings strip as a row: `docs/interface/captures/mobile-settings-390-light-deployed-4be48b9.png`. The routing API image was left at `e530ee3-candidate` by design (the script never touches it) |
 
 ### Known gaps
 
@@ -36,7 +36,11 @@ tab corner. Three `role="status"` paragraphs became `output` elements (lint).
   not fit 390 px); the hidden count on the tab tools button says how many sit outside
   the visible bar. A fade at the scroll edge would help; not done.
 - The interaction ledger, the parity captures and the audit rows for the strip are
-  still owed after the deploy (see the integration section below).
+  still owed now that `4be48b9` is deployed (see the integration section below).
+- The deploy script refuses a checkout without `public/dim-sum` when the running
+  container has photos; `node scripts/vendor-dim-sum.mjs` (24 dishes from the public
+  catalog, gitignored) is the prerequisite, and it is not written down anywhere
+  else than the script itself and here.
 
 ## Integration, ownership and an outage, 9 September 2026
 
