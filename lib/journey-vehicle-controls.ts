@@ -3,6 +3,21 @@ export type JourneyVehiclePreferenceOptions = { prefer?: boolean; avoid?: boolea
 export type VerifiedFleetFact = { manufacturer?: string | null; model?: string | null; year?: string | number | null };
 export type VehiclePolicy = 'off' | 'prefer' | 'avoid';
 export type YearDraft = { from: string; to: string };
+/** The electric journey preference: Off, Prefer, or Avoid a verified electric assigned vehicle, plus whether an unconfirmed assignment is kept. */
+export type ElectricPreference = { mode: VehiclePolicy; includeUnconfirmed: boolean };
+/** Unconfirmed assignments are kept by default: this preference should narrow results only once someone has actually chosen Avoid. */
+export const DEFAULT_ELECTRIC_PREFERENCE: ElectricPreference = { mode: 'off', includeUnconfirmed: true };
+/** Validates a persisted or otherwise untrusted value, defaulting anything unrecognised rather than throwing. */
+export function parseElectricPreference(value: unknown): ElectricPreference {
+  const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const mode: VehiclePolicy = record.mode === 'prefer' || record.mode === 'avoid' ? record.mode : 'off';
+  const includeUnconfirmed = typeof record.includeUnconfirmed === 'boolean' ? record.includeUnconfirmed : DEFAULT_ELECTRIC_PREFERENCE.includeUnconfirmed;
+  return { mode, includeUnconfirmed };
+}
+/** Converts the compact electric preference shape into the evaluator's prefer/avoid options. */
+export function electricOptions(preference: ElectricPreference): JourneyVehiclePreferenceOptions {
+  return { prefer: preference.mode === 'prefer', avoid: preference.mode === 'avoid', includeUnconfirmed: preference.includeUnconfirmed };
+}
 const text = (value?: string | null) => value?.trim() || undefined;
 export function manufacturerChoices(facts: readonly VerifiedFleetFact[]) {
   return [...new Set(facts.map(fact => text(fact.manufacturer)).filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b));
