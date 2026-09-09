@@ -1,5 +1,55 @@
 # Implementation handoff
 
+## Session closeout, 9 September 2026, evening
+
+What exists now, for whoever picks this up:
+
+- **The planner at toronto-transit.org** serves `main` with the Material navigation rail,
+  the phone bottom bar with its More dialog and the base-ui settings tabs (the owner's
+  decision of this afternoon, see the restore section below), the coloured live times
+  with their 30-second refresh, the electric-vehicle preference, the Catch this vehicle
+  panel, the appearance studio and the local version-history store. The web image was
+  built from `0e8f5f5`; the routing API image is `e530ee3-candidate`; the routing host
+  runs OpenTripPlanner with the GO, UP, YRT, MiWay and HSR updaters applying and the
+  Metrolinx proxy healthy again since 15:25.
+- **Integrated this evening** into `main` (tip `a7b0af1`): the anchor-repair branch
+  (position alignment continues after an exact trip is rejected), the appearance-scheme
+  branch (the theme generator reads `lib/appearance/token-scheme.mjs`; the generated
+  theme is byte-identical), the intercept branch (recorded as merged; `main` already
+  held a newer superset of its module), the locks primitives (SHA-1, SHA-512, HMAC with
+  reference vectors, 18 tests) and eight more appearance element ids. Root suite 1037
+  pass, 0 fail; backend 77 pass; typecheck clean; theme check current.
+- **Kept unmerged on purpose:** `feature/about-20260909` at `9a1d0ef`, a checkpoint of
+  the changelog parser, backfill and JSON writer. It is not ready: 73 entries carry an
+  unknown date, nothing tests the parser, the writer is not wired into `prebuild`. The
+  lane continues from that commit.
+- **Removed by the cleanup that follows this section:** every other linked worktree and
+  its branch, locally and on the remote, each proved an ancestor of the pushed `main`
+  first. The list, with the proof, is in the closing comment on issue #4.
+- **Parked, not deleted:** the tab strip (`components/tab-strip.tsx`, `lib/tabs.ts`,
+  `lib/tab-registry.ts`, their tests and stylesheet), unmounted by owner decision.
+
+### Verification commands that are green at `a7b0af1`
+
+| Command | Result |
+| --- | --- |
+| `npm test` | 1037 pass, 0 fail |
+| `cd backend && node --test *.test.mjs` | 77 pass, 0 fail |
+| `npm run typecheck` | clean |
+| `node scripts/design/build-material-theme.mjs --check` | current, every text pair 4.5:1 |
+| `npm run build` | exit 0 (see the commit that carries this section) |
+
+### Still owed
+
+- Re-record the interaction ledger at the deployed commit and re-run the parity capture;
+  both target the restored rail and tabs, so no script changes are needed first.
+- Deploy `main`'s backend compose file and router configuration to the routing host,
+  where the proxy service is still named `api` (see the proxy section).
+- The lanes of the approved plan that have not started: About destination (changelog
+  viewer, docs browser), history panel and bulk actions, regex on every dropdown,
+  scheduled settings and app logo, the Pages landing site, the lock family beyond its
+  primitives. Each starts from `main`; none of the deleted branches held work for them.
+
 ## The old navigation design restored, 9 September 2026
 
 After the phone fix below had shipped, the owner looked at the result and asked for
