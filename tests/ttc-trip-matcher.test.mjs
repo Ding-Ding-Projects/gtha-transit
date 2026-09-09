@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { classifyBatch, decodeFeed, encodeFeed, gateVerdict, matchUpdate, createSingleFlightPoller, createStaticIndexBudget, loadStaticIndexForFeed, STATIC_INDEX_LIMITS, failSafeBytes } from "../backend/ttc-trip-matcher.mjs";
 import { setTimeout as delay } from "node:timers/promises";
+import { createObservedIndexCache, classifyObservedBatch, updateServiceDates, OBSERVED_INDEX_LIMITS, serviceDayToronto, timestampFresh } from "../backend/ttc-trip-matcher.mjs";
 
 const fixture = async (name) => JSON.parse(await readFile(new URL(`../backend/fixtures/ttc-matcher/${name}`, import.meta.url), "utf8"));
 const clone = (value) => structuredClone(value);
@@ -140,4 +141,117 @@ test("uninitialized, stale and future-dated matcher states emit an empty protobu
     const feed = decodeFeed(failSafeBytes({ lastGoodAt, lastRewrittenBytes: bytes }, now));
     assert.deepEqual(feed.tripUpdates, []); assert.equal(feed.header.timestamp, now / 1000);
   }
+});
+
+async function observedFixture() {
+  const value = await base(); const date = serviceDayToronto(value.now, { cutoverHour: 0 });
+  value.tripUpdate.timestamp = value.now / 1000; value.tripUpdate.trip.startDate = date;
+  const requests = [];
+  const query = async (_document, variables) => {
+    requests.push(variables);
+    if (variables.feeds) return { routes: ["501", "502", "unobserved"].map((id) => ({ gtfsId: `ttc-next:${id}`, shortName: id })) };
+    const trips = value.staticIndex.routes[variables.id.split(":")[1]] ?? [];
+    return { route: { patterns: [{ tripsForDate: trips.map((trip) => ({ gtfsId: trip.gtfsId, stoptimesForDate: trip.stops.map((stop) => ({ stopPosition: stop.seq - 1, serviceDay: stop.scheduledAt, scheduledDeparture: 0, stop: { gtfsId: stop.stopId, lat: stop.lat, lon: stop.lon } })) })) }] } };
+  };
+  return { ...value, date, requests, query };
+}
+
+test("observed cache queries only live route/date timetables and reuses complete windows", async () => {
+  const { tripUpdate, vehiclePosition, now, date, query, requests } = await observedFixture();
+  const cache = createObservedIndexCache("ttc-next");
+  const warm = await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  assert.equal(warm.built, 1); assert.equal(warm.failed, 0);
+  assert.deepEqual(requests, [{ feeds: ["ttc-next"] }, { id: "ttc-next:501", date }]);
+  const result = classifyObservedBatch([tripUpdate], cache, [vehiclePosition], { now });
+  assert.equal(result.counters.total, 1); assert.equal(result.counters.unique, 1); assert.equal(result.results[0].match.matchedServiceDate, date);
+  await cache.refresh([tripUpdate], now + 30000, createStaticIndexBudget({ query }));
+  assert.equal(requests.length, 2);
+});
+
+test("partial cache coverage counts every omitted update as unverified and rotates new work", async () => {
+  const { tripUpdate, vehiclePosition, now, query, requests } = await observedFixture();
+  const other = clone(tripUpdate); other.id = "second"; other.trip.routeId = "502";
+  const cache = createObservedIndexCache("ttc-next", { limits: { buildsPerPoll: 1, cacheEntries: 1 } });
+  await cache.refresh([tripUpdate, other], now, createStaticIndexBudget({ query }));
+  const partial = classifyObservedBatch([tripUpdate, other], cache, [vehiclePosition], { now });
+  assert.equal(partial.counters.total, 2); assert.equal(partial.counters.unique, 1); assert.equal(partial.counters.unverified, 1); assert.equal(partial.counters.coverageUnverified, 1);
+  assert.equal(gateVerdict(partial.counters).uniqueRatio, 0.5); assert.equal(gateVerdict(partial.counters).passes, false);
+  await cache.refresh([tripUpdate, other], now + 30000, createStaticIndexBudget({ query }));
+  assert.equal(requests.at(-1).id, "ttc-next:502"); assert.equal(cache.stats().cachedEntries, 1);
+  assert.equal(classifyObservedBatch([tripUpdate, other], cache, [vehiclePosition], { now: now + 30000 }).counters.total, 2);
+});
+
+test("time windows discard unrelated trips but keep the full competing candidate set", async () => {
+  const { staticIndex, tripUpdate, vehiclePosition, now, query } = await observedFixture();
+  const distant = clone(staticIndex.routes["501"][0]); distant.gtfsId = "ttc-next:far";
+  distant.stops.forEach((stop) => { stop.scheduledAt += 86400; }); staticIndex.routes["501"].push(distant);
+  const competitor = clone(staticIndex.routes["501"][1]); competitor.gtfsId = "ttc-next:competitor"; staticIndex.routes["501"].push(competitor);
+  const cache = createObservedIndexCache("ttc-next"); await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  const index = cache.indexFor(tripUpdate, now); assert.equal(index.routes["501"].length, 4);
+  assert.equal(index.routes["501"].some((trip) => trip.gtfsId.endsWith(":far")), false);
+  assert.equal(classifyObservedBatch([tripUpdate], cache, [vehiclePosition], { now }).counters.ambiguous, 1);
+  const shifted = clone(tripUpdate); shifted.stopTimeUpdate[0].arrival.time = now / 1000 + 3601;
+  assert.equal(cache.indexFor(shifted, now), null, "a window missing possible competitors cannot claim completeness");
+});
+
+test("cache rejects an oversized route atomically instead of truncating competitors", async () => {
+  const { tripUpdate, vehiclePosition, now, query } = await observedFixture();
+  const cache = createObservedIndexCache("ttc-next", { limits: { cachedStops: 8 } });
+  const result = await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  assert.equal(result.built, 0); assert.equal(result.failed, 1); assert.equal(result.cachedStops, 0);
+  const classified = classifyObservedBatch([tripUpdate], cache, [vehiclePosition], { now });
+  assert.equal(classified.counters.total, 1); assert.equal(classified.counters.coverageUnverified, 1); assert.equal(classified.counters.unique, 0);
+  assert.equal(OBSERVED_INDEX_LIMITS.cachedStops, 75000);
+});
+
+test("two route-window builds are shared across feeds and deadlines retain the denominator", async () => {
+  const { tripUpdate, vehiclePosition, now, query, requests } = await observedFixture();
+  const budget = createStaticIndexBudget({ query });
+  const first = createObservedIndexCache("ttc-next"); const second = createObservedIndexCache("ttc-next"); const third = createObservedIndexCache("ttc-next");
+  await first.refresh([tripUpdate], now, budget); await second.refresh([tripUpdate], now, budget);
+  const limited = await third.refresh([tripUpdate], now, budget); assert.equal(limited.built, 0); assert.equal(limited.failed, 1);
+  assert.equal(requests.filter((entry) => entry.id).length, 2);
+  const timed = createObservedIndexCache("ttc-next");
+  let clock = now;
+  const lateQuery = async (...args) => { const data = await query(...args); if (args[1].id) clock += 45001; return data; };
+  const report = await timed.refresh([tripUpdate], now, createStaticIndexBudget({ query: lateQuery, now: () => clock }));
+  assert.equal(report.failed, 1); assert.equal(report.built, 0);
+  assert.equal(classifyObservedBatch([tripUpdate], timed, [vehiclePosition], { now }).counters.unverified, 1);
+});
+
+test("Toronto crossover uses exact published dates or both calendars without a cutover guess", async () => {
+  for (const instant of ["2026-09-10T04:30:00Z", "2026-11-01T05:30:00Z", "2026-11-01T06:30:00Z", "2026-03-08T07:30:00Z"]) {
+    const now = Date.parse(instant); const dates = updateServiceDates({ trip: {} }, now);
+    assert.equal(dates.length, 2); assert.equal(dates[0], serviceDayToronto(now, { cutoverHour: 0 }));
+    for (const date of dates) assert.deepEqual(updateServiceDates({ trip: { startDate: date } }, now), [date]);
+    assert.deepEqual(updateServiceDates({ trip: { startDate: "20260230" } }, now), []);
+  }
+  const { tripUpdate, vehiclePosition, now, query } = await observedFixture(); tripUpdate.trip.startDate = null;
+  const cache = createObservedIndexCache("ttc-next", { limits: { buildsPerPoll: 1 } });
+  await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  assert.equal(cache.indexFor(tripUpdate, now), null, "the missing second service calendar remains unverified");
+  await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  assert.equal(classifyObservedBatch([tripUpdate], cache, [vehiclePosition], { now }).counters.ambiguous, 1, "same-time trips on both dates remain competitors");
+});
+
+test("stale or future publisher/vehicle observations never earn a cached unique match", async () => {
+  const { tripUpdate, vehiclePosition, now, query } = await observedFixture();
+  const cache = createObservedIndexCache("ttc-next"); await cache.refresh([tripUpdate], now, createStaticIndexBudget({ query }));
+  for (const stamp of [null, now / 1000 - 121, now / 1000 + 31]) {
+    assert.equal(timestampFresh(stamp, now), false);
+    assert.equal(classifyObservedBatch([tripUpdate], cache, [vehiclePosition], { now, publisherTimestamps: [stamp] }).counters.unverified, 1);
+  }
+  const future = clone(vehiclePosition); future.timestamp = now / 1000 + 31;
+  assert.equal(classifyObservedBatch([tripUpdate], cache, [future], { now }).counters.unverified, 1);
+  const staleUpdate = clone(tripUpdate); staleUpdate.timestamp = now / 1000 - 121;
+  assert.equal(classifyObservedBatch([staleUpdate], cache, [vehiclePosition], { now }).counters.coverageUnverified, 1);
+});
+
+test("two-date work warms one observed route completely instead of sweeping one date first", async () => {
+  const { tripUpdate, now, query, requests } = await observedFixture(); tripUpdate.trip.startDate = null;
+  const other = clone(tripUpdate); other.trip.routeId = "502";
+  const cache = createObservedIndexCache("ttc-next");
+  await cache.refresh([tripUpdate, other], now, createStaticIndexBudget({ query }));
+  assert.deepEqual(requests.filter((entry) => entry.id).map((entry) => entry.id), ["ttc-next:501", "ttc-next:501"]);
+  assert.ok(cache.indexFor(tripUpdate, now)); assert.equal(cache.indexFor(other, now), null);
 });
