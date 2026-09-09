@@ -1,9 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeLiveIntoJourneys, trackableLegs } from '../lib/use-live-journeys.ts';
+import { compactServiceDate, mergeLiveIntoJourneys, trackableLegs } from '../lib/use-live-journeys.ts';
 
 const now = Date.parse('2026-09-09T12:00:00Z');
 const start = '2026-09-09T12:05:00Z', end = '2026-09-09T12:15:00Z';
+
+test('real ISO service dates from OTP become the compact live-refresh wire date', () => {
+  assert.equal(compactServiceDate('2026-09-09'), '20260909');
+  assert.equal(compactServiceDate('20260909'), '20260909');
+  assert.equal(compactServiceDate('not-a-date'), undefined);
+  const journeys = make(); journeys[0].legs[0].serviceDate = '2026-09-09';
+  assert.equal(trackableLegs(journeys, now)[0].serviceDate, '20260909');
+});
 const make = () => [{ id: 'j', startTime: start, endTime: end, duration: 600, legs: [{ legId: 'leg', tripId: 'go:1', mode: 'BUS', startTime: start, endTime: end, duration: 600, realtime: true, departureDelaySeconds: 180, realtimeState: 'UPDATED', from: { stopId: 'go:a' }, to: { stopId: 'go:b' }, intermediateStops: [{ stopId: 'go:x', name: 'Original', arrival: { scheduledTime: start } }] }] }];
 
 test('refresh removes an obsolete live flag when the publisher returns scheduled service', () => {

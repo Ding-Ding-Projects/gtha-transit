@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "node scripts/build.mjs",
+    "postbuild": "node scripts/write-build-receipt.mjs",
     "start": "node server/web.mjs",
     "lint": "oxlint",
     "format": "oxfmt",

@@ -151,7 +151,7 @@ function normalizeLeg(leg, index) {
   const arrivalDelaySeconds = signedDurationSeconds(leg.end?.estimated?.delay);
   return { index, mode: String(leg.mode ?? "").toUpperCase(), from, to, startTime: leg.start?.estimated?.time ?? leg.start?.scheduledTime ?? null, endTime: leg.end?.estimated?.time ?? leg.end?.scheduledTime ?? null,
     scheduledStartTime: leg.start?.scheduledTime ?? null, scheduledEndTime: leg.end?.scheduledTime ?? null, realtime: Boolean(leg.realTime),
-    legId: safeText(leg.id), realtimeState: safeText(leg.realtimeState), serviceDate: safeText(leg.serviceDate),
+    legId: safeText(leg.id), realtimeState: safeText(leg.realtimeState), serviceDate: safeText(leg.serviceDate)?.replaceAll('-', '') ?? null,
     tripId, routeId, routeGtfsId, agencyId, agencyFeedId: publicAgencyFeedId(tripId?.includes(":") ? tripId.slice(0, tripId.indexOf(":")) : routeGtfsId?.includes(":") ? routeGtfsId.slice(0, routeGtfsId.indexOf(":")) : null),
     duration: durationSeconds(leg.duration), distance: Math.max(0, finiteNumber(leg.distance, 0)),
     route: leg.route ? safeText(leg.route.shortName ?? leg.route.longName ?? "") : null,
