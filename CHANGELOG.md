@@ -2,6 +2,8 @@
 
 ## 0.1.0, unreleased
 
+- Add Off, Prefer, and Avoid electric-vehicle journey controls, with independently persisted unconfirmed-assignment handling. The tracker can filter the map and list to published battery-electric or electric propulsion. Hybrids and unknown assignments are never silently labelled electric. Local validation: 714 tests passed, type checking passed, production build passed; deployment and rendered interaction are recorded separately in the handoff.
+
 Every commit in this release has an entry below, except the one that publishes
 these entries: a record cannot cite the commit that creates it. That commit
 touches this file and nothing else.
