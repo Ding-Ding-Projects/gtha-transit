@@ -90,7 +90,17 @@ export async function upcomingForCollector(input, { otpUrl, timeoutMs = 8000, no
   const remaining = () => { signal?.throwIfAborted(); const time = deadline - Date.now(); if (time <= 0) throw new Error("Upcoming deadline exceeded"); return time; };
   const unavailable = (state = "unavailable") => ({ state, fetchedAt: new Date(now + Date.now() - started).toISOString(), vehicle, candidates: [] });
   try {
-    const trip = snapshot.tripId ? await tripLoader({ otpUrl, timeoutMs: remaining(), tripId: snapshot.tripId, serviceDate: snapshot.serviceDate, signal }) : null;
+    let trip = null;
+    if (snapshot.tripId) {
+      try { trip = await tripLoader({ otpUrl, timeoutMs: remaining(), tripId: snapshot.tripId, serviceDate: snapshot.serviceDate, signal }); }
+      catch (error) {
+        // OTP may reject an unknown publisher trip through GraphQL errors
+        // rather than returning null. This still permits the independently
+        // labelled pattern lookup, within the same remaining time/call budget.
+        if (error?.code !== "UPSTREAM" || signal?.aborted) throw error;
+        remaining();
+      }
+    }
     remaining();
     if (now + Date.now() - started - Date.parse(snapshot.timestamp) > MAX_AGE_MS) return unavailable("stale");
     if (trip?.id === snapshot.tripId) {

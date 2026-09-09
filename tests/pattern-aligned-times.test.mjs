@@ -15,12 +15,13 @@ function sourceAnchors() {
 }
 const position = { feedId: "ttc-next", routeId: "501", lat: 43.705, lon: -79.4, bearing: 0, atMillis: NOW };
 
-async function otp(context, { at = NOW, day = Date.parse("2026-09-09T04:00:00Z") / 1000, mutateDepartures = () => {}, mutateTrip = () => {} } = {}) {
+async function otp(context, { at = NOW, day = Date.parse("2026-09-09T04:00:00Z") / 1000, exactLookupError = false, mutateDepartures = () => {}, mutateTrip = () => {} } = {}) {
   const calls = []; const anchors = sourceAnchors();
   const stops = anchors.patterns[0].stops.map((stop, index) => ({ stop: { gtfsId: stop.id, name: stop.name, lat: stop.lat, lon: stop.lon }, serviceDay: day, scheduledArrival: at / 1000 - day - 240 + index * 600, scheduledDeparture: at / 1000 - day - 240 + index * 600, realtime: true, realtimeArrival: at / 1000 - day + 9999, realtimeDeparture: at / 1000 - day + 9999, realtimeState: "UPDATED" }));
   const server = http.createServer(async (req, res) => {
     let body = ""; for await (const chunk of req) body += chunk;
     const input = JSON.parse(body); calls.push(input);
+    if (exactLookupError && input.variables.id === "ttc-next:unjoinable") { res.writeHead(200, { "content-type": "application/json" }); res.end(JSON.stringify({ errors: [{ message: "Trip reference unavailable" }] })); return; }
     let data;
     if (input.query.includes("query Departures")) {
       const entries = [{ serviceDay: day, scheduledArrival: stops[1].scheduledArrival, scheduledDeparture: stops[1].scheduledDeparture, trip: { gtfsId: "ttc-next:sample-trip", route: { gtfsId: "ttc-next:501" } } }]; mutateDepartures(entries);
@@ -101,4 +102,23 @@ test("cancelled stops and backwards timetable chronology cannot become unlabelle
   assert.equal((await patternAlignedTimesWithOtp({ ...position, ...backwards })).state, "unavailable");
   const absent = await otp(context, { mutateTrip(trip) { trip.stoptimesForDate[2].scheduledArrival = null; trip.stoptimesForDate[2].scheduledDeparture = null; } });
   assert.equal((await patternAlignedTimesWithOtp({ ...position, ...absent })).state, "unavailable");
+});
+
+test("a real OTP exact-trip rejection still reaches bounded unconfirmed pattern alignment", async (context) => {
+  const fixture = await otp(context, { exactLookupError: true });
+  const vehicle = { id: "42", agencyId: "ttc", tripId: "unjoinable", routeId: "501", timestamp: new Date(NOW).toISOString(), startDate: "20260909", lat: 43.705, lon: -79.4, bearing: 0, vehicleKey: "ttc:42" };
+  const result = await upcomingForCollector({ snapshot: vehicle }, { otpUrl: fixture.otpUrl, now: NOW, anchorsLoader: async () => fixture.anchors });
+  assert.equal(result.state, "live"); assert.equal(result.method, "position-aligned-timetable");
+  assert.equal(result.confirmedTrip, false); assert.equal(result.disclosure, ALIGNED_TIMETABLE_DISCLOSURE);
+  assert.equal(fixture.calls.length, 3); assert.equal(fixture.calls[0].variables.id, "ttc-next:unjoinable");
+  assert.equal(fixture.calls[1].variables.id, "ttc-next:B"); assert.equal(result.candidates.length, 3);
+});
+
+test("cancelled or unclassified exact-trip failures do not launch another lookup", async () => {
+  const vehicle = { id: "42", agencyId: "ttc", tripId: "unjoinable", routeId: "501", timestamp: new Date(NOW).toISOString(), lat: 43.705, lon: -79.4, bearing: 0, vehicleKey: "ttc:42" };
+  for (const aborted of [false, true]) {
+    const controller = new AbortController(); let anchors = 0;
+    const result = await upcomingForCollector({ snapshot: vehicle }, { now: NOW, signal: controller.signal, tripLoader: async () => { const error = new Error("fixture failure"); if (aborted) { error.code = "UPSTREAM"; controller.abort(); } throw error; }, anchorsLoader: async () => { anchors++; return sourceAnchors(); } });
+    assert.equal(result.state, "unavailable"); assert.equal(anchors, 0);
+  }
 });
