@@ -90,6 +90,7 @@ ssh "${ssh_options[@]}" "$DEPLOY_HOST" "set -eu
     TUNNEL_NETWORK=$TUNNEL_NETWORK \
     WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS WEB_PORT=$WEB_PORT \
     API_TAG=$API_TAG OTP_URL=$OTP_URL \
+    TTC_MATCHER_URL=${TTC_MATCHER_URL:-} \
     docker compose -p gtha-transit up -d --no-build web >/dev/null
   # Record what this deploy used, so the stack can be brought up again without
   # one. Every variable here is required by compose with the \${VAR:?} form, so
@@ -107,6 +108,7 @@ WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS
 WEB_PORT=$WEB_PORT
 API_TAG=$API_TAG
 OTP_URL=$OTP_URL
+TTC_MATCHER_URL=${TTC_MATCHER_URL:-}
 ENV
   for _ in 1 2 3 4 5 6 7 8 9 10; do
     state=\$(docker inspect -f '{{.State.Health.Status}}' gtha-transit-web)
