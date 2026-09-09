@@ -18,6 +18,7 @@ test('returns a fresh empty filter and preserves every vehicle for empty criteri
     model: '',
     yearFrom: '',
     yearTo: '',
+    propulsion: '',
     includeUnknown: false,
   });
   assert.notEqual(first, second);
@@ -36,6 +37,26 @@ test('returns a fresh empty filter and preserves every vehicle for empty criteri
   assert.equal(result.error, null);
   assert.equal(result.unknownCount, 0);
   assert.equal(result.excludedUnknownCount, 0);
+});
+
+test('filters verified electric propulsion without turning missing facts into matches', () => {
+  const vehicles = [
+    { id: 'battery', cptdb: { propulsion: 'Battery electric' } },
+    { id: 'streetcar', cptdb: { propulsion: 'Electric' } },
+    { id: 'hybrid', cptdb: { propulsion: 'Diesel-electric hybrid' } },
+    { id: 'diesel', cptdb: { propulsion: 'Diesel' } },
+    { id: 'unpublished', cptdb: {} },
+    { id: 'unrecognised', cptdb: { propulsion: 'Solar assisted' } },
+  ];
+  const excluded = filterFleetVehicles(vehicles, filter({ propulsion: 'electric' }));
+  assert.deepEqual(ids(excluded), ['battery', 'streetcar']);
+  assert.equal(excluded.active, true);
+  assert.equal(excluded.unknownCount, 2);
+  assert.equal(excluded.excludedUnknownCount, 2);
+  const included = filterFleetVehicles(vehicles, filter({ propulsion: 'electric', includeUnknown: true }));
+  assert.deepEqual(ids(included), ['battery', 'streetcar', 'unpublished', 'unrecognised']);
+  assert.equal(included.unknownCount, 2);
+  assert.equal(included.excludedUnknownCount, 0);
 });
 
 test('matches exact manufacturer and model values after Unicode-aware case normalisation', () => {

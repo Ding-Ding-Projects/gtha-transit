@@ -24,6 +24,10 @@ CPTDB page/API access returned challenges during this pass. Search snippets are 
 
 The tests resolve each new series endpoint, reject overlapping identity intervals and namespace collisions, preserve electric prefixes and assert that unsupported capacity/photo data remains absent. They do not establish every current vehicle or every photo. Full all-agency coverage remains open.
 
+## Propulsion evidence
+
+Published roster propulsion remains the first choice. Where a regional row has no propulsion field but its exact model designation states it, the registry marks `propulsionBasis: 'model-designation'` and keeps a separate manufacturer citation. New Flyer XE40 entries for YRT and Brampton are battery electric. New Flyer XDE40 and XDE60, plus Nova Bus LFS HEV, are diesel-electric hybrid. XD40, XD60, LFS, and D40LF remain unknown unless their own published row says otherwise. This keeps the electric preference conservative: an unconfirmed model is not advertised as an electric vehicle.
+
 Suggested articles: [Vehicle tracking](README.md), [Vehicle preferences](../planning/vehicle-preferences.md).
 
 ## GO Transit, Burlington Transit and Hamilton Street Railway, 6 September 2026
