@@ -998,7 +998,7 @@ export default function Home() {
             while a request is in flight: a surprise mid-task is an interruption. */}
         <DimSum t={t} error={Boolean(error)} busy={loading} suppressed={isOn(adhd, 'lowStimulation') || suppresses(school, 'dim-sum')} />
       </div>
-      <main id="main" className="workspace">
+      <main id="main" className="workspace" role="tabpanel" aria-labelledby={`tab-navigation-${tab}`}>
         <aside className="planner" hidden={tab !== 'plan'} aria-label={t('Journey planner', '行程規劃')}>
           {/* The eyebrow and lede that used to sit here said nothing the heading
               above the workspace does not already say, and they pushed the first

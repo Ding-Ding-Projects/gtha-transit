@@ -348,8 +348,8 @@ test('the settings workspace reads the shared catalog rather than a list of its 
 
 test('the navigation reads the shared destinations rather than a list of its own', () => {
   const source = readFileSync(path.join(root, 'components', 'workspace-navigation.tsx'), 'utf8');
-  assert.match(source, /^\s*const primary = primaryDestinations\(t\);$/m);
-  assert.match(source, /^\s*const secondary = secondaryDestinations\(t\);$/m);
+  assert.match(source, /<TabStrip surface="navigation" tabs=\{workspaceDestinations\(t\)\}/);
+  assert.doesNotMatch(source, /const (?:primary|secondary) = \[/);
 });
 
 /**
