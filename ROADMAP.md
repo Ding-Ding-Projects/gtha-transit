@@ -4,7 +4,7 @@
 
 - [x] Deploy and capture the electric preference controls. Real 390 px and 1440 px light/dark interactions verified Off/Prefer/Avoid, persistence and tracker filtering on the deployed recovery build.
 - [ ] Complete Catch mixed-mode controls and validate a real positive interception. The client now accepts a journey without a walking alias, forwards step-free preferences, labels position-aligned estimates, pauses updates, refuses stale/imprecise locations and expires missed transit departures. Local checks pass; the newest client is not deployed or browser-verified.
-- [ ] Resolve the appearance inspector context-menu path, verify export without losing the browser app page, and establish real fill-layer editing/order evidence. The initial appearance audit found these open issues; basic persistence, seed, fonts, presets and invalid import retention passed.
+- [ ] Verify the full ordinary right-click/menu/inspector flow, post-export target isolation and download behavior, and real fill-layer editing/order. Review of exact deployed source and retained actions refuted the earlier immediate-dialog, reversed-fill and replaced-target defect claims. Basic persistence, seed, fonts, presets and invalid import retention passed; the remaining interaction requirements stay open.
 - [ ] Complete group creation, collapse/colour controls, bulk-close confirmation and School-mode tab restoration in the deployed interface. Docking, orientation-aware keyboard actions, pinned protection and close/reopen passed.
 - [ ] Complete the recovered live-time, appearance-foundation, tabbed-navigation, and vehicle-catching lanes, preserving each original recovery copy.
 

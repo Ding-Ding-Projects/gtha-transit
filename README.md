@@ -6,7 +6,7 @@ An independent journey planner for Greater Toronto and Hamilton, with cross-agen
 
 **Public address:** [toronto-transit.org](https://toronto-transit.org). Domain and tunnel routing are configured separately by the owner. The live frontend reports its exact build revision and Toronto update time above the workspace.
 
-The September 9 recovery has deployed live-time, electric, appearance and tab increments. Its [preservation handoff](HANDOFF.md) separates the running revisions, actual browser evidence, incomplete Catch work and remaining appearance findings. [Catch this vehicle](docs/planning/catch-vehicle.md) describes the bounded connection planner and the explicit difference between publisher predictions and position-aligned timetable estimates. Final integration remains pending.
+The September 9 recovery has deployed live-time, electric, appearance and tab increments. Its [preservation handoff](HANDOFF.md) separates the running revisions, actual browser evidence, incomplete Catch work and remaining appearance verification. The handoff also corrects three audit findings that were not supported by the exact deployed source and retained target evidence. [Catch this vehicle](docs/planning/catch-vehicle.md) describes the bounded connection planner and the explicit difference between publisher predictions and position-aligned timetable estimates. Final integration remains pending.
 
 The [vehicle preferences](docs/planning/vehicle-preferences.md) include electric-vehicle preference and avoidance, with explicit treatment of unconfirmed assignments. The [fleet filters](docs/vehicles/fleet-filters.md) apply the same published propulsion evidence to the tracker map and list. See the handoff for deployment and verification state.
 
