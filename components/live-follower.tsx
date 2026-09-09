@@ -16,6 +16,8 @@ import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import type { Itinerary } from '../lib/types';
 import { qualifiedStopId, samePublishedStop } from '../lib/stop-identity';
 import { areWeThereYet, currentLeg, upcomingStops } from '../lib/upcoming-stops';
+import { mergeLiveIntoJourneys, type LiveJourneyLeg } from '../lib/use-live-journeys';
+import { classifyDelay, delayMinutes, describeState, STALE_AFTER_MS } from '../lib/live-status';
 import {
   buildTripStopTimeline,
   createBrowserLocationWatch,
@@ -78,6 +80,10 @@ export type LiveFollowerProps = {
     legIndex: number;
   }) => void;
   washroomTarget?: LiveFollowerWashroomTarget | null;
+  /** Polled trip-update predictions, keyed by legId; see `useLiveJourneys` in `app/page.tsx`. */
+  live?: Map<string, LiveJourneyLeg>;
+  /** When `live` was last refreshed, as epoch milliseconds. */
+  checkedAt?: number | null;
 };
 
 type FollowerMode = 'trip' | 'vehicle';
@@ -169,6 +175,22 @@ const timeLabel = (value: string | number | undefined, unavailable: string) => {
 const stopName = (stop: TripProgressPlace | null | undefined, fallback: string) =>
   text(stop?.name, 240) || fallback;
 
+/** "HH:MM" in Toronto local time, for "as of 6:14 PM" beside a live estimate. */
+const hhmm = (milliseconds: number) =>
+  new Date(milliseconds).toLocaleTimeString('en-CA', {
+    timeZone: 'America/Toronto',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+/** A rider-facing "N min early/late" fragment for a stop's own published delay, or null when none was published. */
+function stopDelayCopy(delaySeconds: number | undefined): { en: string; zh: string } | null {
+  if (typeof delaySeconds !== 'number') return null;
+  const classified = classifyDelay(delaySeconds);
+  if (classified.state === 'unknown') return null;
+  return describeState(classified.state, delayMinutes(delaySeconds));
+}
+
 const mapPoint = (value: { lat?: unknown; lon?: unknown } | null) =>
   validCoordinates(value)
     ? ([Number(value?.lat), Number(value?.lon)] as [number, number])
@@ -186,10 +208,22 @@ export default function LiveFollower({
   onChooseVehicle,
   onWashroomRequest,
   washroomTarget,
+  live,
+  checkedAt,
 }: LiveFollowerProps) {
+  /**
+   * `journey` with any polled trip updates folded in. A journey without a
+   * live match for any of its legs comes back as the same reference, so
+   * everything downstream that already only re-renders on a changed
+   * itinerary keeps doing exactly that.
+   */
+  const liveJourney = useMemo(() => {
+    if (!journey || !live || !live.size) return journey;
+    return mergeLiveIntoJourneys([journey], live)[0] ?? journey;
+  }, [journey, live]);
   const timeline = useMemo(
-    () => (journey ? buildTripStopTimeline(journey) : buildTripStopTimeline(null)),
-    [journey],
+    () => (liveJourney ? buildTripStopTimeline(liveJourney) : buildTripStopTimeline(null)),
+    [liveJourney],
   );
   const requestedAgency = vehicle?.agencyId || 'ttc';
   const requestedVehicleId = vehicle?.id || '';
@@ -435,7 +469,7 @@ export default function LiveFollower({
       : t('Not supplied', '未有提供');
   // Minutes come from the times the publisher supplied for this leg's own stops.
   // A stop with no published time is listed with none; nothing is interpolated.
-  const ridingLeg = useMemo(() => currentLeg(journey, now), [journey, now]);
+  const ridingLeg = useMemo(() => currentLeg(liveJourney, now), [liveJourney, now]);
   const ridingIndex = useMemo(() => {
     if (!ridingLeg) return 0;
     const names = [ridingLeg.from, ...(ridingLeg.intermediateStops || []), ridingLeg.to]
@@ -941,25 +975,35 @@ export default function LiveFollower({
         <section className="live-follower__ahead" aria-labelledby="live-follower-ahead-heading">
           <h3 id="live-follower-ahead-heading">{t('Stops ahead', '之後嘅車站')}</h3>
           <ol className="live-follower__ahead-list">
-            {stopsAhead.map((stop) => (
-              <li key={`${stop.index}-${stop.name}`} className={stop.destination ? 'live-follower__ahead-destination' : undefined}>
-                <span className="live-follower__ahead-name">
-                  {stop.name || t('Unnamed scheduled stop', '未命名嘅預定站點')}
-                  {stop.destination && <b> · {t('get off here', '喺度落車')}</b>}
-                </span>
-                <span className="live-follower__ahead-when">
-                  {stop.minutesAway === null
-                    ? t('No published time', '未有公布時間')
-                    : stop.minutesAway <= 0
-                      ? t('now', '而家')
-                      : stop.minutesAway === 1
-                        ? t('1 min', '1 分鐘')
-                        : t(`${stop.minutesAway} min`, `${stop.minutesAway} 分鐘`)}
-                  {stop.basis === 'estimated' && <small>{t('live estimate', '即時預計')}</small>}
-                  {stop.basis === 'scheduled' && <small>{t('timetable', '時間表')}</small>}
-                </span>
-              </li>
-            ))}
+            {stopsAhead.map((stop) => {
+              const delay = stop.basis === 'estimated' ? stopDelayCopy(stop.delaySeconds) : null;
+              return (
+                <li key={`${stop.index}-${stop.name}`} className={stop.destination ? 'live-follower__ahead-destination' : undefined}>
+                  <span className="live-follower__ahead-name">
+                    {stop.name || t('Unnamed scheduled stop', '未命名嘅預定站點')}
+                    {stop.destination && <b> · {t('get off here', '喺度落車')}</b>}
+                  </span>
+                  <span className="live-follower__ahead-when">
+                    {stop.minutesAway === null
+                      ? t('No published time', '未有公布時間')
+                      : stop.minutesAway <= 0
+                        ? t('now', '而家')
+                        : stop.minutesAway === 1
+                          ? t('1 min', '1 分鐘')
+                          : t(`${stop.minutesAway} min`, `${stop.minutesAway} 分鐘`)}
+                    {stop.basis === 'estimated' && (
+                      <small>
+                        {t('live estimate', '即時預計')}
+                        {delay ? ` · ${t(delay.en, delay.zh)}` : ''}
+                        {typeof checkedAt === 'number' ? ` · ${t('as of', '截至')} ${hhmm(checkedAt)}` : ''}
+                        {typeof checkedAt === 'number' && now - checkedAt > STALE_AFTER_MS ? ` · ${t('may be stale', '可能已經過時')}` : ''}
+                      </small>
+                    )}
+                    {stop.basis === 'scheduled' && <small>{t('timetable', '時間表')}</small>}
+                  </span>
+                </li>
+              );
+            })}
           </ol>
           <p className="data-note">
             {t('Times are the publisher own scheduled or estimated stop times. A stop with none is shown without a time rather than guessed.', '時間係來源公布嘅預定或預計到站時間。冇公布時間嘅車站唔會估，直接顯示冇時間。')}

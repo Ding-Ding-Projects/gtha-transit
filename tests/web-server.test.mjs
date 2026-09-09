@@ -140,3 +140,73 @@ test('Place proxy ranks a compact-query local intersection before a capped stop 
   await new Promise((resolve) => maps.close(resolve));
  }
 });
+
+test('Live-coverage proxy passes the routing origin body straight through and rejects a write', {timeout:10000}, async () => {
+ const payload = { feeds: { go: { state: 'applied' }, ttc: { state: 'shadow', reason: 'identifiers do not join the loaded timetable' } }, checkedAt: '2026-09-09T12:00:00.000Z' };
+ const requests = [];
+ const routing = http.createServer((req, res) => {
+  requests.push({ method: req.method, url: req.url });
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify(payload));
+ });
+ await new Promise((resolve) => routing.listen(0, '127.0.0.1', resolve));
+ const probe = http.createServer();
+ await new Promise((resolve) => probe.listen(0, '127.0.0.1', resolve));
+ const port = probe.address().port;
+ await new Promise((resolve) => probe.close(resolve));
+ const child = spawn(process.execPath, ['server/web.mjs'], { env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', ROUTING_ORIGIN: `http://127.0.0.1:${routing.address().port}` } });
+ let log = '';
+ child.stdout.on('data', (data) => { log += data; });
+ child.stderr.on('data', (data) => { log += data; });
+ try {
+  for (let attempt = 0; attempt < 50 && !log.includes('ready'); attempt += 1) await pause(50);
+  assert.match(log, /ready/);
+  const response = await fetch(`http://127.0.0.1:${port}/api/live-coverage`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), payload);
+  assert.deepEqual(requests, [{ method: 'GET', url: '/api/live-coverage' }]);
+  const rejected = await fetch(`http://127.0.0.1:${port}/api/live-coverage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+  assert.equal(rejected.status, 405);
+  assert.equal(requests.length, 1);
+ } finally {
+  child.kill();
+  await once(child, 'exit');
+  await new Promise((resolve) => routing.close(resolve));
+ }
+});
+
+test('Live journeys proxy forwards the exact POST body to the routing origin and rejects a read', {timeout:10000}, async () => {
+ const received = [];
+ const payload = { checkedAt: '2026-09-09T12:00:00.000Z', legs: [{ legId: 'leg-1', realtimeState: 'UPDATED', departureDelaySeconds: 90, source: 'leg-refetch' }] };
+ const routing = http.createServer(async (req, res) => {
+  let raw = '';
+  for await (const chunk of req) raw += chunk;
+  received.push({ method: req.method, url: req.url, body: JSON.parse(raw) });
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify(payload));
+ });
+ await new Promise((resolve) => routing.listen(0, '127.0.0.1', resolve));
+ const probe = http.createServer();
+ await new Promise((resolve) => probe.listen(0, '127.0.0.1', resolve));
+ const port = probe.address().port;
+ await new Promise((resolve) => probe.close(resolve));
+ const child = spawn(process.execPath, ['server/web.mjs'], { env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', ROUTING_ORIGIN: `http://127.0.0.1:${routing.address().port}` } });
+ let log = '';
+ child.stdout.on('data', (data) => { log += data; });
+ child.stderr.on('data', (data) => { log += data; });
+ try {
+  for (let attempt = 0; attempt < 50 && !log.includes('ready'); attempt += 1) await pause(50);
+  assert.match(log, /ready/);
+  const body = { legs: [{ legId: 'leg-1', tripId: 'ttc:trip-1', serviceDate: '20260909' }] };
+  const response = await fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), payload);
+  assert.deepEqual(received, [{ method: 'POST', url: '/api/journeys/live', body }]);
+  assert.equal((await fetch(`http://127.0.0.1:${port}/api/journeys/live`)).status, 405);
+  assert.equal(received.length, 1);
+ } finally {
+  child.kill();
+  await once(child, 'exit');
+  await new Promise((resolve) => routing.close(resolve));
+ }
+});

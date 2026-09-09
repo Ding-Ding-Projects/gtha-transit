@@ -42,6 +42,20 @@
   --md-sys-color-scrim: #000000;
   --md-sys-color-shadow: #000000;
 
+  /* Delay-severity roles the live-status chip renders from. Solved through the
+     identical OKLCH tone path as every role above, at hues no source colour
+     owns: early is blue, on time is green, late is amber, very late is red. */
+  --gt-status-early-container: #cee5ff;
+  --gt-status-early-on: #004880;
+  --gt-status-on-time-container: #a0fda3;
+  --gt-status-on-time-on: #005713;
+  --gt-status-late-container: #ffddae;
+  --gt-status-late-on: #613f00;
+  --gt-status-very-late-container: #ffd8d4;
+  --gt-status-very-late-on: #890012;
+  --gt-status-cancelled-container: var(--md-sys-color-error-container);
+  --gt-status-cancelled-on: var(--md-sys-color-on-error-container);
+
   /* Type scale. Every size the interface uses comes from here. */
   --md-sys-typescale-display-large: 700 57px/64px var(--md-ref-typeface-brand);
   --md-sys-typescale-display-medium: 700 45px/52px var(--md-ref-typeface-brand);
@@ -143,6 +157,17 @@ html[data-theme='dark'] {
   --md-sys-color-outline-variant: #39475e;
   --md-sys-color-scrim: #000000;
   --md-sys-color-shadow: #000000;
+
+  --gt-status-early-container: #004880;
+  --gt-status-early-on: #cee5ff;
+  --gt-status-on-time-container: #005713;
+  --gt-status-on-time-on: #a0fda3;
+  --gt-status-late-container: #613f00;
+  --gt-status-late-on: #ffddae;
+  --gt-status-very-late-container: #890012;
+  --gt-status-very-late-on: #ffd8d4;
+  --gt-status-cancelled-container: var(--md-sys-color-error-container);
+  --gt-status-cancelled-on: var(--md-sys-color-on-error-container);
 
   --bg: var(--md-sys-color-surface-container-low);
   --surface: var(--md-sys-color-surface-container-lowest);

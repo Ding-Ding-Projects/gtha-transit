@@ -40,6 +40,47 @@ test('a live estimate is preferred over the timetable, and labelled as one', () 
   assert.deepEqual(publishedTime(undefined), { at: null, basis: 'none' });
 });
 
+test('a live estimate carries its delay in seconds when the publisher gave one', () => {
+  assert.deepEqual(publishedTime({ scheduledTime: 'a', estimatedTime: 'b', delaySeconds: 120 }), { at: 'b', basis: 'estimated', delaySeconds: 120 });
+  // Without a published delay the shape stays exactly what it was before this existed.
+  assert.deepEqual(publishedTime({ scheduledTime: 'a', estimatedTime: 'b' }), { at: 'b', basis: 'estimated' });
+});
+
+test('boarding and alighting are estimated when the leg is live and running off schedule', () => {
+  const late = leg({
+    realtime: true,
+    scheduledStartTime: '2026-09-06T17:04:00.000Z',
+    scheduledEndTime: '2026-09-06T17:35:00.000Z',
+    departureDelaySeconds: 120,
+    arrivalDelaySeconds: 120,
+  });
+  const stops = legStops(late);
+  assert.equal(stops[0].basis, 'estimated');
+  assert.equal(stops[0].delaySeconds, 120);
+  assert.equal(stops[stops.length - 1].basis, 'estimated');
+  assert.equal(stops[stops.length - 1].delaySeconds, 120);
+});
+
+test('boarding stays labelled scheduled when a live leg is running exactly on time', () => {
+  // The fixture's own startTime/endTime, restated as the schedule: nothing differs.
+  const onTime = leg({
+    realtime: true,
+    scheduledStartTime: '2026-09-06T17:06:00.000Z',
+    scheduledEndTime: '2026-09-06T17:37:00.000Z',
+  });
+  const stops = legStops(onTime);
+  assert.equal(stops[0].basis, 'scheduled');
+  assert.equal(stops[0].delaySeconds, undefined);
+  assert.equal(stops[stops.length - 1].basis, 'scheduled');
+});
+
+test('boarding stays labelled scheduled when the leg was never marked live', () => {
+  // A schedule figure alone, with no realtime flag, is not evidence of a live estimate.
+  const notLive = leg({ scheduledStartTime: '2026-09-06T17:04:00.000Z' });
+  const stops = legStops(notLive);
+  assert.equal(stops[0].basis, 'scheduled');
+});
+
 test('minutes come from published times, and count down from now', () => {
   const stops = upcomingStops({ leg: leg(), currentIndex: 2, now: NOW });
   assert.equal(stops[0].name, 'Leaside Station');

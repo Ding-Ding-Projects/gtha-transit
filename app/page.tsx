@@ -75,7 +75,7 @@ import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-gr
 import { selectLegAlerts } from '../lib/leg-alerts';
 import { superExpressFor } from '../lib/go-express';
 import SuperExpressBadge from '../components/super-express-badge';
-import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
+import type { Place, Itinerary, TransitStatus, Line, LiveCoverage } from '../lib/types';
 import {
   resolveTorontoTime,
   shiftTorontoTime,
@@ -83,6 +83,9 @@ import {
   isPlace,
   readStored,
 } from '../lib/journey-utils';
+import { classifyLeg, summariseJourney, VERY_LATE_MIN_SECONDS, type LiveLegStatus } from '../lib/live-status';
+import { useLiveJourneys, mergeLiveIntoJourneys, timeDiffers } from '../lib/use-live-journeys';
+import LiveStatusChip, { LiveLegend } from '../components/live-status-chip';
 
 type Lang = 'en' | 'zh' | 'both';
 type RequiredRoute = { feedId: string; routeId: string };
@@ -107,6 +110,90 @@ const safeUrl = (url?: string) => {
     return undefined;
   }
 };
+
+/**
+ * Short, rider-recognisable agency names for the live-coverage summaries.
+ *
+ * `data/feeds.json` names carry the full legal name ("Hamilton Street
+ * Railway (HSR)"), which is correct for the coverage tab and too long for a
+ * one-line "Live times for GO, UP, YRT, MiWay, HSR" sentence. These are
+ * proper nouns rather than authored copy, so they are not run through `t` --
+ * the same treatment `leg.agency` already gets everywhere else in this file.
+ */
+const AGENCY_SHORT_NAMES: Record<string, string> = {
+  go: 'GO',
+  up: 'UP',
+  ttc: 'TTC',
+  'ttc-next': 'TTC',
+  miway: 'MiWay',
+  brampton: 'Brampton Transit',
+  yrt: 'YRT',
+  drt: 'DRT',
+  oakville: 'Oakville Transit',
+  burlington: 'Burlington Transit',
+  milton: 'Milton Transit',
+  hsr: 'HSR',
+};
+const agencyShortName = (feedId: string) => AGENCY_SHORT_NAMES[feedId] ?? feedId.toUpperCase();
+
+/** A journey's transit legs, boarding classification per leg, and the journey-level summary they roll up to. */
+function journeyLiveSummary(journey: Itinerary, options: { coverage: LiveCoverage | null; now: number; checkedAt: number | null }) {
+  const transitLegs = journey.legs.filter((leg) => leg.mode !== 'WALK');
+  const statuses = transitLegs.map((leg) => classifyLeg(leg, { coverage: options.coverage, now: options.now, checkedAt: options.checkedAt, edge: 'boarding' }));
+  return { transitLegs, statuses, summary: summariseJourney(statuses, transitLegs.map((leg) => leg.agencyFeedId)) };
+}
+
+/** A `summariseJourney` result, reshaped into the one-leg-shaped status `LiveStatusChip` renders. */
+function journeySummaryStatus(summary: ReturnType<typeof summariseJourney>, checkedAt: number | null): LiveLegStatus {
+  const delaySeconds = summary.worstDelayMinutes === null ? null : summary.worstDelayMinutes * 60;
+  return {
+    state: summary.state,
+    delaySeconds,
+    delayMinutes: summary.worstDelayMinutes,
+    basis: delaySeconds === null ? 'scheduled' : 'estimated',
+    checkedAt,
+    source: 'plan',
+    ...(summary.state === 'late' && delaySeconds !== null && delaySeconds >= VERY_LATE_MIN_SECONDS ? { tier: 'very-late' as const } : {}),
+  };
+}
+
+/**
+ * The meta-line sentence for a journey's live state: "Live: on time",
+ * "Live: 4 min late on GO", "Timetable only", "Live data not matched". The
+ * agency is only named when exactly one distinct agency contributed to the
+ * winning state -- naming "GO" on a journey where GO and YRT are both late
+ * would say less than it implies.
+ */
+function journeyLiveSummarySentence(summary: ReturnType<typeof summariseJourney>, t: (en: string, zh: string) => string): string {
+  const agency = summary.agencies.length === 1 ? agencyShortName(summary.agencies[0]) : null;
+  const minutes = summary.worstDelayMinutes === null ? null : Math.abs(summary.worstDelayMinutes);
+  switch (summary.state) {
+    case 'on-time':
+      return t('Live: on time', '即時：準時');
+    case 'early':
+      return minutes === null
+        ? t('Live: running early', '即時：早咗')
+        : agency
+          ? t(`Live: ${minutes} min early on ${agency}`, `即時：喺 ${agency} 早咗 ${minutes} 分鐘`)
+          : t(`Live: ${minutes} min early`, `即時：早咗 ${minutes} 分鐘`);
+    case 'late':
+      return minutes === null
+        ? t('Live: running late', '即時：遲緊')
+        : agency
+          ? t(`Live: ${minutes} min late on ${agency}`, `即時：喺 ${agency} 遲咗 ${minutes} 分鐘`)
+          : t(`Live: ${minutes} min late`, `即時：遲咗 ${minutes} 分鐘`);
+    case 'cancelled':
+      return t('Live: cancelled', '即時：已取消');
+    case 'stale':
+      return t('Live data is stale', '即時資料已過時');
+    case 'live-unmatched':
+      return t('Live data not matched', '即時資料未能對應');
+    case 'scheduled-only':
+    case 'unknown':
+    default:
+      return t('Timetable only', '只有時間表');
+  }
+}
 
 function PlaceField({
   label,
@@ -369,6 +456,7 @@ export default function Home() {
     [coverage, setCoverage] = useState<any>(null),
     [version, setVersion] = useState<any>(null),
     [provenance, setProvenance] = useState<any>(null);
+  const [liveCoverage, setLiveCoverage] = useState<LiveCoverage | null>(null);
   const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
   const divisionResult = useMemo(() => divisionMode === 'route' ? applyJourneyRouteOpportunityPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }) : applyJourneyDivisionPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }), [vehicleResult.itineraries, preferDivision, divisionMode, divisionNow]);
   /* Applied after the existing division preference so the two compose: that one
@@ -380,6 +468,21 @@ export default function Home() {
     today: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()),
   }), [divisionResult.itineraries, preferredGarages]);
   const journeys: Itinerary[] = garageResult.itineraries;
+  /**
+   * Trip-update polling for whichever journeys are actually on screen: the
+   * plan tab's own list, or a journey somebody is following, which renders
+   * from `follower` regardless of which tab is active.
+   */
+  const { live, checkedAt } = useLiveJourneys(journeys, { enabled: tab === 'plan' || !!follower });
+  const liveJourneys = useMemo(() => mergeLiveIntoJourneys(journeys, live), [journeys, live]);
+  /** Short names of every feed live-coverage marks `applied`, for the footer badge. */
+  const liveAppliedAgencyNames = useMemo(() => {
+    const feeds = liveCoverage?.feeds;
+    if (!feeds) return [];
+    const names = new Set<string>();
+    for (const [feedId, entry] of Object.entries(feeds)) if (entry.state === 'applied') names.add(agencyShortName(feedId));
+    return [...names];
+  }, [liveCoverage]);
   const selected = Math.max(0, journeys.findIndex(journey => journey.id === selectedId));
   useEffect(() => { if (!journeys.some(journey => journey.id === selectedId)) setSelectedId(journeys[0]?.id ?? null); }, [journeys, selectedId]);
   useEffect(() => setSelectedId(null), [vehicleCriteria, vehicleOptions]);
@@ -418,6 +521,20 @@ export default function Home() {
     },
     [shownLang, shownFunEn, shownFunZh, replaceWords, school],
   );
+  /**
+   * The selected journey's live-state sentence, for the visually-hidden
+   * announcement region below the list. Rendering this straight into an
+   * `aria-live="polite"` region is what gives "only when it changes" for
+   * free: React leaves the text node alone when the string has not changed,
+   * so nothing mutates for assistive technology to announce, and a poll that
+   * confirms the same state twice in a row stays silent.
+   */
+  const selectedLiveSentence = useMemo(() => {
+    const selectedJourney = liveJourneys[selected];
+    if (!selectedJourney) return '';
+    const { summary } = journeyLiveSummary(selectedJourney, { coverage: liveCoverage, now: divisionNow, checkedAt });
+    return journeyLiveSummarySentence(summary, t);
+  }, [liveJourneys, selected, liveCoverage, divisionNow, checkedAt, t]);
 
   /**
    * Raise a notification.
@@ -633,6 +750,26 @@ export default function Home() {
       controller?.abort();
     };
   }, []);
+  /**
+   * A fallback for `liveCoverage` before the first plan response has arrived,
+   * or if one somehow lands without it. `/api/plan` already carries a fresh
+   * copy (`plan()` below sets it from `data.liveCoverage`), so this only ever
+   * fills a gap and never overwrites what a plan response actually supplied.
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch('/api/live-coverage', { signal: controller.signal, cache: 'no-store' });
+        if (!response.ok) return;
+        const next = (await response.json()) as LiveCoverage;
+        if (!controller.signal.aborted) setLiveCoverage((current) => current ?? next);
+      } catch {
+        // A plan response still supplies coverage once a search actually runs.
+      }
+    })();
+    return () => controller.abort();
+  }, []);
   /* Failures in the renderer never reach the container's log, so a deployment can
      be visibly broken while every server-side signal says it is healthy. */
   useEffect(() => { reportPokeGuys(); }, []);
@@ -759,6 +896,7 @@ export default function Home() {
         data?: unknown;
         code?: string;
         failedSegment?: { from?: { name?: string }; to?: { name?: string } };
+        liveCoverage?: LiveCoverage;
       };
       if (!r.ok && data.code === 'MULTI_STOP_INCOMPLETE') throw Error(t(
         `No complete trip was verified through every destination. Check the segment from ${data.failedSegment?.from?.name || 'the preceding location'} to ${data.failedSegment?.to?.name || 'the next location'}, or try another departure time.`,
@@ -775,6 +913,7 @@ export default function Home() {
         );
       if (id !== generation.current) return;
       setJourneys(data.itineraries || []);
+      if (data.liveCoverage) setLiveCoverage(data.liveCoverage);
       setPlannedDeparture(arriveBy ? null : requestedTime);
       setSelectedId(null);
       setDivisionNow(Date.now());
@@ -1224,7 +1363,12 @@ export default function Home() {
           <div className="planner-bottom">
             <span className="schedule-badge">
               <Clock size={14} />
-              {t('Scheduled journeys', '按時間表規劃')}
+              {liveAppliedAgencyNames.length
+                ? t(
+                    `Live times for ${liveAppliedAgencyNames.join(', ')} · timetable elsewhere`,
+                    `${liveAppliedAgencyNames.join('、')} 有即時時間 · 其餘地區按時間表`,
+                  )
+                : t('Scheduled journeys', '按時間表規劃')}
             </span>
             <p>
               {t(
@@ -1243,7 +1387,7 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
-          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
+          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} live={live} checkedAt={checkedAt} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'race' && <RaceWorkspace t={t} />}
           {tab === 'history' && <DisruptionHistory t={t} />}
@@ -1370,7 +1514,9 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="journeys">
-                    {journeys.map((j, index) => (
+                    {liveJourneys.map((j, index) => {
+                      const { transitLegs, summary } = journeyLiveSummary(j, { coverage: liveCoverage, now: divisionNow, checkedAt });
+                      return (
                       <article
                         className={
                           'journey ' + (index === selected ? 'selected' : '')
@@ -1390,6 +1536,9 @@ export default function Home() {
                             <b>
                               {mins(j.duration)} <small>min</small>
                             </b>
+                            {transitLegs.length > 0 && (
+                              <LiveStatusChip status={journeySummaryStatus(summary, checkedAt)} t={t} compact />
+                            )}
                           </div>
                           <div className="route-chain">
                             {j.legs.map((leg, i) => (
@@ -1512,11 +1661,7 @@ export default function Home() {
                               <Footprints size={14} />
                               {distance(j.walkDistance)}
                             </span>
-                            <span>
-                              {j.legs.some((l) => l.realtime)
-                                ? t('Includes live predictions', '包含即時預測')
-                                : t('Scheduled', '時間表')}
-                            </span>
+                            <span>{journeyLiveSummarySentence(summary, t)}</span>
                           </div>
                         </button>
                         {index === selected && (
@@ -1564,6 +1709,12 @@ export default function Home() {
                               <div className="leg" key={i}>
                                 <div className="leg-time">
                                   {time(leg.startTime)}
+                                  {leg.scheduledStartTime && timeDiffers(String(leg.startTime), leg.scheduledStartTime) && (
+                                    <>
+                                      <br />
+                                      <s className="live-status__scheduled">{time(leg.scheduledStartTime)}</s>
+                                    </>
+                                  )}
                                 </div>
                                 <div
                                   className={
@@ -1642,17 +1793,25 @@ export default function Home() {
                                     <strong>{mins(leg.duration)} min</strong>
                                     <span>{kilometres(leg.distance)}</span>
                                   </div>
-                                  {leg.realtime && (
-                                    <p className="schedule-badge">
-                                      {t('Live prediction', '即時預測')}
-                                      {leg.scheduledStartTime
-                                        ? ' · ' +
-                                          t('scheduled', '原定') +
-                                          ' ' +
-                                          time(leg.scheduledStartTime)
-                                        : ''}
-                                    </p>
-                                  )}
+                                  {leg.mode !== 'WALK' && (() => {
+                                    const legStatus = classifyLeg(leg, { coverage: liveCoverage, now: divisionNow, checkedAt, edge: 'boarding' });
+                                    const reason = (legStatus.state === 'scheduled-only' || legStatus.state === 'live-unmatched') && leg.agencyFeedId
+                                      ? liveCoverage?.feeds?.[leg.agencyFeedId]?.reason
+                                      : undefined;
+                                    return (
+                                      <>
+                                        <LiveStatusChip
+                                          status={legStatus}
+                                          t={t}
+                                          compact
+                                          scheduledTime={leg.scheduledStartTime}
+                                          liveTime={typeof leg.startTime === 'string' ? leg.startTime : undefined}
+                                          timeFormatter={time}
+                                        />
+                                        {reason && <p className="data-note">{reason}</p>}
+                                      </>
+                                    );
+                                  })()}
                                   {leg.mode !== 'WALK' &&
                                     <WashroomBadge washroom={leg.from.washroom} t={t} />}
                                   {leg.vehicleDivision?.state === 'out-of-division' && isUsableDivisionEvidence(leg.vehicleDivision, { now: divisionNow }) && <p className="journey-division-evidence"><strong>{t('Verified out of division', '已核實跨車廠')}</strong><span>{leg.vehicleDivision.homeGarageName} → {leg.vehicleDivision.assignedGarageNames?.join(', ')}</span><small>{divisionEvidenceCoverage(leg.vehicleDivision, { now: divisionNow }) === 'last-published' ? t('From the last published allocation summary, covering service through ', '嚟自最後一份配車摘要，涵蓋服務至 ') + leg.vehicleDivision.source?.validThrough + t('. A newer one is not out, so this describes that period rather than today.', '。新一份未出，所以呢個講嘅係嗰段時間，唔係今日。') : t('Allocation valid through', '配車資料有效至') + ' ' + leg.vehicleDivision.source?.validThrough}</small></p>}
@@ -1851,12 +2010,31 @@ export default function Home() {
                               <strong>
                                 {time(j.endTime)} · {to?.name}
                               </strong>
+                              {transitLegs.length > 0 && (
+                                <LiveStatusChip
+                                  status={classifyLeg(transitLegs[transitLegs.length - 1], { coverage: liveCoverage, now: divisionNow, checkedAt, edge: 'alighting' })}
+                                  t={t}
+                                  compact
+                                />
+                              )}
                             </div>
                           </div>
                         )}
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
+                  <div aria-live="polite" className="sr-only">{selectedLiveSentence}</div>
+                  <details className="live-legend">
+                    <summary>{t('What the live times mean', '即時時間代表咩意思')}</summary>
+                    <LiveLegend t={t} />
+                    <p className="data-note">
+                      {t(
+                        'Early means the vehicle is running 1 minute or more ahead of the timetable. On time covers anywhere from just under 1 minute early to just under 3 minutes late. Late starts at 3 minutes, and turns red from 5 minutes late onward.',
+                        '早咗即係班次比時間表快一分鐘或以上。準時涵蓋由快少過一分鐘到遲少過三分鐘之間。遲到由三分鐘開始計，遲五分鐘或以上會變紅色。',
+                      )}
+                    </p>
+                  </details>
                   <div className="results-footer">
                     <button
                       className="pill"
