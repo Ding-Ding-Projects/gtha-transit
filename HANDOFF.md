@@ -1,5 +1,34 @@
 # Implementation handoff
 
+## Preservation checkpoint, 9 September 2026
+
+The account's verified remaining allowance reached 10%, so new discretionary work stopped. This is an incomplete handoff, not a completed release. Final integration into `main` and cleanup remain deferred until the four resumed lanes finish. The main branch remains `61e2d405d88e3161eb52964c77cc941551b68c5f`. All recovery worktrees, original source copies and rollback images are retained.
+
+### Running deployment
+
+- Public frontend: https://toronto-transit.org/ at `f5177dab0284e8a9e99ee4f98f31d189331a33be`. Its exact local verification passed all 870 root tests and the production build. The public 97-file asset manifest has SHA-256 `5d66a52e0589b954440b4970825232063b0ed2b65e855c983c32e236957c8daf`; its build completed at `2026-09-09T08:45:12.166Z`.
+- Routing API: `e530ee3959745bf8645b22663ecfab814265c01c`, verified by its health source revision and image label. It retains the validated 38,526-stop and 1,015-route indexes, route patterns and 32 washrooms. Never replace these with the repository's placeholder data during a container build.
+- YRT's two configured updaters are active. The existing GO/UP proxy remains intact. The TTC matcher at `16313ac1d2f3aae96cbdd3395a89a463a4744955` is observing only; no TTC routing updater was activated. Its rolling history is in memory and a full 24-hour accuracy qualification remains absent.
+- The sanitized TTC statistics bridge at `e7889a62d096fbf74b290701ac283ddc8bd7f0d8` is running. The routing API can reach it. Future frontend deployment must preserve the optional `TTC_MATCHER_URL` environment setting and the existing ignored `public/dim-sum/` directory. The deployment script now supports the optional setting; any external invocation wrapper must pass it too.
+
+### Verification and open work
+
+Electric preference controls were exercised at 390 and 1440 px in both themes. Live refresh submitted four actual route-320 legs twice and returned HTTP 200 with advancing timestamps. The initial narrow Catch layout issue was fixed and recaptured at 390 px: panel width 252 px inside a 294 px detail area, with no body overflow. Existing captures show the old heading can still sit under the sticky header.
+
+All four tab docks, correct-axis arrow navigation and Control-plus-arrow reordering, pinned Plan protection, and Live close/reopen passed on the deployed build. Group create/collapse/colour, actual bulk-close confirmation, and School-mode hide/restore remain unverified. Deep tracker scroll persisted when switching to Settings. The pending client checkpoint resets navigation scroll and adds explicit tab accessible names, but has not been recaptured.
+
+The appearance audit verified seed roles, font/size/density/name, element colour and font overrides, undo/redo controls, preset save/apply, valid export payload and import, invalid import retention, reload persistence, and reset after storage readiness. Its open findings are the context-menu inspector path, export replacing the audited browser app page with a download surface, and inconclusive fill-layer value/order interaction. Keyboard evidence is incomplete, so the new appearance capture receipts are not ready for public promotion. Their raw captures remain in the private task evidence directories. Do not convert source or incomplete receipts into claimed visual proof.
+
+Five TTC upcoming requests returned unavailable. A correctly instrumented collector call recorded `trip:invoked`, then `trip:threw:UPSTREAM`, and no anchor/alignment invocation. The initial missing-anchor and raw-trip-null diagnoses were invalid probes and are withdrawn. Repair `dbdc906db76d869ded36ecfd501bdc33ff305149` preserves the original eight-second/three-call ceiling while allowing classified upstream rejection to reach labelled alignment. Its new local HTTP regression was red before the fix and green afterward; 28 focused checks passed. The repair is not yet deployed and no real positive interception is claimed.
+
+The pending client checkpoint adds `journey` rendering, step-free forwarding, 20-second refresh, pause/resume, location freshness/accuracy checks, departure expiry, Escape/focus behavior and public shadow statistics. Type checking and 88 focused tests passed before preservation. Its broader client lifecycle and updated layout still require real interaction. Continue from the preserved catch-completion branch, incorporate the anchor-repair branch, then build and deploy an exact candidate without touching the primary branch until final acceptance.
+
+### Remaining delivery records
+
+Issue #4 remains open because it also includes deferred work outside the four resumed lanes. The current task still owes final public capture promotion, documentation/index reconciliation, the complete per-surface inventory, final main integration and its remote release evidence. The private status service rejects current reporting metadata; no new session card was created. Existing private evidence, profiles and source copies must remain until their preservation and ancestry proof are complete.
+
+The following dated sections are historical records. Their deployment revisions and counts are superseded by the current checkpoint above.
+
 ## Integrated recovery candidate, 9 September 2026
 
 The four interrupted streams have been combined on the recovery integration branch. Final `main` integration and cleanup are deliberately deferred until the complete scoped work and verification finish.

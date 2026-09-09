@@ -1,4 +1,7 @@
-.catch-vehicle { grid-column: 1 / -1; width: 100%; min-width: 0; margin-top: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); }
+.catch-vehicle { grid-column: 1 / -1; width: 100%; min-width: 0; margin-top: 20px; padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--text); scroll-margin-top: 200px; outline-offset: 4px; }
+.catch-directions { padding-inline-start: 24px; overflow-wrap: anywhere; }
+.catch-directions li { margin-block: 12px; }
+.catch-directions small { display: block; }
 .catch-vehicle > header { display: flex; gap: 12px; align-items: start; justify-content: space-between; }
 .catch-vehicle h3 { font-size: 20px; margin: 0 0 12px; overflow-wrap: anywhere; }
 .catch-vehicle p { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }

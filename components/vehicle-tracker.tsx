@@ -101,11 +101,13 @@ export default function VehicleTracker({
   divisionMode = false,
   onFollow,
   onCatchWalk,
+  wheelchair = false,
 }: {
   t: (a: string, b: string) => string;
   divisionMode?: boolean;
   onFollow?: (vehicle: Vehicle) => void;
   onCatchWalk?: (journey: Itinerary) => void;
+  wheelchair?: boolean;
 }) {
   const [catching, setCatching] = useState(false);
   const [snapshot, setData] = useState<(Snapshot & { scope: string }) | null>(
@@ -546,7 +548,7 @@ export default function VehicleTracker({
               </strong>
             </span>
           </div>
-{catching && <CatchVehicle key={`${selected.agencyId}:${selected.id}`} vehicle={selected} t={t} onClose={() => setCatching(false)} onWalk={onCatchWalk} />}
+{catching && <CatchVehicle key={`${selected.agencyId}:${selected.id}`} vehicle={selected} t={t} wheelchair={wheelchair} onClose={() => setCatching(false)} onWalk={onCatchWalk} />}
           {selected.division?.state === 'unknown' && <p className="division-evidence-note">{selected.division.reason === 'allocation-source-not-yet-in-effect'
             ? t('The official allocation source covers a period that has not started, so it cannot describe today.', '官方配車來源已過有效日期，需要新資料先可以核實。')
             : selected.division.reason === 'multi-garage-fleet-allocation'

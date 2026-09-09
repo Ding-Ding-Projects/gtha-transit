@@ -459,7 +459,7 @@ const server = http.createServer(async (req, res) => {
           signal: controller.signal,
           snapshotLoader: options => getVehicleSnapshot({ ...options, timeoutMs: 8000 }),
           upcomingLoader: (vehicle, { signal }) => post('/api/internal/vehicles/upcoming', { snapshot: vehicle }, signal),
-          walkPlanner: ({ signal, ...request }) => post('/api/plan', { ...request, modes: ['WALK'], maxWalkDistance: 5000 }, signal),
+          journeyPlanner: ({ signal, ...request }) => post('/api/plan', request, signal),
         });
         if (!controller.signal.aborted) return send(res, result.state === 'invalid-input' ? 400 : 200, result);
       } catch {

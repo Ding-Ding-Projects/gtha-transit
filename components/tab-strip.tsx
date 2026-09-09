@@ -53,7 +53,13 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
     let next = reopen(state, id);
     for (const group of next.groups) if (group.members.includes(id)) next = collapseGroup(next, group.id, false);
     save(next); onChange(id); popup.current?.hidePopover(); menu.current?.hidePopover();
-    requestAnimationFrame(() => { document.getElementById(`tab-${surface}-${id}`)?.scrollIntoView({block:'nearest',inline:'nearest'}); if (surface === 'navigation') document.getElementById('workspace-heading')?.focus({preventScroll:true}); });
+    requestAnimationFrame(() => {
+      document.getElementById(`tab-${surface}-${id}`)?.scrollIntoView({block:'nearest',inline:'nearest'});
+      if (surface === 'navigation') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.getElementById('workspace-heading')?.focus({preventScroll:true});
+      }
+    });
   };
   useEffect(() => {
     registerStrip(surface, () => ({ tabs, state }));
@@ -101,7 +107,7 @@ export default function TabStrip({ surface, tabs, allIds, active, onChange, t, p
     {!openIds.length && <span className="sr-only" role="status">{t('All tabs are closed. Use tab tools to reopen a destination.','所有分頁已關閉，請使用分頁工具重新開啟目的地。')}</span>}
     <div className="tab-strip__list" ref={list} role="tablist" aria-label={t('Workspace tabs', '工作區分頁')} aria-orientation={orientation}>
       {visible.map(id => { const tab = tabs.find(item => item.id === id); if (!tab) return null; const group = state.groups.find(item => item.members.includes(id)); return <div className="tab-strip__item" key={id} data-tab-id={id}>
-        <button type="button" className="tab-strip__tab" role="tab" id={`tab-${surface}-${id}`} aria-controls={panelId} aria-selected={active === id} tabIndex={active === id ? 0 : -1} onKeyDown={event => key(event, id)} onClick={() => activate(id)} onContextMenu={event => { event.preventDefault(); if (event.shiftKey) editAppearance(id); else showMenu(id); }} data-ui={`tab:${surface}:${id}`} title={tab.label}>
+        <button type="button" className="tab-strip__tab" role="tab" id={`tab-${surface}-${id}`} aria-label={tab.label} aria-controls={panelId} aria-selected={active === id} tabIndex={active === id ? 0 : -1} onKeyDown={event => key(event, id)} onClick={() => activate(id)} onContextMenu={event => { event.preventDefault(); if (event.shiftKey) editAppearance(id); else showMenu(id); }} data-ui={`tab:${surface}:${id}`} title={tab.label}>
           {tab.glyph && <Icon name={tab.glyph} size={21} />}<span>{tab.label}</span>{state.pinned.includes(id) && <Pin size={12} aria-label={t('Pinned', '已固定')} />}{group && <small style={group.colour ? { borderBottom: '3px solid ' + group.colour } : undefined}>{group.name}</small>}
         </button>
         <button type="button" className="tab-strip__manage" onClick={() => showMenu(id)} aria-label={t(`Manage ${tab.label}`, `管理 ${tab.label}`)}><MoreHorizontal size={16} /></button>

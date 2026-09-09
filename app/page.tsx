@@ -1312,8 +1312,8 @@ export default function Home() {
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'race' && <RaceWorkspace t={t} />}
           {tab === 'history' && <DisruptionHistory t={t} />}
-          {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
-          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
+          {tab === 'vehicles' && <VehicleTracker t={t} wheelchair={wheelchair} onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
+          {tab === 'divisions' && <VehicleTracker key="divisions" t={t} wheelchair={wheelchair} divisionMode onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
           {tab === 'coverage' && <RealtimeCoverage t={t} liveCoverage={liveCoverage} />}
           {tab === 'plan' && (
             <>

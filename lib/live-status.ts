@@ -38,6 +38,12 @@ export type LiveLegStatus = {
 export type FeedLiveCoverage = {
   feeds: Record<string, { state: 'applied' | 'published-unjoinable' | 'none' | 'shadow'; reason?: string }>;
   checkedAt?: string;
+  ttcMatcher?: {
+    state: 'shadow' | 'stale' | 'unavailable';
+    lastPollAt: string | null;
+    rolling24h: { polls: number; total: number; unique: number; ambiguous: number; contradicted: number; unverified: number; sequenceMisaligned: number; coverageUnverified?: number };
+    routingApplied: false;
+  };
 };
 
 /**
