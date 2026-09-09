@@ -1,4 +1,7 @@
 FROM node:22-alpine
+ARG SOURCE_COMMIT=unknown
+LABEL org.opencontainers.image.revision=$SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
 WORKDIR /app
 COPY backend/package.json ./package.json
 COPY backend/*.mjs backend/config.json ./

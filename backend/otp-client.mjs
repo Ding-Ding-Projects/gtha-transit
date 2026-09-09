@@ -509,9 +509,10 @@ async function resolveLegStatus(entry, deadline, otpUrl) {
 }
 
 /** Re-checks a bounded batch of already-planned legs against OTP, in parallel, within one deadline. */
-export async function liveLegStatusWithOtp({ otpUrl, timeoutMs, legs }) {
+export const MAX_LIVE_REFRESH_MS = 15_000;
+export async function liveLegStatusWithOtp({ otpUrl, timeoutMs = MAX_LIVE_REFRESH_MS, legs }) {
   const requested = (Array.isArray(legs) ? legs : []).slice(0, MAX_LIVE_LEGS);
-  const deadline = Date.now() + Math.max(0, finiteNumber(timeoutMs, 0));
+  const deadline = Date.now() + Math.min(MAX_LIVE_REFRESH_MS, Math.max(0, finiteNumber(timeoutMs, 0)));
   const resolved = await mapWithConcurrency(requested, LIVE_LEG_CONCURRENCY, (entry) => resolveLegStatus(entry, deadline, otpUrl));
   return { checkedAt: new Date().toISOString(), legs: resolved };
 }

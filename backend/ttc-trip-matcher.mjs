@@ -463,8 +463,8 @@ export function serviceDayToronto(instantMs, { timeZone = "America/Toronto", cut
 }
 
 // --- Static schedule loading (OpenTripPlanner GraphQL) ----------------------
-// Not exercised by tests (no live OTP is available for that; see the report
-// for this task), so kept deliberately small and defensive.
+// Exercised with bounded injected queries and HTTP fixtures. These checks do
+// not claim compatibility with a deployed OTP graph or activate TTC updates.
 
 async function fetchBounded(url) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), FETCH_DEADLINE_MS);
@@ -481,12 +481,15 @@ async function fetchBounded(url) {
   } finally { clearTimeout(timer); }
 }
 
-async function otpGraphQL(query, variables) {
+async function otpGraphQL(query, variables, { signal } = {}) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), FETCH_DEADLINE_MS);
   try {
-    const response = await fetch(`${OTP_URL.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: controller.signal });
+    const response = await fetch(`${OTP_URL.replace(/\/$/, "")}/otp/gtfs/v1`, { method: "POST", redirect: "error", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ query, variables }), signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal });
     if (!response.ok) throw new Error(`OTP GraphQL returned HTTP ${response.status}`);
-    const payload = await response.json();
+    const reader = response.body.getReader(); const chunks = []; let size = 0;
+    try { for (;;) { const { done, value } = await reader.read(); if (done) break; size += value.byteLength; if (size > MAX_BYTES) { await reader.cancel(); throw new Error("OTP GraphQL payload exceeds the safety bound"); } chunks.push(Buffer.from(value)); } }
+    finally { reader.releaseLock(); }
+    const payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
     if (payload.errors?.length) { const error = new Error(`OTP GraphQL error: ${payload.errors.map((entry) => entry.message).join("; ")}`); error.graphqlErrors = payload.errors; throw error; }
     return payload.data;
   } finally { clearTimeout(timer); }
@@ -510,41 +513,68 @@ const ROUTE_TRIPS_FOR_DATE = `query($id:String!,$date:String!) { route(id:$id) {
 const ROUTE_TRIPS_WITH_ACTIVE_DATES = `query($id:String!) { route(id:$id) { patterns { trips { gtfsId activeDates } } } }`;
 const TRIP_STOPTIMES_FOR_DATE = `query($id:String!,$date:String!) { trip(id:$id) { stoptimesForDate(serviceDate:$date) { scheduledDeparture serviceDay stop { gtfsId lat lon } } } }`;
 
-function stopsFromStoptimes(stoptimes, positionOf) {
+function stopsFromStoptimes(stoptimes, positionOf, budget) {
+  budget.take("stops", stoptimes?.length ?? 0);
+  if ((stoptimes?.length ?? 0) > STATIC_INDEX_LIMITS.stopsPerTrip) throw new Error("Static index stops per trip limit exceeded");
   return (stoptimes ?? []).map((stoptime, index) => ({ seq: positionOf(stoptime, index), stopId: stoptime.stop?.gtfsId ?? null, lat: Number(stoptime.stop?.lat), lon: Number(stoptime.stop?.lon), scheduledAt: Number(stoptime.serviceDay) + Number(stoptime.scheduledDeparture) }))
     .filter((stop) => stop.stopId && Number.isFinite(stop.lat) && Number.isFinite(stop.lon) && Number.isFinite(stop.scheduledAt));
 }
 
-async function tripsForRouteOnDate(routeGtfsId, serviceDate) {
+async function tripsForRouteOnDate(routeGtfsId, serviceDate, budget) {
+  let data;
   try {
-    const data = await otpGraphQL(ROUTE_TRIPS_FOR_DATE, { id: routeGtfsId, date: serviceDate });
-    const trips = (data?.route?.patterns ?? []).flatMap((pattern) => pattern?.tripsForDate ?? []);
-    if (!trips.length) return [];
-    // stopPosition is 0-based in OTP's schema; this module's `seq` (and a
-    // static stop_sequence) is 1-based.
-    return trips.map((trip) => ({ gtfsId: trip.gtfsId, stops: stopsFromStoptimes(trip.stoptimesForDate, (stoptime) => Number(stoptime.stopPosition) + 1) }));
-  } catch {
-    const data = await otpGraphQL(ROUTE_TRIPS_WITH_ACTIVE_DATES, { id: routeGtfsId });
-    const candidateTrips = (data?.route?.patterns ?? []).flatMap((pattern) => pattern?.trips ?? []).filter((trip) => Array.isArray(trip.activeDates) && trip.activeDates.includes(serviceDate));
+    data = await budget.query(ROUTE_TRIPS_FOR_DATE, { id: routeGtfsId, date: serviceDate });
+  } catch (error) {
+    // Only missing schema fields justify another query strategy. A deadline,
+    // cap, transport failure or invalid data must fail closed immediately.
+    if (!error.graphqlErrors?.some((entry) => /(?:Cannot query field|FieldUndefined|Unknown field)/i.test(entry.message ?? ""))) throw error;
+    const fallback = await budget.query(ROUTE_TRIPS_WITH_ACTIVE_DATES, { id: routeGtfsId });
+    const candidateTrips = [];
+    for (const pattern of fallback?.route?.patterns ?? []) for (const trip of pattern?.trips ?? []) {
+      budget.take("trips");
+      if (Array.isArray(trip.activeDates) && trip.activeDates.includes(serviceDate)) candidateTrips.push(trip);
+    }
     const trips = [];
     for (const trip of candidateTrips) {
-      const timesData = await otpGraphQL(TRIP_STOPTIMES_FOR_DATE, { id: trip.gtfsId, date: serviceDate });
-      trips.push({ gtfsId: trip.gtfsId, stops: stopsFromStoptimes(timesData?.trip?.stoptimesForDate, (_stoptime, index) => index + 1) });
+      const timesData = await budget.query(TRIP_STOPTIMES_FOR_DATE, { id: trip.gtfsId, date: serviceDate });
+      trips.push({ gtfsId: trip.gtfsId, stops: stopsFromStoptimes(timesData?.trip?.stoptimesForDate, (_stoptime, index) => index + 1, budget) });
     }
     return trips;
   }
+  const trips = [];
+  for (const pattern of data?.route?.patterns ?? []) for (const trip of pattern?.tripsForDate ?? []) { budget.take("trips"); trips.push(trip); }
+  // stopPosition is 0-based in OTP's schema; this module's `seq` (and a
+  // static stop_sequence) is 1-based.
+  return trips.map((trip) => ({ gtfsId: trip.gtfsId, stops: stopsFromStoptimes(trip.stoptimesForDate, (stoptime) => Number(stoptime.stopPosition) + 1, budget) }));
+}
+
+export const STATIC_INDEX_LIMITS = Object.freeze({ queries: 2000, routes: 400, trips: 40000, stops: 1000000, stopsPerTrip: 500, deadlineMs: 45000 });
+
+/** One budget covers all feeds rebuilt during one poll, including fallback queries. */
+export function createStaticIndexBudget({ query = otpGraphQL, limits = {}, now = Date.now } = {}) {
+  const cap = Object.fromEntries(Object.entries(STATIC_INDEX_LIMITS).map(([key, value]) => [key, Number.isFinite(limits[key]) && limits[key] > 0 ? Math.min(value, Math.floor(limits[key])) : value]));
+  const counts = { queries: 0, routes: 0, trips: 0, stops: 0 }; const deadline = now() + cap.deadlineMs;
+  const check = () => { if (now() >= deadline) throw new Error("Static index build deadline exceeded"); };
+  const take = (key, amount = 1) => { check(); counts[key] += amount; if (counts[key] > cap[key]) throw new Error(`Static index ${key} limit exceeded`); };
+  return { counts, take, check, async query(document, variables) {
+    take("queries"); const controller = new AbortController(); let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error("Static index build deadline exceeded")); }, Math.max(1, deadline - now())); });
+    try { const result = await Promise.race([Promise.resolve().then(() => query(document, variables, { signal: controller.signal })), timeout]); check(); return result; }
+    finally { clearTimeout(timer); }
+  } };
 }
 
 /** Build `{ serviceDate, routes }` for one feed id, bounding memory to `{ gtfsId, routeGtfsId, stops: [{ seq, stopId, lat, lon, scheduledAt }] }` per trip. */
-async function loadStaticIndexForFeed(feedId, serviceDate) {
-  const data = await otpGraphQL("query($feeds:[String]) { routes(feeds:$feeds) { gtfsId shortName } }", { feeds: [feedId] });
+export async function loadStaticIndexForFeed(feedId, serviceDate, budget = createStaticIndexBudget()) {
+  const data = await budget.query("query($feeds:[String]) { routes(feeds:$feeds) { gtfsId shortName } }", { feeds: [feedId] });
   const routes = {};
+  budget.take("routes", data?.routes?.length ?? 0);
   for (const route of data?.routes ?? []) {
     if (!route.shortName) continue;
-    const trips = (await tripsForRouteOnDate(route.gtfsId, serviceDate)).filter((trip) => trip.stops.length).map((trip) => ({ ...trip, routeGtfsId: route.gtfsId }));
+    const trips = (await tripsForRouteOnDate(route.gtfsId, serviceDate, budget)).filter((trip) => trip.stops.length).map((trip) => ({ ...trip, routeGtfsId: route.gtfsId }));
     if (trips.length) routes[route.shortName] = [...(routes[route.shortName] ?? []), ...trips];
   }
-  return { serviceDate, routes };
+  budget.check(); return { serviceDate, routes };
 }
 
 // --- Poll loop and HTTP server -----------------------------------------------
@@ -553,20 +583,24 @@ function emptyCounters() { return { total: 0, unique: 0, ambiguous: 0, none: 0, 
 function sumCounters(history) { const sum = emptyCounters(); for (const entry of history) for (const key of Object.keys(sum)) sum[key] += entry.counters[key] ?? 0; return sum; }
 function emptyRewrittenBytes(now) { return encodeFeed({ header: { gtfsRealtimeVersion: "2.0", incrementality: 0, timestamp: Math.floor(now / 1_000) }, tripUpdates: [] }); }
 
+export function failSafeBytes(state, now = Date.now()) {
+  const age = now - state.lastGoodAt;
+  return Number.isFinite(state.lastGoodAt) && age >= 0 && age <= FAIL_SAFE_HOLD_MS && state.lastRewrittenBytes ? state.lastRewrittenBytes : emptyRewrittenBytes(now);
+}
+
 const feedStates = new Map(FEED_IDS.map((feedId) => [feedId, { staticIndex: null, serviceDate: null, lastRewrittenBytes: null, lastGoodAt: null, history: [] }]));
 let lastGoodPollAt = null;
 
 function applyFailSafe(feedId, now) {
   const state = feedStates.get(feedId);
-  if (state.lastGoodAt && now - state.lastGoodAt <= FAIL_SAFE_HOLD_MS && state.lastRewrittenBytes) return;
-  state.lastRewrittenBytes = emptyRewrittenBytes(now);
+  state.lastRewrittenBytes = failSafeBytes(state, now);
 }
 
-async function refreshFeedState(feedId, tripUpdates, vehiclePositions, now) {
+async function refreshFeedState(feedId, tripUpdates, vehiclePositions, now, budget) {
   const state = feedStates.get(feedId);
   const serviceDate = serviceDayToronto(now);
   if (!state.staticIndex || state.serviceDate !== serviceDate) {
-    try { state.staticIndex = await loadStaticIndexForFeed(feedId, serviceDate); state.serviceDate = serviceDate; }
+    try { state.staticIndex = await loadStaticIndexForFeed(feedId, serviceDate, budget); state.serviceDate = serviceDate; }
     catch (error) { console.error(`[ttc-trip-matcher] static index load failed for feed=${feedId}: ${error.message}`); applyFailSafe(feedId, now); return; }
   }
   const { counters, results } = classifyBatch(tripUpdates, state.staticIndex, vehiclePositions, { now, sequenceOffset: SEQUENCE_OFFSET });
@@ -595,7 +629,8 @@ async function pollOnce() {
     for (const feedId of FEED_IDS) applyFailSafe(feedId, now);
     return;
   }
-  for (const feedId of FEED_IDS) await refreshFeedState(feedId, decodedTu.tripUpdates, decodedVp.vehiclePositions, now);
+  const budget = createStaticIndexBudget();
+  for (const feedId of FEED_IDS) await refreshFeedState(feedId, decodedTu.tripUpdates, decodedVp.vehiclePositions, now, budget);
 }
 
 function isHealthy() { return lastGoodPollAt !== null && Date.now() - lastGoodPollAt <= 3 * POLL_MS; }
@@ -622,6 +657,7 @@ const httpServer = http.createServer((req, res) => {
       const feedId = url.searchParams.get("feed") ?? FEED_IDS[0];
       const state = feedStates.get(feedId);
       if (!state) return json(res, 404, { error: `unknown feed ${feedId}` });
+      applyFailSafe(feedId, Date.now());
       const bytes = state.lastRewrittenBytes ?? emptyRewrittenBytes(Date.now());
       res.writeHead(200, { "content-type": "application/x-protobuf", "content-length": bytes.length, "cache-control": "no-store" });
       res.end(Buffer.from(bytes));
@@ -636,15 +672,27 @@ const httpServer = http.createServer((req, res) => {
   } catch (error) { return json(res, 500, { error: String(error?.message ?? error) }); }
 });
 
-function startPolling() {
-  pollOnce().catch((error) => console.error(`[ttc-trip-matcher] poll failed: ${error.message}`));
-  setInterval(() => { pollOnce().catch((error) => console.error(`[ttc-trip-matcher] poll failed: ${error.message}`)); }, POLL_MS);
+/** Reentrant callers share one run; automatic polling waits until that run settles. */
+export function createSingleFlightPoller(run, { intervalMs = POLL_MS, onError = () => {} } = {}) {
+  let inFlight = null; let timer = null; let active = false;
+  const poll = () => {
+    if (inFlight) return inFlight;
+    if (timer) { clearTimeout(timer); timer = null; }
+    inFlight = Promise.resolve().then(run).finally(() => {
+      inFlight = null;
+      if (active) timer = setTimeout(() => { poll().catch(onError); }, intervalMs);
+    });
+    return inFlight;
+  };
+  return { poll, start() { if (!active) { active = true; poll().catch(onError); } }, stop() { active = false; clearTimeout(timer); timer = null; } };
 }
+
+const poller = createSingleFlightPoller(pollOnce, { onError: (error) => console.error(`[ttc-trip-matcher] poll failed: ${error.message}`) });
 
 // Importing this module must not start a server or touch the network - only
 // running it directly (`node ttc-trip-matcher.mjs`) does.
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  startPolling();
+  poller.start();
   httpServer.listen(TTC_MATCHER_PORT, process.env.HOST ?? "0.0.0.0", () => console.log(`[ttc-trip-matcher] listening on port ${TTC_MATCHER_PORT}`));
 }
 export { httpServer as server };
