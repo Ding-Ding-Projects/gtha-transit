@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { contrastRatio, parseColour } from '../lib/colour.ts';
 import { ROLE_TONES, schemeForSeed } from '../lib/appearance/token-scheme.mjs';
 
@@ -18,4 +20,10 @@ test('only six #rrggbb source families can override a generated scheme', () => {
   const baseline = schemeForSeed('#ff0000', false);
   assert.deepEqual(schemeForSeed('#ff0000', false, { bad: '#00ff00', primary: 'red' }), baseline);
   assert.notEqual(schemeForSeed('#ff0000', false, { secondary: '#00ff00' })['--md-sys-color-secondary'], baseline['--md-sys-color-secondary']);
+});
+
+test('the generator consumes the shared core rather than retaining a second scheme algorithm', () => {
+  const source = readFileSync(path.resolve('scripts/design/build-material-theme.mjs'), 'utf8');
+  assert.match(source, /from '..\/..\/lib\/appearance\/token-scheme\.mjs'/);
+  assert.doesNotMatch(source, /function toneAtHue|function toneOf|const roleTones|const TONES/);
 });
