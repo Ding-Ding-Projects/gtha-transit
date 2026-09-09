@@ -8,6 +8,7 @@ import { commitAppearanceHistory, createAppearanceHistory, redoAppearanceHistory
 import { exportAppearance, importAppearance, MAX_TRANSFER_BYTES } from '../lib/appearance/transfer.ts';
 import { normalisePresets } from '../lib/appearance/presets.ts';
 import { readBounded, writeBounded } from '../lib/appearance/persistence.ts';
+import { parseElementDocument, resetOverrideStyle, setOverrideStyle } from '../lib/appearance/element-document.ts';
 
 test('global document clamps values, discards unknown fields and serialises version one', () => {
   const value = parseGlobal(JSON.stringify({ version: 1, seed: '#123456', sizeScale: 99, appName: ` x${'a'.repeat(MAX_APP_NAME + 9)} `, rainbowLevel: 9, unknown: 'nope' }));
@@ -34,9 +35,16 @@ test('history is bounded and undo/redo is reversible', () => {
 });
 
 test('transfer is bounded, reject-typed and cannot carry unknown fields', () => {
-  const text = exportAppearance({ global: SHIPPED_GLOBAL, elements: [], presets: [] });
+  const text = exportAppearance({ global: SHIPPED_GLOBAL, elements: [], layers: [], presets: [] });
   assert.equal(importAppearance(text).ok, true); assert.deepEqual(importAppearance('{"version":1,"kind":"gtha-appearance","extra":true}'), { ok: false, reason: 'unknown-field' });
   assert.deepEqual(importAppearance('x'.repeat(MAX_TRANSFER_BYTES + 1)), { ok: false, reason: 'too-large' });
+});
+
+test('element document bounds layers and supports per-state reset without selectors', () => {
+  let document = parseElementDocument(JSON.stringify({ version: 1, overrides: [], layers: [{ id: 'soft-ring', kind: 'glow', name: 'Soft ring', visible: true, locked: false, opacity: 2, value: '0 0 3px #000' }, { id: 'bad;', kind: 'fill', name: 'No', value: '#000' }] }));
+  assert.equal(document.layers.length, 1); assert.equal(document.layers[0].opacity, 1);
+  document = setOverrideStyle(document, 'journey.option.card', 'hover', { color: '#123456' }); assert.equal(document.overrides.length, 1);
+  document = resetOverrideStyle(document, 'journey.option.card', 'hover'); assert.equal(document.overrides.length, 0);
 });
 
 test('presets are bounded and persistence refuses oversized values', () => {

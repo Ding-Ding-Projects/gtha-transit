@@ -1,17 +1,19 @@
 import { parseGlobal, serializeGlobal, type AppearanceGlobal } from './document.ts';
 import { normalisePresets, type AppearancePreset } from './presets.ts';
 import { sanitiseOverrides, type ElementOverride } from './style-model.ts';
+import { parseElementDocument, type AppearanceLayer } from './element-document.ts';
 
 export const TRANSFER_VERSION = 1;
 export const MAX_TRANSFER_BYTES = 256 * 1024;
-export type AppearanceTransfer = { version: 1; kind: 'gtha-appearance'; global: AppearanceGlobal; elements: ElementOverride[]; presets: AppearancePreset[] };
+export type AppearanceTransfer = { version: 1; kind: 'gtha-appearance'; global: AppearanceGlobal; elements: ElementOverride[]; layers: AppearanceLayer[]; presets: AppearancePreset[] };
 export type TransferFailure = 'empty' | 'too-large' | 'invalid-json' | 'wrong-version' | 'wrong-kind' | 'unknown-field';
 export type TransferResult = { ok: true; value: AppearanceTransfer } | { ok: false; reason: TransferFailure };
 
-const KEYS = new Set(['version', 'kind', 'global', 'elements', 'presets']);
+const KEYS = new Set(['version', 'kind', 'global', 'elements', 'layers', 'presets']);
 
 export function exportAppearance(value: Omit<AppearanceTransfer, 'version' | 'kind'>): string {
-  const safe: AppearanceTransfer = { version: TRANSFER_VERSION, kind: 'gtha-appearance', global: parseGlobal(serializeGlobal(value.global)), elements: sanitiseOverrides(value.elements), presets: normalisePresets(value.presets) };
+  const elementDocument = parseElementDocument(JSON.stringify({ version: 1, overrides: value.elements, layers: value.layers }));
+  const safe: AppearanceTransfer = { version: TRANSFER_VERSION, kind: 'gtha-appearance', global: parseGlobal(serializeGlobal(value.global)), elements: elementDocument.overrides, layers: elementDocument.layers, presets: normalisePresets(value.presets) };
   return JSON.stringify(safe);
 }
 
@@ -26,5 +28,6 @@ export function importAppearance(text: string | null | undefined): TransferResul
   if (Object.keys(record).some((key) => !KEYS.has(key))) return { ok: false, reason: 'unknown-field' };
   if (record.version !== TRANSFER_VERSION) return { ok: false, reason: 'wrong-version' };
   if (record.kind !== 'gtha-appearance') return { ok: false, reason: 'wrong-kind' };
-  return { ok: true, value: { version: 1, kind: 'gtha-appearance', global: parseGlobal(JSON.stringify(record.global)), elements: sanitiseOverrides(record.elements), presets: normalisePresets(record.presets) } };
+  const elementDocument = parseElementDocument(JSON.stringify({ version: 1, overrides: record.elements, layers: record.layers }));
+  return { ok: true, value: { version: 1, kind: 'gtha-appearance', global: parseGlobal(JSON.stringify(record.global)), elements: elementDocument.overrides, layers: elementDocument.layers, presets: normalisePresets(record.presets) } };
 }
