@@ -11,7 +11,7 @@
 - [ ] Complete Catch mixed-mode controls and validate a real positive interception. The client now accepts a journey without a walking alias, forwards step-free preferences, labels position-aligned estimates, pauses updates, refuses stale/imprecise locations and expires missed transit departures. Local checks pass; the newest client is not deployed or browser-verified.
 - [ ] Verify the full ordinary right-click/menu/inspector flow, post-export target isolation and download behavior, and real fill-layer editing/order. Review of exact deployed source and retained actions refuted the earlier immediate-dialog, reversed-fill and replaced-target defect claims. Basic persistence, seed, fonts, presets and invalid import retention passed; the remaining interaction requirements stay open.
 - [ ] Complete group creation, collapse/colour controls, bulk-close confirmation and School-mode tab restoration in the deployed interface. Docking, orientation-aware keyboard actions, pinned protection and close/reopen passed.
-- [ ] Complete the recovered live-time, appearance-foundation, tabbed-navigation, and vehicle-catching lanes, preserving each original recovery copy.
+- [ ] Complete the recovered live-time, appearance-foundation and vehicle-catching lanes (tabbed navigation is parked by owner decision of 9 September 2026: the rail, the phone bar and the base-ui settings tabs are the shipped navigation), preserving each original recovery copy.
 
 The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked items may contain implemented code, but remain unchecked until their visible behavior and deployment are verified.
 

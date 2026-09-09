@@ -1,5 +1,41 @@
 # Implementation handoff
 
+## The old navigation design restored, 9 September 2026
+
+After the phone fix below had shipped, the owner looked at the result and asked for
+the previous design back: "restore old design". The tab strip that had replaced the
+Material navigation rail and the base-ui settings tabs hung a manage button between
+every destination and a drag handle beside every settings tab, even on a desktop.
+
+Restored in `d896185`, from the components as they were at the last clean deploy
+(`01a9ae9`), with the app-name prop and the appearance element ids that arrived since
+kept: the rail with all nine destinations on wide screens, the four-plus-More bottom bar
+and its More dialog on phones, and the base-ui tabs in settings. The strip component,
+its state model (`lib/tabs.ts`), its registry and their tests stay in the tree
+unmounted; `app/tab-strip.css` lost the rules that laid out the settings wrapper; the
+three guards the earlier line had rewritten for the strip read the rail wording again;
+`docs/interface/feature-audit.json` marks tabbed navigation absent with the owner's
+decision as its reason; `docs/interface/tabs.md`, the docs index and `AGENTS.md` say so.
+
+### Evidence
+
+| | State |
+| --- | --- |
+| Tests | root suite 1017 pass, 0 fail at `d896185`; typecheck clean; `npm run build` exit 0; theme check current |
+| Desktop, 1440 px | 84 px rail, nine destinations visible with labels, no `.tab-strip` in the document, settings tabs as the four-column grid: `docs/interface/captures/navigation-rail-1440-light.png`, `settings-tabs-1440-light.png` |
+| Phone, 390 px | four destinations plus More in the bottom bar, the More dialog opening with the other five, settings tabs in two rows: `mobile-bar-390-light.png`, `mobile-more-390-light.png`, `mobile-settings-tabs-390-light.png` |
+| Interaction ledger and drive scripts | untouched by the strip line, so they target the restored rail and tabs again; re-record after the deploy |
+| Earlier `mobile-*` captures | show the strip as fixed the same afternoon and are kept as the record of that episode; they no longer show what ships |
+| Deployed | **not yet** at the time of writing; see the deploy row added below once it lands |
+
+### Known gaps
+
+- The strip's dock rules in `app/shell.css` (`html[data-nav-dock]`) are dormant while
+  nothing sets that attribute; they go with the component if the owner ever asks for
+  it to be removed rather than parked.
+- Tabbed navigation is now an owner decision, not a missing feature; any future work
+  on it starts from the parked component, not from the contract row alone.
+
 ## Routing-host proxy recreated, GO and UP applying again, 9 September 2026
 
 The Metrolinx proxy container on the routing host (`backend-api-1`, compose service
