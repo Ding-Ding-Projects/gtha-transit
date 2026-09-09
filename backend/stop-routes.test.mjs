@@ -147,3 +147,20 @@ test("route stop anchors choose a dated version alias and retain official direct
   assert.deepEqual(summer.patterns[1].stops.map((stop) => stop.id), ["ttc:CHILD-B", "ttc:CHILD-A"]);
   assert.equal(routeStopAnchorsFromIndexes(routeIndex, patternIndex, { feedId: "ttc", routeId: "2" }, { date: "2026-09-06" }), null);
 });
+
+test("production-shaped TTC 501 and 320 references use the public agency and a separate date option", async () => {
+  const { cachedRouteAnchors } = await import("./catch-vehicle.mjs");
+  const routes = { routes: ["501", "320"].flatMap((routeId) => [
+    { id: `ttc:${routeId}`, feedId: "ttc", version: "ttc", routeId, shortName: routeId, validity: { serviceStart: "20260726", serviceEnd: "20260905" } },
+    { id: `ttc-next:${routeId}`, feedId: "ttc", version: "ttc-next", routeId, shortName: routeId, validity: { serviceStart: "20260906", serviceEnd: "20261031", promoteAfter: "2026-09-05", retireAfter: null } },
+  ]) };
+  const patterns = { routePatterns: Object.fromEntries(routes.routes.map((route) => [route.id, [{ id: `${route.id}:fixture`, directionId: "0", stops: [] }]])) };
+  const calls = []; const loader = async (reference, options) => { calls.push({ reference, options }); return routeStopAnchorsFromIndexes(routes, patterns, reference, options); };
+  for (const routeId of ["501", "320"]) {
+    const result = await cachedRouteAnchors({ feedId: "ttc", routeId }, { date: "2026-09-09", now: 1800000000000, loader });
+    assert.equal(result.route.id, `ttc-next:${routeId}`); assert.equal(result.patterns.length, 1);
+    assert.deepEqual(calls.at(-1), { reference: { feedId: "ttc", routeId }, options: { date: "2026-09-09" } });
+    assert.equal(routeStopAnchorsFromIndexes(routes, patterns, { feedId: "ttc-next", routeId }, { date: "2026-09-09" }), null, "the graph feed prefix is not the public agency lookup key");
+    assert.equal(routeStopAnchorsFromIndexes(routes, patterns, { feedId: "ttc", routeId }, { date: "2026-09-05" }).route.id, `ttc:${routeId}`);
+  }
+});
