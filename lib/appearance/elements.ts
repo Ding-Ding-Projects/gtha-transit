@@ -44,7 +44,14 @@ export const UI_ELEMENTS: readonly AppearanceElement[] = Object.freeze([
   { id: 'search.workbench.field', label: { en: 'Search field', zh: '搜尋欄位' }, surface: 'search', inherits: 'search.workbench', states: interactive },
   { id: 'appearance.editor.panel', label: { en: 'Appearance editor', zh: '外觀編輯器' }, surface: 'appearance', inherits: 'shell', states: allStates },
   { id: 'appearance.context.menu', label: { en: 'Appearance context menu', zh: '外觀右鍵選單' }, surface: 'appearance', inherits: 'shell', states: allStates },
-  { id: 'appearance.listbox', label: { en: 'Appearance listbox', zh: '外觀選項列表' }, surface: 'appearance', inherits: 'appearance.editor.panel', states: interactive },
+  { id: 'appearance.popover', label: { en: 'Anchored popover', zh: '定位彈出面板' }, surface: 'appearance', inherits: 'shell', states: allStates },
+  { id: 'appearance.select', label: { en: 'Searchable select', zh: '可搜尋下拉選單' }, surface: 'appearance', inherits: 'shell', states: interactive },
+  { id: 'appearance.listbox', label: { en: 'Appearance listbox', zh: '外觀選項列表' }, surface: 'appearance', inherits: 'appearance.select', states: interactive },
+  { id: 'appearance.colour-picker', label: { en: 'Colour picker', zh: '顏色選擇器' }, surface: 'appearance', inherits: 'shell', states: allStates },
+  { id: 'notification.row', label: { en: 'Notification row', zh: '通知列' }, surface: 'notifications', inherits: 'notification.centre', states: interactive },
+  { id: 'tracker.catch.panel', label: { en: 'Catch this vehicle panel', zh: '追車面板' }, surface: 'tracker', inherits: 'shell', states: allStates },
+  { id: 'tracker.live.follower', label: { en: 'Live follower card', zh: '即時跟隨卡' }, surface: 'tracker', inherits: 'shell', states: allStates },
+  { id: 'route.picker.dialog', label: { en: 'Route picker dialog', zh: '路線選擇對話框' }, surface: 'overlay', inherits: 'dialog', states: allStates },
 ]);
 
 const elementMap = new Map(UI_ELEMENTS.map((element) => [element.id, element]));
