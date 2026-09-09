@@ -28,6 +28,8 @@ export type UpcomingStop = {
   minutesAway: number | null;
   /** The last stop of this leg, where the rider gets off. */
   destination: boolean;
+  /** How far the live estimate ran from the timetable, when the basis is 'estimated'. */
+  delaySeconds?: number;
 };
 
 export type ArrivalAnswer = {
@@ -52,9 +54,10 @@ function instant(value: string | null | undefined): number | null {
 export function publishedTime(time: PublishedStopTime | undefined | null): {
   at: string | null;
   basis: 'estimated' | 'scheduled' | 'none';
+  delaySeconds?: number;
 } {
   const estimated = text(time?.estimatedTime);
-  if (estimated) return { at: estimated, basis: 'estimated' };
+  if (estimated) return { at: estimated, basis: 'estimated', ...(typeof time?.delaySeconds === 'number' ? { delaySeconds: time.delaySeconds } : {}) };
   const scheduled = text(time?.scheduledTime);
   if (scheduled) return { at: scheduled, basis: 'scheduled' };
   return { at: null, basis: 'none' };
@@ -62,18 +65,53 @@ export function publishedTime(time: PublishedStopTime | undefined | null): {
 
 type StopLike = Place & { arrival?: PublishedStopTime; departure?: PublishedStopTime };
 
+/**
+ * Whether a leg's own boarding or alighting instant is the timetable's or a
+ * live estimate.
+ *
+ * The instant itself (`leg.startTime`/`leg.endTime`) already prefers a live
+ * estimate over the schedule -- that is what the routing service hands back.
+ * What was missing was the label: it was hard-coded to `'scheduled'`
+ * regardless, so a departure running four minutes late still read as the
+ * timetable. A leg only earns `'estimated'` when the publisher actually marked
+ * it live and that live instant differs from what was scheduled; an on-time
+ * live leg and an unmarked leg both keep reading as the timetable, which is
+ * what they are.
+ */
+function edgeBasis(leg: Leg, scheduled: string | null | undefined, at: string | null): 'estimated' | 'scheduled' | 'none' {
+  if (!at) return 'none';
+  if (!leg.realtime) return 'scheduled';
+  const scheduledInstant = instant(text(scheduled ?? null));
+  const actualInstant = instant(at);
+  return scheduledInstant !== null && actualInstant !== null && scheduledInstant !== actualInstant
+    ? 'estimated'
+    : 'scheduled';
+}
+
 /** Every stop of one transit leg in order, boarding through alighting. */
-export function legStops(leg: Leg): { place: StopLike; at: string | null; basis: 'estimated' | 'scheduled' | 'none' }[] {
+export function legStops(leg: Leg): { place: StopLike; at: string | null; basis: 'estimated' | 'scheduled' | 'none'; delaySeconds?: number }[] {
   const boardingAt = text(typeof leg.startTime === 'string' ? leg.startTime : null);
   const alightingAt = text(typeof leg.endTime === 'string' ? leg.endTime : null);
   const middle = (leg.intermediateStops || []) as StopLike[];
+  const boardingBasis = edgeBasis(leg, leg.scheduledStartTime, boardingAt);
+  const alightingBasis = edgeBasis(leg, leg.scheduledEndTime, alightingAt);
   return [
-    { place: leg.from as StopLike, at: boardingAt, basis: boardingAt ? ('scheduled' as const) : ('none' as const) },
+    {
+      place: leg.from as StopLike,
+      at: boardingAt,
+      basis: boardingBasis,
+      ...(boardingBasis === 'estimated' && typeof leg.departureDelaySeconds === 'number' ? { delaySeconds: leg.departureDelaySeconds } : {}),
+    },
     ...middle.map((stop) => {
       const time = publishedTime(stop.arrival ?? stop.departure);
-      return { place: stop, at: time.at, basis: time.basis };
+      return { place: stop, at: time.at, basis: time.basis, ...(typeof time.delaySeconds === 'number' ? { delaySeconds: time.delaySeconds } : {}) };
     }),
-    { place: leg.to as StopLike, at: alightingAt, basis: alightingAt ? ('scheduled' as const) : ('none' as const) },
+    {
+      place: leg.to as StopLike,
+      at: alightingAt,
+      basis: alightingBasis,
+      ...(alightingBasis === 'estimated' && typeof leg.arrivalDelaySeconds === 'number' ? { delaySeconds: leg.arrivalDelaySeconds } : {}),
+    },
   ];
 }
 
@@ -107,6 +145,7 @@ export function upcomingStops(options: {
       basis: stop.basis,
       minutesAway: at === null ? null : Math.round((at - now) / 60000),
       destination: index === lastIndex,
+      ...(typeof stop.delaySeconds === 'number' ? { delaySeconds: stop.delaySeconds } : {}),
     };
   });
 }

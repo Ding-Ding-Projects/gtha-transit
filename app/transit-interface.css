@@ -329,3 +329,107 @@
   font-size: 12px;
   color: var(--muted);
 }
+
+/* --------------------------------------------------------------- live status -- */
+
+/*
+ * The state is never colour alone: an icon and a word carry it too, matching
+ * the tri-state precedent in notifications.css. This is a static chip, not a
+ * control, so it keeps the 44px touch target rule for interactive elements out
+ * of scope and sits at a compact 28px comfortably instead.
+ */
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-medium);
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: normal;
+}
+.live-status svg {
+  flex: none;
+}
+.live-status__label {
+  white-space: nowrap;
+}
+.live-status__scheduled {
+  font-weight: 400;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+.live-status--early {
+  background: var(--gt-status-early-container);
+  color: var(--gt-status-early-on);
+}
+.live-status--on-time {
+  background: var(--gt-status-on-time-container);
+  color: var(--gt-status-on-time-on);
+}
+.live-status--late {
+  background: var(--gt-status-late-container);
+  color: var(--gt-status-late-on);
+}
+.live-status--very-late {
+  background: var(--gt-status-very-late-container);
+  color: var(--gt-status-very-late-on);
+}
+.live-status--cancelled {
+  background: var(--gt-status-cancelled-container);
+  color: var(--gt-status-cancelled-on);
+}
+.live-status--unknown {
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+}
+/* Stale reads as historical rather than a fifth colour: a dashed outline over
+   whatever the underlying state already painted, never an animation. */
+.live-status--stale {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px dashed var(--md-sys-color-outline-variant);
+  padding: 2px 9px;
+}
+
+.live-status-legend {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+.live-status-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.live-status-legend__row dt {
+  font-weight: 400;
+}
+
+.live-legend {
+  margin: 16px 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.live-legend > summary {
+  cursor: pointer;
+  font: var(--md-sys-typescale-label-large);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* The chip sits on its own line under the route and its times at every width,
+   so it never has to compete with them for room; a chip's own scheduled/live
+   time pair still wraps onto a second line below the label at the narrowest
+   supported width instead of clipping. */
+.journey-summary .live-status,
+.leg .live-status {
+  margin-top: 4px;
+}
+@media (max-width: 390px) {
+  .live-status {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+}
