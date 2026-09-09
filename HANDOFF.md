@@ -1,5 +1,43 @@
 # Implementation handoff
 
+## Phone layout regression, 9 September 2026
+
+The owner reported that the site had become "a total mess" on a phone after the
+tab strip replaced the navigation rail, with a screenshot of the settings page.
+Reproduced on the deployed site (`f5177da`) at 390 px through the headless browser:
+the strip honoured its stored left dock at every width, so the phone showed a 64 px
+column of icon-only tabs, each with a 44 px manage button (a stack of "..."), a
+tab-tools badge squeezed into "Q +2", and the settings strip in a 250 px column
+beside 294 px of content. The rail it replaced had been a bottom bar there.
+
+Fixed in `17ac838`: the strip component watches the phone breakpoint (904 px for
+navigation, 650 px for settings) and reports the phone edge while narrow, bottom for
+navigation and top for settings; orientation, arrow keys and `data-nav-dock` read the
+reported edge; the stored choice is kept and returns with the width. On phones the
+stylesheet rows the tabs with icon over label, hides the per-tab manage and drag
+buttons (the context menu and the tab tools popup carry every action, and each
+tab-tools result row now has its own manage button), and parks the pinned mark in the
+tab corner. Three `role="status"` paragraphs became `output` elements (lint).
+
+### Evidence
+
+| | State |
+| --- | --- |
+| Reproduction | deployed `f5177da` at 390 px: `data-nav-dock="left"`, strip 56 px wide, 9 manage buttons visible, settings strip 250 px in a 294 px column |
+| Fixed build | local build of `17ac838` at 390 px: `data-nav-dock="bottom"`, bar 390 × 65 px, 0 manage buttons, settings strip a 44 px row; same at 320 px, in dark, and in bilingual mode; 1440 px keeps the left dock (84 px column, unchanged) |
+| Captures | `docs/interface/captures/mobile-navigation-390-light.png`, `mobile-settings-390-light.png`, `mobile-settings-390-dark.png`, `mobile-navigation-390-bilingual.png`, `mobile-settings-320-light.png`, all from the local build of `17ac838` through the headless browser |
+| Tests | root suite 1017 pass, 0 fail at `17ac838`; typecheck clean; `npm run build` exits 0 |
+| Lint | the strip's own findings dropped from 9 to 5; the five that remain (react-compiler memoisation and effect dependencies) predate this change |
+| Deployed | **not yet**: the web host still serves `f5177da`; see the deploy note below |
+
+### Known gaps
+
+- The navigation bar scrolls horizontally on a phone (nine destinations at 60 px do
+  not fit 390 px); the hidden count on the tab tools button says how many sit outside
+  the visible bar. A fade at the scroll edge would help; not done.
+- The interaction ledger, the parity captures and the audit rows for the strip are
+  still owed after the deploy (see the integration section below).
+
 ## Integration, ownership and an outage, 9 September 2026
 
 Two automated sessions worked this plan on the same day. This session opened the
