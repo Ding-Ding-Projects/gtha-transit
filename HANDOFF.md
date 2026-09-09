@@ -1,5 +1,71 @@
 # Implementation handoff
 
+## Integration, ownership and an outage, 9 September 2026
+
+Two automated sessions worked this plan on the same day. This session opened the
+program (issue #4), built the first lane commits, and was paused by a usage limit; a
+second session continued from those commits on its own branches, finished the
+interface halves, and deployed candidates. The owner settled ownership: this session
+integrates and deploys. The second session's work is merged, not discarded, and every
+one of its branches is still on the remote for audit.
+
+### What is on `main` now
+
+- The coloured live-time presentation and its 30-second refresh, the YRT updaters,
+  the Metrolinx proxy as a compose service with a health check, and the TTC shadow
+  matcher with its statistics bridge (matcher shadow-only; no TTC routing updater).
+- The electric-vehicle preference in planning and tracking.
+- Persistent tab strips replacing the navigation rail and the settings sections.
+- The appearance studio and element inspector, plus tested unwired primitives
+  (anchored popover, context menu, searchable select, colour field and picker).
+- The Catch this vehicle interception panel and its backend contract.
+- The local version-history store (no surface writes to it yet).
+
+### Evidence as it stands
+
+| | State |
+| --- | --- |
+| Tests | 1017 root pass, 0 fail; backend 76 pass; matcher 29 pass |
+| Type check | clean |
+| Build | `npm run build` exits 0; theme check current |
+| Private wording | none in files or commit messages of the 55 integrated commits |
+| Captures and drive scripts | **none committed** for the studio, the strip, the intercept panel or the live chips; the second session's own sections below describe browser checks that are not evidenced in the repository |
+| Deployed | web at `f5177da` and API at `e530ee3-candidate`, both from the second session's line; `main` is now ahead of both and **not yet deployed** |
+| Interaction ledger | still bound to `40411b1`; re-record after the next deploy |
+
+### The outage, and what is still wrong on the routing host
+
+At 14:10 the web host reported routing unavailable and every plan request failed. The
+routing host's OpenTripPlanner container had been running since the second session's
+06:01 restart **detached from its Docker network**: no endpoint, nothing listening on
+the published port, every realtime updater failing name resolution. `docker restart`
+did not reattach it; recreating it from its compose definition did, in 5 seconds for
+the port and 15 for the graph. Verified: routing ready on the web host, a real plan
+returned, MiWay 284 of 291 and HSR 416 of 647 applied, and **YRT 434 of 435 applied**,
+the first time York Region Transit trip updates reach journey planning.
+
+Still wrong: the proxy container on that host resolves nothing (its embedded resolver
+answers SERVFAIL), so the GO and UP updaters fail on every poll. The fix is the same
+recreate for the `api` service with the override file that keeps its port off the
+clashed 8787; that command was refused by this session's tool policy and is recorded
+for the owner. The shadow matcher container the second session started by hand fails
+every fetch for the same reason, and the statistics bridge it points the web host at
+(port 18791) is not listening; `TTC_MATCHER_URL` on the web host therefore names a
+dead address.
+
+### Known gaps, stated rather than left to be found
+
+- The audit rows for the appearance editor, tabbed navigation and local history are
+  `partial`, with what is missing spelled out in the audit file. None may become
+  `present` until a drive script and captures exist in the repository.
+- The Catch panel has not validated a positive interception; the second session's own
+  note says five TTC upcoming requests returned unavailable.
+- The tested primitives merged from the appearance branch are not wired to any
+  surface; the next appearance increment decides whether they replace or join the
+  studio's controls.
+- The web and API images must be rebuilt from `main` and deployed, then the four
+  ledger tuples re-recorded, before any of this is called verified on the site.
+
 ## Appearance evidence correction, 9 September 2026
 
 A read-only review of the retained audit and exact deployed source `f5177dab0284e8a9e99ee4f98f31d189331a33be` refuted three earlier findings. These corrections remove unsupported defect claims; they do not mark the remaining interaction requirements complete.

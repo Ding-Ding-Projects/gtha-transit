@@ -80,12 +80,14 @@
       "verdict": "partial",
       "implementation": [
         "history/store.mjs",
-        "history/vehicle-sightings.mjs"
+        "history/vehicle-sightings.mjs",
+        "lib/record-history.ts",
+        "lib/json-diff.ts"
       ],
-      "documentation": "docs/interface/ui-verification.md",
-      "test": "tests/history-store.test.mjs",
+      "documentation": "docs/interface/history.md",
+      "test": "tests/record-history.test.mjs",
       "capture": "docs/interface/ledger/1440-light-1x.json",
-      "missing": "Disruption history is recorded and browsable; there is no Git-backed per-record history with diff, restore and retention."
+      "missing": "Disruption history is recorded and browsable, and an append-only, content-addressed store for user-owned records with restore-as-new-revision, labels, retention, diff and redacted export is built and tested against an IndexedDB stub. No surface writes to it yet: the history panel with its date and action filters, and the call-site wiring for saved trips, settings, appearance and tabs, are not built."
     },
     {
       "id": "exports",
@@ -142,12 +144,16 @@
     {
       "id": "tabbed-navigation",
       "name": "Browser-style tabs with overflow, pinning, grouping and four searches",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "components/tab-strip.tsx",
+        "lib/tabs.ts",
+        "lib/tab-registry.ts"
+      ],
+      "documentation": "docs/interface/tabs.md",
+      "test": "tests/tabs.test.mjs",
       "capture": null,
-      "reason": "Navigation is a Material rail and bar with four destinations and a More dialog. The tab contract, including pinning, grouping and the four tab searches, is not built."
+      "missing": "The strip replaces the rail and the settings sections, docks to all four edges with orientation-aware keyboard navigation, reorders, pins, groups, carries search fields with the regex builder, bulk-closes by text, and offers per-tab appearance from its context menu. The second session reports driving docks, keys, pinning and close on its deployed build, but no capture or drive script is committed, the interaction ledger is still bound to the previous navigation, and the four discovery searches, group appearance editing and the Move into group picker are unverified."
     },
     {
       "id": "command-palette",
@@ -168,12 +174,21 @@
     {
       "id": "appearance-editor",
       "name": "Per-element appearance editor with Word-depth typography and an infinite colour picker",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "components/appearance-editor.tsx",
+        "lib/appearance/document.ts",
+        "lib/appearance/element-document.ts",
+        "lib/appearance/style-model.ts",
+        "lib/appearance/use-appearance.ts",
+        "lib/appearance/presets.ts",
+        "lib/appearance/transfer.ts",
+        "lib/appearance/history.ts"
+      ],
+      "documentation": "docs/interface/appearance.md",
+      "test": "tests/appearance-data.test.mjs",
       "capture": null,
-      "reason": "Not built. Appearance is theme and language only."
+      "missing": "A settings-level studio with seed roles, font, size, density, app name, per-element colour and font overrides, layers, presets, export and import, undo and redo exists and type-checks, and the second session reports driving it in a browser, but no capture or drive script is committed. Not built: Edit appearance from every element's context menu with an anchored editor, Word-depth typography, the infinite colour picker with its translator on every colour control, Photoshop-depth layers and states, the capability matrix, and the settings explanations wired to every setting. Tested primitives for the popover, context menu, searchable select and colour picker exist and are not yet wired."
     },
     {
       "id": "toy-locks",

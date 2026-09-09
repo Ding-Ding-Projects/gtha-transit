@@ -2,7 +2,12 @@
 
 ## September 9 recovery increments
 
-- [x] Deploy and capture the electric preference controls. Real 390 px and 1440 px light/dark interactions verified Off/Prefer/Avoid, persistence and tracker filtering on the deployed recovery build.
+- [x] Integrate the second session's line and this session's lane branches into `main` with every suite green (1017 root, 76 backend, 29 matcher), the build clean and no private wording. Not yet deployed.
+- [x] Recover regional routing after the OpenTripPlanner container was found detached from its network; YRT trip updates apply for the first time (434 of 435).
+- [ ] Recreate the routing host's proxy container so GO and UP updates apply again, and replace the hand-started shadow matcher with the `ttc-matcher` compose service.
+- [ ] Rebuild and deploy the web and API images from `main`, then re-record the four interaction-ledger tuples and add drive scripts and captures for the live chips, the tab strip, the appearance studio and the Catch panel.
+
+- [ ] Deploy and capture the electric preference controls. The second session reports 390 px and 1440 px light/dark checks on its deployed recovery build, but no capture or drive script was committed; re-verify with committed evidence after the next deploy.
 - [ ] Complete Catch mixed-mode controls and validate a real positive interception. The client now accepts a journey without a walking alias, forwards step-free preferences, labels position-aligned estimates, pauses updates, refuses stale/imprecise locations and expires missed transit departures. Local checks pass; the newest client is not deployed or browser-verified.
 - [ ] Verify the full ordinary right-click/menu/inspector flow, post-export target isolation and download behavior, and real fill-layer editing/order. Review of exact deployed source and retained actions refuted the earlier immediate-dialog, reversed-fill and replaced-target defect claims. Basic persistence, seed, fonts, presets and invalid import retention passed; the remaining interaction requirements stay open.
 - [ ] Complete group creation, collapse/colour controls, bulk-close confirmation and School-mode tab restoration in the deployed interface. Docking, orientation-aware keyboard actions, pinned protection and close/reopen passed.
