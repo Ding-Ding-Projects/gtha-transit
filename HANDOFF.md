@@ -9,7 +9,8 @@ What exists now, for whoever picks this up:
   decision of this afternoon, see the restore section below), the coloured live times
   with their 30-second refresh, the electric-vehicle preference, the Catch this vehicle
   panel, the appearance studio and the local version-history store. The web image was
-  built from `0e8f5f5`; the routing API image is `e530ee3-candidate`; the routing host
+  built from `14a9fe2`, the tip of `main` after this evening's merges (deployed at about
+  17:40 Toronto time; `version.json` reads `14a9fe2`); the routing API image is `e530ee3-candidate`; the routing host
   runs OpenTripPlanner with the GO, UP, YRT, MiWay and HSR updaters applying and the
   Metrolinx proxy healthy again since 15:25.
 - **Integrated this evening** into `main` (tip `a7b0af1`): the anchor-repair branch
@@ -23,9 +24,13 @@ What exists now, for whoever picks this up:
   the changelog parser, backfill and JSON writer. It is not ready: 73 entries carry an
   unknown date, nothing tests the parser, the writer is not wired into `prebuild`. The
   lane continues from that commit.
-- **Removed by the cleanup that follows this section:** every other linked worktree and
-  its branch, locally and on the remote, each proved an ancestor of the pushed `main`
-  first. The list, with the proof, is in the closing comment on issue #4.
+- **Removed by the cleanup:** 23 branches and 22 linked worktrees, locally and on the
+  remote, each after a fresh fetch, a clean status and proof that both its local and its
+  remote tip were ancestors of the pushed `main`. The list, with the proof, is in the
+  closing comment on issue #4. One empty folder shell (`gtha-transit-history-bulk`, zero
+  files, no worktree record) refused deletion as busy and is harmless. The 26 older
+  `gtha-transit-*` folders in the same parent directory are not registered worktrees and
+  were not part of this pass.
 - **Parked, not deleted:** the tab strip (`components/tab-strip.tsx`, `lib/tabs.ts`,
   `lib/tab-registry.ts`, their tests and stylesheet), unmounted by owner decision.
 
