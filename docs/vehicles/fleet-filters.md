@@ -6,8 +6,9 @@ or build year from a route, trip, agency, label, or nearby fleet number.
 
 ## Filter values
 
-`FleetFilter` has a manufacturer, model, optional inclusive year bounds, and
-an `includeUnknown` choice. `emptyFleetFilter()` returns a new blank filter for
+`FleetFilter` has a manufacturer, model, optional inclusive year bounds, a
+`propulsion` choice (`''` for no propulsion filter, or `'electric'`), and an
+`includeUnknown` choice. `emptyFleetFilter()` returns a new blank filter for
 each caller.
 
 Manufacturer and model comparisons are exact after Unicode NFKC normalization,
@@ -40,17 +41,35 @@ published fleet range, not a claim about an individual vehicle's exact build
 date. Missing or malformed published year metadata is unknown rather than a
 match.
 
+## Electric only
+
+Setting `propulsion` to `'electric'` matches a vehicle whose published CPTDB
+`propulsion` fact classifies as a verified battery-electric or electric
+vehicle - including a streetcar - under the same closed classification
+[`vehicles/propulsion.mjs`](../../vehicles/propulsion.mjs) uses for journey
+vehicle preferences (see [Vehicle preferences](../planning/vehicle-preferences.md#electric-vehicles)).
+A known non-electric propulsion (diesel, hybrid, natural gas, or anything the
+classifier does not recognise as electric) is a mismatch, not unknown, and is
+excluded exactly like any other known mismatch. Only a missing or
+unrecognised propulsion string is unknown.
+
+The tracker exposes this as a single Electric only switch rather than a
+manufacturer-style picker, because propulsion is a two-state question the
+filter answers today: electric, or not filtered by propulsion at all.
+
 ## Unknown metadata and counts
 
-With no manufacturer, model, or year criterion, the helper is inactive and
-returns every vehicle, including those without CPTDB facts. `includeUnknown`
-alone does not activate filtering.
+With no manufacturer, model, year, or propulsion criterion, the helper is
+inactive and returns every vehicle, including those without CPTDB facts.
+`includeUnknown` alone does not activate filtering.
 
 With an active criterion, a vehicle with a missing or malformed required fact is
 an unknown candidate only when every other known required fact matches. Unknown
 candidates are excluded by default and included only when `includeUnknown` is
 true. A known mismatch always remains excluded, even when another required
-field is unknown.
+field is unknown - a vehicle with the right manufacturer but a published
+diesel propulsion is excluded by the electric filter regardless of
+`includeUnknown`, exactly as a manufacturer mismatch already was.
 
 The result preserves the source order and never changes the input array or a
 vehicle object. It reports `unknownCount` for unknown candidates, and
@@ -60,8 +79,10 @@ owns free-text searching through the bounded Search Workbench.
 
 ## Tracker controls
 
-Open Fleet filters in either Vehicles or Out of division. Manufacturer choices come from the currently loaded agency/route selection; selecting a company reveals only its models and clears an incompatible previous model. Year bounds are typed fields with inline validation. The map and paginated list use the same resulting array. A page contains up to 100 rows while the map shows every loaded match.
+Open Fleet filters in either Vehicles or Out of division. Manufacturer choices come from the currently loaded agency/route selection; selecting a company reveals only its models and clears an incompatible previous model. Year bounds are typed fields with inline validation. The Propulsion step holds a single Electric only switch (`role="switch"`, `id="fleet-filter-electric"`) beside its own explanation of what it matches. The map and paginated list use the same resulting array. A page contains up to 100 rows while the map shows every loaded match.
 
-Filter choices and the expanded panel state persist separately for the two tracker tabs. Active choices remain visible in the collapsed summary. Clear fleet filters returns to every loaded vehicle; unknown details are included automatically when no criteria are active. Malformed persisted records fall back to the empty default. An incomplete year remains a visible draft with inline validation, rather than silently becoming an active range.
+Filter choices and the expanded panel state persist separately for the two tracker tabs. Active choices remain visible in the collapsed summary, including Electric only. Clear fleet filters returns to every loaded vehicle; unknown details are included automatically when no criteria are active. Malformed persisted records fall back to the empty default; a persisted `propulsion` value is validated the same way and defaults to no propulsion filter rather than invalidating the whole saved record. An incomplete year remains a visible draft with inline validation, rather than silently becoming an active range.
+
+With Electric only active, the panel also states how many vehicles are currently excluded because their propulsion is unconfirmed - the same `excludedUnknownCount` the year and manufacturer criteria already report, computed for whichever filters are active together. This tells a traveller the electric filter is hiding vehicles for lack of data, not because they are known not to be electric.
 
 The vehicle search, manufacturer search and model search each have their own adjacent Search Workbench and isolated snippet storage. Vehicle search is local over the loaded records, so typing or changing a regex does not repeatedly download the feeds. An unfinished or invalid regex has an explicit status and never displays stale matches as current. If the loading cap is reached, the tracker discloses it and offers agency/route narrowing rather than claiming exhaustive provider coverage.

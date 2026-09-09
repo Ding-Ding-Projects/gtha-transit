@@ -64,6 +64,7 @@ import { settingsCatalog } from '../lib/settings-catalog';
 import { workspaceActions } from '../lib/command-palette';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
+import { DEFAULT_ELECTRIC_PREFERENCE, electricOptions, parseElectricPreference, type ElectricPreference } from '../lib/journey-vehicle-controls';
 import { applyJourneyPreferences } from '../vehicles/journey-preferences.mjs';
 import { applyJourneyDivisionPreference, divisionEvidenceCoverage, isUsableDivisionEvidence } from '../vehicles/journey-division-preference.mjs';
 import { applyJourneyRouteOpportunityPreference, usableRouteOpportunity } from '../vehicles/journey-route-opportunity-preference.mjs';
@@ -307,6 +308,7 @@ export default function Home() {
   const [ttcRoutes, setTtcRoutes] = useState<OfficialTtcRoute[]>([]);
   const [vehicleCriteria, setVehicleCriteria] = useState<JourneyVehicleCriteria>({});
   const [vehicleOptions, setVehicleOptions] = useState<JourneyVehiclePreferenceOptions>({});
+  const [electric, setElectric] = useState<ElectricPreference>(DEFAULT_ELECTRIC_PREFERENCE);
   const [preferDivision, setPreferDivision] = useState(false);
   const [preferredGarages, setPreferredGarages] = useState<string[]>([]);
   const [divisionMode, setDivisionMode] = useState<'exact' | 'route'>('route');
@@ -370,7 +372,12 @@ export default function Home() {
     [version, setVersion] = useState<any>(null),
     [provenance, setProvenance] = useState<any>(null);
   const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
-  const divisionResult = useMemo(() => divisionMode === 'route' ? applyJourneyRouteOpportunityPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }) : applyJourneyDivisionPreference(vehicleResult.itineraries, { enabled: preferDivision, now: divisionNow }), [vehicleResult.itineraries, preferDivision, divisionMode, divisionNow]);
+  /* A second, independent pass: manufacturer/model/year preferences and the
+     electric preference never share one criteria object, so turning one off
+     never disturbs the other's evidence. Off leaves vehicleResult untouched. */
+  const electricResult = useMemo(() => electric.mode === 'off' ? null : applyJourneyPreferences(vehicleResult.itineraries, { propulsion: 'electric' }, electricOptions(electric)), [vehicleResult.itineraries, electric]);
+  const preElectricItineraries = electricResult ? electricResult.itineraries : vehicleResult.itineraries;
+  const divisionResult = useMemo(() => divisionMode === 'route' ? applyJourneyRouteOpportunityPreference(preElectricItineraries, { enabled: preferDivision, now: divisionNow }) : applyJourneyDivisionPreference(preElectricItineraries, { enabled: preferDivision, now: divisionNow }), [preElectricItineraries, preferDivision, divisionMode, divisionNow]);
   /* Applied after the existing division preference so the two compose: that one
      promotes confirmed out-of-division vehicles, this one promotes routes a
      chosen garage operates. Both order, neither filters. */
@@ -552,6 +559,7 @@ export default function Home() {
         });
       }
       if (prefs.vehicleOptions && typeof prefs.vehicleOptions === 'object') setVehicleOptions({ prefer: prefs.vehicleOptions.prefer === true, avoid: prefs.vehicleOptions.avoid === true, includeUnconfirmed: prefs.vehicleOptions.includeUnconfirmed === true });
+      setElectric(parseElectricPreference(prefs.electricPreference));
       setPreferDivision(prefs.preferDivision === true);
       setDivisionMode(prefs.divisionMode === 'exact' || (prefs.preferDivision === true && !prefs.divisionMode) ? 'exact' : 'route');
       const list = readStored<unknown[]>('gtha-saved', []);
@@ -643,7 +651,7 @@ export default function Home() {
       try {
         localStorage.setItem(
           'gtha-preferences',
-          JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision, divisionMode }),
+          JSON.stringify({ lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, electricPreference: electric, preferDivision, divisionMode }),
         );
       } catch {
         notice(
@@ -654,7 +662,7 @@ export default function Home() {
           'warning',
         );
       }
-  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, preferDivision, divisionMode]);
+  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, electric, preferDivision, divisionMode]);
   useEffect(() => {
     if (hydrated.current)
       try {
@@ -1073,6 +1081,7 @@ export default function Home() {
                   ...(wheelchair ? [t('Step-free', '無障礙')] : []),
                   ...(requiredRoute ? [t('Required route', '必經路線')] : []),
                   ...(preferDivision ? [t('Garage preference', '車廠偏好')] : []),
+                  ...(electric.mode !== 'off' ? [t('Electric', '電動')] : []),
                 ].join(' · ')}</span>
                 <Icon name="expand_more" size={16} className="trip-chip__caret" />
               </summary>
@@ -1136,6 +1145,24 @@ export default function Home() {
                 )}
               </small>
             <JourneyVehiclePreferencesPanel criteria={vehicleCriteria} options={vehicleOptions} verifiedFleetFacts={[...TTC_FLEET_RANGES, ...Object.values(OTHER_FLEET_RANGES).flat()]} excludedCount={vehicleResult.excluded.length} onCriteriaChange={setVehicleCriteria} onOptionsChange={setVehicleOptions} t={t} />
+            <section className="electric-preference" aria-labelledby="journey-electric-heading">
+              <h3 id="journey-electric-heading">{t('Electric vehicles', '電動車輛')}</h3>
+              <fieldset className="vehicle-policy-choices">
+                <legend>{t('How should electric vehicles affect your trip?', '電動車輛應該點樣影響你嘅行程？')}</legend>
+                {(['off', 'prefer', 'avoid'] as const).map(value => <label key={value} className="vehicle-policy-choice" aria-label={value === 'off' ? t('Off', '關閉') : value === 'prefer' ? t('Prefer electric vehicles', '優先電動車輛') : t('Avoid electric vehicles', '避開電動車輛')}>
+                  <input type="radio" id={`journey-electric-${value}`} name="journey-electric-mode" checked={electric.mode === value} onChange={() => setElectric({ ...electric, mode: value })} />
+                  <span>
+                    <strong>{value === 'off' ? t('Off', '關閉') : value === 'prefer' ? t('Prefer electric vehicles', '優先電動車輛') : t('Avoid electric vehicles', '避開電動車輛')}</strong>
+                    <small>{value === 'off' ? t('Normal trip order', '正常行程次序') : value === 'prefer' ? t('Verified matches move forward', '已核實配對排前') : t('Hide verified matches', '隱藏已核實配對')}</small>
+                  </span>
+                </label>)}
+              </fieldset>
+              {electric.mode === 'avoid' && <label className="electric-preference-unknown"><input type="checkbox" checked={electric.includeUnconfirmed} onChange={event => setElectric({ ...electric, includeUnconfirmed: event.target.checked })} /><span>{t('Keep journeys whose vehicle is unconfirmed', '保留車輛未確認嘅行程')}</span></label>}
+              {electric.mode !== 'off' && planned && electricResult && <p className="data-note" role="status">{electric.mode === 'prefer'
+                ? t(`Preferring verified electric vehicles: ${electricResult.matchedCount} journeys carry one, ${electricResult.unknownCount} unknown kept.`, `優先已核實電動車輛：${electricResult.matchedCount} 個行程有電動車，${electricResult.unknownCount} 個未確認配車獲保留。`)
+                : t(`Avoiding verified electric vehicles: ${electricResult.excluded.length} journeys hidden, ${electricResult.unknownCount} unknown kept.`, `避開已核實電動車輛：${electricResult.excluded.length} 個行程被隱藏，${electricResult.unknownCount} 個未確認配車獲保留。`)}</p>}
+              <p className="data-note">{t('Based on the currently assigned vehicle where one is verified; unknown assignments are never counted as electric.', '只根據目前已核實嘅配車；未能確認嘅配車唔會當作電動車。')}</p>
+            </section>
             <GaragePicker
               registry={garageRegistry}
               selected={preferredGarages}

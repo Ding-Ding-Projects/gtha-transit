@@ -1,5 +1,5 @@
 /** Published series facts only. This is not a complete active-fleet inventory. */
-const group = (agency, manufacturer, model, rows, propulsionFact) => rows.map(([first,last,year,prefix='']) => ({ first,last,manufacturer,model,year:String(year),prefix,...(propulsionFact ?? {}),source:{url:`https://barp.ca/bus/ontario/${agency}/index.html`,title:`Barp.ca fleet photo roster: ${agency}`,retrieved:'2026-09-06',coverage:'Published series; current operating status unconfirmed'}}));
+const group = (agency, manufacturer, model, rows, propulsionFact) => rows.map(([first,last,year,prefix='']) => ({ first,last,manufacturer,model,year:String(year),prefix,...propulsionFact,source:{url:`https://barp.ca/bus/ontario/${agency}/index.html`,title:`Barp.ca fleet photo roster: ${agency}`,retrieved:'2026-09-06',coverage:'Published series; current operating status unconfirmed'}}));
 
 /**
  * Propulsion facts for series whose model designation itself states the

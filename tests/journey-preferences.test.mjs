@@ -118,3 +118,81 @@ test('prefer applies a stable boost only to verified matching itineraries', () =
   const result = applyJourneyPreferences([first, middle, last], { manufacturer: 'Nova Bus' }, { prefer: true });
   assert.deepEqual(result.itineraries, [first, last, middle]);
 });
+
+// The `propulsion: 'electric'` criterion reuses the same manufacturer/model/year
+// machinery through vehicles/propulsion.mjs's isElectric()/propulsionClass(), so these
+// tests exercise the electric-specific wiring rather than re-testing the shared engine.
+const electricLeg = journey(leg({ propulsion: 'Battery electric' }));
+const dieselLeg = journey(leg({ propulsion: 'Diesel' }));
+const noVehicle = journey(leg(null));
+const vehicleWithoutPropulsion = journey(leg({ manufacturer: 'Nova Bus', model: 'LFS' }));
+
+test('prefer boosts a verified electric assignment ahead of non-electric journeys', () => {
+  const result = applyJourneyPreferences([dieselLeg, electricLeg], { propulsion: 'electric' }, { prefer: true });
+  assert.deepEqual(result.itineraries, [electricLeg, dieselLeg]);
+  assert.equal(result.matchedCount, 1);
+  assert.equal(result.unknownCount, 0);
+  assert.equal(result.preferenceApplied, true);
+});
+
+test('avoid hides a verified electric assignment and reports why it was excluded', () => {
+  const result = applyJourneyPreferences([electricLeg, dieselLeg], { propulsion: 'electric' }, { avoid: true });
+  assert.deepEqual(result.itineraries, [dieselLeg]);
+  assert.equal(result.excluded.length, 1);
+  assert.equal(result.excluded[0].itinerary, electricLeg);
+  assert.equal(result.excluded[0].cause, 'matched');
+  assert.equal(result.matchedCount, 0);
+});
+
+test('an unconfirmed vehicle assignment never counts as electric, whether unassigned or merely missing a propulsion fact', () => {
+  for (const unconfirmed of [noVehicle, vehicleWithoutPropulsion]) {
+    const evidence = evaluateJourneyPreferences(unconfirmed, { propulsion: 'electric' });
+    assert.equal(evidence.legs[0].state, 'unknown');
+    assert.equal(evidence.summary.matched, false);
+    assert.equal(evidence.summary.unknown, true);
+
+    // Neither prefer nor avoid may read an unknown propulsion as a verified electric match.
+    assert.equal(applyJourneyPreferences([unconfirmed], { propulsion: 'electric' }, { prefer: true }).matchedCount, 0);
+    assert.equal(applyJourneyPreferences([unconfirmed], { propulsion: 'electric' }, { avoid: true }).excluded[0].cause, 'unknown');
+  }
+  // The assigned-vehicle path reports why, distinctly from "no vehicle at all".
+  const withVehicle = evaluateJourneyPreferences(vehicleWithoutPropulsion, { propulsion: 'electric' });
+  assert.deepEqual(withVehicle.legs[0].checks, [{
+    field: 'propulsion',
+    state: 'unknown',
+    reason: 'The assigned vehicle has no recognised published propulsion.',
+  }]);
+});
+
+test('avoid keeps an unconfirmed assignment only when includeUnconfirmed is requested', () => {
+  const excluded = applyJourneyPreferences([electricLeg, noVehicle], { propulsion: 'electric' }, { avoid: true });
+  assert.deepEqual(excluded.itineraries, []);
+  assert.equal(excluded.excluded.length, 2);
+  assert.deepEqual(excluded.excluded.map((entry) => entry.cause).sort(), ['matched', 'unknown']);
+
+  const kept = applyJourneyPreferences([electricLeg, noVehicle], { propulsion: 'electric' }, { avoid: true, includeUnconfirmed: true });
+  assert.deepEqual(kept.itineraries, [noVehicle]);
+  assert.equal(kept.excluded.length, 1);
+  assert.equal(kept.excluded[0].cause, 'matched');
+});
+
+test('electric preference counts matched, unknown-but-kept and excluded itineraries correctly', () => {
+  const input = [electricLeg, dieselLeg, noVehicle];
+
+  const unboosted = applyJourneyPreferences(input, { propulsion: 'electric' }, {});
+  assert.deepEqual(unboosted.itineraries, input);
+  assert.equal(unboosted.matchedCount, 1);
+  assert.equal(unboosted.unknownCount, 1);
+  assert.equal(unboosted.excluded.length, 0);
+
+  const preferred = applyJourneyPreferences(input, { propulsion: 'electric' }, { prefer: true });
+  assert.equal(preferred.matchedCount, 1);
+  assert.equal(preferred.unknownCount, 1);
+  assert.equal(preferred.itineraries[0], electricLeg);
+
+  const avoided = applyJourneyPreferences(input, { propulsion: 'electric' }, { avoid: true, includeUnconfirmed: true });
+  assert.deepEqual(avoided.itineraries, [dieselLeg, noVehicle]);
+  assert.equal(avoided.matchedCount, 0);
+  assert.equal(avoided.unknownCount, 1);
+  assert.equal(avoided.excluded.length, 1);
+});

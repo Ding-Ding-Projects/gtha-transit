@@ -24,7 +24,7 @@ CPTDB page/API access returned challenges during this pass. Search snippets are 
 
 The tests resolve each new series endpoint, reject overlapping identity intervals and namespace collisions, preserve electric prefixes and assert that unsupported capacity/photo data remains absent. They do not establish every current vehicle or every photo. Full all-agency coverage remains open.
 
-Suggested articles: [Vehicle tracking](README.md), [Vehicle preferences](../planning/vehicle-preferences.md).
+Suggested articles: [Vehicle tracking](README.md), [Vehicle preferences](../planning/vehicle-preferences.md#electric-vehicles), [Fleet filters](fleet-filters.md).
 
 ## GO Transit, Burlington Transit and Hamilton Street Railway, 6 September 2026
 
@@ -48,3 +48,19 @@ Burlington writes a two-digit delivery-year suffix on each unit - `7019-15`, `70
 Burlington's newer buses appear on the roster as `72101-72108` and `7-2301 to 7-2305`, while its live feed reports the same vehicles as `2101` and `2301`. The correspondence was established by matching each published series against the reporting fleet unit for unit: it is exact across all six series, every reporting unit falls inside one of them, and nothing else on the roster occupies that number band. Each entry records the published form it came from, so the mapping can be checked rather than taken on trust.
 
 Standing capacity, current roster membership and licensed exact-unit photographs remain open for all three agencies.
+
+## Propulsion sourcing, 9 September 2026
+
+`vehicles/propulsion.mjs` classifies whatever `propulsion` string a roster already publishes; it never infers one. Most regional rows carry no propulsion fact at all and classify as unknown, which is correct: this project does not guess that a diesel-era series was later re-engined. Three series are the exception, because their own New Flyer or Nova Bus model designation states the propulsion outright - `Xcelsior CHARGE` is battery electric by definition, `XDE` and `LFS HEV` are diesel-electric hybrids by definition. Those three carry `propulsionBasis: 'model-designation'` and a `propulsionSource` citing the manufacturer's own product page, separately from the row's own agency-roster `source`. `tests/regional-fleet.test.mjs` checks every row with that basis actually carries a matching source, and the reverse: a row without the basis carries no `propulsionSource` either, so the two cannot drift apart.
+
+Every manufacturer URL below was checked with `node scripts/check-sources.mjs --json` on 9 September 2026 and answered `200`:
+
+| Series | Agencies (exact ranges in `vehicles/regional-fleet.mjs`) | Propulsion | Manufacturer source |
+| --- | --- | --- | --- |
+| New Flyer Xcelsior XE40 (CHARGE) | Brampton (2152-2157); YRT, three non-contiguous ranges (1911-1914, 2101-2106, 2201-2202) | Battery electric | [Xcelsior CHARGE product page](https://www.newflyer.com/bus/xcelsior-charge-ng/) - `200` |
+| New Flyer Xcelsior XDE40 / XDE60 | MiWay, seven non-contiguous ranges across both models; Brampton, eight non-contiguous ranges across both models | Diesel-electric hybrid | [Xcelsior product page](https://www.newflyer.com/bus/xcelsior/) - `200` |
+| Nova Bus LFS HEV | MiWay (1901-1910); Durham (6120-6129) | Diesel-electric hybrid | [Nova Bus product page](https://novabus.com/) - `200` |
+
+Milton 1701's 2024 battery-electric conversion is not part of this table: it is a one-off repower confirmed by [a dedicated CPTDB revision](https://cptdb.ca/wiki/index.php?title=Milton_Transit_1701-1702&oldid=804140) for that specific unit, not read from its model designation (1701 and diesel 1702 share the same `Nova Bus LFS` model), so it carries a plain `propulsion` string and the row's ordinary agency-roster source rather than `propulsionBasis`/`propulsionSource`. See [Electric vehicles](../planning/vehicle-preferences.md#electric-vehicles) for how these facts are actually used in trip evaluation.
+
+The same run also re-checked every other citation already listed in `vehicles/fleet-registry.mjs`, `vehicles/regional-fleet.mjs`, `vehicles/index.mjs`, `vehicles/divisions.mjs` and `data/ttc-divisions.json` (39 URLs total; the two `${...}` template strings and the two Metrolinx endpoints that need a key are expected skips, not failures). Three long-standing citations came back non-200 on this run and are unrelated to propulsion: the general `https://cptdb.ca/wiki/index.php/Toronto_Transit_Commission` and `https://cptdb.ca/wiki/index.php/GO_Transit` pages timed out, and `https://cptdb.ca/wiki/index.php/Burlington_Transit` returned `500`. All three are CPTDB pages, which this project's own tooling already documents as prone to exactly this kind of transient failure; none of them are propulsion citations, and none changed in this pass.
