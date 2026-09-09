@@ -26,7 +26,7 @@ decision as its reason; `docs/interface/tabs.md`, the docs index and `AGENTS.md`
 | Phone, 390 px | four destinations plus More in the bottom bar, the More dialog opening with the other five, settings tabs in two rows: `mobile-bar-390-light.png`, `mobile-more-390-light.png`, `mobile-settings-tabs-390-light.png` |
 | Interaction ledger and drive scripts | untouched by the strip line, so they target the restored rail and tabs again; re-record after the deploy |
 | Earlier `mobile-*` captures | show the strip as fixed the same afternoon and are kept as the record of that episode; they no longer show what ships |
-| Deployed | **not yet** at the time of writing; see the deploy row added below once it lands |
+| Deployed | **yes**: `scripts/deploy.sh` shipped `main` at `0e8f5f5` on 9 September at about 15:55 Toronto time (container healthy, `https://toronto-transit.org/version.json` reports `0e8f5f5`); the public site photographed afterwards shows the 84 px rail with nine destinations at 1440 px and the four-plus-More bar with its dialog at 390 px, no `.tab-strip` in either document: `docs/interface/captures/navigation-rail-1440-light-deployed-0e8f5f5.png`, `mobile-more-390-light-deployed-0e8f5f5.png` |
 
 ### Known gaps
 
