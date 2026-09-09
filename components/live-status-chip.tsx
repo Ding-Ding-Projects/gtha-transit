@@ -18,7 +18,6 @@ const LEGEND_DELAY_MINUTES: Partial<Record<LiveState, number>> = {
   early: -2,
   'on-time': 0,
   late: 4,
-  'very-late': 8,
   cancelled: 0,
 };
 
@@ -41,12 +40,12 @@ export type LiveStatusChipProps = {
  * one. Colour never carries the meaning alone.
  */
 export default function LiveStatusChip({ status, t, compact, scheduledTime, liveTime, timeFormatter }: LiveStatusChipProps) {
-  const IconComponent = ICONS[STATE_ICONS[status.state]];
+  const IconComponent = ICONS[STATE_ICONS[status.state] as IconName];
   const { en, zh } = describeState(status.state, status.delayMinutes);
   const format = timeFormatter ?? ((value: string) => value);
   const showScheduled = Boolean(scheduledTime && liveTime && scheduledTime !== liveTime);
   return (
-    <span className={`live-status live-status--${status.state}`} data-live-state={status.state}>
+    <span className={`live-status live-status--${status.tier === 'very-late' && status.state === 'late' ? 'very-late' : status.state}`} data-live-state={status.state}>
       <IconComponent size={compact ? 14 : 16} aria-hidden="true" />
       <span className="live-status__label">{t(en, zh)}</span>
       {showScheduled && (
@@ -65,7 +64,7 @@ export function LiveLegend({ t }: { t: (english: string, cantonese: string) => s
   return (
     <dl className="live-status-legend">
       {states.map((state) => {
-        const IconComponent = ICONS[STATE_ICONS[state]];
+        const IconComponent = ICONS[STATE_ICONS[state] as IconName];
         const { en, zh } = describeState(state, LEGEND_DELAY_MINUTES[state] ?? 0);
         return (
           <div className="live-status-legend__row" key={state}>

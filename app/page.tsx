@@ -30,6 +30,9 @@ import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
 import RealtimeCoverage from '../components/realtime-coverage';
+import LiveStatusChip, { LiveLegend } from '../components/live-status-chip';
+import { classifyLeg, summariseJourney, type FeedLiveCoverage, type LiveLegStatus } from '../lib/live-status';
+import { useLiveJourneys, mergeLiveIntoJourneys } from '../lib/use-live-journeys';
 import VehicleTracker from '../components/vehicle-tracker';
 import RoutePicker from '../components/route-picker';
 import LiveFollower, { type LiveFollowerVehicle } from '../components/live-follower';
@@ -76,7 +79,7 @@ import { groupTtcDisruptions, type OfficialTtcRoute } from '../lib/disruption-gr
 import { selectLegAlerts } from '../lib/leg-alerts';
 import { superExpressFor } from '../lib/go-express';
 import SuperExpressBadge from '../components/super-express-badge';
-import type { Place, Itinerary, TransitStatus, Line } from '../lib/types';
+import type { Place, Itinerary, TransitStatus, Line, Leg } from '../lib/types';
 import {
   resolveTorontoTime,
   shiftTorontoTime,
@@ -371,7 +374,35 @@ export default function Home() {
     [coverage, setCoverage] = useState<any>(null),
     [version, setVersion] = useState<any>(null),
     [provenance, setProvenance] = useState<any>(null);
-  const vehicleResult = useMemo(() => applyJourneyPreferences(allJourneys, vehicleCriteria, vehicleOptions), [allJourneys, vehicleCriteria, vehicleOptions]);
+  const [liveCoverage, setLiveCoverage] = useState<FeedLiveCoverage | null>(null);
+  const [planCheckedAt, setPlanCheckedAt] = useState<number | null>(null);
+  const [liveNow, setLiveNow] = useState(() => Date.now());
+  const liveJourneys = useLiveJourneys(allJourneys, { now: liveNow, enabled: tab === 'plan' || Boolean(follower?.journey) });
+  const refreshedJourneys = useMemo(() => mergeLiveIntoJourneys(allJourneys, liveJourneys.live), [allJourneys, liveJourneys.live]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      setLiveNow(Date.now());
+      fetch('/api/live-coverage', { signal: controller.signal, cache: 'no-store' })
+        .then(async response => { if (!response.ok) throw new Error('Coverage unavailable'); return await response.json() as FeedLiveCoverage; })
+        .then(value => { if (value?.feeds && !controller.signal.aborted) setLiveCoverage(value); })
+        .catch(() => {});
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { controller.abort(); clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
+  }, []);
+  const legStatus = (leg: Leg, edge: 'boarding' | 'alighting' = 'boarding') => classifyLeg(leg, { coverage: liveCoverage, now: liveNow, checkedAt: leg.liveCheckedAt ?? planCheckedAt, edge });
+  const journeyStatus = (journey: Itinerary): LiveLegStatus => {
+    const states = journey.legs.filter(leg => leg.mode !== 'WALK').map(leg => legStatus(leg));
+    const summary = summariseJourney(states);
+    return states.find(state => state.state === summary.state && state.delayMinutes === summary.worstDelayMinutes)
+      ?? states.find(state => state.state === summary.state)
+      ?? { state: 'unknown', delaySeconds: null, delayMinutes: null, checkedAt: null, source: 'plan', basis: 'none' };
+  };
+  const vehicleResult = useMemo(() => applyJourneyPreferences(refreshedJourneys, vehicleCriteria, vehicleOptions), [refreshedJourneys, vehicleCriteria, vehicleOptions]);
   /* A second, independent pass: manufacturer/model/year preferences and the
      electric preference never share one criteria object, so turning one off
      never disturbs the other's evidence. Off leaves vehicleResult untouched. */
@@ -783,12 +814,14 @@ export default function Home() {
         );
       if (id !== generation.current) return;
       setJourneys(data.itineraries || []);
+      setPlanCheckedAt(Date.now());
       setPlannedDeparture(arriveBy ? null : requestedTime);
       setSelectedId(null);
       setDivisionNow(Date.now());
       setProvenance(data.data);
       setTab('plan');
-      const count = applyJourneyPreferences(data.itineraries || [], vehicleCriteria, vehicleOptions).itineraries.length;
+      const vehicleOptionsReady = applyJourneyPreferences(data.itineraries || [], vehicleCriteria, vehicleOptions).itineraries;
+      const count = (electric.mode === 'off' ? vehicleOptionsReady : applyJourneyPreferences(vehicleOptionsReady, { propulsion: 'electric' }, electricOptions(electric)).itineraries).length;
       narrate('journey-ready', count ? `${count} journey options are ready.` : 'No journey options were found for these choices.', count ? `已準備好 ${count} 個行程選項。` : '呢組選擇搵唔到行程選項。');
     } catch (e: any) {
       if (id === generation.current) {
@@ -1270,13 +1303,13 @@ export default function Home() {
           </div>
         </aside>
         <section className="content">
-          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
+          {follower && <div ref={followerAnchor} tabIndex={-1} className="follower-anchor"><LiveFollower key={followerSession} {...follower} journey={follower.journey ? journeys.find(item => item.id === follower.journey?.id) ?? follower.journey : undefined} t={t} onClose={closeFollower} washroomTarget={washroomTarget} onWashroomRequest={({ position }) => { washroomReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setWashroomRequest({ position, destinations: destinations.map(item => item.place).filter((place): place is Place => !!place) }); }} onAnnounce={message => narrate('follower', message.en, message.zh)} onChooseVehicle={() => { setFollower(null); setTab('vehicles'); requestAnimationFrame(() => document.querySelector<HTMLElement>('.route-picker-trigger')?.focus()); }} /></div>}
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'race' && <RaceWorkspace t={t} />}
           {tab === 'history' && <DisruptionHistory t={t} />}
           {tab === 'vehicles' && <VehicleTracker t={t} onFollow={vehicle => openFollower({ vehicle })} />}
           {tab === 'divisions' && <VehicleTracker key="divisions" t={t} divisionMode onFollow={vehicle => openFollower({ vehicle })} />}
-          {tab === 'coverage' && <RealtimeCoverage t={t} />}
+          {tab === 'coverage' && <RealtimeCoverage t={t} liveCoverage={liveCoverage} />}
           {tab === 'plan' && (
             <>
               {/* The eyebrow above this heading said "MAKE THE CONNECTION", which
@@ -1397,6 +1430,11 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="journeys">
+                    <div className="live-refresh-summary">
+                      <p role="status" aria-live="polite">{liveJourneys.failed ? t('Live refresh unavailable. Older predictions are marked stale after two minutes.', '即時更新暫未能提供。舊預測會喺兩分鐘後標示過時。') : liveJourneys.checkedAt ? t(`Live checked at ${time(liveJourneys.checkedAt)}.`, `即時資料更新於 ${time(liveJourneys.checkedAt)}。`) : t('Times reflect the latest plan response. Unmatched services retain their timetable.', '時間根據最新規劃回應。未配對服務保留時間表。')}</p>
+                      <button type="button" className="pill" onClick={liveJourneys.refreshNow}><RefreshCw size={16} />{t('Refresh live times', '更新即時時間')}</button>
+                      <details><summary>{t('Live time colour legend', '即時時間顏色說明')}</summary><LiveLegend t={t} /></details>
+                    </div>
                     {journeys.map((j, index) => (
                       <article
                         className={
@@ -1540,9 +1578,7 @@ export default function Home() {
                               {distance(j.walkDistance)}
                             </span>
                             <span>
-                              {j.legs.some((l) => l.realtime)
-                                ? t('Includes live predictions', '包含即時預測')
-                                : t('Scheduled', '時間表')}
+                              <LiveStatusChip status={journeyStatus(j)} t={t} />
                             </span>
                           </div>
                         </button>
@@ -1669,17 +1705,10 @@ export default function Home() {
                                     <strong>{mins(leg.duration)} min</strong>
                                     <span>{kilometres(leg.distance)}</span>
                                   </div>
-                                  {leg.realtime && (
-                                    <p className="schedule-badge">
-                                      {t('Live prediction', '即時預測')}
-                                      {leg.scheduledStartTime
-                                        ? ' · ' +
-                                          t('scheduled', '原定') +
-                                          ' ' +
-                                          time(leg.scheduledStartTime)
-                                        : ''}
-                                    </p>
-                                  )}
+                                  {leg.mode !== 'WALK' && <div className="live-leg-times">
+                                    <p>{t('Boarding', '上車')} <LiveStatusChip status={legStatus(leg)} t={t} scheduledTime={leg.scheduledStartTime} liveTime={String(leg.startTime)} timeFormatter={time} /></p>
+                                    <p>{t('Alighting', '落車')} <LiveStatusChip status={legStatus(leg, 'alighting')} t={t} scheduledTime={leg.scheduledEndTime} liveTime={String(leg.endTime)} timeFormatter={time} /></p>
+                                  </div>}
                                   {leg.mode !== 'WALK' &&
                                     <WashroomBadge washroom={leg.from.washroom} t={t} />}
                                   {leg.vehicleDivision?.state === 'out-of-division' && isUsableDivisionEvidence(leg.vehicleDivision, { now: divisionNow }) && <p className="journey-division-evidence"><strong>{t('Verified out of division', '已核實跨車廠')}</strong><span>{leg.vehicleDivision.homeGarageName} → {leg.vehicleDivision.assignedGarageNames?.join(', ')}</span><small>{divisionEvidenceCoverage(leg.vehicleDivision, { now: divisionNow }) === 'last-published' ? t('From the last published allocation summary, covering service through ', '嚟自最後一份配車摘要，涵蓋服務至 ') + leg.vehicleDivision.source?.validThrough + t('. A newer one is not out, so this describes that period rather than today.', '。新一份未出，所以呢個講嘅係嗰段時間，唔係今日。') : t('Allocation valid through', '配車資料有效至') + ' ' + leg.vehicleDivision.source?.validThrough}</small></p>}

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import type { FeedLiveCoverage } from '../lib/live-status';
 type Agency = {
   id: string;
   name: string;
@@ -10,8 +11,10 @@ type Agency = {
 };
 export default function RealtimeCoverage({
   t,
+  liveCoverage,
 }: {
   t: (en: string, zh: string) => string;
+  liveCoverage?: FeedLiveCoverage | null;
 }) {
   const [data, setData] = useState<Agency[] | null>(null),
     [failed, setFailed] = useState(false);
@@ -73,6 +76,9 @@ export default function RealtimeCoverage({
                       '只提供時間表／未能存取即時資料',
                     )}
           </span>
+          <small>
+            {t('Trip updates in journeys', '行程內班次更新')}: {liveCoverage?.feeds[a.id]?.state === 'applied' ? t('Configured in the routing engine; individual trips still require a live match.', '已於路線引擎設定；每個班次仍須成功即時配對。') : liveCoverage?.feeds[a.id]?.state === 'shadow' ? t('Matching under observation; not applied.', '配對觀察中；未套用。') : liveCoverage?.feeds[a.id]?.state === 'published-unjoinable' ? t('Published updates cannot be matched reliably to the timetable.', '已公布更新未能可靠配對時間表。') : t('Timetable only, or coverage unavailable.', '只有時間表，或未能取得覆蓋資料。')}
+          </small>
           <small>
             {Object.entries(a.capabilities)
               .map(

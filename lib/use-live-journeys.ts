@@ -20,7 +20,7 @@ const BACKOFF_STEPS_MS = [30_000, 60_000, 120_000];
 const TRACKING_HORIZON_MS = 3 * 60 * 60 * 1000; // do not yet poll a leg starting more than 3 h out
 const TRACKING_GRACE_MS = 30 * 60 * 1000; // stop polling a leg once it ended more than 30 min ago
 const MAX_LEGS_PER_REQUEST = 40;
-const FETCH_DEADLINE_MS = 8_000;
+const FETCH_DEADLINE_MS = 17_000;
 
 export type LiveJourneyStopTime = { scheduledTime?: string; estimatedTime?: string; delaySeconds?: number };
 
@@ -43,6 +43,7 @@ export type LiveJourneyLeg = {
   intermediateStops?: LiveJourneyStop[];
   source?: string;
   error?: string;
+  checkedAt?: number;
 };
 
 export type UseLiveJourneysOptions = {
@@ -62,13 +63,14 @@ export type UseLiveJourneysResult = {
 type TrackableLeg = { legId: string; tripId?: string; serviceDate?: string; fromStopId?: string; toStopId?: string };
 
 const toInstant = (value: unknown): number | null => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value !== 'string' || !value) return null;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
 /** Every transit leg still worth polling: it has a live-lookup identity, and it has not clearly finished. */
-function trackableLegs(journeys: Itinerary[], now: number): TrackableLeg[] {
+export function trackableLegs(journeys: Itinerary[], now: number): TrackableLeg[] {
   const seen = new Set<string>();
   const legs: TrackableLeg[] = [];
   for (const journey of journeys) {
@@ -113,7 +115,7 @@ export function useLiveJourneys(journeys: Itinerary[], options: UseLiveJourneysO
   const [nonce, setNonce] = useState(0);
 
   const trackable = useMemo(() => trackableLegs(journeys, now), [journeys, now]);
-  const trackableKey = trackable.map((leg) => leg.legId).join(',');
+  const trackableKey = JSON.stringify(trackable);
 
   const trackableRef = useRef(trackable);
   useEffect(() => {
@@ -134,6 +136,8 @@ export function useLiveJourneys(journeys: Itinerary[], options: UseLiveJourneysO
     let timer: number | null = null;
     let abort: AbortController | null = null;
     let backoffIndex = 0;
+    setLive(new Map());
+    setCheckedAt(null);
 
     const schedule = (delay: number) => {
       if (disposed) return;
@@ -174,18 +178,23 @@ export function useLiveJourneys(journeys: Itinerary[], options: UseLiveJourneysO
         });
         if (!response.ok) throw new Error('live journeys request failed');
         const payload = (await response.json()) as { checkedAt?: string; legs?: LiveJourneyLeg[] };
-        if (disposed) return;
-        const next = new Map<string, LiveJourneyLeg>();
-        for (const leg of payload.legs || []) {
-          if (leg && typeof leg.legId === 'string' && leg.legId) next.set(leg.legId, leg);
-        }
-        setLive(next);
-        setCheckedAt(toInstant(payload.checkedAt) ?? Date.now());
-        setFailed(false);
+        if (disposed || abort !== controller) return;
+        if (!Array.isArray(payload.legs)) throw new Error('Invalid live response');
+        const checked = toInstant(payload.checkedAt);
+        if (checked === null || checked > Date.now() + 60_000) throw new Error('Invalid live timestamp');
+        const requested = new Set(legs.map(leg => leg.legId));
+        const valid = payload.legs.filter(leg => leg && requested.has(leg.legId) && !leg.error && leg.startTime && leg.endTime);
+        setLive(previous => {
+          const next = new Map(previous);
+          for (const leg of valid) next.set(leg.legId, { ...leg, checkedAt: checked });
+          return next;
+        });
+        if (valid.length) setCheckedAt(checked);
+        setFailed(valid.length < legs.length);
         backoffIndex = 0;
         schedule(POLL_MS);
       } catch (cause) {
-        if (disposed || controller.signal.aborted) return;
+        if (disposed || abort !== controller) return;
         setFailed(true);
         const delay = BACKOFF_STEPS_MS[Math.min(backoffIndex, BACKOFF_STEPS_MS.length - 1)];
         backoffIndex = Math.min(backoffIndex + 1, BACKOFF_STEPS_MS.length - 1);
@@ -197,7 +206,7 @@ export function useLiveJourneys(journeys: Itinerary[], options: UseLiveJourneysO
     };
 
     const onVisibility = () => {
-      if (document.visibilityState !== 'visible') return;
+      if (document.visibilityState !== 'visible') { abort?.abort(); return; }
       if (timer !== null) window.clearTimeout(timer);
       void run();
     };
@@ -230,14 +239,13 @@ const timeDiffers = (a: string | undefined, b: string | undefined): boolean => {
  */
 function isLivePayload(payload: LiveJourneyLeg): boolean {
   if (payload.realtimeState && payload.realtimeState !== 'SCHEDULED') return true;
-  return typeof payload.departureDelaySeconds === 'number' || typeof payload.arrivalDelaySeconds === 'number';
+  return !payload.realtimeState && (typeof payload.departureDelaySeconds === 'number' || typeof payload.arrivalDelaySeconds === 'number');
 }
 
 function mergeIntermediateStops(leg: Leg, payload: LiveJourneyLeg): Leg['intermediateStops'] {
   if (!leg.intermediateStops?.length || !payload.intermediateStops?.length) return leg.intermediateStops;
-  return leg.intermediateStops.map((stop, index) => {
-    const update = (stop.stopId ? payload.intermediateStops?.find((candidate) => candidate.stopId === stop.stopId) : undefined)
-      ?? payload.intermediateStops?.[index];
+  return leg.intermediateStops.map((stop) => {
+    const update = stop.stopId ? payload.intermediateStops?.find((candidate) => candidate.stopId === stop.stopId) : undefined;
     if (!update) return stop;
     return {
       ...stop,
@@ -261,7 +269,7 @@ export function mergeLiveIntoJourneys(journeys: Itinerary[], live: Map<string, L
     let changed = false;
     const legs = journey.legs.map((leg) => {
       const payload = leg.legId ? live.get(leg.legId) : undefined;
-      if (!payload) return leg;
+      if (!payload || payload.error) return leg;
       changed = true;
       return {
         ...leg,
@@ -269,14 +277,18 @@ export function mergeLiveIntoJourneys(journeys: Itinerary[], live: Map<string, L
         ...(payload.endTime ? { endTime: payload.endTime } : {}),
         ...(payload.scheduledStartTime ? { scheduledStartTime: payload.scheduledStartTime } : {}),
         ...(payload.scheduledEndTime ? { scheduledEndTime: payload.scheduledEndTime } : {}),
-        ...(payload.realtimeState ? { realtimeState: payload.realtimeState } : {}),
-        ...(typeof payload.departureDelaySeconds === 'number' ? { departureDelaySeconds: payload.departureDelaySeconds } : {}),
-        ...(typeof payload.arrivalDelaySeconds === 'number' ? { arrivalDelaySeconds: payload.arrivalDelaySeconds } : {}),
-        realtime: leg.realtime || isLivePayload(payload),
+        realtimeState: payload.realtimeState as Leg['realtimeState'],
+        departureDelaySeconds: payload.departureDelaySeconds,
+        arrivalDelaySeconds: payload.arrivalDelaySeconds,
+        liveCheckedAt: payload.checkedAt,
+        realtime: isLivePayload(payload),
         intermediateStops: mergeIntermediateStops(leg, payload),
       };
     });
-    return changed ? { ...journey, legs, startTime: legs[0]?.startTime ?? journey.startTime, endTime: legs[legs.length - 1]?.endTime ?? journey.endTime } : journey;
+    const startTime = legs[0]?.startTime ?? journey.startTime;
+    const endTime = legs[legs.length - 1]?.endTime ?? journey.endTime;
+    const start = toInstant(startTime), end = toInstant(endTime);
+    return changed ? { ...journey, legs, startTime, endTime, duration: start !== null && end !== null ? Math.max(0, (end - start) / 1000) : journey.duration } : journey;
   });
 }
 

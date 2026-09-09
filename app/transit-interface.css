@@ -433,3 +433,7 @@
     row-gap: 2px;
   }
 }
+.live-refresh-summary { padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.live-refresh-summary p, .live-leg-times p { margin: 8px 0; font-size: 14px; overflow-wrap: anywhere; }
+.live-refresh-summary summary { cursor: pointer; padding: 12px 0; min-height: 44px; }
+.live-leg-times .live-status { vertical-align: middle; }

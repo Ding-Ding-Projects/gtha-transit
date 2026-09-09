@@ -34,6 +34,7 @@ export type Leg = {
   serviceDate?: string;
   departureDelaySeconds?: number;
   arrivalDelaySeconds?: number;
+  liveCheckedAt?: number;
   vehicle?: {
     id: string;
     label?: string;
