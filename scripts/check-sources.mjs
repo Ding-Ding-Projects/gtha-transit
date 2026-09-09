@@ -48,7 +48,7 @@ const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (K
  * The module stays because it may cite something later; the data file is what
  * actually needed to be here.
  */
-const SOURCES = ['vehicles/fleet-registry.mjs', 'vehicles/regional-fleet.mjs', 'vehicles/index.mjs', 'vehicles/divisions.mjs', 'data/ttc-divisions.json'];
+const SOURCES = ['vehicles/fleet-registry.mjs', 'vehicles/regional-fleet.mjs', 'vehicles/propulsion.mjs', 'vehicles/journey-preferences.mjs', 'vehicles/index.mjs', 'vehicles/divisions.mjs', 'data/ttc-divisions.json'];
 
 /**
  * Reasons a non-200 is expected rather than a defect. Each one is argued, so an

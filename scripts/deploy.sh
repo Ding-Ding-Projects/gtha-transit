@@ -43,6 +43,16 @@ fi
 ssh_options=(-o StrictHostKeyChecking=accept-new -o UpdateHostKeys=no -o ConnectTimeout=20 -o BatchMode=yes)
 archive="${TMPDIR:-/tmp}/gtha-$sha.tar.gz"
 
+# A fresh checkout omits ignored photo assets. Do not silently remove photos
+# from an existing installation: restore the validated asset set before shipping.
+if [ ! -d public/dim-sum ] || [ -z "$(ls -A public/dim-sum 2>/dev/null)" ]; then
+  if ssh "${ssh_options[@]}" "$DEPLOY_HOST" 'docker exec gtha-transit-web test -d /app/dist/client/dim-sum' 2>/dev/null; then
+    echo "deploy: the running frontend has dim sum assets missing from this checkout" >&2
+    echo "deploy: restore the validated existing asset set before deploying" >&2
+    exit 2
+  fi
+fi
+
 echo "deploy: $sha"
 git archive --format=tar.gz -o "$archive" "$sha"
 scp "${ssh_options[@]}" "$archive" "$DEPLOY_HOST:$DEPLOY_DIR/releases/"

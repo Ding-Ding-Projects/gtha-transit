@@ -3,11 +3,15 @@
  * does not infer a vehicle property from route, trip, agency, or free text.
  */
 
+import { isElectric, propulsionClass } from '../vehicles/propulsion.mjs';
+
 export type FleetFilter = {
   manufacturer: string;
   model: string;
   yearFrom: string;
   yearTo: string;
+  /** '' means no propulsion filter; 'electric' matches a verified battery-electric or electric vehicle. */
+  propulsion: '' | 'electric';
   includeUnknown: boolean;
 };
 
@@ -16,6 +20,7 @@ type FleetVehicle = {
     manufacturer?: string | null;
     model?: string | null;
     year?: string | number | null;
+    propulsion?: string | null;
   };
 };
 
@@ -48,6 +53,7 @@ export function emptyFleetFilter(): FleetFilter {
     model: '',
     yearFrom: '',
     yearTo: '',
+    propulsion: '',
     includeUnknown: false,
   };
 }
@@ -124,6 +130,19 @@ function yearFieldState(value: unknown, requested: YearRange): FieldState {
   return published.from <= requested.to && published.to >= requested.from
     ? 'match'
     : 'mismatch';
+}
+
+/**
+ * A known, non-electric propulsion (diesel, hybrid, natural gas) is a
+ * mismatch, not unknown: the roster states a propulsion and it is not
+ * electric. Only a missing or unrecognised propulsion is unknown, and an
+ * unknown propulsion never matches, consistent with the journey preference
+ * evaluator in `vehicles/journey-preferences.mjs`.
+ */
+function propulsionFieldState(facts: FleetVehicle['cptdb']): FieldState {
+  const cls = propulsionClass(facts);
+  if (cls === 'unknown') return 'unknown';
+  return isElectric(cls) ? 'match' : 'mismatch';
 }
 
 function stableMetadataOptions(values: Iterable<unknown>): string[] {
@@ -206,8 +225,9 @@ export function filterFleetVehicles<T extends FleetVehicle>(
   const model = normaliseText(source.model);
   const from = requestedYear(source.yearFrom);
   const to = requestedYear(source.yearTo);
+  const propulsion = source.propulsion === 'electric' ? 'electric' : '';
   const active = Boolean(
-    manufacturer || model || from.state !== 'empty' || to.state !== 'empty',
+    manufacturer || model || from.state !== 'empty' || to.state !== 'empty' || propulsion,
   );
 
   if (model && !manufacturer) {
@@ -252,6 +272,7 @@ export function filterFleetVehicles<T extends FleetVehicle>(
       states.push(exactFieldState(facts?.manufacturer, manufacturer));
     if (model) states.push(exactFieldState(facts?.model, model));
     if (years.range) states.push(yearFieldState(facts?.year, years.range));
+    if (propulsion) states.push(propulsionFieldState(facts));
 
     if (states.includes('mismatch')) continue;
     if (states.includes('unknown')) {

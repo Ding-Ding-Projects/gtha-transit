@@ -118,3 +118,33 @@ test('prefer applies a stable boost only to verified matching itineraries', () =
   const result = applyJourneyPreferences([first, middle, last], { manufacturer: 'Nova Bus' }, { prefer: true });
   assert.deepEqual(result.itineraries, [first, last, middle]);
 });
+
+test('electric preference ranks only verified electric assignments and exposes propulsion evidence', () => {
+  const battery = journey(leg({ propulsion: 'Battery electric' }));
+  const streetcar = journey(leg({ propulsion: 'Electric' }));
+  const hybrid = journey(leg({ propulsion: 'Diesel-electric hybrid' }));
+  const unpublished = journey(leg({}));
+  const result = applyJourneyPreferences([hybrid, unpublished, battery, streetcar], { propulsion: 'electric' }, { prefer: true });
+  assert.deepEqual(result.itineraries, [battery, streetcar, hybrid, unpublished]);
+  assert.equal(result.matchedCount, 2);
+  assert.equal(result.unknownCount, 1);
+  assert.deepEqual(result.kept[0].evidence.legs[0].checks[0], {
+    field: 'propulsion',
+    state: 'true',
+    reason: 'Compared the assigned vehicle published propulsion against the requested electric preference.',
+  });
+  assert.equal(evaluateJourneyPreferences(unpublished, { propulsion: 'electric' }).legs[0].state, 'unknown');
+});
+
+test('electric avoid hides verified electric and unconfirmed assignments unless requested otherwise', () => {
+  const electric = journey(leg({ propulsion: 'Battery electric' }));
+  const diesel = journey(leg({ propulsion: 'Diesel' }));
+  const unconfirmed = journey(leg({}));
+  const input = [electric, diesel, unconfirmed];
+  const excluded = applyJourneyPreferences(input, { propulsion: 'electric' }, { avoid: true });
+  assert.deepEqual(excluded.itineraries, [diesel]);
+  assert.deepEqual(excluded.excluded.map((entry) => entry.cause), ['matched', 'unknown']);
+  const keepUnconfirmed = applyJourneyPreferences(input, { propulsion: 'electric' }, { avoid: true, includeUnconfirmed: true });
+  assert.deepEqual(keepUnconfirmed.itineraries, [diesel, unconfirmed]);
+  assert.equal(keepUnconfirmed.unknownCount, 1);
+});

@@ -1,5 +1,10 @@
 # Roadmap
 
+## September 9 recovery increments
+
+- [ ] Deploy and capture the electric preference controls. Implementation, type checking, 714 root tests, and production build pass; deployed interaction remains pending.
+- [ ] Complete the recovered live-time, appearance-foundation, tabbed-navigation, and vehicle-catching lanes, preserving each original recovery copy.
+
 The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked items may contain implemented code, but remain unchecked until their visible behavior and deployment are verified.
 
 ## Current delivery priorities
