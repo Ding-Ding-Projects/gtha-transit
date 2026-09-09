@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { calendarDateInTimeZone, coverage, coverageContextForDate, graphProvenance, searchPlaces } from "./places.mjs";
 import { rapidTransitStations } from "./stop-routes.mjs";
-import { blockPredecessorWithOtp, departuresWithOtp, liveLegStatusWithOtp, otpReady, planWithOtp } from "./otp-client.mjs";
+import { blockPredecessorWithOtp, departuresWithOtp, liveLegStatusWithOtp, otpReady, planWithOtp, tripStopTimesWithOtp } from "./otp-client.mjs";
 import { liveCoverage } from "./live-coverage.mjs";
 import { applyWashroomPreference, resolvedWashroomRegistry, washroomForPublishedPlace } from "./washrooms.mjs";
 import { isCalendarDate, routeCatalogPageFromIndex } from "./routes.mjs";
@@ -202,6 +202,13 @@ const server = http.createServer(async (req, res) => {
       const stopId = url.searchParams.get("stopId"); if (!stopId) throw new Error("stopId is required");
       return json(res, 200, await departuresWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, stopId, startTime: url.searchParams.get("startTime"), timeRange: url.searchParams.get("timeRange"), maxResults: config.maxResults }));
     }
+    if (req.method === "GET" && url.pathname === "/api/trip-times") {
+      const tripId = qualifiedStopLocationId(url.searchParams.get("tripId")); const serviceDate = url.searchParams.get("date");
+      if (!tripId) throw new Error("tripId must be a qualified identifier");
+      if (!isServiceDate(serviceDate)) throw new Error("date must be 8 digits");
+      const trip = await tripStopTimesWithOtp({ otpUrl, timeoutMs: config.requestTimeoutMs, tripId, serviceDate });
+      return json(res, trip ? 200 : 404, trip ?? { error: "trip not found", code: "TRIP_NOT_FOUND" });
+    }
     if (req.method === "POST" && url.pathname === "/api/plan") {
       const input = JSON.parse(await readBody(req));
       const from = coordinates(input.from, "from"); const to = coordinates(input.to, "to");
@@ -211,7 +218,7 @@ const server = http.createServer(async (req, res) => {
       const via = await resolveViaPlaces(input.via, { date: calendarDateInTimeZone(dateTime, provenance.timezone ?? "America/Toronto") });
       const preference = input.preference ?? "fastest";
       if (!["fastest", "transfers", "walking", "waiting"].includes(preference)) throw new Error("preference must be fastest, transfers, walking, or waiting");
-      const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults };
+      const request = { otpUrl, timeoutMs: config.requestTimeoutMs, from, to, via, dateTime, arriveBy: Boolean(input.arriveBy), wheelchair: Boolean(input.wheelchair), maxWalkDistance: bounded(input.maxWalkDistance ?? 2000, "maxWalkDistance", 0, 20000), preference, maxResults: config.maxResults, allowDirectWalking: input.allowDirectWalking === true };
       const result = input.requiredRoute != null ? await planWithRequiredLine({ ...request, requiredRoute: input.requiredRoute }, { planWithOtp, routeStopAnchors }) : await planWithOtp(request);
       if (input.requiredRoute != null && !result.itineraries.length) return json(res, 422, { error: "No complete journey riding the selected line was found in this bounded search", code: "REQUIRED_LINE_UNRESOLVED", requiredLine: result.requiredLine, itineraries: [], data: provenance });
       if (via.length && !result.itineraries.length) return json(res, 422, { error: "No complete itinerary visits every requested stop", code: "MULTI_STOP_INCOMPLETE", itineraries: [], failedSegment: result.failedSegment ?? null, data: provenance, coverage: coverageContextForDate(provenance, calendarDateInTimeZone(dateTime, provenance.timezone)) });
