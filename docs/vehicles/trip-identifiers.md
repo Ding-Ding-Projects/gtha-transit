@@ -39,4 +39,10 @@ What is offered instead is a measured fact: the **closest vehicle on this route 
 
 A position match is titled **Vehicle seen on this leg**, not *Currently assigned vehicle*, because that is all it establishes. On a corridor with departures a few minutes apart, the same observed vehicle can satisfy more than one departure at once: the operator publishes nothing tying a vehicle to a particular departure, so the interface reports what was seen rather than inventing an allocation. A position match is evidence, not a booking. It says the operator reported one vehicle of that route at a stop on this leg while the leg was running; it does not prove that vehicle will carry any particular passenger, and a service change after the observation is not reflected. A leg that has already finished, or is more than two hours away, keeps its existing unavailable verdict rather than borrowing a current observation.
 
+## TTC shadow matcher
+
+The TTC matcher is a shadow service, not an enabled OTP updater. It compares each update's first three predicted stop times with same-route static candidates, accepts a candidate only when its mean timing error is at most five minutes and the next candidate is at least five minutes worse, then requires the publisher's vehicle position to be fresh and within 300 metres of the delay-adjusted expected stop. It writes a minimal GTFS-RT feed containing only those uniquely confirmed updates.
+
+Every poll records `unique`, `ambiguous`, `none`, `contradicted`, `unverified`, and `sequenceMisaligned` counts. The routing activation threshold is a full 24-hour window with at least 60% unique matches, at most 2% contradicted matches, and at least 98% sequence alignment. A missing feed, unknown route, stale vehicle, ambiguous timing, or mismatched stop sequence is retained as evidence but never rewritten into an OTP update. The matcher must remain shadow-only until a real 24-hour record clears all three thresholds and an operator deliberately adds its endpoint to `backend/otp/router-config.json`.
+
 Suggested articles: [vehicle assignment](assignment.md), [live vehicle sources](README.md).

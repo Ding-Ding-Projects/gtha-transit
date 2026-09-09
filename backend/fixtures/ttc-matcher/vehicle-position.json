@@ -1,0 +1,11 @@
+{
+  "note": "Synthetic decoded VehiclePosition for backend/ttc-trip-matcher.test.mjs, shaped like ttc-trip-matcher.mjs's decodeFeed() output. Shares vehicle id '8901' with trip-update.json and sits exactly on trip-501-B's middle stop (static-index.json) with a fresh timestamp, matching the base 'unique, position consistent' scenario. Its own trip descriptor and stop_id are realtime-only values that do not match the static schedule, same as the live feed - matching is done purely through the shared vehicle id, never through this trip descriptor. Other test cases clone this object and move the position, age the timestamp, or omit the entry.",
+  "id": "vp-entity-1",
+  "trip": { "tripId": "-4821096603845412741", "routeId": "501", "startTime": null, "startDate": null, "scheduleRelationship": null, "directionId": null },
+  "vehicle": { "id": "8901", "label": null, "licensePlate": null },
+  "position": { "latitude": 43.7050, "longitude": -79.4000, "bearing": null },
+  "currentStopSequence": 2,
+  "stopId": "9992",
+  "currentStatus": 1,
+  "timestamp": 1800000900
+}

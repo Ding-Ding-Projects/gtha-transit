@@ -13,7 +13,11 @@ test('registry names every requested agency and uses only explicit capability st
   const registry = await loadRegistry();
   assert.deepEqual(registry.agencies.map(agency => agency.id), ['ttc', 'go', 'up', 'miway', 'brampton', 'yrt', 'drt', 'oakville', 'burlington', 'milton', 'hsr']);
   const staticFeeds = JSON.parse(await readFile(new URL('../data/feeds.json', import.meta.url), 'utf8'));
-  assert.deepEqual(registry.agencies.map(agency => agency.id), staticFeeds.agencies.map(agency => agency.id));
+  // The next TTC timetable is a second static snapshot of the same public
+  // operator, not a second live publisher.  The registry deliberately keeps
+  // one TTC entry so a refresh cannot double-poll the same official endpoint.
+  const publicStaticAgencies = [...new Set(staticFeeds.agencies.map(agency => agency.id === 'ttc-next' ? 'ttc' : agency.id))];
+  assert.deepEqual(registry.agencies.map(agency => agency.id), publicStaticAgencies);
 });
 
 test('aggregator validates public feeds, preserves unavailable reasons, and caches bounded probes', async () => {
@@ -25,7 +29,7 @@ test('aggregator validates public feeds, preserves unavailable reasons, and cach
   assert.equal(first.agencies.find(agency => agency.id === 'oakville').state, 'scheduled_only');
   assert.equal(first.agencies.find(agency => agency.id === 'ttc').state, 'live');
   assert.equal(first.agencies.find(agency => agency.id === 'go').state, 'unavailable');
-  assert.equal(calls, 12);
+  assert.equal(calls, 15);
   assert.equal(second.agencies.find(agency => agency.id === 'hsr').feeds.tripUpdates.cached, true);
-  now += 50_000; await aggregator.refresh(); assert.equal(calls, 24);
+  now += 50_000; await aggregator.refresh(); assert.equal(calls, 30);
 });
