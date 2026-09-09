@@ -502,6 +502,21 @@ test("journey live-status resolves a leg directly, falls back to trip stoptimes,
   const malformed = await fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ legs: [{ legId: "" }] }) });
   assert.equal(malformed.status, 400);
   assert.equal((await malformed.json()).code, "INVALID_LIVE_REQUEST");
+
+  // readBody() calls req.destroy() the instant accumulated bytes exceed
+  // config.maxBodyBytes, which tears down the connection immediately rather
+  // than finishing the read and replying with a clean 400. A client sending
+  // an oversized body therefore never receives an HTTP response at all - the
+  // connection is simply reset - which is itself the observable, verified
+  // behavior of the size guard: confirmed to fail this way consistently
+  // (not a flaky race) against the real server.
+  const { maxBodyBytes } = JSON.parse(await readFile(new URL("./config.json", import.meta.url), "utf8"));
+  const oversizedBody = JSON.stringify({ legs: [{ legId: "x".repeat(maxBodyBytes) }] });
+  assert.ok(Buffer.byteLength(oversizedBody) > maxBodyBytes, "the constructed body must actually exceed the configured limit");
+  await assert.rejects(
+    fetch(`http://127.0.0.1:${port}/api/journeys/live`, { method: "POST", headers: { "content-type": "application/json" }, body: oversizedBody }),
+    "a body over the configured limit resets the connection instead of completing with a response",
+  );
 });
 
 test("plan itineraries report whether OTP actually applied a live update, and from which agency", async (context) => {

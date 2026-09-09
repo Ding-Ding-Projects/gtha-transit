@@ -16,7 +16,7 @@ const DEPARTURES = `query Departures($id:String!,$start:Long!,$timeRange:Int!,$c
   } }
 }`;
 
-function finiteNumber(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+function finiteNumber(value, fallback = null) { if (value == null || value === "" || typeof value === "boolean") return fallback; const n = Number(value); return Number.isFinite(n) ? n : fallback; }
 function safeText(value) { if (value == null) return null; const text = String(value); return /[\u0000-\u001f\u007f]/.test(text) ? null : text; }
 export function publicAgencyFeedId(value) { return value === "ttc-next" ? "ttc" : value; }
 function timestamp(value, fallback) { const parsed = Date.parse(value ?? ""); return Number.isFinite(parsed) ? parsed : fallback; }

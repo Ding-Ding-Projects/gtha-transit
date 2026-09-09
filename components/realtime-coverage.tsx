@@ -8,6 +8,9 @@ type Agency = {
   capabilities: Record<string, string>;
   lastSuccessfulFetch?: string;
   feeds?: Record<string, unknown>;
+  /** Whether this agency's trip updates are actually reaching journey plans -- see /api/live-coverage. */
+  tripUpdatesApplied?: 'applied' | 'published-unjoinable' | 'shadow' | 'none';
+  tripUpdatesAppliedReason?: string;
 };
 export default function RealtimeCoverage({
   t,
@@ -102,6 +105,31 @@ export default function RealtimeCoverage({
                 timeZoneName: 'short',
               })}
             </small>
+          )}
+          {a.tripUpdatesApplied && (
+            <span>
+              {t('Trip updates applied in journeys', '行程規劃有冇套用班次更新')}
+              {': '}
+              {a.tripUpdatesApplied === 'applied'
+                ? t('applied', '已套用')
+                : a.tripUpdatesApplied === 'shadow'
+                  ? t(
+                      'matched by a separate vehicle-identity service, not the published trip identifiers',
+                      '由獨立車輛識別服務對應，唔係靠公布嘅班次編號',
+                    )
+                  : a.tripUpdatesApplied === 'published-unjoinable'
+                    ? t(
+                        'published, but its identifiers do not join the loaded timetable',
+                        '已公布，但識別碼未能對應已載入嘅時間表',
+                      )
+                    : t('not applied', '未有套用')}
+              {a.tripUpdatesAppliedReason && (
+                <details>
+                  <summary>{t('Why', '原因')}</summary>
+                  <small>{a.tripUpdatesAppliedReason}</small>
+                </details>
+              )}
+            </span>
           )}
         </article>
       ))}

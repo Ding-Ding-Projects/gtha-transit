@@ -2,6 +2,7 @@
 
 - [Deployment and recovery](deployment/README.md)
 - [Passenger guide](planning/README.md)
+- [Live delays and status](planning/live-delays.md)
 - [TTC status](status/README.md)
 - [Disruption history](history/README.md)
 - [Live agency coverage](realtime/README.md)
@@ -9,6 +10,9 @@
 - [Regional feeds and API](data/README.md)
 - [Maps and local geocoding](maps/README.md)
 - [Accessibility and narration](accessibility/README.md)
+- [Interface](interface/README.md)
+- [Design](design/typography.md)
+- [Verification](verification/journey-smoke-test.md)
 - [Journey vehicle preferences](planning/vehicle-preferences.md)
 - [Place and intersection search](search/README.md)
 - [Garage preference](planning/garage-preference.md)

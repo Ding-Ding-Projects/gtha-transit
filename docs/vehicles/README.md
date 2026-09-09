@@ -56,7 +56,7 @@ Use [fleet filters](fleet-filters.md) to select a manufacturer, one of its model
 
 The separate [current route-opportunity mode](journey-route-opportunities.md) can prefer a route reporting an out-of-division vehicle even when the specific departure has no verified assignment. Its observations expire and never populate the assigned-vehicle field.
 
-See [identifying the vehicle on a leg](trip-identifiers.md) for the measured reason an exact trip identifier is not sufficient for the TTC, and for the position join that replaces it.
+See [identifying the vehicle on a leg](trip-identifiers.md) for the measured reason an exact trip identifier is not sufficient for the TTC, for the position join that replaces it on a rider's own leg, and for the separate shadow trip matcher that measures whether TTC's live updates could be trusted for routing itself.
 
 The out-of-division surface explains itself in
 [the division verdict](division-verdict.md): what the two garages mean in one sentence,

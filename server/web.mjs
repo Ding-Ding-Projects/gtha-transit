@@ -163,6 +163,8 @@ const routes = new Set([
   '/api/live-coverage',
   '/api/journeys/live',
   '/api/integrations/status',
+  '/api/live-coverage',
+  '/api/journeys/live',
 ]);
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -228,6 +230,36 @@ async function bounded(res, max = 4 * 1024 * 1024) {
     parts.push(part);
   }
   return Buffer.concat(parts);
+}
+/**
+ * `GET /api/live-coverage`'s feed map, cached in module scope for 60 seconds.
+ *
+ * `/api/realtime` is polled by the coverage tab every 60 seconds and can also
+ * be requested directly; fetching the routing origin's own live-coverage
+ * endpoint fresh on every one of those would mostly re-read router config
+ * that never changed between two requests a minute apart. A failed fetch
+ * clears nothing it does not already own and simply reports no coverage for
+ * this call -- the merge below then leaves every agency's `tripUpdatesApplied`
+ * unset rather than guessing a state nobody published.
+ */
+const LIVE_COVERAGE_CACHE_MS = 60000;
+let liveCoverageCache = null; // { feeds, expiresAt }
+async function cachedLiveCoverageFeeds() {
+  const now = Date.now();
+  if (liveCoverageCache && liveCoverageCache.expiresAt > now) return liveCoverageCache.feeds;
+  try {
+    const response = await fetch(routing + '/api/live-coverage', {
+      signal: AbortSignal.timeout(4000),
+      redirect: 'error',
+    });
+    if (!response.ok) throw new Error('live-coverage unavailable');
+    const payload = JSON.parse(await bounded(response, 65536));
+    const feeds = payload && typeof payload.feeds === 'object' && payload.feeds ? payload.feeds : {};
+    liveCoverageCache = { feeds, expiresAt: now + LIVE_COVERAGE_CACHE_MS };
+    return feeds;
+  } catch {
+    return null;
+  }
 }
 const buckets = new Map();
 function allowed(key) {
@@ -506,6 +538,15 @@ const server = http.createServer(async (req, res) => {
           }
         }
       } catch {}
+      const feeds = await cachedLiveCoverageFeeds();
+      if (feeds) {
+        for (const a of summary.agencies) {
+          const entry = feeds[a.id];
+          if (!entry) continue;
+          a.tripUpdatesApplied = entry.state;
+          if (entry.reason) a.tripUpdatesAppliedReason = entry.reason;
+        }
+      }
       return send(res, 200, summary);
     }
     if (url.pathname.startsWith('/api/history') && req.method === 'GET') {

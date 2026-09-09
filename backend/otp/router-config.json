@@ -8,7 +8,7 @@
     {"type":"real-time-alerts","feedId":"hsr","url":"https://opendata.hamilton.ca/GTFS-RT/GTFS_ServiceAlerts.pb","frequency":"1m"},
     {"type":"stop-time-updater","feedId":"go","url":"http://api:8788/internal/metrolinx/go/trips","frequency":"30s"},
     {"type":"stop-time-updater","feedId":"up","url":"http://api:8788/internal/metrolinx/up/trips","frequency":"30s"},
-    {"type":"stop-time-updater","feedId":"yrt","url":"https://rtu.york.ca/gtfsrealtime/TripUpdates","frequency":"30s","fuzzyTripMatching":true},
+    {"type":"stop-time-updater","feedId":"yrt","url":"https://rtu.york.ca/gtfsrealtime/TripUpdates","frequency":"30s"},
     {"type":"real-time-alerts","feedId":"yrt","url":"https://rtu.york.ca/gtfsrealtime/ServiceAlerts","frequency":"1m"}
   ]
 }
