@@ -14,6 +14,7 @@ import './comfort.css';
 import './notifications.css';
 import './command-palette.css';
 import './catch-vehicle.css';
+import './appearance.css';
 // The shell loads last so its navigation rules win over the old workspace ones.
 import './shell.css';
 export const metadata: Metadata = {

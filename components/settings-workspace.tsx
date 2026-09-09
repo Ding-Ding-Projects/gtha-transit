@@ -5,6 +5,8 @@ import { Accessibility, ArrowRight, Check, Languages, Mic2, Moon, Palette, Searc
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import NarratorSettings from './narrator-settings';
+import AppearanceEditor from './appearance-editor';
+import type { AppearanceController } from '../lib/appearance/use-appearance';
 import ComfortSettings from './comfort-settings';
 import SchoolMode from './school-mode';
 import { schoolName, type SchoolState } from '../lib/school-mode';
@@ -43,7 +45,8 @@ function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: S
 const englishPreviews = ['Clear directions, at your pace.', 'Plan a straightforward journey.', 'A smoother route to your next stop.', 'Find your route and let the region connect.', 'Your next connection. Minus the timetable gymnastics.'];
 const cantonesePreviews = ['按需要規劃行程。', '清晰規劃每一程。', '下一站，輕鬆到達。', '搵好路線，出門就放心啲。', '轉車可以，轉到頭暈就唔使喇。'];
 
-export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool }: {
+export default function SettingsWorkspace({ appearance, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool }: {
+  appearance: AppearanceController;
   lang: Lang; setLang: (value: Lang) => void;
   dark: boolean; setDark: (value: boolean) => void;
   funEn: number; setFunEn: (value: number) => void;
@@ -91,7 +94,7 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
     });
   };
   const findIn = (section: Section) => <SettingsSearch entries={entries.filter(entry => entry.section === section)} storageId={'settings-' + section + '-search'} title={t('Find in this section', '搜尋此部分')} t={t} navigate={navigate} />;
-  return <div className="page-panel settings settings-workspace" ref={root}>
+  return <div className="page-panel settings settings-workspace" data-ui="settings.workspace" ref={root}>
     <h2 className="sr-only">{t('Settings & privacy', '設定及私隱')}</h2>
     <SettingsSearch entries={entries} storageId="settings-all-search" title={t('Find any setting', '搜尋所有設定')} t={t} navigate={navigate} />
     {storedTab.unavailable && <output className="settings-notice">{t('Your selected section could not be saved. The controls still work in this session.', '未能儲存所選部分，此次使用仍可操作。')}</output>}
@@ -102,6 +105,7 @@ export default function SettingsWorkspace({ lang, setLang, dark, setDark, funEn,
       </TabsList>
       <TabsContent value="appearance" className="settings-section" keepMounted>
         {findIn('appearance')}
+        <AppearanceEditor controller={appearance} t={t} />
         <section className="preference-card" aria-labelledby={id + '-appearance'}>
           <div className="preference-card-heading"><Palette size={23} aria-hidden="true" /><div><h3 id={id + '-appearance'}>{t('Colour theme', '色彩主題')}</h3><p>{t('Choose the light that feels right.', '揀一個睇得舒服嘅明暗。')}</p></div></div>
           <fieldset className="appearance-choices"><legend className="sr-only">{t('Colour theme', '色彩主題')}</legend>

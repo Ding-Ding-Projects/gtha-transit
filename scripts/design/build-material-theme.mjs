@@ -23,7 +23,12 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { inGamut, oklabToOklch, oklabToRgbTriple, oklchToOklab, toLinear, tripleToOklab } from '../../lib/colour.ts';
+import { toLinear } from '../../lib/colour.ts';
+import { palette, ROLE_TONES, schemeForSeed, SHIPPED_SOURCES, toneAtHue, toneOf, TONES } from '../../lib/appearance/token-scheme.mjs';
+
+// Keep this script's public helpers stable for existing test imports while the
+// browser-safe module becomes the shared API for runtime appearance overrides.
+export { palette, ROLE_TONES, schemeForSeed, SHIPPED_SOURCES, toneAtHue, toneOf, TONES };
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT = path.resolve(here, '..', '..', 'app', 'material-theme.css');
@@ -48,14 +53,7 @@ const checkOnly = process.argv.includes('--check');
  * warm paper by day and blue ink by night; that is two hues, not two lightnesses
  * of one, and a single tonal palette cannot express it.
  */
-const SOURCES = {
-  primary: '#ffb545',
-  secondary: '#8a7355',
-  tertiary: '#006b68',
-  neutral: { light: '#5c5a52', dark: '#243248' },
-  neutralVariant: { light: '#5f5b4f', dark: '#28364c' },
-  error: '#ba1a1a',
-};
+const SOURCES = SHIPPED_SOURCES;
 
 /**
  * Delay-severity hues for the live-status chip, solved through the identical
@@ -76,85 +74,10 @@ const STATUS_SOURCES = {
   'very-late': { hue: 25, chroma: 0.18 },
 };
 
-/** Material's tone stops. A tone number is a lightness, not a shade name. */
-const TONES = [0, 4, 6, 10, 12, 17, 20, 22, 24, 30, 40, 50, 60, 70, 80, 87, 90, 92, 94, 95, 96, 98, 99, 100];
-
-// ---------------------------------------------------------------------------
-// Colour conversion. sRGB <-> linear <-> XYZ <-> OKLab <-> OKLCH, plus CIE L*.
-// ---------------------------------------------------------------------------
-
-const clamp01 = (value) => Math.min(1, Math.max(0, value));
-
 function hexToRgb(hex) {
   const text = hex.replace('#', '');
   return [0, 2, 4].map((at) => parseInt(text.slice(at, at + 2), 16) / 255);
 }
-
-/*
- * The conversions come from lib/colour.ts rather than being repeated here.
- *
- * They were repeated here, and the colour picker was about to become a second
- * copy of the same matrices. Two implementations of a colour space agree right
- * up until one of them is corrected, and then they disagree silently: the
- * generated theme and the picker showing you that theme would describe the same
- * colour differently, and nothing would fail. One of the copies already had a
- * D50 white point paired with a D65 matrix.
- *
- * `oklabToRgb` keeps its name here because that is what the generator calls it;
- * it is the shared function, which returns gamma-encoded channels in 0..1.
- */
-const oklabToRgb = oklabToRgbTriple;
-const rgbToOklab = tripleToOklab;
-
-/** CIE L*, the lightness a Material tone number names. */
-function cieLightness([red, green, blue]) {
-  const y = 0.2126729 * toLinear(red) + 0.7151522 * toLinear(green) + 0.0721750 * toLinear(blue);
-  return y <= 216 / 24389 ? y * (24389 / 27) : 116 * Math.cbrt(y) - 16;
-}
-
-/**
- * One tone of a palette: the source hue at the requested lightness.
- *
- * Chroma is reduced only as far as the gamut demands, which is what keeps a tone
- * recognisably the brand colour rather than drifting grey the moment it is asked
- * for something light or dark.
- */
-/**
- * One tone at a bare hue and chroma ceiling, with no swatch behind it.
- *
- * This is the body `toneOf` always had; a source colour and a bare hue meet
- * here once the hue and the chroma ceiling are known, so the two ways of
- * naming a colour cannot solve tones differently.
- */
-function toneAtHue(hue, sourceChroma, tone) {
-  if (tone <= 0) return '#000000';
-  if (tone >= 100) return '#ffffff';
-  // Solve OKLab lightness for the CIE L* the tone number names.
-  let low = 0;
-  let high = 1;
-  for (let step = 0; step < 40; step += 1) {
-    const middle = (low + high) / 2;
-    const rgb = oklabToRgb(oklchToOklab([middle, 0, hue])).map(clamp01);
-    if (cieLightness(rgb) < tone) low = middle; else high = middle;
-  }
-  const lightness = (low + high) / 2;
-  // Then take as much chroma as this lightness can actually hold.
-  let usable = 0;
-  let tooMuch = Math.max(sourceChroma, 0.0001) * 1.2;
-  for (let step = 0; step < 30; step += 1) {
-    const middle = (usable + tooMuch) / 2;
-    if (inGamut(oklabToRgb(oklchToOklab([lightness, middle, hue])))) usable = middle; else tooMuch = middle;
-  }
-  const rgb = oklabToRgb(oklchToOklab([lightness, Math.min(usable, sourceChroma), hue])).map(clamp01);
-  return '#' + rgb.map((channel) => Math.round(channel * 255).toString(16).padStart(2, '0')).join('');
-}
-
-export function toneOf(sourceHex, tone) {
-  const [, sourceChroma, hue] = oklabToOklch(rgbToOklab(hexToRgb(sourceHex)));
-  return toneAtHue(hue, sourceChroma, tone);
-}
-
-export const palette = (sourceHex) => Object.fromEntries(TONES.map((tone) => [tone, toneOf(sourceHex, tone)]));
 
 /** One full status palette per delay-severity hue, at the same tone stops as every other source. */
 const statusPalettes = Object.fromEntries(
@@ -176,51 +99,8 @@ const palettes = Object.fromEntries(['light', 'dark'].map((scheme) => [
 // Role mapping. These tone assignments are Material's, not chosen here.
 // ---------------------------------------------------------------------------
 
-const roleTones = {
-  light: {
-    primary: ['primary', 40], 'on-primary': ['primary', 100],
-    'primary-container': ['primary', 90], 'on-primary-container': ['primary', 30],
-    secondary: ['secondary', 40], 'on-secondary': ['secondary', 100],
-    'secondary-container': ['secondary', 90], 'on-secondary-container': ['secondary', 30],
-    tertiary: ['tertiary', 40], 'on-tertiary': ['tertiary', 100],
-    'tertiary-container': ['tertiary', 90], 'on-tertiary-container': ['tertiary', 30],
-    error: ['error', 40], 'on-error': ['error', 100],
-    'error-container': ['error', 90], 'on-error-container': ['error', 30],
-    surface: ['neutral', 98], 'on-surface': ['neutral', 10],
-    'surface-variant': ['neutralVariant', 90], 'on-surface-variant': ['neutralVariant', 30],
-    'surface-dim': ['neutral', 87], 'surface-bright': ['neutral', 98],
-    'surface-container-lowest': ['neutral', 100], 'surface-container-low': ['neutral', 96],
-    'surface-container': ['neutral', 94], 'surface-container-high': ['neutral', 92],
-    'surface-container-highest': ['neutral', 90],
-    'inverse-surface': ['neutral', 20], 'inverse-on-surface': ['neutral', 95],
-    'inverse-primary': ['primary', 80],
-    outline: ['neutralVariant', 50], 'outline-variant': ['neutralVariant', 80],
-    scrim: ['neutral', 0], shadow: ['neutral', 0],
-  },
-  dark: {
-    primary: ['primary', 80], 'on-primary': ['primary', 20],
-    'primary-container': ['primary', 30], 'on-primary-container': ['primary', 90],
-    secondary: ['secondary', 80], 'on-secondary': ['secondary', 20],
-    'secondary-container': ['secondary', 30], 'on-secondary-container': ['secondary', 90],
-    tertiary: ['tertiary', 80], 'on-tertiary': ['tertiary', 20],
-    'tertiary-container': ['tertiary', 30], 'on-tertiary-container': ['tertiary', 90],
-    error: ['error', 80], 'on-error': ['error', 20],
-    'error-container': ['error', 30], 'on-error-container': ['error', 90],
-    surface: ['neutral', 6], 'on-surface': ['neutral', 90],
-    'surface-variant': ['neutralVariant', 30], 'on-surface-variant': ['neutralVariant', 80],
-    'surface-dim': ['neutral', 6], 'surface-bright': ['neutral', 24],
-    'surface-container-lowest': ['neutral', 4], 'surface-container-low': ['neutral', 10],
-    'surface-container': ['neutral', 12], 'surface-container-high': ['neutral', 17],
-    'surface-container-highest': ['neutral', 22],
-    'inverse-surface': ['neutral', 90], 'inverse-on-surface': ['neutral', 20],
-    'inverse-primary': ['primary', 40],
-    outline: ['neutralVariant', 60], 'outline-variant': ['neutralVariant', 30],
-    scrim: ['neutral', 0], shadow: ['neutral', 0],
-  },
-};
-
 const roleValue = (scheme, role) => {
-  const [source, tone] = roleTones[scheme][role];
+  const [source, tone] = ROLE_TONES[scheme][role];
   return palettes[scheme][source][tone];
 };
 
@@ -278,7 +158,7 @@ export function contrastReport() {
 // The emitted stylesheet.
 // ---------------------------------------------------------------------------
 
-const roleBlock = (scheme) => Object.keys(roleTones[scheme])
+const roleBlock = (scheme) => Object.keys(ROLE_TONES[scheme])
   .map((role) => `  --md-sys-color-${role}: ${roleValue(scheme, role)};`)
   .join('\n');
 
@@ -431,5 +311,5 @@ if (!runningDirectly) {
   if (failures.length) { console.error('contrast failures:\n' + failures.join('\n')); process.exit(1); }
   writeFileSync(OUTPUT, stylesheet.replace(/\n/g, '\r\n'));
   console.log(`wrote ${OUTPUT}`);
-  console.log(`${Object.keys(roleTones.light).length} colour roles per scheme, ${CONTRAST_PAIRS.length} text pairs checked in both`);
+  console.log(`${Object.keys(ROLE_TONES.light).length} colour roles per scheme, ${CONTRAST_PAIRS.length} text pairs checked in both`);
 }

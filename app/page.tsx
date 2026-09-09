@@ -41,6 +41,8 @@ import DestinationList, { type Destination } from '../components/destination-lis
 import SelectedStopInfo, { RouteBadges, WashroomBadge } from '../components/stop-route-badges';
 import VehiclePhotoCaption from '../components/vehicle-photo-caption';
 import SettingsWorkspace from '../components/settings-workspace';
+import { useAppearance } from '../lib/appearance/use-appearance';
+import { AppearanceInspector } from '../components/appearance-editor';
 import RaceWorkspace from '../components/race-workspace';
 import GoCancellations from '../components/go-cancellations';
 import JourneyTimeControls from '../components/journey-time-controls';
@@ -442,6 +444,7 @@ export default function Home() {
    * comes back the moment the mode goes off. Overwriting would turn a temporary
    * mode into a permanent edit of somebody's preferences.
    */
+  const appearance = useAppearance(dark);
   const shownLang = effectiveLanguage(school, lang) as Lang;
   const shownFunEn = effectiveFunLevel(school, funEn);
   const shownFunZh = effectiveFunLevel(school, funZh);
@@ -449,12 +452,13 @@ export default function Home() {
     (en: string, zh: string) => {
       const a = copyAt(en, 'en', shownFunEn),
         b = copyAt(zh, 'zh', shownFunZh);
-      const line = shownLang === 'zh' ? b : shownLang === 'both' ? `${a} · ${b}` : a;
+      const originalLine = shownLang === 'zh' ? b : shownLang === 'both' ? `${a} · ${b}` : a;
       /* A loaded file is not cleared, only unapplied, so the words return with
          the card rather than having to be chosen again. */
+      const line = appearance.global.showEmoji ? originalLine : originalLine.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').trim();
       return suppresses(school, 'vocabulary') ? line : replaceWords(line);
     },
-    [shownLang, shownFunEn, shownFunZh, replaceWords, school],
+    [shownLang, shownFunEn, shownFunZh, replaceWords, school, appearance.global.showEmoji],
   );
 
   /**
@@ -1025,7 +1029,8 @@ export default function Home() {
       <a className="skip" href="#main">
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
-      <WorkspaceNavigation active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={shownLang} onLang={setLang} t={t} hideLanguages={school.on} />
+      <AppearanceInspector controller={appearance} t={t} />
+      <WorkspaceNavigation appName={appearance.global.appName ?? undefined} active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={shownLang} onLang={setLang} t={t} hideLanguages={school.on} />
       <CommandPalette t={t} destinations={paletteDestinations} settings={paletteSettings} actions={paletteActions} onNavigate={setTab} />
       <div className="workspace-topline">
         <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{destinationHeading(t, tab)}</h1></div>
@@ -1429,7 +1434,7 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-                  <div className="journeys">
+                  <div className="journeys" data-ui="journey.list">
                     <div className="live-refresh-summary">
                       <p role="status" aria-live="polite">{liveJourneys.failed ? t('Live refresh unavailable. Older predictions are marked stale after two minutes.', '即時更新暫未能提供。舊預測會喺兩分鐘後標示過時。') : liveJourneys.checkedAt ? t(`Live checked at ${time(liveJourneys.checkedAt)}.`, `即時資料更新於 ${time(liveJourneys.checkedAt)}。`) : t('Times reflect the latest plan response. Unmatched services retain their timetable.', '時間根據最新規劃回應。未配對服務保留時間表。')}</p>
                       <button type="button" className="pill" onClick={liveJourneys.refreshNow}><RefreshCw size={16} />{t('Refresh live times', '更新即時時間')}</button>
@@ -1440,7 +1445,7 @@ export default function Home() {
                         className={
                           'journey ' + (index === selected ? 'selected' : '')
                         }
-                        key={j.id}
+                        key={j.id} data-ui="journey.option.card"
                       >
                         <button
                           className="journey-summary"
@@ -2238,7 +2243,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && <SettingsWorkspace lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} />}
+          {tab === 'settings' && <SettingsWorkspace appearance={appearance} lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">
