@@ -24,6 +24,18 @@ test("OpenTripPlanner publishes port 8790 for the routing API on the other host"
   assert.match(otp, /^\s{4}ports: \["\$\{OTP_BIND_ADDRESS:-127\.0\.0\.1\}:8790:8080"\]$/m);
 });
 
+test("the statistics bridge publishes 18791 for the routing API and reads the matcher by service name", () => {
+  const proxy = serviceBlock("ttc-stats-proxy");
+  assert.match(proxy, /^\s{4}ports: \["\$\{TTC_STATS_BIND_ADDRESS:-127\.0\.0\.1\}:18791:8791"\]$/m);
+  assert.match(proxy, /TTC_MATCHER_UPSTREAM: "http:\/\/ttc-matcher:8790"/);
+});
+
+test("every Node service names its image so a boot never rebuilds from stale host source", () => {
+  for (const name of ["metrolinx-proxy", "ttc-matcher", "ttc-stats-proxy"]) {
+    assert.match(serviceBlock(name), /^\s{4}image: gtha-transit-backend:\$\{BACKEND_IMAGE_TAG:-local\}$/m, name);
+  }
+});
+
 test("OpenTripPlanner keeps a restart policy", () => {
   assert.match(serviceBlock("otp"), /^\s{4}restart: unless-stopped$/m);
 });

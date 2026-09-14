@@ -16,6 +16,10 @@ services:
   # Metrolinx key through this proxy at the service alias "api" - the alias
   # keeps router-config.json's existing updater URLs resolving unchanged.
   metrolinx-proxy:
+    # One image for the three Node services. The tag is named so a boot-time
+    # `docker compose up -d` reuses the image that was deployed instead of
+    # rebuilding from whatever source happens to sit on the host.
+    image: gtha-transit-backend:${BACKEND_IMAGE_TAG:-local}
     build: {context: .., dockerfile: backend/Dockerfile}
     command: ["node", "metrolinx-proxy.mjs"]
     expose: ["8788"]
@@ -35,9 +39,20 @@ services:
   # service on the routing-API host is what flips backend/live-coverage.mjs's
   # TTC state from "published-unjoinable" to "shadow".
   ttc-matcher:
+    image: gtha-transit-backend:${BACKEND_IMAGE_TAG:-local}
     build: {context: .., dockerfile: backend/Dockerfile}
     command: ["node", "ttc-trip-matcher.mjs"]
     expose: ["8790"]
     environment: {OTP_URL: "http://otp:8080", TTC_MATCHER_PORT: "8790"}
     restart: unless-stopped
     depends_on: [otp]
+  # Publishes only the matcher's sanitized counters to the routing API on the
+  # other host (its TTC_MATCHER_URL), never the rewritten feed itself.
+  ttc-stats-proxy:
+    image: gtha-transit-backend:${BACKEND_IMAGE_TAG:-local}
+    build: {context: .., dockerfile: backend/Dockerfile}
+    command: ["node", "ttc-stats-proxy.mjs"]
+    ports: ["${TTC_STATS_BIND_ADDRESS:-127.0.0.1}:18791:8791"]
+    environment: {TTC_MATCHER_UPSTREAM: "http://ttc-matcher:8790", TTC_MATCHER_FEED: "ttc-next", PORT: "8791"}
+    restart: unless-stopped
+    depends_on: [ttc-matcher]
