@@ -1,5 +1,46 @@
 # Implementation handoff
 
+## Routing outage after a reboot, and self-repair, 14 September 2026
+
+**What happened.** The routing host rebooted at 06:01. `backend-otp-1` came back
+`Up` with an empty `NetworkSettings.Networks` and no bound port 8790, so the web
+host could not reach it. `node scripts/smoke-journeys.mjs` at 21:20 UTC: 0 of 14
+planned, every pair "Regional routing is temporarily unavailable". The boot unit's
+`docker compose up -d` left the running container alone.
+
+**Recovered.** `docker compose up -d --force-recreate --no-deps otp` in
+`/home/docker/gtha-transit-backend/backend`: one network, port bound, 14 of 14
+planned, five agencies reached.
+
+**Made permanent** in `98bb8c2`: `backend/reattach-detached.sh`,
+`backend/install-compose-units.sh`, the restored otp port line in
+`backend/compose.yaml`, and `backend/compose-contract.test.mjs` (7 tests; the port
+line and each repair rule broken on purpose and seen red). Installed on both hosts:
+`gtha-transit-backend-compose.service` plus its `-reattach.timer` on the routing
+host, `gtha-transit-compose.service` plus its timer on the web host. The old unit
+files are kept as `/home/docker/*.service.before-reattach`. Details and evidence:
+`docs/deployment/restarting.md`.
+
+| Check | Result |
+| --- | --- |
+| Backend suite | 84 pass, 0 fail |
+| Deliberate `docker network disconnect` of otp | timer recreated it about 80 s later, answering 2 min 33 s after the detachment |
+| Smoke test afterwards | 14 of 14 planned |
+| Watchdog no-op passes on both hosts | `Result=success` |
+
+**Still owed.**
+
+- The boot unit's own repair path has not been exercised. The command that
+  would do it (pause the timer, detach otp, restart the boot unit, then stop otp
+  and restart the boot unit again) was refused by this session's tool policy.
+- No real reboot of the routing host since the install. It also runs other
+  workloads, so that needs the owner's go-ahead.
+- `backend-ttc-stats-proxy-e7889a62` was started by hand outside Compose and is
+  also detached. The repair script only covers Compose services, so it stays
+  broken until it is recreated or moved into the compose file.
+- Set `OTP_BIND_ADDRESS` in the routing host's `.env` before deploying `main`'s
+  backend compose file.
+
 ## Session closeout, 9 September 2026, evening
 
 What exists now, for whoever picks this up:

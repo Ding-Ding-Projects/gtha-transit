@@ -65,3 +65,52 @@ which is how it was already being reached, rather than taking a port from a
 running workload belonging to something else. Which project should own that port
 is a decision for its owner — not something to settle by whichever container
 restarts last.
+
+## Running, but detached from its network
+
+Starting a stack at boot is not enough on its own. On 9 and again on 14 September
+2026 the routing host rebooted and OpenTripPlanner came back reporting `Up` with
+**no network and no published port**: `docker inspect` showed the requested port
+binding under `HostConfig` and an empty `NetworkSettings.Networks`. Nothing could
+reach it, so every journey failed ("Regional routing is temporarily unavailable",
+0 of 14 in `scripts/smoke-journeys.mjs`). The boot unit's `docker compose up -d`
+saw a running container and left it alone, and `docker restart` does not reattach
+one either. Only recreating it does.
+
+**What is in place now.** `backend/install-compose-units.sh` installs, per stack:
+
+- `<name>.service` at boot runs `reattach-detached.sh --wait`. It starts the
+  stack, recreates any running container that has no network or is missing the
+  ports it asks for, optionally probes OpenTripPlanner with a real Union Station
+  query, and keeps going until the stack answers. If it gives up after ten
+  minutes it exits non-zero and systemd retries it every 30 seconds.
+- `<name>-reattach.timer` runs one repair pass two minutes after boot and every
+  two minutes after, for a detachment that happens later (a daemon restart, an
+  upgrade). The pass never starts a service somebody stopped. A failing probe
+  only triggers a recreate once the container has been up for 300 seconds, so a
+  graph that is still loading is not mistaken for an outage.
+
+```
+# routing host
+sudo backend/install-compose-units.sh gtha-transit-backend-compose /home/docker/gtha-transit-backend/backend http://<lan-address>:8790/otp/gtfs/v1
+# web host
+sudo backend/install-compose-units.sh gtha-transit-compose /home/docker/gtha-transit
+```
+
+The installer copies the script to `/usr/local/lib/gtha-transit/`, so the units
+do not depend on where a checkout lives. The previous unit files were kept beside
+each project as `*.service.before-reattach`.
+
+**Verified on the routing host, 14 September 2026.** OpenTripPlanner was detached
+on purpose with `docker network disconnect` at 15:32:57. The timer recreated it at
+about 15:34:18 (`reattach: recreating otp (running with 0 networks and 0 of 1
+published ports)`) and it answered the Union Station query at 15:35:30; the smoke
+test then planned 14 of 14. The boot unit's own path (a detachment and an explicit
+stop, each repaired by restarting the boot unit with the timer paused) has not yet
+been exercised on the host, and no real reboot has been done since the install.
+
+**The port matters too.** `backend/compose.yaml` publishes OpenTripPlanner on
+`${OTP_BIND_ADDRESS:-127.0.0.1}:8790`. The routing API runs on the other host and
+reaches it there. `main` had lost that line; set `OTP_BIND_ADDRESS` in the routing
+host's `.env` before deploying `main`'s compose file, or routing stays down.
+`backend/compose-contract.test.mjs` fails if the line disappears again.
