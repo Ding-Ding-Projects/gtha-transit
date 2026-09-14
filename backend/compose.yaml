@@ -5,6 +5,11 @@ services:
     cpus: 4
     mem_limit: 9g
     restart: unless-stopped
+    # The routing API runs on another host and reaches OpenTripPlanner through
+    # this port. Without it every journey fails. The routing host's .env sets
+    # OTP_BIND_ADDRESS to its LAN address; the default keeps a fresh checkout
+    # from exposing the router.
+    ports: ["${OTP_BIND_ADDRESS:-127.0.0.1}:8790:8080"]
     volumes: ["./runtime/otp:/var/otp:ro"]
   # The public routing API (server.mjs) runs on a separate host, not here. This
   # host only needs to feed OTP's own stop-time-updaters, which reach the
