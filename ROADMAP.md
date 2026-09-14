@@ -3,7 +3,8 @@
 ## September 9 recovery increments
 
 - [x] Recover regional routing after the 14 September reboot left OpenTripPlanner running without its network (0 of 14 journeys, back to 14 of 14), and install a boot unit that verifies the stack plus a two-minute repair timer on both hosts. The timer path is proven by a deliberate detachment.
-- [ ] Prove the boot unit alone repairs a detachment and an explicit stop, and confirm a real reboot of the routing host comes back without help.
+- [x] Prove the boot unit alone repairs a detachment and an explicit stop (each answering in under a minute with the repair timer stopped).
+- [ ] Confirm a real reboot of the routing host comes back without help.
 - [ ] Set `OTP_BIND_ADDRESS` in the routing host's `.env` before deploying `main`'s backend compose file.
 - [x] Integrate the second session's line and this session's lane branches into `main` with every suite green (1017 root, 76 backend, 29 matcher), the build clean and no private wording. Not yet deployed.
 - [x] Recover regional routing after the OpenTripPlanner container was found detached from its network; YRT trip updates apply for the first time (434 of 435).

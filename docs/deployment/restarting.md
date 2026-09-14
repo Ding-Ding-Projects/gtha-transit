@@ -105,9 +105,20 @@ each project as `*.service.before-reattach`.
 on purpose with `docker network disconnect` at 15:32:57. The timer recreated it at
 about 15:34:18 (`reattach: recreating otp (running with 0 networks and 0 of 1
 published ports)`) and it answered the Union Station query at 15:35:30; the smoke
-test then planned 14 of 14. The boot unit's own path (a detachment and an explicit
-stop, each repaired by restarting the boot unit with the timer paused) has not yet
-been exercised on the host, and no real reboot has been done since the install.
+test then planned 14 of 14.
+
+The boot unit was then proven on its own, with the timer stopped so it could not
+help. Detached at 15:43:12, `systemctl restart gtha-transit-backend-compose.service`
+returned `Result=success` and the router answered at 15:44:10. Stopped explicitly
+with `docker stop` (the 7 September failure) at 15:44:11, the same restart brought
+it back answering at 15:45:10. No real reboot has been done since the install.
+
+**Hand-started containers.** A container started by hand onto a project network is
+not a Compose service, so it cannot be recreated from the compose file. The repair
+pass reconnects one that publishes no ports with `docker network connect`; one
+that publishes ports is logged as `recreate it by hand` and does not hold the boot
+unit up. `backend-ttc-stats-proxy-e7889a62` on the routing host is in that second
+group. It serves the TTC shadow statistics only and takes no part in routing.
 
 **The port matters too.** `backend/compose.yaml` publishes OpenTripPlanner on
 `${OTP_BIND_ADDRESS:-127.0.0.1}:8790`. The routing API runs on the other host and

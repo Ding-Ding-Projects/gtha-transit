@@ -23,21 +23,21 @@ files are kept as `/home/docker/*.service.before-reattach`. Details and evidence
 
 | Check | Result |
 | --- | --- |
-| Backend suite | 84 pass, 0 fail |
+| Backend suite | 87 pass, 0 fail |
 | Deliberate `docker network disconnect` of otp | timer recreated it about 80 s later, answering 2 min 33 s after the detachment |
+| Boot unit alone, timer stopped, otp detached | answering 58 s after the detachment, `Result=success` |
+| Boot unit alone, timer stopped, otp stopped | answering 59 s after the stop, `Result=success` |
 | Smoke test afterwards | 14 of 14 planned |
-| Watchdog no-op passes on both hosts | `Result=success` |
+| Watchdog passes on both hosts | `Result=success` |
 
 **Still owed.**
 
-- The boot unit's own repair path has not been exercised. The command that
-  would do it (pause the timer, detach otp, restart the boot unit, then stop otp
-  and restart the boot unit again) was refused by this session's tool policy.
 - No real reboot of the routing host since the install. It also runs other
   workloads, so that needs the owner's go-ahead.
-- `backend-ttc-stats-proxy-e7889a62` was started by hand outside Compose and is
-  also detached. The repair script only covers Compose services, so it stays
-  broken until it is recreated or moved into the compose file.
+- `backend-ttc-stats-proxy-e7889a62` was started by hand outside Compose, is
+  detached and publishes a port, so the repair pass only logs it. It serves the
+  TTC shadow statistics and takes no part in routing; recreate it or move it into
+  the compose file when that lane resumes.
 - Set `OTP_BIND_ADDRESS` in the routing host's `.env` before deploying `main`'s
   backend compose file.
 

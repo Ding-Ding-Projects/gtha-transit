@@ -36,9 +36,25 @@ classify() {
   echo ok
 }
 
+# A container started by hand onto the project's network (not a Compose
+# service) cannot be recreated from the compose file. With no published ports,
+# connecting it back to the network it asked for is enough; with ports it needs
+# a person, and that must not stall the boot unit forever.
+classify_manual() {
+  running=$1 networks=$2 bindings=$3
+  if [ "$running" != true ] || [ "$networks" -gt 0 ]; then echo ok; return; fi
+  if [ "$bindings" -gt 0 ]; then echo manual; return; fi
+  echo connect
+}
+
 if [ "${1:-}" = --classify ]; then
   shift
   classify "$1" "$2" "$3" "$4"
+  exit 0
+fi
+if [ "${1:-}" = --classify-manual ]; then
+  shift
+  classify_manual "$1" "$2" "$3"
   exit 0
 fi
 
@@ -46,6 +62,7 @@ WAIT=0
 if [ "${1:-}" = --wait ]; then WAIT=1; shift; fi
 DIR=${1:?project directory required}
 cd "$DIR"
+PROJECT=${COMPOSE_PROJECT_NAME:-$(basename "$(pwd -P)")}
 
 PROBE_URL=${REATTACH_PROBE_URL:-}
 PROBE_SERVICE=${REATTACH_PROBE_SERVICE:-otp}
@@ -76,6 +93,21 @@ repair_pass() {
       recreate "$service" "running with $2 networks and $4 of $3 published ports"
       clean=1
     fi
+  done
+  project_networks=$(docker network ls --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Name}}')
+  for id in $(docker ps -q --filter "status=running"); do
+    set -- $(docker inspect -f '{{.State.Running}} {{len .NetworkSettings.Networks}} {{len .HostConfig.PortBindings}} {{.HostConfig.NetworkMode}} {{.Name}} x{{index .Config.Labels "com.docker.compose.project"}}' "$id")
+    [ "$6" = x ] || continue
+    echo "$project_networks" | grep -qx "$4" || continue
+    case $(classify_manual "$1" "$2" "$3") in
+      connect)
+        log "reconnecting hand-started ${5#/} to $4"
+        docker network connect "$4" "$id" || log "could not reconnect ${5#/}"
+        ;;
+      manual)
+        log "hand-started ${5#/} is detached and publishes ports; recreate it by hand"
+        ;;
+    esac
   done
   if ! probe_ok; then
     id=$(docker compose ps -q "$PROBE_SERVICE" 2>/dev/null || true)

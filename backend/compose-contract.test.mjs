@@ -50,6 +50,23 @@ test("a stopped container is never recreated by the repair pass", () => {
   assert.equal(classify("false", 0, 1, 0), "ok");
 });
 
+function classifyManual(...state) {
+  return execFileSync("sh", [script, "--classify-manual", ...state.map(String)], { encoding: "utf8" }).trim();
+}
+
+test("a hand-started container with no network and no ports is reconnected", () => {
+  assert.equal(classifyManual("true", 0, 0), "connect");
+});
+
+test("a hand-started container that publishes ports is left for a person, not looped on", () => {
+  assert.equal(classifyManual("true", 0, 1), "manual");
+});
+
+test("an attached or stopped hand-started container is left alone", () => {
+  assert.equal(classifyManual("true", 1, 0), "ok");
+  assert.equal(classifyManual("false", 0, 0), "ok");
+});
+
 test("the boot unit retries until the stack is healthy and the timer keeps checking", () => {
   assert.match(installer, /^ExecStart=\$LIB\/reattach-detached\.sh --wait \$PROJECT$/m);
   assert.match(installer, /^Restart=on-failure$/m);
