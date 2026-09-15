@@ -29,7 +29,7 @@ const ICON_NAMES = [
   'expand_less', 'expand_more', 'flag', 'garage', 'history', 'layers', 'light_mode',
   'map', 'more_horiz', 'my_location', 'place', 'public', 'refresh', 'remove',
   'schedule', 'search', 'sensors', 'settings', 'swap_vert', 'translate', 'tune',
-  'volume_up', 'warning',
+  'volume_up', 'warning', 'info',
 ];
 
 /**

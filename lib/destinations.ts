@@ -38,6 +38,7 @@ export function workspaceDestinations(t: Translate): WorkspaceDestination[] {
     { id: 'history', label: t('History', '歷史'), heading: t('The service record', '服務歷史記錄'), glyph: 'history', group: 'secondary' },
     { id: 'coverage', label: t('Our region', '服務範圍'), heading: t('Across the whole region', '接通整個地區'), glyph: 'public', group: 'secondary' },
     { id: 'settings', label: t('Settings', '設定'), heading: t('Make yourself at home', '按你喜好設定'), glyph: 'settings', group: 'secondary' },
+    { id: 'about', label: t('About', '關於'), heading: t('What changed, and how it works', '有乜改咗，點樣運作'), glyph: 'info', group: 'secondary' },
   ];
 }
 

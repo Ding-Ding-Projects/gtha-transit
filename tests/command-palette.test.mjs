@@ -141,10 +141,10 @@ test('every destination the navigation renders is reachable from the palette', (
   const { rows } = palette();
   const rowIds = rows.filter((row) => row.kind === 'destination').map((row) => row.tab);
   assert.deepEqual(rowIds, destinations.map((destination) => destination.id));
-  assert.equal(destinations.length, 9, 'nine destinations, primary and secondary together');
+  assert.equal(destinations.length, 10, 'ten destinations, primary and secondary together');
   // The split is about phone width, and both halves are in the palette.
   assert.equal(primaryDestinations(t).length, 4);
-  assert.equal(secondaryDestinations(t).length, 5);
+  assert.equal(secondaryDestinations(t).length, 6);
   assert.equal(primaryDestinations(t).length + secondaryDestinations(t).length, destinations.length);
 });
 
@@ -376,7 +376,7 @@ test('the navigation reads the shared destinations rather than a list of its own
  * says the old id. A destination that disappeared entirely would disappear from
  * the check with it.
  */
-const DESTINATION_IDS = ['plan', 'status', 'vehicles', 'saved', 'race', 'divisions', 'history', 'coverage', 'settings'];
+const DESTINATION_IDS = ['plan', 'status', 'vehicles', 'saved', 'race', 'divisions', 'history', 'coverage', 'settings', 'about'];
 
 test('the destination ids are the ones the rest of the workspace navigates by', () => {
   assert.deepEqual(workspaceDestinations(t).map((destination) => destination.id), DESTINATION_IDS);

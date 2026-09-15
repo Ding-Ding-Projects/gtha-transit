@@ -29,6 +29,7 @@ import garageRegistry from '../data/ttc-divisions.json';
 import TransitMap from '../components/transit-map';
 import PlaceSuggestionInfo from '../components/place-suggestion-info';
 import DisruptionHistory from '../components/disruption-history';
+import AboutWorkspace from '../components/about-workspace';
 import RealtimeCoverage from '../components/realtime-coverage';
 import LiveStatusChip, { LiveLegend } from '../components/live-status-chip';
 import { classifyLeg, summariseJourney, type FeedLiveCoverage, type LiveLegStatus } from '../lib/live-status';
@@ -1312,6 +1313,7 @@ export default function Home() {
           {washroomRequest && <div ref={washroomAnchor} tabIndex={-1} className="follower-anchor"><WashroomDetourPanel {...washroomRequest} t={t} onClose={() => { setWashroomRequest(null); requestAnimationFrame(() => { if (washroomReturn.current?.isConnected) washroomReturn.current.focus(); }); }} onFollow={(journey, target) => { openFollower({ journey }); setWashroomTarget({ ...target, expectedArrival: journey.endTime }); }} /></div>}
           {tab === 'race' && <RaceWorkspace t={t} />}
           {tab === 'history' && <DisruptionHistory t={t} />}
+          {tab === 'about' && <AboutWorkspace t={t} version={version} />}
           {tab === 'vehicles' && <VehicleTracker t={t} wheelchair={wheelchair} onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
           {tab === 'divisions' && <VehicleTracker key="divisions" t={t} wheelchair={wheelchair} divisionMode onFollow={vehicle => openFollower({ vehicle })} onCatchWalk={journey => openFollower({ journey })} />}
           {tab === 'coverage' && <RealtimeCoverage t={t} liveCoverage={liveCoverage} />}

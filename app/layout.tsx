@@ -11,6 +11,7 @@ import './journey-time.css';
 import './vehicle-preferences.css';
 import './dim-sum.css';
 import './comfort.css';
+import './about.css';
 import './notifications.css';
 import './command-palette.css';
 import './catch-vehicle.css';
