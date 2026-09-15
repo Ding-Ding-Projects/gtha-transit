@@ -75,6 +75,19 @@ before and during the run) on a hidden desktop:
 | `docs/design/parity/` | 8 of 8 screens captured with side-by-sides and diffs; `tests/design-parity.test.mjs` 8 pass |
 | Capture defect found and fixed | every bilingual parity capture, including the previous one at `40411b1`, was photographed with the phone's More dialog open over the desktop: the navigation match compared "Plan" with "Plan · 規劃" and fell back to the hidden More item. The script now matches the English part, uses More only when visible, and refuses a capture with the dialog open. Bilingual difference 90 % to 67 % |
 
+**Routing API rebuilt from `main`.** The web host ran `gtha-transit-api:e530ee3-candidate`,
+which predates the Catch journey controls and the position-alignment repair. Built
+`gtha-transit-api:83bf0c2d` on the web host from `git archive` of `83bf0c2`, with the three
+generated indexes (`stops.json` 17,540,380 bytes, `routes.json` 485,620,
+`route-patterns.json` 30,521,370) copied out of the previous image because the repository
+holds only placeholders; `feeds.json` and `transit-washrooms.json` were byte-identical to
+`main`. A candidate container on the same mounts reported `router: ready` and answered a
+Union Station place search before the switch. `.env` `API_TAG` changed (backup
+`.env.backup-before-api-83bf0c2d`); the old image is kept for rollback. After the recreate:
+router ready, matcher URL kept, `ttc-next` `shadow`. A smoke run started seconds after the
+recreate reported 1 failure while the API was loading; the next run planned 8 of 14 with 6
+GO pairs having no departure at 01:49 and 0 failed.
+
 Captures under `docs/interface/ledger/shots-*` are ignored by Git on purpose; the JSON
 rows carry each capture's hash. The browser, the reference viewer, their ports, the
 profile and the desktop were removed and checked absent afterwards.
