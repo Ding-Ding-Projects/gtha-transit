@@ -9,7 +9,8 @@
 - [x] Integrate the second session's line and this session's lane branches into `main` with every suite green (1017 root, 76 backend, 29 matcher), the build clean and no private wording. Not yet deployed.
 - [x] Recover regional routing after the OpenTripPlanner container was found detached from its network; YRT trip updates apply for the first time (434 of 435).
 - [x] Recreate the routing host's proxy container so GO and UP updates apply again, and replace the hand-started shadow matcher with the `ttc-matcher` compose service (the statistics bridge is now the `ttc-stats-proxy` service too).
-- [ ] Rebuild and deploy the web and API images from `main`, then re-record the four interaction-ledger tuples and add drive scripts and captures for the live chips, the tab strip, the appearance studio and the Catch panel.
+- [x] Deploy the web image from `main` and re-record the four interaction-ledger tuples and the design parity capture at the deployed commit (`86f7f2e`; 4 of 4 tuples, 8 of 8 screens).
+- [ ] Rebuild the routing API image from `main` (it still runs `e530ee3-candidate`) and add drive scripts and captures for the live chips, the appearance studio and the Catch panel (the tab strip is parked by owner decision).
 
 - [ ] Deploy and capture the electric preference controls. The second session reports 390 px and 1440 px light/dark checks on its deployed recovery build, but no capture or drive script was committed; re-verify with committed evidence after the next deploy.
 - [ ] Complete Catch mixed-mode controls and validate a real positive interception. The client now accepts a journey without a walking alias, forwards step-free preferences, labels position-aligned estimates, pauses updates, refuses stale/imprecise locations and expires missed transit departures. Local checks pass; the newest client is not deployed or browser-verified.

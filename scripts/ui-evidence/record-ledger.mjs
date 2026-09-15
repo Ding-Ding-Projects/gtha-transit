@@ -16,7 +16,7 @@
  *
  * Usage:
  *   node scripts/ui-evidence/record-ledger.mjs \
- *     --endpoint ws://127.0.0.1:PORT/devtools/page/ID \
+ *     --endpoint http://127.0.0.1:PORT/json/list \
  *     --url https://example.org/ --commit <40 hex> [--out docs/interface/ledger]
  */
 

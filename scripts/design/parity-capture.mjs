@@ -153,24 +153,36 @@ async function captureApp(row) {
     await pause(900);
   }
 
+  /* In bilingual mode a label reads "Plan · 規劃", so an exact match on "Plan"
+     found nothing and the fallback clicked More, which sits in the DOM at desktop
+     width even though the rail hides it. Every bilingual capture up to 86f7f2e was
+     therefore photographed with the phone's More dialog open over the desktop. A
+     label now matches its English part, and More is only used when it is visible. */
+  const labelMatches = 'const matches = (text) => { const t = text.trim(); return t === want || t.startsWith(want + " · "); };';
   const reached = await evaluate('(() => {'
     + ' const want = ' + JSON.stringify(row.appDestination) + ';'
+    + ' ' + labelMatches
     + ' const items = [...document.querySelectorAll(".m3-nav__item")];'
-    + ' const hit = items.find((n) => { const l = n.querySelector(".m3-nav__label, .m3-more__label"); return l && l.textContent.trim() === want; });'
+    + ' const hit = items.find((n) => { const l = n.querySelector(".m3-nav__label, .m3-more__label"); return l && matches(l.textContent) && n.getClientRects().length > 0; });'
     + ' if (hit) { hit.click(); return true; }'
     + ' const more = document.querySelector(".m3-nav__item--more");'
-    + ' if (more) { more.click(); return "more"; }'
+    + ' if (more && more.getClientRects().length > 0) { more.click(); return "more"; }'
     + ' return false; })()');
+  if (reached === false) throw new Error('no visible navigation item for ' + row.appDestination + ' in ' + row.id);
   if (reached === 'more') {
     await pause(500);
     await evaluate('(() => {'
       + ' const want = ' + JSON.stringify(row.appDestination) + ';'
+      + ' ' + labelMatches
       + ' const items = [...document.querySelectorAll(".m3-more__label")];'
-      + ' const hit = items.find((n) => n.textContent.trim() === want);'
+      + ' const hit = items.find((n) => matches(n.textContent));'
       + ' if (hit && hit.closest("button, a")) { hit.closest("button, a").click(); return true; }'
       + ' return false; })()');
   }
   await pause(1200);
+  if (await evaluate('!!document.querySelector(".m3-more[open]")')) {
+    throw new Error('the More dialog is still open over ' + row.id + '; the capture would not show the declared state');
+  }
 
   const heading = String(await evaluate('((document.querySelector("#workspace-heading") || {}).textContent || "").trim()'));
   const arrived = row.state === 'bilingual language mode' ? Boolean(heading) : heading.includes(row.appHeading);

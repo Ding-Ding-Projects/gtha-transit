@@ -65,6 +65,20 @@ reports `86f7f2e71e181e2f55a8a4b223868fabae690734`, the routing API left running
 suite 1040 pass, 0 fail. No application code changed since `14a9fe2`, so the
 interaction ledger below targets the same interface.
 
+**Interaction ledger and design parity re-recorded at `86f7f2e`** against the public
+site, through an isolated Edge app window (fresh guest profile, one page target proven
+before and during the run) on a hidden desktop:
+
+| Evidence | Result |
+| --- | --- |
+| `docs/interface/ledger/*.json` | 4 of 4 tuples (1440 and 390, light and dark): 56 clicks each, one capture per click; 1440 passes 54 with 2 not applicable (the phone More dialog), 390 passes 55 with 1 not applicable; 0 console exceptions |
+| `docs/design/parity/` | 8 of 8 screens captured with side-by-sides and diffs; `tests/design-parity.test.mjs` 8 pass |
+| Capture defect found and fixed | every bilingual parity capture, including the previous one at `40411b1`, was photographed with the phone's More dialog open over the desktop: the navigation match compared "Plan" with "Plan · 規劃" and fell back to the hidden More item. The script now matches the English part, uses More only when visible, and refuses a capture with the dialog open. Bilingual difference 90 % to 67 % |
+
+Captures under `docs/interface/ledger/shots-*` are ignored by Git on purpose; the JSON
+rows carry each capture's hash. The browser, the reference viewer, their ports, the
+profile and the desktop were removed and checked absent afterwards.
+
 ## Session closeout, 9 September 2026, evening
 
 What exists now, for whoever picks this up:
@@ -111,8 +125,6 @@ What exists now, for whoever picks this up:
 
 ### Still owed
 
-- Re-record the interaction ledger at the deployed commit and re-run the parity capture;
-  both target the restored rail and tabs, so no script changes are needed first.
 - The lanes of the approved plan that have not started: About destination (changelog
   viewer, docs browser), history panel and bulk actions, regex on every dropdown,
   scheduled settings and app logo, the Pages landing site, the lock family beyond its

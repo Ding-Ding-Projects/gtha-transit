@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-08T08:33:56.707Z",
+  "generatedAt": "2026-09-15T03:39:35.721Z",
   "url": "https://toronto-transit.org/",
-  "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-  "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+  "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+  "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
   "viewportWidth": 390,
   "displayScale": 1,
   "theme": "light",
@@ -44,8 +44,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -53,7 +53,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/001-plan.open-390-light.png",
-      "screenshotSha256": "18fc0883832fe43b47e04da909d46414fa8f9366fd9f365e654b51248df138df",
+      "screenshotSha256": "9d6f3ca298bf58991b590f82f8887674dfde2ee76839a2b1456d689224683600",
       "privacy": "clean"
     },
     {
@@ -85,8 +85,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -94,7 +94,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/002-plan.from-390-light.png",
-      "screenshotSha256": "a40bee3b0510b8d309da741076d09c5a0727524b9d759a299dca473a5c46f189",
+      "screenshotSha256": "eb443f0a6af4aa0edafe4bb0719fdd3f7373c6f62d75e0ae0e0c9d6adc6f5c46",
       "privacy": "clean"
     },
     {
@@ -126,8 +126,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -135,7 +135,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/003-plan.from.choose-390-light.png",
-      "screenshotSha256": "282ecebe2c8a78550492d4ec367f6563105f9cef48b5357a147305a4d14ea30d",
+      "screenshotSha256": "bf5771537abb10d5d6a4efc71dde956d6fa88df3c7065ca887c981d13f9f7fc8",
       "privacy": "clean"
     },
     {
@@ -167,8 +167,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -176,7 +176,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/004-plan.reverse-390-light.png",
-      "screenshotSha256": "829d9da85f9fc82de1c06f9fb1493d340f859663177da1d75488ab531a2db23d",
+      "screenshotSha256": "c39e979e0a9977f13079eafefc25baa405665bdaaa039c69b470a07990e6feb3",
       "privacy": "clean"
     },
     {
@@ -188,7 +188,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 04:33expand_more"
+        "name": "LeavingMon 23:39expand_more"
       },
       "expected": ".trip-when[open] .journey-time",
       "before": {
@@ -208,8 +208,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -217,7 +217,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/005-plan.when.open-390-light.png",
-      "screenshotSha256": "54468719ef90dc3923189c0a4a1d3c4e273b1f0c7a6da158f9136d3a2d9e23f8",
+      "screenshotSha256": "9928bcbf5c2bbf82a9cfa21968a1e49c693cd621cd92bff3e4e10b9df9486ccc",
       "privacy": "clean"
     },
     {
@@ -229,7 +229,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 04:33expand_more"
+        "name": "LeavingMon 23:39expand_more"
       },
       "expected": ".trip-when:not([open])",
       "before": {
@@ -249,8 +249,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -258,7 +258,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/006-plan.when.close-390-light.png",
-      "screenshotSha256": "829d9da85f9fc82de1c06f9fb1493d340f859663177da1d75488ab531a2db23d",
+      "screenshotSha256": "c39e979e0a9977f13079eafefc25baa405665bdaaa039c69b470a07990e6feb3",
       "privacy": "clean"
     },
     {
@@ -290,8 +290,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -299,7 +299,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/007-plan.options.open-390-light.png",
-      "screenshotSha256": "0649ed00252d6eda21965d9106c614ace88d469dee1a5e2f992f036c17c1ce26",
+      "screenshotSha256": "62f68f1ae0507d4b31aaeef65398d655dcb6bc75bc23431d9df75ff3aaea0b6e",
       "privacy": "clean"
     },
     {
@@ -331,8 +331,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -340,7 +340,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/008-plan.options.priority-390-light.png",
-      "screenshotSha256": "e60eb809e244a3c0bf84b5ea2eecd8940873a4ea39d0fc30d65af45633f5da0f",
+      "screenshotSha256": "3dec08fcb8a809cf751ae86707fb39e873f0ce74a000a8f90107a186bca4a061",
       "privacy": "clean"
     },
     {
@@ -372,8 +372,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -381,7 +381,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/009-plan.garage.choose-390-light.png",
-      "screenshotSha256": "b9a77f5f535f37a6f49a3ec0c65288883f48ea484648475386b3df227212937b",
+      "screenshotSha256": "5f4b38536b0f7b001c6567c35507223b28ad35e1541db56e3e20f5790dedfec2",
       "privacy": "clean"
     },
     {
@@ -413,8 +413,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -422,7 +422,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/010-plan.garage.details-390-light.png",
-      "screenshotSha256": "e60eb809e244a3c0bf84b5ea2eecd8940873a4ea39d0fc30d65af45633f5da0f",
+      "screenshotSha256": "3dec08fcb8a809cf751ae86707fb39e873f0ce74a000a8f90107a186bca4a061",
       "privacy": "clean"
     },
     {
@@ -451,8 +451,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -460,7 +460,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/011-plan.garage.vehicles-390-light.png",
-      "screenshotSha256": "b9a77f5f535f37a6f49a3ec0c65288883f48ea484648475386b3df227212937b",
+      "screenshotSha256": "5f4b38536b0f7b001c6567c35507223b28ad35e1541db56e3e20f5790dedfec2",
       "privacy": "clean"
     },
     {
@@ -492,8 +492,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -501,7 +501,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/012-plan.garage.hide-390-light.png",
-      "screenshotSha256": "e60eb809e244a3c0bf84b5ea2eecd8940873a4ea39d0fc30d65af45633f5da0f",
+      "screenshotSha256": "3dec08fcb8a809cf751ae86707fb39e873f0ce74a000a8f90107a186bca4a061",
       "privacy": "clean"
     },
     {
@@ -533,8 +533,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -542,7 +542,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/013-plan.garage.clear-390-light.png",
-      "screenshotSha256": "b9a77f5f535f37a6f49a3ec0c65288883f48ea484648475386b3df227212937b",
+      "screenshotSha256": "3dec08fcb8a809cf751ae86707fb39e873f0ce74a000a8f90107a186bca4a061",
       "privacy": "clean"
     },
     {
@@ -574,8 +574,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -583,7 +583,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/014-plan.options.close-390-light.png",
-      "screenshotSha256": "efadeb4626fcd4be2894532618466940505176fc4ad002ee4c2b1f279ca4c542",
+      "screenshotSha256": "e6772def1010928e2044520840304a84cafd4c2dba797241f512c9749b295b50",
       "privacy": "clean"
     },
     {
@@ -615,8 +615,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -624,7 +624,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/015-plan.intermediate-390-light.png",
-      "screenshotSha256": "3a36b923142af40625a2b4a779561b01630d93fb0f64cf23d02317a65a12bdc2",
+      "screenshotSha256": "c15c2e90c1527f8852784d8da585ac0b2fabe238ee175b2e5d31e9bea9664411",
       "privacy": "clean"
     },
     {
@@ -656,8 +656,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -665,7 +665,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/016-plan.map.toggle-390-light.png",
-      "screenshotSha256": "3a36b923142af40625a2b4a779561b01630d93fb0f64cf23d02317a65a12bdc2",
+      "screenshotSha256": "6ba74c31d52dc86c3fb2bc8845c0012fdc6e2668ec573a1ba832677ea5e3bc4d",
       "privacy": "clean"
     },
     {
@@ -697,8 +697,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -706,7 +706,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/017-status.open-390-light.png",
-      "screenshotSha256": "16508109c98a501c1a2a7104c2428abcf1626545b63d79219fbea7afdf023568",
+      "screenshotSha256": "66974578d7b422b583e585d893493d1bcaa20328c48a50b13ab0b77abd2fd92c",
       "privacy": "clean"
     },
     {
@@ -738,8 +738,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -747,7 +747,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/018-status.line-390-light.png",
-      "screenshotSha256": "16508109c98a501c1a2a7104c2428abcf1626545b63d79219fbea7afdf023568",
+      "screenshotSha256": "66974578d7b422b583e585d893493d1bcaa20328c48a50b13ab0b77abd2fd92c",
       "privacy": "clean"
     },
     {
@@ -779,8 +779,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -788,7 +788,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/019-status.group-390-light.png",
-      "screenshotSha256": "16508109c98a501c1a2a7104c2428abcf1626545b63d79219fbea7afdf023568",
+      "screenshotSha256": "66974578d7b422b583e585d893493d1bcaa20328c48a50b13ab0b77abd2fd92c",
       "privacy": "clean"
     },
     {
@@ -820,8 +820,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -829,7 +829,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/020-status.go.refresh-390-light.png",
-      "screenshotSha256": "16508109c98a501c1a2a7104c2428abcf1626545b63d79219fbea7afdf023568",
+      "screenshotSha256": "66974578d7b422b583e585d893493d1bcaa20328c48a50b13ab0b77abd2fd92c",
       "privacy": "clean"
     },
     {
@@ -861,8 +861,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -870,7 +870,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/021-status.refresh-390-light.png",
-      "screenshotSha256": "9f05c8ddfdb9268bfa9d64c3c3848f67d5e5024c11a4a827fb8fd6780aae10c3",
+      "screenshotSha256": "bcd886a6c92428491cb519c64699291e45dc2ab3968cc1833bb0aff320c33f19",
       "privacy": "clean"
     },
     {
@@ -902,8 +902,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -911,7 +911,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/022-vehicles.open-390-light.png",
-      "screenshotSha256": "fb8403df3b6195767a03210fa4855a55c394712b86684943cfa76f94b7ec341c",
+      "screenshotSha256": "39c0e236c0e6d984167f25290100366a697d4a68448b6c981610f901af85ec53",
       "privacy": "clean"
     },
     {
@@ -943,8 +943,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -952,7 +952,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/023-vehicles.search-390-light.png",
-      "screenshotSha256": "094ea6bbd409d9185df586f006d2d11912ae81415bc05ea12fc576fa35ae6593",
+      "screenshotSha256": "ba1a28e06371f42915890d11b8450933387509942ca63baa1bc8275bd6a7d459",
       "privacy": "clean"
     },
     {
@@ -984,8 +984,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -993,7 +993,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/024-vehicles.filters-390-light.png",
-      "screenshotSha256": "094ea6bbd409d9185df586f006d2d11912ae81415bc05ea12fc576fa35ae6593",
+      "screenshotSha256": "ba1a28e06371f42915890d11b8450933387509942ca63baa1bc8275bd6a7d459",
       "privacy": "clean"
     },
     {
@@ -1025,8 +1025,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1034,7 +1034,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/025-vehicles.filters.close-390-light.png",
-      "screenshotSha256": "094ea6bbd409d9185df586f006d2d11912ae81415bc05ea12fc576fa35ae6593",
+      "screenshotSha256": "ba1a28e06371f42915890d11b8450933387509942ca63baa1bc8275bd6a7d459",
       "privacy": "clean"
     },
     {
@@ -1066,8 +1066,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1075,7 +1075,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/026-vehicles.route-390-light.png",
-      "screenshotSha256": "094ea6bbd409d9185df586f006d2d11912ae81415bc05ea12fc576fa35ae6593",
+      "screenshotSha256": "ba1a28e06371f42915890d11b8450933387509942ca63baa1bc8275bd6a7d459",
       "privacy": "clean"
     },
     {
@@ -1107,8 +1107,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1116,7 +1116,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/027-saved.open-390-light.png",
-      "screenshotSha256": "8d2fd085a73dcbbef8f3d1dda15a3632f76a35b60f3b196b9d56e7407d6e53b4",
+      "screenshotSha256": "5cac40a57acb68022d2b886af2f14ae331b4ac4d704cc727d7ce9a2e4c2a0861",
       "privacy": "clean"
     },
     {
@@ -1148,8 +1148,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1157,7 +1157,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/028-race.open-390-light.png",
-      "screenshotSha256": "1e65d8a0ba9b8e36eed99f3618cff26f2f26512178604cbaf1df7520ba101282",
+      "screenshotSha256": "0a2e4af7de7122debb16f4c593c5c1dc7bb09714048305f008da71dd310c34e6",
       "privacy": "clean"
     },
     {
@@ -1189,8 +1189,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1198,7 +1198,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/029-race.mode-390-light.png",
-      "screenshotSha256": "9b7fc14dbfc47affbc33515fc42fe9dfb88485a03c8996a29bfdb8bb429e4b30",
+      "screenshotSha256": "281710ab205b9783e50d2529502e9298b826a552464f7ee43ef26b3d71be223c",
       "privacy": "clean"
     },
     {
@@ -1230,8 +1230,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1239,7 +1239,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/030-race.title-390-light.png",
-      "screenshotSha256": "38615ca9487d749ed0583ddb9e554d5c461cf020042fe26ab43546be83976f37",
+      "screenshotSha256": "ecd5ad653b45bf3d863e592336abee08f4b39b97b977dea04f19e80bfc1e0848",
       "privacy": "clean"
     },
     {
@@ -1271,8 +1271,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1280,7 +1280,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/031-race.code-390-light.png",
-      "screenshotSha256": "40bf5a20e9a7ae48ad546d55141edfde0dc12c3e6870ade1106d72f2e6948add",
+      "screenshotSha256": "0ad29e18363810c912d8562e505bc0de36ea21ae3d870f96d8ea703c148abe46",
       "privacy": "clean"
     },
     {
@@ -1312,8 +1312,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1321,7 +1321,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/032-race.create-390-light.png",
-      "screenshotSha256": "8ba719f96f5fb7aad6ef0b85ca38178d972bca0ba0143ebaef131d515844ca6b",
+      "screenshotSha256": "566aa8361ccb003e53a1185edd8c6b17756a7105eb9ae215e7995f6963469260",
       "privacy": "clean"
     },
     {
@@ -1353,8 +1353,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1362,7 +1362,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/033-race.team-390-light.png",
-      "screenshotSha256": "61644ae267bfe72e3c1bae0fbd99cc5bc66843564f4f0d7d9f06fc3f614e1b0e",
+      "screenshotSha256": "3d5f81bb120facf79eace763a37a0d77b6ef5660156195cef110d497ae7ded76",
       "privacy": "clean"
     },
     {
@@ -1394,8 +1394,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1403,7 +1403,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/034-race.team.add-390-light.png",
-      "screenshotSha256": "eb2f73b0f21d3fa33324d83e2bd63d42be84a4652f77201bd73a83ee1d5f6d82",
+      "screenshotSha256": "55860d733997786da54242e95aaf4f1057c2629dadc12d3c4e9d11a65369c659",
       "privacy": "clean"
     },
     {
@@ -1435,8 +1435,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1444,7 +1444,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/035-race.join.name-390-light.png",
-      "screenshotSha256": "eb2f73b0f21d3fa33324d83e2bd63d42be84a4652f77201bd73a83ee1d5f6d82",
+      "screenshotSha256": "55860d733997786da54242e95aaf4f1057c2629dadc12d3c4e9d11a65369c659",
       "privacy": "clean"
     },
     {
@@ -1476,8 +1476,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1485,7 +1485,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/036-race.join-390-light.png",
-      "screenshotSha256": "eb2f73b0f21d3fa33324d83e2bd63d42be84a4652f77201bd73a83ee1d5f6d82",
+      "screenshotSha256": "55860d733997786da54242e95aaf4f1057c2629dadc12d3c4e9d11a65369c659",
       "privacy": "clean"
     },
     {
@@ -1517,8 +1517,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1526,7 +1526,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/037-race.speedrun.line-390-light.png",
-      "screenshotSha256": "eb2f73b0f21d3fa33324d83e2bd63d42be84a4652f77201bd73a83ee1d5f6d82",
+      "screenshotSha256": "55860d733997786da54242e95aaf4f1057c2629dadc12d3c4e9d11a65369c659",
       "privacy": "clean"
     },
     {
@@ -1555,8 +1555,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1564,7 +1564,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/038-race.speedrun.progress-390-light.png",
-      "screenshotSha256": "eb2f73b0f21d3fa33324d83e2bd63d42be84a4652f77201bd73a83ee1d5f6d82",
+      "screenshotSha256": "55860d733997786da54242e95aaf4f1057c2629dadc12d3c4e9d11a65369c659",
       "privacy": "clean"
     },
     {
@@ -1596,8 +1596,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1605,7 +1605,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/039-divisions.open-390-light.png",
-      "screenshotSha256": "4026d366aaa7f7e61bcbd8d8b83c3f9e892c7b09d9526c4c189613e3c6f42e75",
+      "screenshotSha256": "b2a81be0d57c26c9fe1f78701f0a6130d51dc0e71960da575767ea8d540cf3ce",
       "privacy": "clean"
     },
     {
@@ -1617,7 +1617,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Assigned garage21"
+        "name": "Assigned garage253"
       },
       "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
       "before": {
@@ -1637,8 +1637,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1646,7 +1646,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/040-divisions.classification-390-light.png",
-      "screenshotSha256": "c8506c59af142783c1ed6292e365edf70c6abe03f98d1b7e47b04acf1f2eacaa",
+      "screenshotSha256": "90efab417b6f0c821e0c032445303301ac6b2d66b62683f8ca1bdc869069d656",
       "privacy": "clean"
     },
     {
@@ -1658,7 +1658,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Out of division10"
+        "name": "Out of division"
       },
       "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
       "before": {
@@ -1678,8 +1678,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1687,7 +1687,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/041-divisions.classification.back-390-light.png",
-      "screenshotSha256": "4026d366aaa7f7e61bcbd8d8b83c3f9e892c7b09d9526c4c189613e3c6f42e75",
+      "screenshotSha256": "6e89cc5502eefd580e38c90adca37898cde40904947263458c5d248487c73242",
       "privacy": "clean"
     },
     {
@@ -1699,7 +1699,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "3409334TTCNova Bus · LFS HybridBuilt 2018Out of division · M"
+        "name": "7209510TTCNew Flyer · Xcelsior XDE40Built 2023-2024Out of di"
       },
       "expected": ".division-verdict",
       "before": {
@@ -1719,8 +1719,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1728,7 +1728,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/042-divisions.vehicle-390-light.png",
-      "screenshotSha256": "d4f056e37e98eeb9987da894ffa061d74c3629b7ececedc3ffedf12fb4d3ddd2",
+      "screenshotSha256": "94cded060d88e64bdafd8dadd573e69ff1f9ed34764991e7a2a1265153610168",
       "privacy": "clean"
     },
     {
@@ -1757,8 +1757,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1766,7 +1766,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/043-divisions.route.colour-390-light.png",
-      "screenshotSha256": "d4f056e37e98eeb9987da894ffa061d74c3629b7ececedc3ffedf12fb4d3ddd2",
+      "screenshotSha256": "94cded060d88e64bdafd8dadd573e69ff1f9ed34764991e7a2a1265153610168",
       "privacy": "clean"
     },
     {
@@ -1798,8 +1798,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1807,7 +1807,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/044-history.open-390-light.png",
-      "screenshotSha256": "e34c36e61191af576c0acd1343fca93b286843abb5a50934c8e5c7a09adf1692",
+      "screenshotSha256": "683a3a89f9e89e28ecf206fea7428aeee160ed79e5e75d035dee75a894afffd0",
       "privacy": "clean"
     },
     {
@@ -1839,8 +1839,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1848,7 +1848,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/045-history.preset-390-light.png",
-      "screenshotSha256": "352417a28de536d0d6909180a8c4db7cc8d611b91af305be089b0de779ddb57c",
+      "screenshotSha256": "e785b56a5c8623f8ae25545fffafd8ba84b31e6ae58d29b826e4c2cd6c52f026",
       "privacy": "clean"
     },
     {
@@ -1880,8 +1880,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1889,7 +1889,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/046-coverage.open-390-light.png",
-      "screenshotSha256": "20976b931b88447a635a3178727e8b0212e458142021f3b727359ace01dd58f6",
+      "screenshotSha256": "280177fe9d4a93f1680e99682a979f1b54e2f495417c19ef2771aef710e3082d",
       "privacy": "clean"
     },
     {
@@ -1921,8 +1921,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1930,7 +1930,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/047-settings.open-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "e0a26ab112ad7d8acb782fc6850bc57c925a18acca30516f22e03a9d27983699",
       "privacy": "clean"
     },
     {
@@ -1962,8 +1962,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -1971,7 +1971,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/048-settings.tab.language-390-light.png",
-      "screenshotSha256": "a6127df48bfe323301f59ed6c467448b561a65ea2193001d6de5491f3ded3901",
+      "screenshotSha256": "23c5db59587f53b5043632c4cd7e9826442a19bb1ff92fe584565a18cc64cce0",
       "privacy": "clean"
     },
     {
@@ -2003,8 +2003,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2012,7 +2012,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/049-settings.tab.first-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "e0a26ab112ad7d8acb782fc6850bc57c925a18acca30516f22e03a9d27983699",
       "privacy": "clean"
     },
     {
@@ -2046,8 +2046,8 @@
         390
       ],
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2055,7 +2055,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/050-nav.more.open-390-light.png",
-      "screenshotSha256": "868f0e13ab683acd122914acb67a37c577dbaad1779fe92fa92695ae1bf64d3c",
+      "screenshotSha256": "6af1c3c0f44ce08cbdc17b16c1b6a3de77b8fcc3d706efe9fd7266009a54afbd",
       "privacy": "clean"
     },
     {
@@ -2089,8 +2089,8 @@
         390
       ],
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2098,7 +2098,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/051-nav.more.close-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "e0a26ab112ad7d8acb782fc6850bc57c925a18acca30516f22e03a9d27983699",
       "privacy": "clean"
     },
     {
@@ -2129,8 +2129,8 @@
         1440
       ],
       "outcome": "not-applicable",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2138,7 +2138,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/052-nav.rail.secondary-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "e0a26ab112ad7d8acb782fc6850bc57c925a18acca30516f22e03a9d27983699",
       "privacy": "clean"
     },
     {
@@ -2170,8 +2170,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2179,7 +2179,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/053-nav.lang-390-light.png",
-      "screenshotSha256": "0cb6d8a01d240b44d2431b1a6a01acb66bf58032da1b0a96baaba5e110dfbbf5",
+      "screenshotSha256": "c19e7c6f8a43dc9f9f65897ebf26eea14369c749f4bd48d62438bb3b6ce894be",
       "privacy": "clean"
     },
     {
@@ -2211,8 +2211,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2220,7 +2220,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/054-nav.lang.back-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "e0a26ab112ad7d8acb782fc6850bc57c925a18acca30516f22e03a9d27983699",
       "privacy": "clean"
     },
     {
@@ -2252,8 +2252,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2261,7 +2261,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/055-nav.theme-390-light.png",
-      "screenshotSha256": "390a08053e1c5433bd1d576f1564fb415bf37cdc5a08f9583ae04762df390d13",
+      "screenshotSha256": "017a5de62bb561a7976462d62df67b9b4ebd7d69577557b68c36763d37203eb7",
       "privacy": "clean"
     },
     {
@@ -2293,8 +2293,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "40411b110a85b7a5b4d26d53017a7d2c4fcc7b26",
-      "artifactSha256": "c72a489b281c9b4b9983c5128579b10a85fac17297b4750e2a5f62e865f619d7",
+      "sourceCommit": "86f7f2e71e181e2f55a8a4b223868fabae690734",
+      "artifactSha256": "fc39fcd724a2db79a5c78ddd32f80eda8b946ba33e5aba313bfd8e006b8d4179",
       "viewport": {
         "width": 390,
         "height": 900
@@ -2302,7 +2302,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-390-light-1x/056-nav.theme.back-390-light.png",
-      "screenshotSha256": "429d8373c852a102973ff399953ff307ca2ec5c0e7c1f1b008ff61240ca8dcda",
+      "screenshotSha256": "9c7a16c84570c32b34eab6353504e43ceca407dabc34d5e47ed290c09fabd885",
       "privacy": "clean"
     }
   ]
