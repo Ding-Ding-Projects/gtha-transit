@@ -57,3 +57,4 @@ __pycache__/
 docs/interface/ledger/shots-*/
 # Fetched from the public dim sum catalog and downscaled; never committed here.
 /public/dim-sum/
+/public/changelog.json
