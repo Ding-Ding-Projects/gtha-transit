@@ -273,8 +273,12 @@ function GuidesPanel({ t }: { t: Translate }) {
         {selected && <p className="about-reader__note">{t('Guides are written in English. The interface around them follows your language setting.', '說明文件以英文撰寫，周圍嘅介面會跟你嘅語言設定。')}</p>}
         {article?.state === 'loading' && <output className="about-state">{t('Opening the guide…', '開啟說明中…')}</output>}
         {article?.state === 'failed' && <p role="alert" className="about-state">{t('This guide could not be loaded. Choose it again to retry.', '未能載入呢份說明，再揀一次重試。')} <code>{article.message}</code></p>}
+        {/* The article's own title is already the reader heading above, so a first
+            level-one heading that repeats it is not drawn a second time. */}
         {article?.state === 'ready' && blocks.map((block, position) => (
-          <BlockView key={position} block={block.kind === 'heading' && position === 0 && block.level === 1 && selected && inlineText(block.text) === selected.title ? { kind: 'rule' } : block} fromPath={selectedPath ?? ''} known={known} onArticle={open} t={t} />
+          position === 0 && block.kind === 'heading' && block.level === 1 && selected && inlineText(block.text) === selected.title
+            ? null
+            : <BlockView key={position} block={block} fromPath={selectedPath ?? ''} known={known} onArticle={open} t={t} />
         ))}
       </article>
     </div>
