@@ -1,0 +1,314 @@
+/* -------------------------------------------------------------- toy locks -- */
+
+/*
+ * Toy locks, the unlock ladder, the authenticator, Support Tickets and the change
+ * history.
+ *
+ * Every control here is at least 44 px in both directions, and everything wraps
+ * rather than overflowing: the longest strings are bilingual labels and a grouped
+ * authenticator key, both of which are allowed to break at 320 px wide. State is
+ * always carried in words beside any colour -- "Locked", "12 s left", "Hits: 3 of
+ * 8" -- so nothing here depends on telling two tints apart.
+ */
+
+.toy-lock { position: relative; min-width: 0; }
+.toy-lock + .toy-lock { margin-top: 8px; }
+
+.toy-lock__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+}
+.toy-lock__bar > svg { flex: none; }
+.toy-lock__state { font-weight: 650; }
+.toy-lock.is-locked > .toy-lock__bar {
+  padding: 8px 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.toy-lock.is-compact > .toy-lock__bar { justify-content: flex-end; margin-bottom: 4px; }
+
+.toy-lock__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font: var(--md-sys-typescale-body-medium);
+  font-weight: 650;
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.toy-lock__action.is-quiet {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-outline-variant);
+}
+.toy-lock__action:disabled { opacity: var(--md-sys-state-disabled-content-opacity, .38); cursor: not-allowed; }
+.toy-lock__action:focus-visible,
+.toy-lock__link:focus-visible,
+.toy-lock__keypad button:focus-visible,
+.toy-lock__menu button:focus-visible,
+.toy-ladder button:focus-visible,
+.authenticator-card__tools button:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.toy-lock__content { min-width: 0; }
+.toy-lock.is-locked > .toy-lock__content {
+  opacity: .5;
+  filter: saturate(.4);
+  user-select: none;
+}
+
+.toy-lock__menu,
+.toy-lock__prompt,
+.toy-lock__wizard {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--md-sys-color-shadow) 18%, transparent);
+  min-width: 0;
+  max-width: 520px;
+}
+.toy-lock__menu { max-width: 320px; padding: 8px; gap: 2px; }
+.toy-lock__menu button {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: var(--md-sys-typescale-body-medium);
+}
+.toy-lock__menu button:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
+
+.toy-lock__wizard h4 { margin: 0; font: var(--md-sys-typescale-title-medium, 600 16px/1.4 inherit); }
+.toy-lock__wizard fieldset { display: grid; gap: 4px; margin: 0; padding: 8px 12px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); min-width: 0; }
+.toy-lock__wizard legend { padding: 0 4px; font-weight: 650; }
+
+.toy-lock__choice,
+.toy-lock__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.toy-lock__choice input,
+.toy-lock__check input { width: 20px; height: 20px; flex: none; accent-color: var(--md-sys-color-primary); }
+
+.toy-lock__pair,
+.toy-lock__otp,
+.toy-lock__entry { display: grid; gap: 6px; min-width: 0; }
+
+.toy-lock__prompt input,
+.toy-lock__wizard input:not([type='radio']):not([type='checkbox']),
+.toy-lock__wizard select,
+.locks-card input:not([type='checkbox']),
+.locks-card select,
+.authenticator-card input:not([type='checkbox']),
+.authenticator-card select,
+.tickets-card input:not([type='checkbox']),
+.tickets-card select,
+.tickets-card textarea,
+.history-card input,
+.history-card select,
+.toy-ladder input {
+  min-height: 44px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+}
+
+.toy-lock__keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+  gap: 8px;
+  max-width: 280px;
+}
+/* Both grids are fieldsets, so a screen reader hears their name; the browser's
+   own fieldset frame is not part of the design. */
+.toy-lock__keypad,
+.toy-ladder__grid { margin: 0; padding: 0; border: 0; min-width: 0; }
+.toy-lock__keypad button {
+  min-height: 52px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+/* Natural flow: three rows of numbers, then the last one, Backspace and Clear. */
+
+.toy-lock__buttons { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.toy-lock__steps { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.toy-lock__hint { margin: 0; color: var(--md-sys-color-on-surface-variant); font: var(--md-sys-typescale-body-small); overflow-wrap: anywhere; }
+.toy-lock__message { display: block; padding: 8px 12px; border-radius: var(--md-sys-shape-corner-small); background: var(--md-sys-color-surface-container); overflow-wrap: anywhere; }
+.toy-lock__disclosure,
+.toy-lock__recovery { margin: 0; font: var(--md-sys-typescale-body-small); overflow-wrap: anywhere; }
+.toy-lock__disclosure { font-weight: 650; }
+.toy-lock__needs { margin: 0; color: var(--md-sys-color-on-surface-variant); }
+.toy-lock__problems { margin: 0; padding-left: 20px; color: var(--md-sys-color-error); }
+.toy-lock__secret code { display: block; padding: 10px; border-radius: var(--md-sys-shape-corner-small); background: var(--md-sys-color-surface); font-size: 15px; letter-spacing: .06em; overflow-wrap: anywhere; word-break: break-all; }
+.toy-lock__params { margin: 0; font-weight: 650; }
+.toy-lock__minutes { display: grid; gap: 4px; max-width: 160px; }
+
+.toy-lock__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+  text-align: left;
+  font: var(--md-sys-typescale-body-medium);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.toy-lock__wait { display: grid; gap: 8px; }
+.toy-lock__wait p { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* ---------------------------------------------------------------- ladder -- */
+
+.toy-ladder { display: grid; gap: 10px; padding: 12px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container); min-width: 0; }
+.toy-ladder p { margin: 0; }
+.toy-ladder__dim-sum { display: grid; gap: 8px; }
+.toy-ladder__dim-sum img { width: 100%; max-width: 240px; height: auto; border-radius: var(--md-sys-shape-corner-medium); }
+.toy-ladder__choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.toy-ladder__choices button { min-height: 48px; padding: 8px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); overflow-wrap: anywhere; }
+.toy-ladder__sums ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.toy-ladder__sums li { display: grid; gap: 4px; }
+.toy-ladder__sums label { font-variant-numeric: tabular-nums; font-weight: 650; }
+.toy-ladder__score { font-variant-numeric: tabular-nums; font-weight: 650; }
+.toy-ladder__grid { display: grid; grid-template-columns: repeat(3, minmax(44px, 72px)); gap: 8px; }
+.toy-ladder__grid button {
+  aspect-ratio: 1;
+  min-height: 44px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 18px;
+}
+.toy-ladder__grid button.is-up {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  font-size: 28px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toy-ladder__grid button.is-up { animation: toy-mole-up var(--md-sys-motion-duration-short, 150ms) var(--md-sys-motion-easing-decelerate, ease-out); }
+}
+@keyframes toy-mole-up { from { transform: scale(.7); } to { transform: scale(1); } }
+
+/* ----------------------------------------------------------- the cards -- */
+
+.locks-card h4, .authenticator-card h4 { margin: 18px 0 8px; }
+.locks-card__truth { margin: 0 0 12px; font: var(--md-sys-typescale-body-medium); overflow-wrap: anywhere; }
+.locks-card__sections { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.locks-card__list,
+.authenticator-card__list,
+.tickets-card__list,
+.history-card__list { display: grid; gap: 8px; margin: 12px 0; padding: 0; list-style: none; }
+.locks-card__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.locks-card__list li > span { display: grid; gap: 2px; flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; }
+.locks-card__list small { color: var(--md-sys-color-on-surface-variant); }
+
+.authenticator-card__add { margin: 12px 0; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); padding: 0 12px; }
+.authenticator-card__add > summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; cursor: pointer; }
+.authenticator-card__add form { display: grid; gap: 6px; padding: 8px 0 12px; }
+.authenticator-card__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.authenticator-card__name { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.authenticator-card__code { grid-column: 2; font-size: 28px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; user-select: all; }
+.authenticator-card__time { grid-column: 2; color: var(--md-sys-color-on-surface-variant); font-variant-numeric: tabular-nums; }
+.authenticator-card__tools { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.authenticator-card__tools button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+}
+.authenticator-card__edit { grid-column: 1 / -1; }
+.authenticator-card__edit > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--md-sys-color-primary); }
+.authenticator-card__edit form, .authenticator-card__edit label { display: grid; gap: 4px; }
+
+.tickets-card__disclosure {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small);
+  font: var(--md-sys-typescale-body-medium);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.tickets-card__form { display: grid; gap: 6px; }
+.tickets-card__list li { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); min-width: 0; }
+.tickets-card__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+.tickets-card__description, .tickets-card__reply { margin: 0; overflow-wrap: anywhere; }
+.tickets-card__reply { font-style: italic; color: var(--md-sys-color-on-surface-variant); }
+.tickets-card__resolution { display: grid; gap: 6px; }
+.tickets-card__resolution ol { margin: 0; padding-left: 20px; overflow-wrap: anywhere; }
+
+.history-card__manager { display: grid; gap: 10px; min-width: 0; }
+.history-card__filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.history-card__filters label { display: grid; gap: 4px; flex: 1 1 140px; min-width: 0; }
+.history-card__list li { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); overflow-wrap: anywhere; min-width: 0; }
+.history-card__list small { color: var(--md-sys-color-on-surface-variant); }
+.history-card__label { display: grid; gap: 6px; }
+
+@media (max-width: 420px) {
+  .toy-lock__menu, .toy-lock__prompt, .toy-lock__wizard { padding: 12px; }
+  .authenticator-card__list li { grid-template-columns: auto minmax(0, 1fr); }
+  .authenticator-card__tools { grid-column: 1 / -1; grid-row: auto; justify-content: flex-start; }
+  .authenticator-card__code { font-size: 24px; }
+}

@@ -66,7 +66,10 @@ import {
   type SchoolState,
 } from '../lib/school-mode';
 import { destinationHeading, workspaceDestinations } from '../lib/destinations';
-import { settingsCatalog } from '../lib/settings-catalog';
+import { SETTINGS_SECTION_KEY, settingsCatalog } from '../lib/settings-catalog';
+import { LockGate, OPEN_TICKETS_EVENT, REVEAL_LOCK_EVENT, openUnlock } from '../components/toy-lock';
+import { recordHistory, useToyLocks } from '../lib/use-toy-locks';
+import { isLockedNow, targetId } from '../lib/toy-locks';
 import { workspaceActions } from '../lib/command-palette';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
@@ -497,10 +500,75 @@ export default function Home() {
     try { localStorage.setItem(SCHOOL_STORAGE_KEY, serializeSchool(school)); } catch { /* storage refused; the mode holds for this session */ }
   }, [school]);
   const paletteDestinations = useMemo(() => workspaceDestinations(t), [t]);
-  const paletteSettings = useMemo(
-    () => settingsCatalog({ appearance: { ready: appearance.ready, global: appearance.global, set: patch => appearance.update({ global: { ...appearance.global, ...patch } }) }, t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) } }),
-    [t, lang, dark, funEn, funZh, narrator, school, appearance],
+  const toyLocks = useToyLocks();
+  const lockedTargets = useMemo(
+    () => toyLocks.locks.filter((lock) => isLockedNow(lock, toyLocks.grants[lock.id], Date.now())).map((lock) => targetId(lock.target)),
+    [toyLocks.locks, toyLocks.grants],
   );
+  const paletteSettings = useMemo(
+    () => settingsCatalog({ appearance: { ready: appearance.ready, global: appearance.global, set: patch => appearance.update({ global: { ...appearance.global, ...patch } }) }, t, lang, setLang: value => setLang(value as typeof lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, school: { on: school.on, name: schoolName(school) }, locked: lockedTargets }),
+    [t, lang, dark, funEn, funZh, narrator, school, appearance, lockedTargets],
+  );
+
+  /*
+   * Taking somebody to a lock, or to the desk that explains the way out of one.
+   *
+   * The lock list and the unlock prompt raise these; the page owns navigation, so
+   * the page answers them. Settings sections are chosen through the same stored
+   * key the palette writes, and the prompt is opened only once the destination
+   * has rendered, two frames later, exactly as a palette teleport lands.
+   */
+  useEffect(() => {
+    const openSection = (section: string) => {
+      try { localStorage.setItem(SETTINGS_SECTION_KEY, section); } catch { /* storage refused; the tab stays where it was */ }
+      window.dispatchEvent(new CustomEvent('gtha-local-setting', { detail: SETTINGS_SECTION_KEY }));
+    };
+    const later = (run: () => void) => window.requestAnimationFrame(() => window.requestAnimationFrame(run));
+    const reveal = (event: Event) => {
+      const detail = (event as CustomEvent<{ kind?: string; key?: string }>).detail;
+      if (!detail?.kind || !detail.key) return;
+      const id = `${detail.kind}:${detail.key}`;
+      if (detail.kind === 'saved-trip') setTab('saved');
+      else {
+        setTab('settings');
+        openSection(detail.kind === 'settings-section' ? detail.key : detail.kind === 'appearance-studio' ? 'appearance' : 'privacy');
+      }
+      later(() => {
+        document.querySelector<HTMLElement>(`[data-lock-target="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'center', behavior: 'instant' });
+        openUnlock(id);
+      });
+    };
+    const tickets = () => {
+      setTab('settings');
+      openSection('privacy');
+      later(() => {
+        const desk = document.getElementById('support-tickets');
+        desk?.scrollIntoView({ block: 'start', behavior: 'instant' });
+        desk?.focus({ preventScroll: true });
+      });
+    };
+    window.addEventListener(REVEAL_LOCK_EVENT, reveal);
+    window.addEventListener(OPEN_TICKETS_EVENT, tickets);
+    return () => { window.removeEventListener(REVEAL_LOCK_EVENT, reveal); window.removeEventListener(OPEN_TICKETS_EVENT, tickets); };
+  }, []);
+
+  /*
+   * Every change to the display name is a history record, made where the name
+   * lives rather than at each control that can change it: the appearance studio,
+   * the settings search, the palette and a restore all end up here. The first
+   * value after loading is where the history starts, not a change.
+   */
+  const recordedName = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!appearance.ready || !toyLocks.ready) return;
+    const name = appearance.global.appName ?? null;
+    if (recordedName.current === undefined) { recordedName.current = name; return; }
+    if (recordedName.current === name) return;
+    recordedName.current = name;
+    recordHistory(name === null
+      ? { action: 'display-name-reset', subject: 'display name', fields: ['appName'] }
+      : { action: 'display-name-changed', subject: 'display name', fields: ['appName'], detail: name });
+  }, [appearance.ready, appearance.global.appName, toyLocks.ready]);
   const paletteActions = useMemo(() => workspaceActions({ t, dark, setDark, setFunEn, setFunZh, hidden: school.on }), [t, dark, school.on]);
   /**
    * What the collapsed time row says.
@@ -2127,7 +2195,8 @@ export default function Home() {
                 </div>
               ) : (
                 saved.map((s) => (
-                  <article className="saved-card" key={s.id}>
+                  <LockGate key={s.id} compact schoolOn={school.on} t={t} target={{ kind: 'saved-trip', key: s.id, label: { en: `${s.from.name} to ${s.to.name}`, zh: `${s.from.name} 至 ${s.to.name}` } }}>
+                  <article className="saved-card">
                     <button
                       onClick={() => {
                         setFrom(s.from);
@@ -2161,6 +2230,7 @@ export default function Home() {
                       <X size={18} />
                     </button>
                   </article>
+                  </LockGate>
                 ))
               )}
             </div>

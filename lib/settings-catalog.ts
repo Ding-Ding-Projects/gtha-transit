@@ -79,6 +79,12 @@ export type SettingsEntry = {
   control: SettingsControl;
   /** Why the control cannot be operated right now, if it cannot. */
   unavailable?: string;
+  /**
+   * The surface holding this control is behind a toy lock right now. The row
+   * stays in every search, labelled, and its selector lands on the lock's own
+   * unlock control rather than on the control the lock is refusing.
+   */
+  locked?: boolean;
 };
 
 export type Translate = (en: string, zh: string) => string;
@@ -124,6 +130,15 @@ export type SettingsCatalogInput = {
    * and then lets the palette teleport straight to it.
    */
   school?: { on: boolean; name: string };
+  /**
+   * The toy-lock targets that are shut right now, as `kind:key` ids.
+   *
+   * A locked row is not removed: it stays findable and says it is locked. What
+   * changes is that its control descriptor becomes inert, so neither the settings
+   * search nor the command palette can change a value the lock is refusing, and
+   * its teleport lands on the unlock control.
+   */
+  locked?: readonly string[];
   appearance?: {
     ready?: boolean;
     global: { appName: string | null; seed: string | null; density: string; sizeScale: number; showEmoji: boolean };
@@ -440,6 +455,38 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       unavailable: narration || undefined,
     },
     {
+      id: 'toy-locks',
+      section: 'privacy',
+      label: t('Toy locks', '玩具鎖'),
+      description: t('A PIN, password or authenticator code in front of a trip or a settings section, for fun', '喺行程或者設定部分前面加 PIN 碼、密碼或者驗證碼，玩下嘅'),
+      selector: '#toy-locks',
+      control: { kind: 'none', reason: t('Locks are set on the surface they lock, through the lock wizard.', '鎖要喺佢鎖住嘅地方，用鎖設定精靈設定。') },
+    },
+    {
+      id: 'authenticator',
+      section: 'privacy',
+      label: t('Authenticator', '驗證器'),
+      description: t('Time-based codes for your accounts, generated in this browser', '喺呢個瀏覽器產生帳戶用嘅時間驗證碼'),
+      selector: '#authenticator',
+      control: { kind: 'none', reason: t('Entries are added and managed in the authenticator itself.', '項目要喺驗證器入面加入同管理。') },
+    },
+    {
+      id: 'support-tickets',
+      section: 'privacy',
+      label: t('Support Tickets', '服務單'),
+      description: t('The way out of a forgotten lock, dressed as a service desk', '唔記得鎖嘅出路，扮成服務台'),
+      selector: '#support-tickets',
+      control: { kind: 'none', reason: t('Tickets are opened at the desk itself. Nothing is sent anywhere.', '服務單要喺服務台度開。唔會傳送去任何地方。') },
+    },
+    {
+      id: 'secret-history',
+      section: 'privacy',
+      label: t('Change history', '改動紀錄'),
+      description: t('Every change to authenticator entries, the display name and locks', '驗證器項目、顯示名稱同鎖嘅每次改動'),
+      selector: '#secret-history',
+      control: { kind: 'none', reason: t('The history opens behind its own lock.', '改動紀錄要用自己把鎖先打開。') },
+    },
+    {
       id: 'local-data',
       section: 'privacy',
       label: t('Your journey stays yours', '你嘅行程，由你掌握'),
@@ -478,5 +525,34 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
     );
     if (appearance.ready === false) for (const entry of entries) if (entry.id.startsWith('appearance-')) entry.unavailable = t('Appearance settings are still loading.', '外觀設定仍在載入中。');
   }
-  return hidden ? entries.filter((entry) => !HIDDEN_BY_SCHOOL.includes(entry.id)) : entries;
+  const shown = hidden ? entries.filter((entry) => !HIDDEN_BY_SCHOOL.includes(entry.id)) : entries;
+  return input.locked?.length ? shown.map((entry) => lockEntry(entry, input.locked!, t)) : shown;
+}
+
+/**
+ * Which toy lock, if any, stands in front of a settings row.
+ *
+ * A section lock covers every row in its section. The appearance studio lock
+ * covers the rows the studio renders, which are the `appearance-` rows; the
+ * theme row sits outside the studio and is covered only by the section's lock.
+ */
+export function lockCovering(entry: Pick<SettingsEntry, 'id' | 'section'>, locked: readonly string[]): string | null {
+  const section = `settings-section:${entry.section}`;
+  if (locked.includes(section)) return section;
+  if (entry.id.startsWith('appearance-') && locked.includes('appearance-studio:studio')) return 'appearance-studio:studio';
+  return null;
+}
+
+function lockEntry(entry: SettingsEntry, locked: readonly string[], t: Translate): SettingsEntry {
+  const covering = lockCovering(entry, locked);
+  if (!covering) return entry;
+  const reason = t('Locked. Unlock it first to change this.', '已鎖。要先解鎖先可以改。');
+  return {
+    ...entry,
+    locked: true,
+    value: entry.value ? `${entry.value} · ${t('locked', '已鎖')}` : t('locked', '已鎖'),
+    selector: `[data-lock-target="${covering}"] [data-ui="lock.unlock"]`,
+    control: { kind: 'none', reason },
+    unavailable: reason,
+  };
 }

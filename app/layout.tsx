@@ -17,6 +17,7 @@ import './command-palette.css';
 import './catch-vehicle.css';
 import './appearance.css';
 import './tab-strip.css';
+import './locks.css';
 // The shell loads last so its navigation rules win over the old workspace ones.
 import './shell.css';
 export const metadata: Metadata = {

@@ -9,6 +9,7 @@
 - [The changelog format](changelog.md)
 - [Notifications, bulk actions and export](notifications.md)
 - [Comfort modes and your own wording](comfort.md)
+- [Toy locks, the unlock ladder, the authenticator and Support Tickets](locks.md)
 - [The dim sum surprise](dim-sum.md)
 - [Agency and route selection](../search/route-picker.md)
 - [Regular-expression workbench](../search/regex-builder.md)
