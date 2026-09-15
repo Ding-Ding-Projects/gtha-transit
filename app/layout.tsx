@@ -31,8 +31,17 @@ export const metadata: Metadata = {
     url: 'https://toronto-transit.org',
     type: 'website',
     siteName: 'GTHA Transit',
+    // A real capture of the built composer, cropped to the widely-used Open
+    // Graph size by scripts/site/build-social-preview.mjs and committed at
+    // public/social-preview.png. metadataBase above turns this relative path
+    // into an absolute https URL, which is the one thing a link-preview
+    // crawler actually requires.
+    images: [{ url: '/social-preview.png', width: 1200, height: 630, alt: 'The GTHA Transit journey planner' }],
   },
-  twitter: { card: 'summary_large_image' },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/social-preview.png'],
+  },
 };
 export default function RootLayout({
   children,

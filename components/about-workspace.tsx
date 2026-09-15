@@ -298,6 +298,11 @@ export default function AboutWorkspace({ t, version }: { t: Translate; version: 
           '獨立開源，服務整個大多倫多及咸美頓地區。下面有每次改動同每部分點運作，離線都睇得到。')}
         {version?.commit && <> <code data-ui="about.version">v{version.version} · {version.commit.slice(0, 7)}</code></>}
       </p>
+      <p className="about-site-link">
+        <a href="https://ding-ding-projects.github.io/gtha-transit/" target="_blank" rel="noopener noreferrer" data-ui="about.documentation-site">
+          {t('Documentation and screenshots site', '文件同截圖網站')}<ExternalLink size={12} aria-hidden="true" />
+        </a>
+      </p>
       <Tabs value={active} onValueChange={(value) => storedTab.setValue(String(value))} className="settings-tabs about-tabs">
         <TabsList aria-label={t('About sections', '關於部分')} className="settings-tab-strip">
           <TabsTrigger value="changes" data-ui="about.tab.changes"><History size={18} aria-hidden="true" /><span>{t('What changed', '更新紀錄')}</span></TabsTrigger>
