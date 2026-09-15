@@ -79,6 +79,10 @@ export const SURFACES = [
     heading: 'Ready when you are',
     steps: [
       { id: 'saved.open', ...destination('Saved'), expect: 'main', describe: 'saved trips shows its state' },
+      /* A fresh profile has no saved trips, so the bulk panel is only present when one exists. */
+      { id: 'saved.bulk', expect: '[data-ui="saved.bulk"]', optional: true, describe: 'saved trips carry search, selection, export and bulk delete' },
+      { id: 'saved.history.open', click: '[data-ui="history.opener"]', expect: '.history-panel[open]', describe: 'trip history opens its revision panel' },
+      { id: 'saved.history.close', click: '.history-panel[open] .history-panel__close', expect: '.history-panel:not([open])', describe: 'and closes again' },
     ],
   },
   {
@@ -142,6 +146,8 @@ export const SURFACES = [
     steps: [
       { id: 'settings.open', ...destination('Settings'), expect: '.settings-tab-strip', describe: 'settings is present with its tab strip' },
       { id: 'settings.tab.language', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(2)', expect: '.settings-tab-strip [data-slot="tabs-trigger"][aria-selected="true"]', describe: 'a settings tab can be selected' },
+      { id: 'settings.history.open', click: '[data-ui="history.opener"]', expect: '.history-panel[open]', describe: 'settings history opens its revision panel' },
+      { id: 'settings.history.close', click: '.history-panel[open] .history-panel__close', expect: '.history-panel:not([open])', describe: 'and closes again' },
       { id: 'settings.tab.first', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(1)', expect: '.settings-tab-strip [data-slot="tabs-trigger"][aria-selected="true"]', describe: 'and the first tab selected again' },
     ],
   },
