@@ -148,7 +148,9 @@ export const SURFACES = [
       { id: 'settings.tab.language', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(2)', expect: '.settings-tab-strip [data-slot="tabs-trigger"][aria-selected="true"]', describe: 'a settings tab can be selected' },
       { id: 'settings.history.open', click: '[data-ui="history.opener"]', expect: '.history-panel[open]', describe: 'settings history opens its revision panel' },
       { id: 'settings.history.close', click: '.history-panel[open] .history-panel__close', expect: '.history-panel:not([open])', describe: 'and closes again' },
-      { id: 'settings.logo', expect: '#appearance-logo .appearance-logo-presets input[type="radio"]', describe: 'the appearance section offers the bundled logo presets' },
+      /* The settings tabs stay mounted, so the presets exist in the DOM on every tab; the step
+         opens Appearance first so the capture shows them rather than whichever tab was open. */
+      { id: 'settings.logo', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(1)', expect: '#appearance-logo .appearance-logo-presets input[type="radio"]', describe: 'the appearance section offers the bundled logo presets' },
       { id: 'settings.tab.schedule', clickText: 'Schedule', expect: '#schedule-rules', describe: 'the schedule tab opens its rules editor' },
       { id: 'settings.schedule.parts', expect: '#schedule-override button, #schedule-external #schedule-external-url', describe: 'overrides and the explicit external import are present' },
       /* No step types a credential or creates a lock: a recorded run would leave a lock in the

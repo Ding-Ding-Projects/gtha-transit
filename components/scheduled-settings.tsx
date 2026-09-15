@@ -84,7 +84,7 @@ export default function ScheduledSettingsEditor({ schedule, presets, t }: { sche
 
   return <section id="settings-schedule-editor" className="schedule-editor" data-ui="schedule.editor.panel">
     <header><Clock size={22} aria-hidden="true" /><h3>{t('Scheduled settings', '排程設定')}</h3></header>
-    <p className="data-note">{t(`All times are America/Toronto (${TIME_ZONE}), and adjust automatically for Daylight Saving. Rules stay in this browser.`, `所有時間均為美國東部（多倫多，${TIME_ZONE}）時區，並會自動配合夏令時間調整。規則只留喺此瀏覽器。`)}</p>
+    <p className="data-note">{t(`All times are Toronto time (${TIME_ZONE}), and adjust automatically for Daylight Saving. Rules stay in this browser.`, `所有時間均為美國東部（多倫多，${TIME_ZONE}）時區，並會自動配合夏令時間調整。規則只留喺此瀏覽器。`)}</p>
 
     <section id="schedule-rules" tabIndex={-1} data-ui="settings.card" className="preference-card">
       <p role="status">{t('Currently in effect: ', '現正生效：') + (schedule.effect.source === 'default' ? t('nothing — no rule or override is active.', '無 — 冇規則或覆蓋生效。') : effectSummary(schedule.effect, presets, t) + (schedule.effect.source === 'override' ? t(' (manual override)', '（手動覆蓋）') : ''))}</p>

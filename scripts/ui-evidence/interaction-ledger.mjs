@@ -333,6 +333,14 @@ for (const surface of SURFACES) {
       if (!arrived) observedTarget = { tag: 'heading', name: `expected "${surface.heading}", found "${heading}"`.slice(0, 60) };
     }
 
+    /* An assertion step proves an element exists, but a capture only shows the viewport, so
+       the picture of "the authenticator is present" used to be the top of the Privacy tab.
+       The asserted element is brought to the middle of the view before the capture, so the
+       image shows the thing the row claims. */
+    if (arrived && assertion) {
+      await evaluate(`(() => { const n = document.querySelector(${JSON.stringify(expected)}); if (n) n.scrollIntoView({ block: 'center', inline: 'nearest' }); return Boolean(n); })()`);
+    }
+
     await pause(400);
     const after = await state();
 
