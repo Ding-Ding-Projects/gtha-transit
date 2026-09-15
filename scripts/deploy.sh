@@ -85,12 +85,20 @@ ssh "${ssh_options[@]}" "$DEPLOY_HOST" "set -eu
   fi
   docker build --build-arg SOURCE_COMMIT=$sha -t gtha-transit-web:$sha \"\$release\" >/dev/null
   cd $DEPLOY_DIR
+  # Optional, so a deploy shell that does not set it must not erase it. Keep what
+  # the running routing API already uses; an empty value written to .env would
+  # quietly unplug the matcher statistics the next time compose recreates the API,
+  # which the boot unit does.
+  matcher='${TTC_MATCHER_URL:-}'
+  if [ -z \"\$matcher\" ]; then
+    matcher=\$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' gtha-transit-api 2>/dev/null | sed -n 's/^TTC_MATCHER_URL=//p')
+  fi
   SOURCE_COMMIT=$sha RELEASE_TAG=$sha \
     ROUTING_ORIGIN=$ROUTING_ORIGIN MAPS_ORIGIN=$MAPS_ORIGIN \
     TUNNEL_NETWORK=$TUNNEL_NETWORK \
     WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS WEB_PORT=$WEB_PORT \
     API_TAG=$API_TAG OTP_URL=$OTP_URL \
-    TTC_MATCHER_URL=${TTC_MATCHER_URL:-} \
+    TTC_MATCHER_URL=\"\$matcher\" \
     docker compose -p gtha-transit up -d --no-build web >/dev/null
   # Record what this deploy used, so the stack can be brought up again without
   # one. Every variable here is required by compose with the \${VAR:?} form, so
@@ -108,7 +116,7 @@ WEB_BIND_ADDRESS=$WEB_BIND_ADDRESS
 WEB_PORT=$WEB_PORT
 API_TAG=$API_TAG
 OTP_URL=$OTP_URL
-TTC_MATCHER_URL=${TTC_MATCHER_URL:-}
+TTC_MATCHER_URL=\$matcher
 ENV
   for _ in 1 2 3 4 5 6 7 8 9 10; do
     state=\$(docker inspect -f '{{.State.Health.Status}}' gtha-transit-web)
