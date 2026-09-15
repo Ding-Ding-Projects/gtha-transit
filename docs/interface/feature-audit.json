@@ -276,7 +276,7 @@
     {
       "id": "changelog-viewer",
       "name": "In-app changelog with a date picker and commit links",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "components/about-workspace.tsx",
         "lib/changelog.ts",
@@ -287,9 +287,8 @@
       ],
       "documentation": "docs/interface/about.md",
       "test": "tests/changelog.test.mjs",
-      "capture": null,
-      "missing": "Rendered interaction evidence at the deployed commit: the About steps are in the interaction inventory and have not been recorded yet.",
-      "note": "The About destination also carries the offline guides browser, which no canonical row names on its own."
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "note": "The About destination also carries the offline guides browser, which no canonical row names on its own. Its seven steps pass in all four ledger tuples at 6e541bd (1440 and 390, light and dark)."
     },
     {
       "id": "dim-sum-surprise",

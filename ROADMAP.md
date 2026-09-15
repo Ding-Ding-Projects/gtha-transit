@@ -11,6 +11,7 @@
 - [x] Recreate the routing host's proxy container so GO and UP updates apply again, and replace the hand-started shadow matcher with the `ttc-matcher` compose service (the statistics bridge is now the `ttc-stats-proxy` service too).
 - [x] Deploy the web image from `main` and re-record the four interaction-ledger tuples and the design parity capture at the deployed commit (`86f7f2e`; 4 of 4 tuples, 8 of 8 screens).
 - [x] Rebuild the routing API image from `main` and deploy it (`gtha-transit-api:83bf0c2d`, replacing `e530ee3-candidate`).
+- [x] Ship the About destination: changelog viewer with search, categories, dates and export, and the offline guides browser, recorded in the ledger at `6e541bd`.
 - [ ] Add drive scripts and captures for the live chips, the appearance studio and the Catch panel (the tab strip is parked by owner decision).
 
 - [ ] Deploy and capture the electric preference controls. The second session reports 390 px and 1440 px light/dark checks on its deployed recovery build, but no capture or drive script was committed; re-verify with committed evidence after the next deploy.

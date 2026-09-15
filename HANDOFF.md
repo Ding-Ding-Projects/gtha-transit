@@ -88,6 +88,18 @@ router ready, matcher URL kept, `ttc-next` `shadow`. A smoke run started seconds
 recreate reported 1 failure while the API was loading; the next run planned 8 of 14 with 6
 GO pairs having no departure at 01:49 and 0 failed.
 
+**About destination shipped** (`feature/about-destination`, merged at `0f11496`, fix `6e541bd`,
+deployed and serving `6e541bd`). A changelog viewer and an offline guides browser; see
+`docs/interface/about.md` and `docs/interface/changelog.md`. The checkpoint branch
+`feature/about-20260909` is integrated: its categories were wrong for every merge (a merge
+lists no files under `git show --name-only`), which the backfill now reads through the
+first-parent diff; all 126 entries are dated from real commits. Evidence at `6e541bd`: root
+suite 1054 pass, 0 fail after the ledger re-record; backend 93 pass; typecheck clean; ledger
+4 of 4 tuples with 63 clicks each and every About step passing; parity 8 of 8. The first
+captures of the deployed destination showed two layout faults of this lane (filters with no
+gap, a stray rule above each guide), fixed in `6e541bd` before the evidence was kept. The
+feature audit marks the changelog viewer present.
+
 Captures under `docs/interface/ledger/shots-*` are ignored by Git on purpose; the JSON
 rows carry each capture's hash. The browser, the reference viewer, their ports, the
 profile and the desktop were removed and checked absent afterwards.
@@ -138,8 +150,7 @@ What exists now, for whoever picks this up:
 
 ### Still owed
 
-- The lanes of the approved plan that have not started: About destination (changelog
-  viewer, docs browser), history panel and bulk actions, regex on every dropdown,
+- The lanes of the approved plan that have not started: history panel and bulk actions, regex on every dropdown,
   scheduled settings and app logo, the Pages landing site, the lock family beyond its
   primitives. Each starts from `main`; none of the deleted branches held work for them.
 
