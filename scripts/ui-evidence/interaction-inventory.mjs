@@ -146,6 +146,22 @@ export const SURFACES = [
     ],
   },
   {
+    id: 'about',
+    label: 'About',
+    heading: 'What changed, and how it works',
+    /* No export step: a download from the driven browser would land in a real
+       Downloads folder. Both export formats are covered by tests/changelog.test.mjs. */
+    steps: [
+      { id: 'about.open', ...destination('About'), expect: '.about-tabs [data-ui="about.tab.changes"]', describe: 'About is present with its two tabs' },
+      { id: 'about.changes', click: '[data-ui="about.tab.changes"]', expect: '[data-ui="about.entry"]', describe: 'the changelog lists dated entries' },
+      { id: 'about.category', click: '[data-ui="about.category"]', expect: '[data-ui="about.category"][aria-pressed="true"]', describe: 'a category chip narrows the list' },
+      { id: 'about.reset', click: '[data-ui="about.reset"]', expect: '.about-chips:not(:has([aria-pressed="true"]))', describe: 'clearing filters releases every chip' },
+      { id: 'about.guides', click: '[data-ui="about.tab.guides"]', expect: '.about-reader__source code', describe: 'the guides tab opens an article from the bundle' },
+      { id: 'about.article', click: '[data-ui="about.article"]:not([aria-current])', expect: '[data-ui="about.article"][aria-current="page"]', describe: 'choosing another article marks it current' },
+      { id: 'about.back', click: '[data-ui="about.tab.changes"]', expect: '[data-ui="about.entry"]', describe: 'and the changelog tab comes back' },
+    ],
+  },
+  {
     id: 'navigation',
     label: 'Plan',
     /* No heading, because the rail is not a destination: it is chrome that is

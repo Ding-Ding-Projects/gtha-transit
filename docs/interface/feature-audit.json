@@ -276,12 +276,20 @@
     {
       "id": "changelog-viewer",
       "name": "In-app changelog with a date picker and commit links",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "components/about-workspace.tsx",
+        "lib/changelog.ts",
+        "scripts/changelog-json.mjs",
+        "scripts/changelog-backfill.mjs",
+        "lib/doc-markdown.ts",
+        "scripts/docs-bundle.mjs"
+      ],
+      "documentation": "docs/interface/about.md",
+      "test": "tests/changelog.test.mjs",
       "capture": null,
-      "reason": "Not built in the app. CHANGELOG.md and the release notes carry the record."
+      "missing": "Rendered interaction evidence at the deployed commit: the About steps are in the interaction inventory and have not been recorded yet.",
+      "note": "The About destination also carries the offline guides browser, which no canonical row names on its own."
     },
     {
       "id": "dim-sum-surprise",
@@ -408,7 +416,7 @@
       "documentation": null,
       "test": null,
       "capture": null,
-      "reason": "There is no published documentation site. The docs live in the repository."
+      "reason": "There is no published documentation site. The docs live in the repository, and the planner's About destination reads them offline, which is not a site and does not satisfy this row."
     }
   ]
 }

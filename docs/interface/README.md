@@ -5,6 +5,8 @@
 - [Appearance studio and element styles](appearance.md)
 - [Persistent tabbed navigation](tabs.md), not mounted since 9 September 2026 by owner decision
 - [Command palette](command-palette.md)
+- [About: the changelog viewer and guides](about.md)
+- [The changelog format](changelog.md)
 - [Notifications, bulk actions and export](notifications.md)
 - [Comfort modes and your own wording](comfort.md)
 - [The dim sum surprise](dim-sum.md)
