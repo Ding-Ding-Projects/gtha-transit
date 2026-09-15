@@ -13,6 +13,13 @@
  * total from the top and bottom (72px each) and nothing from the sides, so
  * the composer stays centred rather than being stretched or letterboxed.
  *
+ * The same bytes are written twice: to public/social-preview.png, which
+ * server/web.mjs serves at the running application's own origin for its
+ * og:image, and to social-preview.png at the repository root, which is where
+ * a person has to drag a file for GitHub's own repository social-preview
+ * upload (Settings -> General -> Social preview), since that setting is not
+ * exposed by any API this project can script.
+ *
  * Usage: node scripts/site/build-social-preview.mjs [--check]
  *   --check  computes the crop and reports it without writing anything.
  */
@@ -26,6 +33,7 @@ const root = path.resolve(here, '..', '..');
 
 export const SOURCE_CAPTURE = 'docs/design/parity/plan-app.png';
 export const OUTPUT_PATH = 'public/social-preview.png';
+export const ROOT_OUTPUT_PATH = 'social-preview.png';
 export const TARGET_WIDTH = 1200;
 export const TARGET_HEIGHT = 630;
 
@@ -73,8 +81,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       `${check ? ' (--check, not writing)' : ''}.`,
   );
   if (!check) {
-    const outputPath = path.join(root, OUTPUT_PATH);
-    writeFileSync(outputPath, outputBuffer);
-    console.log(`  wrote ${OUTPUT_PATH} (${outputBuffer.byteLength} bytes).`);
+    writeFileSync(path.join(root, OUTPUT_PATH), outputBuffer);
+    writeFileSync(path.join(root, ROOT_OUTPUT_PATH), outputBuffer);
+    console.log(`  wrote ${OUTPUT_PATH} and ${ROOT_OUTPUT_PATH} (${outputBuffer.byteLength} bytes each, byte-identical).`);
   }
 }

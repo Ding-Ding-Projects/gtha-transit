@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 
-import { centerCrop, OUTPUT_PATH, SOURCE_CAPTURE, TARGET_HEIGHT, TARGET_WIDTH } from '../scripts/site/build-social-preview.mjs';
+import { centerCrop, OUTPUT_PATH, ROOT_OUTPUT_PATH, SOURCE_CAPTURE, TARGET_HEIGHT, TARGET_WIDTH } from '../scripts/site/build-social-preview.mjs';
 
 const root = new URL('..', import.meta.url);
 
@@ -54,23 +54,35 @@ test('the source capture named for the social preview is real, committed and not
   );
 });
 
-test('the committed social preview PNG exists at the repository root’s public/ folder, at exactly 1200x630', async () => {
+function assertPngSize(bytes, label) {
+  // A PNG's width and height are big-endian 32-bit integers at fixed offsets
+  // in its IHDR chunk (bytes 16-23), right after the 8-byte signature and the
+  // 4-byte length/type of the first chunk. Reading them directly keeps this
+  // test honest without depending on sharp already being installed.
+  assert.equal(bytes.subarray(1, 4).toString('ascii'), 'PNG', `${label}: not a PNG file`);
+  assert.equal(bytes.readUInt32BE(16), TARGET_WIDTH, `${label}: unexpected width`);
+  assert.equal(bytes.readUInt32BE(20), TARGET_HEIGHT, `${label}: unexpected height`);
+}
+
+test('the committed social preview PNG exists in public/, at exactly 1200x630', () => {
   const outputPath = new URL(OUTPUT_PATH, root);
   assert.ok(
     existsSync(outputPath),
     `${OUTPUT_PATH} is missing. Run \`node scripts/site/build-social-preview.mjs\` and commit the result.`,
   );
-  const bytes = readFileSync(outputPath);
-  // A PNG's width and height are big-endian 32-bit integers at fixed offsets
-  // in its IHDR chunk (bytes 16-23), right after the 8-byte signature and the
-  // 4-byte length/type of the first chunk. Reading them directly keeps this
-  // test honest without depending on sharp already being installed.
-  assert.equal(bytes.subarray(1, 4).toString('ascii'), 'PNG', 'not a PNG file');
-  const width = bytes.readUInt32BE(16);
-  const height = bytes.readUInt32BE(20);
-  assert.equal(width, TARGET_WIDTH);
-  assert.equal(height, TARGET_HEIGHT);
-  assert.equal(width / height, 1200 / 630);
+  assertPngSize(readFileSync(outputPath), OUTPUT_PATH);
+});
+
+test('the same social preview PNG is also committed at the repository root, byte-identical, for GitHub’s manual social-preview upload', () => {
+  const rootOutputPath = new URL(ROOT_OUTPUT_PATH, root);
+  assert.ok(
+    existsSync(rootOutputPath),
+    `${ROOT_OUTPUT_PATH} is missing. Run \`node scripts/site/build-social-preview.mjs\` and commit the result.`,
+  );
+  const rootBytes = readFileSync(rootOutputPath);
+  assertPngSize(rootBytes, ROOT_OUTPUT_PATH);
+  const publicBytes = readFileSync(new URL(OUTPUT_PATH, root));
+  assert.ok(rootBytes.equals(publicBytes), 'the root copy must be byte-identical to public/social-preview.png, not a second drifting picture');
 });
 
 test('app/layout.tsx declares an absolute https og:image and twitter:image matching the committed social preview', () => {
