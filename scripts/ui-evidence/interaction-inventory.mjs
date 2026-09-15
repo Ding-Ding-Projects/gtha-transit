@@ -148,6 +148,14 @@ export const SURFACES = [
       { id: 'settings.tab.language', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(2)', expect: '.settings-tab-strip [data-slot="tabs-trigger"][aria-selected="true"]', describe: 'a settings tab can be selected' },
       { id: 'settings.history.open', click: '[data-ui="history.opener"]', expect: '.history-panel[open]', describe: 'settings history opens its revision panel' },
       { id: 'settings.history.close', click: '.history-panel[open] .history-panel__close', expect: '.history-panel:not([open])', describe: 'and closes again' },
+      { id: 'settings.logo', expect: '#appearance-logo .appearance-logo-presets input[type="radio"]', describe: 'the appearance section offers the bundled logo presets' },
+      { id: 'settings.tab.schedule', clickText: 'Schedule', expect: '#schedule-rules', describe: 'the schedule tab opens its rules editor' },
+      { id: 'settings.schedule.parts', expect: '#schedule-override button, #schedule-external #schedule-external-url', describe: 'overrides and the explicit external import are present' },
+      /* No step types a credential or creates a lock: a recorded run would leave a lock in the
+         driven profile, and every credential path is covered by the lock and TOTP unit tests. */
+      { id: 'settings.tab.privacy', clickText: 'Privacy', expect: '#toy-locks', describe: 'the privacy tab lists toy locks' },
+      { id: 'settings.privacy.authenticator', expect: '#authenticator [data-ui="authenticator.uri"]', describe: 'the authenticator accepts an otpauth address' },
+      { id: 'settings.privacy.tickets', expect: '[data-ui="tickets.disclosure"]', describe: 'Support Tickets says up front that nothing is sent' },
       { id: 'settings.tab.first', click: '.settings-tab-strip [data-slot="tabs-trigger"]:nth-of-type(1)', expect: '.settings-tab-strip [data-slot="tabs-trigger"][aria-selected="true"]', describe: 'and the first tab selected again' },
     ],
   },
