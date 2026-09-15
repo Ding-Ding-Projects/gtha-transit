@@ -149,6 +149,24 @@ export const EXPLAINED_SETTINGS: readonly ExplainedSetting[] = Object.freeze([
     shipped: NOT_APPLICABLE,
   },
   {
+    id: 'schedule-rules',
+    en: 'Adds time-of-day and weekday rules that automatically switch the language mode, theme or an appearance preset in America/Toronto time.',
+    zh: '新增按時間同星期嘅規則,喺美國東部（多倫多）時區自動切換語言模式、主題或外觀預設。',
+    shipped: 'No rules',
+  },
+  {
+    id: 'schedule-override',
+    en: 'Temporarily overrides the active schedule rule until the next moment the schedule would otherwise change.',
+    zh: '暫時覆蓋現正生效嘅排程規則,直至下一個排程本來會轉換嘅時間點。',
+    shipped: 'No override',
+  },
+  {
+    id: 'schedule-external',
+    en: 'Fetches a schedule document from a web address you enter, only when you press the import button; it is never fetched automatically.',
+    zh: '喺你按下匯入按鈕時,先從你輸入嘅網址載入排程文件;絕不會自動抓取。',
+    shipped: NOT_APPLICABLE,
+  },
+  {
     id: 'local-data',
     en: 'Explains what the planner keeps: saved trips, local storage and routing requests. There is nothing to change here.',
     zh: '講解規劃工具保留咩資料:已儲存行程、本機儲存同路線請求。呢度冇嘢可以更改。',

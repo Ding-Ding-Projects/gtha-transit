@@ -17,3 +17,13 @@ Appearance transfers use a strict versioned JSON envelope. They carry global val
 The pure history reducer defaults to 100 entries; the mounted studio uses a bounded 60-entry history. Element, preset, property and colour-format searches each use the anchored regex workbench. The settings and inspector element searches have separate snippet storage.
 
 Focused verification covers invalid nested imports, generated-style limits, layer ordering, colour contrast and preservation of School mode and local wording. Built interaction and current capture provenance are recorded separately in the handoff; source checks alone do not prove the rendered editor.
+
+## App logo customization
+
+The Appearance section also picks the mark shown in the navigation rail, the phone bar and the browser tab. Four bundled marks ship, including the original shipped tile, plus a bounded local upload: PNG, JPEG, WebP or SVG, up to 5 MB and 4096 by 4096 source pixels. Whatever the source type, the picker never inserts it as markup -- the browser decodes it through an `<img>` element and the result is redrawn onto a 256 by 256 canvas and re-encoded as PNG, so an SVG upload is rasterised exactly like a photograph would be, and the stored bytes are capped at 200 KiB.
+
+A choice is staged as a preview before it is applied: selecting a bundled mark or finishing an upload shows the tile it would produce, and nothing changes the rail, the phone bar or the favicon until Apply is pressed. Reset returns to the shipped mark and removes a locally uploaded image from this browser, behind the same confirmation pattern the rest of the studio uses for a destructive change.
+
+The choice itself -- `logoId`, one of the bundled preset ids or the literal `custom` -- is a field of the small global appearance document, `gtha-appearance-v1`, so it travels through appearance export/import and through undo/redo exactly like every other global choice. The uploaded bytes for a custom mark are kept separately, in the same IndexedDB database as the element document, because a raster image is too large to hold 60 copies of in the undo history; undoing past a custom selection reverts which mark is shown without discarding the stored bytes, which remain available if redone.
+
+The favicon updates at runtime through a `<link rel="icon">` swap, since a browser tab cannot read the page's own CSS custom properties: a bundled preset renders as a small self-contained SVG data URL in one fixed pair of colours per theme, and a custom upload reuses its own stored PNG bytes directly.

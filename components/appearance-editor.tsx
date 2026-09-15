@@ -11,6 +11,9 @@ import type { AppearanceController } from '../lib/appearance/use-appearance';
 import type { ElementStyle, StyleProp } from '../lib/appearance/style-model';
 import { sanitiseStyle } from '../lib/appearance/style-model';
 import type { LayerKind } from '../lib/appearance/element-document';
+import { CUSTOM_LOGO_ID, LOGO_PRESETS, SHIPPED_LOGO_ID, logoUploadMessage } from '../lib/appearance/logo';
+import { decodeLogoUpload } from '../lib/appearance/logo-upload';
+import { BrandMark } from './brand-mark';
 
 type Translate = (en: string, zh: string) => string;
 const fonts = ['Space Grotesk', 'IBM Plex Mono', 'system-ui', 'serif', 'sans-serif', 'monospace'];
@@ -24,6 +27,61 @@ function ColourField({ label, value, update, t, id }: { label: string; value: st
   useEffect(() => setDraft(value), [value]);
   const commit = (text: string) => { setDraft(text); const colour = parseColour(text); if (colour) update(formatHex8(colour)); };
   return <fieldset className="appearance-colour"><legend>{label}</legend><div><input aria-label={label + ' ' + t('continuous colour picker', '連續色彩選擇器')} type="color" value={parsed ? formatHex(parsed) : '#000000'} onChange={event => commit(event.target.value)} /><input aria-label={label} value={draft} maxLength={200} aria-invalid={!parsed} onChange={event => commit(event.target.value)} /><label>{t('Opacity', '不透明度')}<input type="range" min="0" max="100" value={Math.round((parsed?.a ?? 1) * 100)} onChange={event => { if (parsed) commit(formatHex8({ ...parsed, a: Number(event.target.value) / 100 })); }} /></label></div>{!parsed && <p role="status">{t('Enter a valid colour; the previous valid colour is retained.', '請輸入有效顏色；上次有效顏色會保留。')}</p>}<details><summary>{t('Colour formats and contrast', '色彩格式同對比')}</summary><SearchWorkbench storageId={`appearance-colour-${id}`} label={t('Find colour formats', '搜尋色彩格式')} value={search} onChange={setSearch} samples={[...COLOUR_FORMATS]} t={t} />{parsed && <><dl>{COLOUR_FORMATS.map((format, index) => formatMatches.matches[index] && <div key={format}><dt>{format}</dt><dd><input readOnly aria-label={format} value={formatColour(parsed, format)} /></dd></div>)}</dl><p>{t(`Contrast on white: ${contrastRatio(parsed, { r: 255, g: 255, b: 255, a: 1 }).toFixed(2)}:1. On black: ${contrastRatio(parsed, { r: 0, g: 0, b: 0, a: 1 }).toFixed(2)}:1. Normal text needs at least 4.5:1.`, `白底對比 ${contrastRatio(parsed, { r: 255, g: 255, b: 255, a: 1 }).toFixed(2)}:1；黑底對比 ${contrastRatio(parsed, { r: 0, g: 0, b: 0, a: 1 }).toFixed(2)}:1。一般文字至少需要 4.5:1。`)}</p></>}</details></fieldset>;
+}
+
+/**
+ * App-logo customization: pick a bundled preset, or upload a local image that
+ * is re-rasterised onto a canvas and stored as PNG bytes -- never inserted as
+ * markup, whatever the original file type.
+ *
+ * A choice is staged as a draft rather than applied immediately, so the
+ * preview tile always shows what pressing Apply would actually produce
+ * before it changes the rail, the phone bar and the favicon.
+ */
+function LogoPicker({ controller: c, t }: { controller: AppearanceController; t: Translate }) {
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftCustom, setDraftCustom] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const previewId = draftId ?? c.global.logoId;
+  const previewCustom = draftId === CUSTOM_LOGO_ID ? draftCustom : c.customLogo;
+  const hasDraft = draftId !== null && (draftId !== c.global.logoId || (draftId === CUSTOM_LOGO_ID && draftCustom !== c.customLogo));
+  const cancelDraft = () => { setDraftId(null); setDraftCustom(null); };
+  const apply = () => {
+    if (!draftId) return;
+    if (draftId === CUSTOM_LOGO_ID) {
+      if (draftCustom && !c.setCustomLogo(draftCustom)) { setNotice(t('The converted image is still too large to store. Existing mark was retained.', '轉換後嘅圖片仍然太大，會保留原有圖標。')); return; }
+    }
+    if (!c.update({ global: { ...c.global, logoId: draftId } })) { setNotice(t('This exceeds the supported size. Existing mark was retained.', '超過支援大小，會保留原有圖標。')); return; }
+    setNotice(t('Logo applied.', '已套用圖標。'));
+    cancelDraft();
+  };
+  return <fieldset id="appearance-logo" tabIndex={-1} className="appearance-logo"><legend>{t('App logo', '應用程式圖標')}</legend>
+    <p>{t('Shown in the rail, the phone bar and the browser tab. Preview a choice before applying it.', '顯示喺導覽列、手機列同瀏覽器分頁。套用前可以先預覽。')}</p>
+    <div className="appearance-logo-preview"><BrandMark size={48} logoId={previewId} customDataUrl={previewCustom} />{hasDraft && <span role="status">{t('Preview — not yet applied', '預覽 — 尚未套用')}</span>}</div>
+    <div role="radiogroup" aria-label={t('Bundled logo presets', '內置圖標')} className="appearance-logo-presets">
+      {LOGO_PRESETS.map(preset => <label key={preset.id}><input type="radio" name="appearance-logo-preset" checked={previewId === preset.id && previewId !== CUSTOM_LOGO_ID} onChange={() => setDraftId(preset.id)} /><BrandMark size={28} logoId={preset.id} />{t(preset.label.en, preset.label.zh)}</label>)}
+    </div>
+    <label className="appearance-logo-upload">{t('Upload a custom image', '上載自訂圖片')}
+      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" disabled={busy} onChange={async event => {
+        const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
+        setBusy(true); setNotice('');
+        const result = await decodeLogoUpload(file);
+        setBusy(false);
+        if (!result.ok) { setNotice(logoUploadMessage(result.reason, t)); return; }
+        setDraftId(CUSTOM_LOGO_ID); setDraftCustom(result.dataUrl);
+      }} />
+    </label>
+    <p className="data-note">{t('PNG, JPEG, WebP or SVG, up to 5 MB. The image is converted locally to a 256 by 256 pixel mark; an SVG is redrawn as a bitmap rather than kept as code.', '支援 PNG、JPEG、WebP 或 SVG，最大 5 MB。圖片會喺本機轉換為 256 x 256 像素圖標;SVG 會重新繪製為點陣圖,而唔會保留代碼。')}</p>
+    <div className="appearance-toolbar">
+      <button type="button" disabled={!hasDraft || busy} onClick={apply}>{t('Apply logo', '套用圖標')}</button>
+      <button type="button" disabled={!hasDraft} onClick={cancelDraft}>{t('Cancel', '取消')}</button>
+      <button type="button" disabled={c.global.logoId === SHIPPED_LOGO_ID && !c.customLogo} onClick={() => setConfirmReset(true)}>{t('Reset to default', '重設為預設')}</button>
+    </div>
+    {confirmReset && <fieldset><legend>{t('Reset the app logo?', '重設應用程式圖標？')}</legend><p>{t('Returns to the shipped mark. A locally uploaded image is removed from this browser.', '會還原原有圖標,本機上載嘅圖片會被移除。')}</p><button type="button" onClick={() => { c.setCustomLogo(null); c.update({ global: { ...c.global, logoId: SHIPPED_LOGO_ID } }); cancelDraft(); setConfirmReset(false); }}>{t('Confirm reset', '確認重設')}</button><button type="button" onClick={() => setConfirmReset(false)}>{t('Cancel', '取消')}</button></fieldset>}
+    {notice && <p role="status">{notice}</p>}
+  </fieldset>;
 }
 
 export default function AppearanceEditor({ controller: c, t }: { controller: AppearanceController; t: Translate }) {
@@ -47,6 +105,7 @@ export default function AppearanceEditor({ controller: c, t }: { controller: App
     {confirmReset && <fieldset><legend>{t('Restore the shipped appearance?', '還原原有外觀？')}</legend><p>{t('Saved journeys and named presets stay intact. Global settings and element overrides reset.', '已儲存行程同具名預設會保留；整體設定同元素外觀會重設。')}</p><button type="button" onClick={() => { c.reset(); setConfirmReset(false); }}>{t('Confirm restore', '確認還原')}</button><button type="button" onClick={() => setConfirmReset(false)}>{t('Cancel', '取消')}</button></fieldset>}
     <p className="data-note">{t('Changes stay in this browser. Press Control + Shift + Alt + Backspace to restore appearance if a custom style becomes difficult to read.', '變更只留喺此瀏覽器。如自訂樣式難以閱讀，可按 Control + Shift + Alt + Backspace 還原外觀。')}</p>
     <fieldset id="appearance-colours" tabIndex={-1}><legend>{t('Brand colour', '品牌色彩')}</legend><label><input type="radio" name="appearance-mode" checked={c.global.mode === 'shipped'} onChange={() => set({ mode: 'shipped' })} />{t('Original palette', '原有配色')}</label><label><input type="radio" name="appearance-mode" checked={c.global.mode !== 'shipped'} onChange={() => set({ mode: 'seed', seed: c.global.seed ?? '#ffb545' })} />{t('Custom palette', '自訂配色')}</label><ColourField id="brand" label={t('Seed colour', '基礎顏色')} value={c.global.seed ?? '#ffb545'} update={value => set({ mode: 'seed', seed: value })} t={t} /><p>{t('The seed produces both light and dark colour roles. Transit delay and agency colours keep their factual meaning.', '基礎顏色會產生淺色同深色配色。交通延誤同公司顏色會保留原有意思。')}</p></fieldset>
+    <LogoPicker controller={c} t={t} />
     <fieldset><legend>{t('Comfort and typography', '舒適度同字體')}</legend><label>{t('Display name', '顯示名稱')}<input id="appearance-app-name" maxLength={40} value={c.global.appName ?? ''} placeholder="GTHA Transit" onChange={event => set({ appName: event.target.value || null })} /></label><div>{(['compact','default','comfortable'] as const).map((density,index) => <label key={density}><input type="radio" id={density === 'default' ? 'appearance-density' : undefined} name="appearance-density" checked={c.global.density === density} onChange={() => set({ density })} />{t(['Compact','Default','Comfortable'][index],['緊密','預設','寬鬆'][index])}</label>)}</div><label>{t('Text size', '文字大小')}<input id="appearance-size" type="range" min="0.8" max="1.5" step="0.05" value={c.global.sizeScale} onChange={event => set({ sizeScale: Number(event.target.value) })} /><output>{Math.round(c.global.sizeScale * 100)}%</output></label><div>{([-1,0,1] as const).map((weight,index) => <label key={weight}><input type="radio" name="appearance-weight" checked={c.global.weightShift === weight} onChange={() => set({ weightShift: weight })} />{t(['Lighter','Regular','Bolder'][index],['較幼','正常','較粗'][index])}</label>)}</div><SearchWorkbench storageId="appearance-fonts" label={t('Find available font families', '搜尋可用字體')} value={fontSearch} onChange={setFontSearch} samples={fonts} t={t} /><div className="appearance-fonts">{fonts.map((font,index) => fontMatches.matches[index] && <label key={font}><input type="radio" name="appearance-font" checked={c.global.fontFamily === font} onChange={() => set({ fontFamily: font })} />{font}</label>)}</div><button type="button" onClick={() => set({ fontFamily: null, monoFamily: null, sizeScale: 1, weightShift: 0 })}>{t('Restore typography', '還原字體')}</button><label><input id="appearance-emoji" type="checkbox" checked={c.global.showEmoji} onChange={event => set({ showEmoji: event.target.checked })} />{t('Show decorative emoji', '顯示裝飾表情符號')}</label></fieldset>
     <details id="appearance-presets" tabIndex={-1}><summary>{t('Named presets and transfer', '具名預設同匯入匯出')}</summary><label>{t('Preset name', '預設名稱')}<input maxLength={80} value={presetName} onChange={event => setPresetName(event.target.value)} /></label><button type="button" disabled={!presetName.trim() || c.presets.length >= 50} onClick={() => { c.update({ presets: [...c.presets, { version: 1, id: uid(), name: presetName.trim(), createdAt: new Date().toISOString(), global: c.global }] }); setPresetName(''); }}>{t('Save preset', '儲存預設')}</button><SearchWorkbench storageId="appearance-presets" label={t('Find presets', '搜尋預設')} value={presetSearch} onChange={setPresetSearch} samples={c.presets.map(preset => preset.name)} t={t} />{c.presets.map((preset,index) => presets.matches[index] && <div key={preset.id}><button type="button" onClick={() => c.update({ global: preset.global })}>{preset.name}</button><button type="button" onClick={() => c.update({ presets: c.presets.filter(item => item.id !== preset.id) })} aria-label={t(`Delete preset ${preset.name}`, `刪除預設 ${preset.name}`)}><X size={16} /></button></div>)}<button type="button" onClick={exportFile}><Download size={16} />{t('Export appearance JSON', '匯出外觀 JSON')}</button><label>{t('Import appearance JSON', '匯入外觀 JSON')}<input type="file" accept=".json,application/json" onChange={async event => { const file = event.target.files?.[0]; event.target.value = ''; if (!file) return; if (file.size > MAX_TRANSFER_BYTES) { setNotice(t('The file exceeds the 256 KiB limit.', '檔案超過 256 KiB 限制。')); return; } try { const imported = importAppearance(await file.text()); if (!imported.ok) { setNotice(t('This is not a supported appearance file. Existing settings were retained.', '此檔案並非支援嘅外觀檔案。原有設定會保留。')); return; } const applied = c.update({ global: imported.value.global, document: { version: 1, overrides: imported.value.elements, layers: imported.value.layers }, presets: imported.value.presets }); if (!applied) { setNotice(t('The appearance exceeds the supported size. Existing settings were retained.', '外觀超過支援大小，原有設定會保留。')); return; } setNotice(t('Appearance imported locally.', '已於本機匯入外觀。')); } catch { setNotice(t('The file could not be read. Existing settings were retained.', '未能讀取檔案，原有設定會保留。')); } }} /></label></details>
     <ElementEditor controller={c} t={t} />

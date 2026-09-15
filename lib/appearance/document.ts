@@ -19,6 +19,7 @@
  */
 
 import { RAINBOW, parseColour } from '../colour.ts';
+import { SHIPPED_LOGO_ID, isKnownLogoId } from './logo.ts';
 
 export type UiState = 'normal' | 'hover' | 'focus' | 'pressed' | 'selected' | 'disabled' | 'error';
 
@@ -72,6 +73,16 @@ export type AppearanceGlobal = {
   rainbowLevel: RainbowLevel;
   activePresetId: string | null;
   recentColours: string[];
+  /**
+   * Which brand mark is shown in the rail, the phone bar and the favicon.
+   *
+   * One of the bundled preset ids, defined in `lib/appearance/logo.ts`, or the
+   * literal string `'custom'` for a locally uploaded mark. The uploaded bytes
+   * themselves live in IndexedDB next to the element document -- this field is
+   * deliberately small enough for the same synchronous, bounded localStorage
+   * record every other global choice already lives in.
+   */
+  logoId: string;
 };
 
 const SIZE_SCALE_MIN = 0.8;
@@ -97,6 +108,7 @@ export const SHIPPED_GLOBAL: AppearanceGlobal = Object.freeze({
   rainbowLevel: 3,
   activePresetId: null,
   recentColours: [],
+  logoId: SHIPPED_LOGO_ID,
 }) as AppearanceGlobal;
 
 const clampNumber = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
@@ -154,6 +166,11 @@ function readSources(value: unknown): Record<string, string> | null {
     entries.push([name, colour]);
   }
   return entries.length ? Object.fromEntries(entries) : null;
+}
+
+/** A known preset id or the literal `'custom'`; anything else falls back to the shipped mark. */
+function readLogoId(value: unknown): string {
+  return typeof value === 'string' && isKnownLogoId(value) ? value : SHIPPED_LOGO_ID;
 }
 
 function readRecentColours(value: unknown): string[] {
@@ -220,5 +237,6 @@ export function parseGlobal(text: string | null | undefined): AppearanceGlobal {
     rainbowLevel: readRainbowLevel(record.rainbowLevel),
     activePresetId: readBoundedString(record.activePresetId, MAX_PRESET_ID),
     recentColours: readRecentColours(record.recentColours),
+    logoId: readLogoId(record.logoId),
   };
 }

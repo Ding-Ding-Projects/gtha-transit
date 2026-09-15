@@ -9,6 +9,7 @@ import { commitAppearanceHistory, createAppearanceHistory, redoAppearanceHistory
 import { schemeForSeed } from './token-scheme.mjs';
 import { compileAppearance } from './layers';
 import { formatHex, parseColour } from '../colour';
+import { CUSTOM_LOGO_ID, SHIPPED_LOGO_ID, logoPreset, presetFaviconDataUrl, validateStoredLogo } from './logo';
 
 type Snapshot = { global: AppearanceGlobal; document: ElementAppearanceDocument; presets: AppearancePreset[] };
 export function useAppearance(dark: boolean) {
@@ -16,6 +17,7 @@ export function useAppearance(dark: boolean) {
   const global = useMemo(() => parseGlobal(stored.value), [stored.value]);
   const [document, setDocument] = useState<ElementAppearanceDocument>(EMPTY_ELEMENT_DOCUMENT);
   const [presets, setPresets] = useState<AppearancePreset[]>([]);
+  const [customLogo, setCustomLogoState] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false);
   const [limitExceeded, setLimitExceeded] = useState(false);
@@ -34,6 +36,12 @@ export function useAppearance(dark: boolean) {
       request.onsuccess = () => {
         if (disposed) { request.result.close(); return; }
         db.current = request.result;
+        const logoRead = db.current.transaction('documents').objectStore('documents').get('logo');
+        logoRead.onsuccess = () => {
+          if (disposed) return;
+          const stored = logoRead.result;
+          if (typeof stored?.dataUrl === 'string' && !validateStoredLogo(stored.dataUrl)) setCustomLogoState(stored.dataUrl);
+        };
         if (pendingWrite.current) {
           const pending = pendingWrite.current; pendingWrite.current = null;
           const tx = db.current.transaction('documents', 'readwrite');
@@ -84,6 +92,28 @@ export function useAppearance(dark: boolean) {
   const reset = () => update({ global: SHIPPED_GLOBAL, document: EMPTY_ELEMENT_DOCUMENT, presets });
   const undo = () => { const next = undoAppearanceHistory(history); setHistory(next); persist(next.present); };
   const redo = () => { const next = redoAppearanceHistory(history); setHistory(next); persist(next.present); };
+  /**
+   * The custom logo's bytes, kept outside the undo/redo history.
+   *
+   * The history array can hold up to 60 snapshots; a raster mark can be up to
+   * 200 KiB, and 60 copies of it would be a needless multi-megabyte memory
+   * cost for an asset that rarely changes. The *choice* to use it still
+   * travels through undo/redo, because `global.logoId` does -- undoing past a
+   * custom selection reverts to the previous `logoId`, it just does not
+   * discard the stored bytes themselves, which stay available if redone.
+   */
+  const setCustomLogo = (dataUrl: string | null) => {
+    if (dataUrl !== null && validateStoredLogo(dataUrl)) return false;
+    setCustomLogoState(dataUrl);
+    if (!db.current) return false;
+    try {
+      const tx = db.current.transaction('documents', 'readwrite');
+      if (dataUrl) tx.objectStore('documents').put({ dataUrl }, 'logo');
+      else tx.objectStore('documents').delete('logo');
+      tx.onabort = tx.onerror = () => setStorageFailed(true);
+    } catch { setStorageFailed(true); return false; }
+    return true;
+  };
   useEffect(() => {
     if (!ready) return;
     const emergency = (event: KeyboardEvent) => { if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'Backspace') { event.preventDefault(); reset(); } };
@@ -107,6 +137,26 @@ export function useAppearance(dark: boolean) {
     if (global.appName) window.document.title = global.appName;
     return () => { for (const [key, value] of previous) { if (value) root.style.setProperty(key, value); else root.style.removeProperty(key); } window.document.title = title; };
   }, [roles, global.fontFamily, global.monoFamily, global.density, global.sizeScale, global.weightShift, global.appName]);
-  return { global, document, presets, ready, limitExceeded, storageFailed: storageFailed || stored.unavailable, update, reset, undo, redo, canUndo: history.past.length > 0, canRedo: history.future.length > 0, css: compileAppearance(document) };
+  /**
+   * Runtime favicon swap. A `<link rel="icon">` cannot read a CSS custom
+   * property the way the inline `BrandMark` can, so a non-shipped choice is
+   * rendered as a small self-contained data URL instead -- a bundled preset
+   * through `presetFaviconDataUrl`, or the same re-rasterised bytes already
+   * stored for the rail's custom mark. Cleanup restores the file the layout
+   * shipped rather than trying to remember the tag's previous `href`, which
+   * keeps this correct even if two instances of the hook mount in sequence.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const link = window.document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+      ?? (() => { const created = window.document.createElement('link'); created.rel = 'icon'; window.document.head.appendChild(created); return created; })();
+    const preset = global.logoId !== CUSTOM_LOGO_ID ? logoPreset(global.logoId) : null;
+    const href = global.logoId === CUSTOM_LOGO_ID && customLogo
+      ? customLogo
+      : preset && preset.id !== SHIPPED_LOGO_ID ? presetFaviconDataUrl(preset, dark) : '/favicon.svg';
+    link.setAttribute('href', href);
+    return () => { link.setAttribute('href', '/favicon.svg'); };
+  }, [global.logoId, customLogo, dark]);
+  return { global, document, presets, customLogo, setCustomLogo, ready, limitExceeded, storageFailed: storageFailed || stored.unavailable, update, reset, undo, redo, canUndo: history.past.length > 0, canRedo: history.future.length > 0, css: compileAppearance(document) };
 }
 export type AppearanceController = ReturnType<typeof useAppearance>;
