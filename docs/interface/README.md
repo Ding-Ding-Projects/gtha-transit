@@ -6,6 +6,7 @@
 - [Persistent tabbed navigation](tabs.md), not mounted since 9 September 2026 by owner decision
 - [Command palette](command-palette.md)
 - [About: the changelog viewer and guides](about.md)
+- [The documentation and landing site](documentation-site.md)
 - [The changelog format](changelog.md)
 - [Notifications, bulk actions and export](notifications.md)
 - [Comfort modes and your own wording](comfort.md)
