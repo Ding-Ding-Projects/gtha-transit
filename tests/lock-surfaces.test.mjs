@@ -155,10 +155,21 @@ test('every lockable settings section is gated, and the way out is not', () => {
   for (const section of ['appearance', 'language', 'comfort', 'narrator']) {
     assert.match(workspace, new RegExp(`<LockGate target=\\{sectionTarget\\('${section}'\\)\\}`), `${section} has no gate`);
   }
-  assert.doesNotMatch(workspace, /sectionTarget\('privacy'\)/);
+  const privacy = workspace.slice(workspace.indexOf('<TabsContent value="privacy"'), workspace.indexOf('</TabsContent>', workspace.indexOf('<TabsContent value="privacy"')));
+  assert.ok(privacy.includes('<LocksCard'), 'the privacy panel was found');
+  assert.doesNotMatch(privacy, /<LockGate\b/, 'nothing in the Privacy section, which holds the way out, is behind a lock of its own section');
   assert.match(workspace, /<LockGate target=\{STUDIO_TARGET\}/);
   const comfortGateEnd = workspace.indexOf('</LockGate>', workspace.indexOf("sectionTarget('comfort')"));
   assert.ok(workspace.indexOf('<SchoolMode') > comfortGateEnd, 'School mode, itself a way out, sits outside the Comfort lock');
+});
+
+test('no lock source or test carries an invisible control character', () => {
+  /* A script once turned a regular expression's word boundary into a literal
+     backspace here, and the guard it belonged to matched nothing while staying
+     green. A pattern nobody can see is a pattern nobody can review. */
+  const files = ['lib/toy-locks.ts', 'lib/unlock-ladder.ts', 'lib/totp.ts', 'lib/use-toy-locks.ts', 'lib/secret-history.ts', 'lib/authenticator.ts', 'lib/support-tickets.ts',
+    'components/toy-lock.tsx', 'components/locks-settings.tsx', 'tests/toy-locks.test.mjs', 'tests/unlock-ladder.test.mjs', 'tests/totp.test.mjs', 'tests/support-tickets.test.mjs', 'tests/lock-surfaces.test.mjs'];
+  for (const file of files) assert.ok(![...source(file)].some((character) => { const code = character.charCodeAt(0); return code < 32 && code !== 9 && code !== 10 && code !== 13; }), `${file} has a control character in it`);
 });
 
 test('every saved trip is gated with its own target', () => {

@@ -247,4 +247,32 @@ authenticator keys.
 | `tests/toy-locks.test.mjs` | 22 |
 | `tests/unlock-ladder.test.mjs` | 18 |
 | `tests/support-tickets.test.mjs` (tickets, authenticator entries and history) | 15 |
-| `tests/lock-surfaces.test.mjs` | 16 |
+| `tests/lock-surfaces.test.mjs` | 17 |
+
+**Twenty-eight rules were broken on purpose and watched go red, then restored and
+watched go green**: the ladder refunding the escalation, ignoring its hourly
+budget, grading before consuming the nonce, accepting a mole round early,
+counting a mole twice, refunding extra attempts, and starting at dim sum under
+School mode; a PIN kept in plain text, a constant salt, a wrong answer keeping
+the verified factor, a factor outside the policy accepted, a broken record
+restored, and a hash in the export; the skew window widened and the HOTP counter's
+high word dropped; the history accepting a credential field or a pasted key; the
+authenticator export carrying keys; a locked settings row keeping its setter or
+leaving the search; a shut lock removable, and a cleared ladder granting the lock;
+the gate no longer refusing clicks or no longer inert; the Privacy section gated;
+the ticket disclosure replaced; the desk making a network call; and lock copy
+claiming protection.
+
+Three of those passed on the first attempt and were fixed rather than accepted:
+
+- **Counting a mole twice** was first broken by removing the duplicate check, but
+  the hits already went into a set, so the rule held twice over and the break
+  changed nothing. The break now gives each hit a fresh key, and the test sees 50
+  hits where there was one mole.
+- **A factor outside the policy** was first checked only against a lock that had
+  no such hash, so the missing hash refused it on its own. The test now edits a
+  PIN hash into a password-only record, and the policy has to do the refusing.
+- **The Privacy section guard** matched nothing at all: a script had written its
+  regular expression's word boundary as a literal backspace character. It is
+  fixed, and a new test refuses any control character in the lock sources and
+  tests.

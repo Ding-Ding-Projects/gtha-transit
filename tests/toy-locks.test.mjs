@@ -20,6 +20,7 @@ import {
   draftProblems,
   freshAttempts,
   grantFor,
+  hashFactor,
   isLockedNow,
   matchesFactor,
   parseAttempts,
@@ -103,6 +104,11 @@ test('a factor the policy does not name is never accepted, even with the right v
   assert.equal(lock.pin, undefined, 'a PIN supplied to a password policy is not stored');
   assert.equal(checkFactor(lock, 'pin', PIN, null, seconds), false);
   assert.equal(checkFactor(lock, 'password', PASSWORD, null, seconds), true);
+  /* A record edited in storage to carry a PIN hash its policy never asks for
+     still refuses the PIN: the policy decides which factors count, not whatever
+     fields happen to be present. */
+  const tampered = { ...lock, pin: hashFactor(PIN, FAST) };
+  assert.equal(checkFactor(tampered, 'pin', PIN, null, seconds), false);
 });
 
 test('credentials are stored as salted hashes, never as the value', () => {
