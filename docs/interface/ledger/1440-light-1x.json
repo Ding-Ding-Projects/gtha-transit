@@ -1,16 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-15T04:21:01.506Z",
+  "generatedAt": "2026-09-15T06:03:12.004Z",
   "url": "https://toronto-transit.org/",
-  "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-  "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+  "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+  "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
   "viewportWidth": 1440,
   "displayScale": 1,
   "theme": "light",
-  "inventorySteps": 63,
-  "recordedRows": 63,
+  "inventorySteps": 74,
+  "recordedRows": 74,
   "counts": {
-    "pass": 61,
+    "pass": 71,
+    "absent-optional": 1,
     "not-applicable": 2
   },
   "consoleErrors": [],
@@ -44,8 +45,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -53,7 +54,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/001-plan.open-1440-light.png",
-      "screenshotSha256": "a1287af0ce327333bfc41aefcf47d9b5ba4b48de63c545886e5aa516bad95f76",
+      "screenshotSha256": "4f34f07d9c97cc7a6e4968954dc9655d75503d7b45e195594d210cb1e4b80ec1",
       "privacy": "clean"
     },
     {
@@ -85,8 +86,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -94,7 +95,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/002-plan.from-1440-light.png",
-      "screenshotSha256": "3b10c4beb6478eda8e240054f227f12a1c2595c39db12faee1c94990f3b4eb80",
+      "screenshotSha256": "60693def003c932a07ff0e687243d412b34126c1ab12b63d75cd088322b11a0c",
       "privacy": "clean"
     },
     {
@@ -126,8 +127,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -135,7 +136,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/003-plan.from.choose-1440-light.png",
-      "screenshotSha256": "a6e5ddddbb515945ee2ba5a44739d1991877b153c2e0cf81d5e803cf470e60f2",
+      "screenshotSha256": "a6c992fa9748489005c4574af1f66732ba20c6abaf9ddceabd28ada9d20a21d1",
       "privacy": "clean"
     },
     {
@@ -167,8 +168,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -176,7 +177,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/004-plan.reverse-1440-light.png",
-      "screenshotSha256": "46d13da459c84abce1616ad91a3a67bee3a2769d76c682caaef9f8574b42a695",
+      "screenshotSha256": "0cf085aa8c391f4fd830aa37c76e58a2bc06493b409d36c0d7f47fc167cb5cc8",
       "privacy": "clean"
     },
     {
@@ -188,7 +189,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 00:20expand_more"
+        "name": "LeavingTue 02:02expand_more"
       },
       "expected": ".trip-when[open] .journey-time",
       "before": {
@@ -208,8 +209,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -217,7 +218,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/005-plan.when.open-1440-light.png",
-      "screenshotSha256": "71c121215bbd92ec28f3523575c7080ebe7914b52f0ba276e23a97e9d82d3c4c",
+      "screenshotSha256": "cfd3172d422a37b4504136e91ed71f6a9acb8a8f403f2ac6ebd089c94f5d3994",
       "privacy": "clean"
     },
     {
@@ -229,7 +230,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "summary",
-        "name": "LeavingTue 00:20expand_more"
+        "name": "LeavingTue 02:02expand_more"
       },
       "expected": ".trip-when:not([open])",
       "before": {
@@ -249,8 +250,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -258,7 +259,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/006-plan.when.close-1440-light.png",
-      "screenshotSha256": "46d13da459c84abce1616ad91a3a67bee3a2769d76c682caaef9f8574b42a695",
+      "screenshotSha256": "bb0b6e71cdc9e05a1928b03033fdb24f70be4dfe97975ac0676d6ed70f27a03b",
       "privacy": "clean"
     },
     {
@@ -290,8 +291,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -299,7 +300,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/007-plan.options.open-1440-light.png",
-      "screenshotSha256": "33365ed90d9e2a4fe8fe3d08f0de1f72ba7ae067d2d1e30671e79a106844b556",
+      "screenshotSha256": "baa318ea41b1ef92774b28ba0fa4b2026282f52a6175bd2b7204630d95b75029",
       "privacy": "clean"
     },
     {
@@ -331,8 +332,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -340,7 +341,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/008-plan.options.priority-1440-light.png",
-      "screenshotSha256": "1a287dc93fae372f5b9af2777de0a70c792508900b4f0d850d9618e0087435b9",
+      "screenshotSha256": "977eb220bc3231bdcebda3e0fe8345ea649030ee8462c92e5cecb73b4635259b",
       "privacy": "clean"
     },
     {
@@ -372,8 +373,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -381,7 +382,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/009-plan.garage.choose-1440-light.png",
-      "screenshotSha256": "bce3e1b2f42082851a4a5fb48e978d41ebfd1120de70a5cca23a6983d705ddbe",
+      "screenshotSha256": "b909af17f0832e7acd4422f80567ae3306c323f4c1dd659913cd43e6fd218ccd",
       "privacy": "clean"
     },
     {
@@ -413,8 +414,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -422,7 +423,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/010-plan.garage.details-1440-light.png",
-      "screenshotSha256": "47d04f976bbc6b4e81ba7cb6eb33f6724f814b2e7ef4e49ca0d09ddb287271d5",
+      "screenshotSha256": "484381ebfc9d31777ef5db2fe587e55be6c2b811ec5deaa2380a772568aca433",
       "privacy": "clean"
     },
     {
@@ -451,8 +452,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -460,7 +461,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/011-plan.garage.vehicles-1440-light.png",
-      "screenshotSha256": "61998ced069d1ab0514f089e40017d378e69bf963eb3f2d77cc052fa61e00d7f",
+      "screenshotSha256": "718f1213c1b6d31721ac27c134b3fee98cef7fa0b0a5a7ae8f5580ad02c22f5b",
       "privacy": "clean"
     },
     {
@@ -492,8 +493,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -501,7 +502,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/012-plan.garage.hide-1440-light.png",
-      "screenshotSha256": "613b387a1ac34250cd8123d6e679c7765ba365eebe73472c8c0a24b62254757d",
+      "screenshotSha256": "d8e8be2ae34f57370d210cd26385d576d770b5d0455e696cb35ee0eb67935eb9",
       "privacy": "clean"
     },
     {
@@ -533,8 +534,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -542,7 +543,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/013-plan.garage.clear-1440-light.png",
-      "screenshotSha256": "5bf28cf1384e46bf19cb3dc31f85d89b159e1c2346da1e8da5dadbb3f3cac7df",
+      "screenshotSha256": "5cf0e946446e56f641f8c28d8fb866cbdd14c0e70d4e22946cc76786dc60b589",
       "privacy": "clean"
     },
     {
@@ -574,8 +575,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -583,7 +584,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/014-plan.options.close-1440-light.png",
-      "screenshotSha256": "9e0d4605a09ae35e4f0d645a0168182115ef42d6b2709600209f8f85d0867bbf",
+      "screenshotSha256": "c9aac6be044f7a0c8b0f83768eef1a3f991e410142ac559df5190ae555488012",
       "privacy": "clean"
     },
     {
@@ -615,8 +616,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -624,7 +625,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/015-plan.intermediate-1440-light.png",
-      "screenshotSha256": "b329345b218391d38044c1404484a60bc3b35e24e7a7e8255f86fe54d425c7c1",
+      "screenshotSha256": "e4b23685b836c7cffbda98619e7dabbbfe767e2ea05ab8014c4ed8f53dd5a675",
       "privacy": "clean"
     },
     {
@@ -656,8 +657,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -665,7 +666,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/016-plan.map.toggle-1440-light.png",
-      "screenshotSha256": "5cb832ff6ebb2b42c41d0f3c29556e4f299333988c4129fe6c09d25d5fe0c7ec",
+      "screenshotSha256": "b61373ed4ae0b7b188b911e822aaee565f3cf957d531ba5b69c58df8f077aa0d",
       "privacy": "clean"
     },
     {
@@ -697,8 +698,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -706,7 +707,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/017-status.open-1440-light.png",
-      "screenshotSha256": "b23158415745e14473442c5ea79a2b97fb029c5a323e45d1ed3a73b3df21e7df",
+      "screenshotSha256": "355191322468db97c6998de3c5113b1ec146248ac4bb0a44b40728d8418c86c4",
       "privacy": "clean"
     },
     {
@@ -738,8 +739,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -747,7 +748,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/018-status.line-1440-light.png",
-      "screenshotSha256": "e79087aba1d37c02e5e22fd695c20927512d2eb34df9adaa58cc5bc13fc6b6a6",
+      "screenshotSha256": "59331298febf091a12e83b74efcac7a1d68d7042af19ef85b4842b7069251f5b",
       "privacy": "clean"
     },
     {
@@ -779,8 +780,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -788,7 +789,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/019-status.group-1440-light.png",
-      "screenshotSha256": "e66478ee2ca6623c1be5f9528840b41285cebf924f68a3ba1bc08e0a908559e4",
+      "screenshotSha256": "617170ddac24681a9e5d0b8f2e3f8348eacfd352c9b839c7452a11eb379f2feb",
       "privacy": "clean"
     },
     {
@@ -820,8 +821,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -829,7 +830,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/020-status.go.refresh-1440-light.png",
-      "screenshotSha256": "e66478ee2ca6623c1be5f9528840b41285cebf924f68a3ba1bc08e0a908559e4",
+      "screenshotSha256": "04797507ae31b5659d6730b7d6000eae7d02fb148cc2135462d7b412ff6eaf3e",
       "privacy": "clean"
     },
     {
@@ -861,8 +862,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -870,7 +871,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/021-status.refresh-1440-light.png",
-      "screenshotSha256": "8cdd311b1d192e4bbbf2e33ecf7584cab5d901e44510cd5033a99af4a726c8b9",
+      "screenshotSha256": "617170ddac24681a9e5d0b8f2e3f8348eacfd352c9b839c7452a11eb379f2feb",
       "privacy": "clean"
     },
     {
@@ -902,8 +903,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -911,7 +912,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/022-vehicles.open-1440-light.png",
-      "screenshotSha256": "9a092239e3f716449b4d6578d01ac63e0b452c5d2757bafdf35731321e215a0c",
+      "screenshotSha256": "11820008661cc612d294cdb2e4fea1b931bf76c012c6ecb68123d936f49ca10e",
       "privacy": "clean"
     },
     {
@@ -943,8 +944,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -952,7 +953,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/023-vehicles.search-1440-light.png",
-      "screenshotSha256": "ded0b170111c451a64b44e3fe4c88556351cac81ab3ad0213f1c390ce85c9862",
+      "screenshotSha256": "185565d87c6e17c4b000172b6e59ad20d02f1013b1eefa5a7210658ff35bbc45",
       "privacy": "clean"
     },
     {
@@ -984,8 +985,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -993,7 +994,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/024-vehicles.filters-1440-light.png",
-      "screenshotSha256": "4f6be6b2af8187432a0f0658ac7ecf30518963b079a905e6b6bbc2a02b4ac4d3",
+      "screenshotSha256": "97c5c9af3630c508f6d7b464271d58f8456bb242bd43d9f90c665b89825b6c80",
       "privacy": "clean"
     },
     {
@@ -1025,8 +1026,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -1034,7 +1035,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/025-vehicles.filters.close-1440-light.png",
-      "screenshotSha256": "ded0b170111c451a64b44e3fe4c88556351cac81ab3ad0213f1c390ce85c9862",
+      "screenshotSha256": "11820008661cc612d294cdb2e4fea1b931bf76c012c6ecb68123d936f49ca10e",
       "privacy": "clean"
     },
     {
@@ -1066,8 +1067,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -1075,7 +1076,7 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/026-vehicles.route-1440-light.png",
-      "screenshotSha256": "ded0b170111c451a64b44e3fe4c88556351cac81ab3ad0213f1c390ce85c9862",
+      "screenshotSha256": "1676feec4a39fde8d3dcda8d78c1504d5e797e6794fa7d6f56dcc5a7119c7024",
       "privacy": "clean"
     },
     {
@@ -1107,8 +1108,8 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
@@ -1116,11 +1117,131 @@
       "displayScale": 1,
       "theme": "light",
       "screenshot": "shots-1440-light-1x/027-saved.open-1440-light.png",
-      "screenshotSha256": "36b21ca0ebf18df241f4b9f1a0ac2c05749f68d02bc10e3212080d3b220304d8",
+      "screenshotSha256": "8c1d68702b948fee037c08ddb26188dc259a20391320410c6dc328bae79855dc",
       "privacy": "clean"
     },
     {
       "sequence": 28,
+      "surface": "saved",
+      "step": "saved.bulk",
+      "describe": "saved trips carry search, selection, export and bulk delete",
+      "optional": true,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": "[data-ui=\"saved.bulk\"]",
+      "before": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": false,
+      "applicableWidths": null,
+      "outcome": "absent-optional",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/028-saved.bulk-1440-light.png",
+      "screenshotSha256": "51112a07752b5106ede664a9bb67601506a7d1be8789c6cc59c07cca4f4120a2",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 29,
+      "surface": "saved",
+      "step": "saved.history.open",
+      "describe": "trip history opens its revision panel",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Trip history"
+      },
+      "expected": ".history-panel[open]",
+      "before": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "button"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/029-saved.history.open-1440-light.png",
+      "screenshotSha256": "a3cf3a8b00d06077b874056f57d2a77b7e18949a442e848f5ff224bf9120ea6c",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 30,
+      "surface": "saved",
+      "step": "saved.history.close",
+      "describe": "and closes again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Close"
+      },
+      "expected": ".history-panel:not([open])",
+      "before": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "button"
+      },
+      "after": {
+        "destination": "bookmarkSaved",
+        "heading": "Ready when you are",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/030-saved.history.close-1440-light.png",
+      "screenshotSha256": "51112a07752b5106ede664a9bb67601506a7d1be8789c6cc59c07cca4f4120a2",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 31,
       "surface": "race",
       "step": "race.open",
       "describe": "the race workspace is present",
@@ -1148,20 +1269,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/028-race.open-1440-light.png",
-      "screenshotSha256": "fe939b86677e3e7303b9fee9d4125308c55d13f17a99c97d837683a953e53cb3",
+      "screenshot": "shots-1440-light-1x/031-race.open-1440-light.png",
+      "screenshotSha256": "1ff7fda763973bec087aa28ae1aedd14a601bc60eefefa12b52715e83e0e1209",
       "privacy": "clean"
     },
     {
-      "sequence": 29,
+      "sequence": 32,
       "surface": "race",
       "step": "race.mode",
       "describe": "the speed run challenge type can be chosen",
@@ -1189,20 +1310,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/029-race.mode-1440-light.png",
-      "screenshotSha256": "8f6f2a15ee16f3e84c82fd70d19a04c739164677d30b76bcc49b865fb9252be5",
+      "screenshot": "shots-1440-light-1x/032-race.mode-1440-light.png",
+      "screenshotSha256": "dadf77d9ca8698e2803bf9c0fe5d65d20d6d58726dc7fd04183e68d5336955be",
       "privacy": "clean"
     },
     {
-      "sequence": 30,
+      "sequence": 33,
       "surface": "race",
       "step": "race.title",
       "describe": "a race can be named",
@@ -1230,20 +1351,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/030-race.title-1440-light.png",
-      "screenshotSha256": "6b551fc5128c774f9509c42b62d75c259682edad7a53a9c823ba5b414586e1c4",
+      "screenshot": "shots-1440-light-1x/033-race.title-1440-light.png",
+      "screenshotSha256": "8d88a1e40ba1f873a933ab93601e9db8b4114072bbf7245ce754248305ab0ab3",
       "privacy": "clean"
     },
     {
-      "sequence": 31,
+      "sequence": 34,
       "surface": "race",
       "step": "race.code",
       "describe": "a join code can be entered",
@@ -1271,20 +1392,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/031-race.code-1440-light.png",
-      "screenshotSha256": "d128d81912a36e84bae6a6f7d0c3d6e22bdfaa28b3e1d700eaae637158cf9bba",
+      "screenshot": "shots-1440-light-1x/034-race.code-1440-light.png",
+      "screenshotSha256": "15a29840df82718c16ad45c262bfd4264dd155d4bcb4444418483af51c711b8d",
       "privacy": "clean"
     },
     {
-      "sequence": 32,
+      "sequence": 35,
       "surface": "race",
       "step": "race.create",
       "describe": "a speed run room is created",
@@ -1312,20 +1433,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/032-race.create-1440-light.png",
-      "screenshotSha256": "534d4d22a7bd1414da9f55aefe7e0b92e81fc69de606ab03e7177167f5f15bbc",
+      "screenshot": "shots-1440-light-1x/035-race.create-1440-light.png",
+      "screenshotSha256": "55b09ac46e85f187e072da8ead56d2d08cf56668f820dd6b982d88c69b66a781",
       "privacy": "clean"
     },
     {
-      "sequence": 33,
+      "sequence": 36,
       "surface": "race",
       "step": "race.team",
       "describe": "a team can be named",
@@ -1353,20 +1474,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/033-race.team-1440-light.png",
-      "screenshotSha256": "30155e7b253dfa3ddce280647373e4f5e67aa66abcfe506f496bcc3cef37f766",
+      "screenshot": "shots-1440-light-1x/036-race.team-1440-light.png",
+      "screenshotSha256": "c33cfbb6d9d3ca087df17e6c1564135f1ce0c739bb8d6cfd03fa9ac5607445c7",
       "privacy": "clean"
     },
     {
-      "sequence": 34,
+      "sequence": 37,
       "surface": "race",
       "step": "race.team.add",
       "describe": "adding it offers the room to be ridden",
@@ -1394,20 +1515,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/034-race.team.add-1440-light.png",
-      "screenshotSha256": "c9a8cdeec694f8e096ce60a8cc41e50d9fe307f6bb8261f5d892e394c75d6d9d",
+      "screenshot": "shots-1440-light-1x/037-race.team.add-1440-light.png",
+      "screenshotSha256": "8e469b381418be1d818b6c9e99ee1a434f5f7e1b11cbdb6e4ca9cc8b53196b67",
       "privacy": "clean"
     },
     {
-      "sequence": 35,
+      "sequence": 38,
       "surface": "race",
       "step": "race.join.name",
       "describe": "a rider can name themselves",
@@ -1435,20 +1556,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/035-race.join.name-1440-light.png",
-      "screenshotSha256": "c9a8cdeec694f8e096ce60a8cc41e50d9fe307f6bb8261f5d892e394c75d6d9d",
+      "screenshot": "shots-1440-light-1x/038-race.join.name-1440-light.png",
+      "screenshotSha256": "32c5fcaca6d388819d5fabf7c2c5992e2559159d14d7a66bc9091850584a767d",
       "privacy": "clean"
     },
     {
-      "sequence": 36,
+      "sequence": 39,
       "surface": "race",
       "step": "race.join",
       "describe": "joining a speed run shows every station on the network",
@@ -1476,20 +1597,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/036-race.join-1440-light.png",
-      "screenshotSha256": "a73145357b143545e9484088864d262f0aaeebb5a0b3d948fc477b7a2fde34f3",
+      "screenshot": "shots-1440-light-1x/039-race.join-1440-light.png",
+      "screenshotSha256": "9e93006323c765b942ac6ee767cf4e6f6ac99a7d8801f11e71d69137c28edc4b",
       "privacy": "clean"
     },
     {
-      "sequence": 37,
+      "sequence": 40,
       "surface": "race",
       "step": "race.speedrun.line",
       "describe": "a collapsed line opens its stations",
@@ -1517,20 +1638,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/037-race.speedrun.line-1440-light.png",
-      "screenshotSha256": "f1bf4d76ef47d3ce8bf5e7981e0e733bb00e647f9043e4d624a0bf3ceba00e49",
+      "screenshot": "shots-1440-light-1x/040-race.speedrun.line-1440-light.png",
+      "screenshotSha256": "9fcf63d26a48a1b97266db98092f902a197d54d8eeab62fd1994807d5d6f7c19",
       "privacy": "clean"
     },
     {
-      "sequence": 38,
+      "sequence": 41,
       "surface": "race",
       "step": "race.speedrun.progress",
       "describe": "and the run reports how many are left",
@@ -1555,20 +1676,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/038-race.speedrun.progress-1440-light.png",
-      "screenshotSha256": "f1bf4d76ef47d3ce8bf5e7981e0e733bb00e647f9043e4d624a0bf3ceba00e49",
+      "screenshot": "shots-1440-light-1x/041-race.speedrun.progress-1440-light.png",
+      "screenshotSha256": "d9b41992c15eaa3ba3230c33c41f8f5b93244cacc771b5efb5c3f56404d08631",
       "privacy": "clean"
     },
     {
-      "sequence": 39,
+      "sequence": 42,
       "surface": "divisions",
       "step": "divisions.open",
       "describe": "the division surface is present",
@@ -1596,20 +1717,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/039-divisions.open-1440-light.png",
-      "screenshotSha256": "1473d408fc2d0e11f6ab43e7fa9ea915302be7a496f1548c391b97ec09c387cd",
+      "screenshot": "shots-1440-light-1x/042-divisions.open-1440-light.png",
+      "screenshotSha256": "200bb0b3d97a7f2a2660dd42e2d44817fb262ab3314e969e408aaa280b2a41ad",
       "privacy": "clean"
     },
     {
-      "sequence": 40,
+      "sequence": 43,
       "surface": "divisions",
       "step": "divisions.classification",
       "describe": "vehicles can be filtered by garage assignment",
@@ -1617,7 +1738,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Assigned garage249"
+        "name": "Assigned garage113"
       },
       "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
       "before": {
@@ -1637,20 +1758,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/040-divisions.classification-1440-light.png",
-      "screenshotSha256": "0b9c1a41782cfb0823441d54c61c124619f3b4801f248ced69129bdeafa6fc5c",
+      "screenshot": "shots-1440-light-1x/043-divisions.classification-1440-light.png",
+      "screenshotSha256": "2990c4041ac853ee2d6e3b53e5796a3ca7395166eac5f70c4fe64104365ee9d8",
       "privacy": "clean"
     },
     {
-      "sequence": 41,
+      "sequence": 44,
       "surface": "divisions",
       "step": "divisions.classification.back",
       "describe": "and back to out of division",
@@ -1658,7 +1779,7 @@
       "inputMethod": "pointer:selector",
       "target": {
         "tag": "button",
-        "name": "Out of division6"
+        "name": "Out of division8"
       },
       "expected": ".division-filter-chips .pill[aria-pressed=\"true\"]",
       "before": {
@@ -1678,20 +1799,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/041-divisions.classification.back-1440-light.png",
-      "screenshotSha256": "93a42fcc40fd7333a51fe1077001241bbf482839691a4ec0b43d55649aeec481",
+      "screenshot": "shots-1440-light-1x/044-divisions.classification.back-1440-light.png",
+      "screenshotSha256": "48962ddd1d00d82a91435959152e16bc74126f7858011caa23daf4faeab4479c",
       "privacy": "clean"
     },
     {
-      "sequence": 42,
+      "sequence": 45,
       "surface": "divisions",
       "step": "divisions.vehicle",
       "describe": "a vehicle states where it lives and who runs its route",
@@ -1719,20 +1840,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/042-divisions.vehicle-1440-light.png",
-      "screenshotSha256": "31246e2318186c0fb75301033e35ab3ca3f2cd6bd401631d4423223aba3cd8ce",
+      "screenshot": "shots-1440-light-1x/045-divisions.vehicle-1440-light.png",
+      "screenshotSha256": "26e51df5d39dfea1b310fba67c1c663f3a330fffdb7686a00aab6cf8391dc19d",
       "privacy": "clean"
     },
     {
-      "sequence": 43,
+      "sequence": 46,
       "surface": "divisions",
       "step": "divisions.route.colour",
       "describe": "and carries the route in the operator colour",
@@ -1757,20 +1878,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/043-divisions.route.colour-1440-light.png",
-      "screenshotSha256": "a1d15945b03aed6f8ddd85ae71fbe2f5625f0d78b7873b92895c2f7667129581",
+      "screenshot": "shots-1440-light-1x/046-divisions.route.colour-1440-light.png",
+      "screenshotSha256": "08e3f794598eff4c9be1761269ad5e82f43d1b15bef8cada57e1b34954b3c15e",
       "privacy": "clean"
     },
     {
-      "sequence": 44,
+      "sequence": 47,
       "surface": "history",
       "step": "history.open",
       "describe": "the service record is present",
@@ -1798,20 +1919,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/044-history.open-1440-light.png",
-      "screenshotSha256": "4a7bfbc6e530abc352c98bbeb79ff1fcd1e97f126bfece8c3e398c7c5ede7b4d",
+      "screenshot": "shots-1440-light-1x/047-history.open-1440-light.png",
+      "screenshotSha256": "d8ddacdfedb212e88439507531506d6e30e5989de88ca4a0a7cd164b46b4d5b2",
       "privacy": "clean"
     },
     {
-      "sequence": 45,
+      "sequence": 48,
       "surface": "history",
       "step": "history.preset",
       "describe": "a date preset can be applied",
@@ -1839,20 +1960,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/045-history.preset-1440-light.png",
-      "screenshotSha256": "785feff97e9bc1712675a3ace6bd60021d81a67068dbdf91b5234880ccf7e92a",
+      "screenshot": "shots-1440-light-1x/048-history.preset-1440-light.png",
+      "screenshotSha256": "d382865f6a59931a20e5af382c537e90a67b814dd6ad4d96fa6e5636323b42fd",
       "privacy": "clean"
     },
     {
-      "sequence": 46,
+      "sequence": 49,
       "surface": "coverage",
       "step": "coverage.open",
       "describe": "the coverage surface is present",
@@ -1880,20 +2001,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/046-coverage.open-1440-light.png",
-      "screenshotSha256": "455fd412241581f054207bdbae6d3733c676f3c03689299fcf2b3cf4bfe10c8c",
+      "screenshot": "shots-1440-light-1x/049-coverage.open-1440-light.png",
+      "screenshotSha256": "8d1cbbe627fe1a52d9ee0254eaef57e8e7040b2e0ca1c8c6c36bfed22297e0a7",
       "privacy": "clean"
     },
     {
-      "sequence": 47,
+      "sequence": 50,
       "surface": "settings",
       "step": "settings.open",
       "describe": "settings is present with its tab strip",
@@ -1921,20 +2042,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/047-settings.open-1440-light.png",
-      "screenshotSha256": "daf1d8ebadf699b97e40054627eda86a51c44490d4876bbfdbc9ffb125256664",
+      "screenshot": "shots-1440-light-1x/050-settings.open-1440-light.png",
+      "screenshotSha256": "94930665f85cd5c7a826d6136067f911ef2ce8d1f213806dd6ae435c43ba7af0",
       "privacy": "clean"
     },
     {
-      "sequence": 48,
+      "sequence": 51,
       "surface": "settings",
       "step": "settings.tab.language",
       "describe": "a settings tab can be selected",
@@ -1962,20 +2083,339 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/048-settings.tab.language-1440-light.png",
-      "screenshotSha256": "88abecceef08b66278e5be29f9140d85e0ede8765be198e7917f7aeea21a5c2a",
+      "screenshot": "shots-1440-light-1x/051-settings.tab.language-1440-light.png",
+      "screenshotSha256": "c974354d9dface084178680b12ed8ed8042e4a0292fa79c89edd56de69ef4ffe",
       "privacy": "clean"
     },
     {
-      "sequence": 49,
+      "sequence": 52,
+      "surface": "settings",
+      "step": "settings.history.open",
+      "describe": "settings history opens its revision panel",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Settings history"
+      },
+      "expected": ".history-panel[open]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "button"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/052-settings.history.open-1440-light.png",
+      "screenshotSha256": "c1b88e9caacd984e188748020fd72c14070912170bca905e41ed499f293fe87b",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 53,
+      "surface": "settings",
+      "step": "settings.history.close",
+      "describe": "and closes again",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Close"
+      },
+      "expected": ".history-panel:not([open])",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "button"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/053-settings.history.close-1440-light.png",
+      "screenshotSha256": "e2b1da61b72f55bab6744912802c0786e83a5d50489db04322a06129d4210689",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 54,
+      "surface": "settings",
+      "step": "settings.logo",
+      "describe": "the appearance section offers the bundled logo presets",
+      "optional": false,
+      "inputMethod": "pointer:selector",
+      "target": {
+        "tag": "button",
+        "name": "Appearance"
+      },
+      "expected": "#appearance-logo .appearance-logo-presets input[type=\"radio\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/054-settings.logo-1440-light.png",
+      "screenshotSha256": "8668b86a1d4a35ac4c34c1406e91218b3883d5a220ba0844de8022bf4b61c959",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 55,
+      "surface": "settings",
+      "step": "settings.tab.schedule",
+      "describe": "the schedule tab opens its rules editor",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Schedule"
+      },
+      "expected": "#schedule-rules",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/055-settings.tab.schedule-1440-light.png",
+      "screenshotSha256": "57aef5a524aeff0cf1e6c3653ef746a4467eb328acaaf312f9a1ff818af5524e",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 56,
+      "surface": "settings",
+      "step": "settings.schedule.parts",
+      "describe": "overrides and the explicit external import are present",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": "#schedule-override button, #schedule-external #schedule-external-url",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/056-settings.schedule.parts-1440-light.png",
+      "screenshotSha256": "173f3025d71bf17b2d2b6fe7a6454c80cc5a9a6accc76eb2cb2fbd617b870d5c",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 57,
+      "surface": "settings",
+      "step": "settings.tab.privacy",
+      "describe": "the privacy tab lists toy locks",
+      "optional": false,
+      "inputMethod": "pointer:text-match",
+      "target": {
+        "tag": "button",
+        "name": "Privacy"
+      },
+      "expected": "#toy-locks",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": true,
+      "assertion": false,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/057-settings.tab.privacy-1440-light.png",
+      "screenshotSha256": "c6ff67bf635f888bd56076c2937b0828f4bc7778d4496b9aa3c286e2c2423c00",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 58,
+      "surface": "settings",
+      "step": "settings.privacy.authenticator",
+      "describe": "the authenticator accepts an otpauth address",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": "#authenticator [data-ui=\"authenticator.uri\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/058-settings.privacy.authenticator-1440-light.png",
+      "screenshotSha256": "a6b634e73fcf519e2f37048f9a0f4c61fdb5d8cd3baa5bcd9e493a412a6acef8",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 59,
+      "surface": "settings",
+      "step": "settings.privacy.tickets",
+      "describe": "Support Tickets says up front that nothing is sent",
+      "optional": false,
+      "inputMethod": "assert:no-input",
+      "target": null,
+      "expected": "[data-ui=\"tickets.disclosure\"]",
+      "before": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "after": {
+        "destination": "more_horizMore",
+        "heading": "Make yourself at home",
+        "theme": "light",
+        "focused": "body"
+      },
+      "acted": false,
+      "assertion": true,
+      "expectedStateArrived": true,
+      "applicableWidths": null,
+      "outcome": "pass",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "displayScale": 1,
+      "theme": "light",
+      "screenshot": "shots-1440-light-1x/059-settings.privacy.tickets-1440-light.png",
+      "screenshotSha256": "dd914b28f2e6293611296232fcad6ddce231b3a515185639d92174293b6b1c7c",
+      "privacy": "clean"
+    },
+    {
+      "sequence": 60,
       "surface": "settings",
       "step": "settings.tab.first",
       "describe": "and the first tab selected again",
@@ -2003,20 +2443,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/049-settings.tab.first-1440-light.png",
-      "screenshotSha256": "35f80b153f62c338b36875c94509785fbb406f4b4072a84e3c92b821af3d3812",
+      "screenshot": "shots-1440-light-1x/060-settings.tab.first-1440-light.png",
+      "screenshotSha256": "2480ead9a9f1796f13c74ae5f2230c1bddd160e739182506cac4662c942fc360",
       "privacy": "clean"
     },
     {
-      "sequence": 50,
+      "sequence": 61,
       "surface": "about",
       "step": "about.open",
       "describe": "About is present with its two tabs",
@@ -2044,20 +2484,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/050-about.open-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/061-about.open-1440-light.png",
+      "screenshotSha256": "395a715e0fe6e72bbe7af64b28902867ee2476359e15a029cf9e2106d64887be",
       "privacy": "clean"
     },
     {
-      "sequence": 51,
+      "sequence": 62,
       "surface": "about",
       "step": "about.changes",
       "describe": "the changelog lists dated entries",
@@ -2085,20 +2525,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/051-about.changes-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/062-about.changes-1440-light.png",
+      "screenshotSha256": "de785672b94a006e3eea6b06949ca28dbfccf6bcce2dd50223519d259ff12ca0",
       "privacy": "clean"
     },
     {
-      "sequence": 52,
+      "sequence": 63,
       "surface": "about",
       "step": "about.category",
       "describe": "a category chip narrows the list",
@@ -2126,20 +2566,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/052-about.category-1440-light.png",
-      "screenshotSha256": "e2d15eaf296fe887c1ef95b7354244210bc886c9852a03a467bfe8c5058aa078",
+      "screenshot": "shots-1440-light-1x/063-about.category-1440-light.png",
+      "screenshotSha256": "1be16542c40064d36e6a370f076b6dc1bfdf198d4eddfd7410139187981ddd01",
       "privacy": "clean"
     },
     {
-      "sequence": 53,
+      "sequence": 64,
       "surface": "about",
       "step": "about.reset",
       "describe": "clearing filters releases every chip",
@@ -2167,20 +2607,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/053-about.reset-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/064-about.reset-1440-light.png",
+      "screenshotSha256": "a451a44d11f9385e133a5483854574818f2e79ce704f3d410ffbce0d922504b2",
       "privacy": "clean"
     },
     {
-      "sequence": 54,
+      "sequence": 65,
       "surface": "about",
       "step": "about.guides",
       "describe": "the guides tab opens an article from the bundle",
@@ -2208,20 +2648,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/054-about.guides-1440-light.png",
-      "screenshotSha256": "e66d387be3efaac0aa609ec1d19f22000179862761042e3e69da8b1941616ec3",
+      "screenshot": "shots-1440-light-1x/065-about.guides-1440-light.png",
+      "screenshotSha256": "dc290bbd784e2a8330e0458aaeaccac0fe56e52bd25e6073ce5bba1be877be03",
       "privacy": "clean"
     },
     {
-      "sequence": 55,
+      "sequence": 66,
       "surface": "about",
       "step": "about.article",
       "describe": "choosing another article marks it current",
@@ -2249,20 +2689,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/055-about.article-1440-light.png",
-      "screenshotSha256": "39ff4639104d40d7b77426149c33fb2a7b1d947400a3295c502dfff9e422a664",
+      "screenshot": "shots-1440-light-1x/066-about.article-1440-light.png",
+      "screenshotSha256": "f1c54fd015340198dcfd54975e53425659650c1db1a04455c0f49e1f972cffa0",
       "privacy": "clean"
     },
     {
-      "sequence": 56,
+      "sequence": 67,
       "surface": "about",
       "step": "about.back",
       "describe": "and the changelog tab comes back",
@@ -2290,20 +2730,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/056-about.back-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/067-about.back-1440-light.png",
+      "screenshotSha256": "de785672b94a006e3eea6b06949ca28dbfccf6bcce2dd50223519d259ff12ca0",
       "privacy": "clean"
     },
     {
-      "sequence": 57,
+      "sequence": 68,
       "surface": "navigation",
       "step": "nav.more.open",
       "describe": "More opens its dialog on a phone",
@@ -2330,20 +2770,20 @@
         390
       ],
       "outcome": "not-applicable",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/057-nav.more.open-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/068-nav.more.open-1440-light.png",
+      "screenshotSha256": "5a00dccd5da0635ab40c66ca87fc146639e40d4e81c82e448de074ae2484c19f",
       "privacy": "clean"
     },
     {
-      "sequence": 58,
+      "sequence": 69,
       "surface": "navigation",
       "step": "nav.more.close",
       "describe": "and closes, returning focus",
@@ -2370,20 +2810,20 @@
         390
       ],
       "outcome": "not-applicable",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/058-nav.more.close-1440-light.png",
-      "screenshotSha256": "3e17e029ebcae4f91a85d24130ab11bba6a3f87c96429af07197a60f39154e81",
+      "screenshot": "shots-1440-light-1x/069-nav.more.close-1440-light.png",
+      "screenshotSha256": "de785672b94a006e3eea6b06949ca28dbfccf6bcce2dd50223519d259ff12ca0",
       "privacy": "clean"
     },
     {
-      "sequence": 59,
+      "sequence": 70,
       "surface": "navigation",
       "step": "nav.rail.secondary",
       "describe": "the rail reaches a secondary destination with no dialog",
@@ -2413,20 +2853,20 @@
         1440
       ],
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/059-nav.rail.secondary-1440-light.png",
-      "screenshotSha256": "52181279e9b1cd5d8eea12dd98451f8e53e04d1f113c734b0a9b412ebd009c79",
+      "screenshot": "shots-1440-light-1x/070-nav.rail.secondary-1440-light.png",
+      "screenshotSha256": "dca16d8a0ed51ae83dc73a66488770cbba2eda297a8610efa57e0bc839050bf0",
       "privacy": "clean"
     },
     {
-      "sequence": 60,
+      "sequence": 71,
       "surface": "navigation",
       "step": "nav.lang",
       "describe": "language can be changed from the rail",
@@ -2454,20 +2894,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/060-nav.lang-1440-light.png",
-      "screenshotSha256": "d8094088f825b06051170e9ccf492ae027b5a5f05e3eaf44d7d02ad0bbc3fe83",
+      "screenshot": "shots-1440-light-1x/071-nav.lang-1440-light.png",
+      "screenshotSha256": "05ba5a47795c7b865117a151a5c0e523ada80d1aa8ac0c59fccaf6209365830e",
       "privacy": "clean"
     },
     {
-      "sequence": 61,
+      "sequence": 72,
       "surface": "navigation",
       "step": "nav.lang.back",
       "describe": "and changed back",
@@ -2495,20 +2935,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/061-nav.lang.back-1440-light.png",
-      "screenshotSha256": "a73145357b143545e9484088864d262f0aaeebb5a0b3d948fc477b7a2fde34f3",
+      "screenshot": "shots-1440-light-1x/072-nav.lang.back-1440-light.png",
+      "screenshotSha256": "dca16d8a0ed51ae83dc73a66488770cbba2eda297a8610efa57e0bc839050bf0",
       "privacy": "clean"
     },
     {
-      "sequence": 62,
+      "sequence": 73,
       "surface": "navigation",
       "step": "nav.theme",
       "describe": "the colour theme can be switched",
@@ -2536,20 +2976,20 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/062-nav.theme-1440-light.png",
-      "screenshotSha256": "df06cd0f03d91282a8b1f3d66c3255942650be11f5b23193253828da1534a59f",
+      "screenshot": "shots-1440-light-1x/073-nav.theme-1440-light.png",
+      "screenshotSha256": "d04eb2e6e4d32b3372d35fb80850dcd978f4aae486218a92458a081b02847bcc",
       "privacy": "clean"
     },
     {
-      "sequence": 63,
+      "sequence": 74,
       "surface": "navigation",
       "step": "nav.theme.back",
       "describe": "and switched back",
@@ -2577,16 +3017,16 @@
       "expectedStateArrived": true,
       "applicableWidths": null,
       "outcome": "pass",
-      "sourceCommit": "6e541bd4aefa6e654c976a3458b7587b910023f5",
-      "artifactSha256": "254dcb3e613defb64fbf0e88a213c2d60c97b7981ece29b32405e1a5d1fe57ec",
+      "sourceCommit": "69630a8ac7524ac2c229b406d5c8566259bec82d",
+      "artifactSha256": "fbeab16557ce48c4f30e53d2ecabbdf47589d6d0d3747d428d459c883df381e9",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "displayScale": 1,
       "theme": "light",
-      "screenshot": "shots-1440-light-1x/063-nav.theme.back-1440-light.png",
-      "screenshotSha256": "a73145357b143545e9484088864d262f0aaeebb5a0b3d948fc477b7a2fde34f3",
+      "screenshot": "shots-1440-light-1x/074-nav.theme.back-1440-light.png",
+      "screenshotSha256": "dca16d8a0ed51ae83dc73a66488770cbba2eda297a8610efa57e0bc839050bf0",
       "privacy": "clean"
     }
   ]

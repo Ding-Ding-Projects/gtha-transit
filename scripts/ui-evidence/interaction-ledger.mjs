@@ -337,8 +337,16 @@ for (const surface of SURFACES) {
        the picture of "the authenticator is present" used to be the top of the Privacy tab.
        The asserted element is brought to the middle of the view before the capture, so the
        image shows the thing the row claims. */
-    if (arrived && assertion) {
-      await evaluate(`(() => { const n = document.querySelector(${JSON.stringify(expected)}); if (n) n.scrollIntoView({ block: 'center', inline: 'nearest' }); return Boolean(n); })()`);
+    /* Clicked steps need it too: opening the Appearance tab left the logo presets below the
+       fold. And an element inside a collapsed section has no box, so scrolling it does
+       nothing; the nearest ancestor that is actually rendered is scrolled instead. */
+    if (arrived && step.kind !== 'destination') {
+      await evaluate(`(() => {
+        let n = document.querySelector(${JSON.stringify(expected)});
+        while (n && n.getClientRects().length === 0) n = n.parentElement;
+        if (n && n !== document.body && n !== document.documentElement) n.scrollIntoView({ block: 'center', inline: 'nearest' });
+        return Boolean(n);
+      })()`);
     }
 
     await pause(400);

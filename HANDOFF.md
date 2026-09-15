@@ -1,5 +1,53 @@
 # Implementation handoff
 
+## The remaining lanes, 15 September 2026
+
+Every lane the 9 September handoff still owed is merged into `main`, deployed and recorded
+against the deployed build. Built in parallel on separate branches, integrated on
+`integration/remaining-lanes`, each landed on `main` as it verified.
+
+| Lane | Branch, tip | What shipped |
+| --- | --- | --- |
+| History, bulk actions, regex | `feature/history-bulk-regex`, `04ad553` | Saved trips and preferences write revisions; a History panel beside each with labels, diff, restore as a new revision, redacted export and two-key forget; the saved-trips list gains search, selection, preview, 11-format export and bulk delete; the disruption line filter gains a regex workbench |
+| Documentation site and preview | `feature/docs-site`, `2aab564` | A generated site from `docs/`, published by `.github/workflows/pages.yml` to https://ding-ding-projects.github.io/gtha-transit/ (Pages enabled with the Actions source); a 1200 by 630 social preview on the site and the planner |
+| Logo and scheduled settings | `feature/logo-scheduled-settings`, `91fc1c6` | Four logo presets and a re-rasterised upload; Toronto-time schedules for language, theme and preset with overrides and an explicit external import; starter rules |
+| Locks and authenticator | `feature/locks-authenticator`, `972e2d3` | Toy locks under six policies, the unlock ladder, Support Tickets, an RFC 6238 authenticator and hash-chained change history |
+
+**Integration decisions.** Conflicts were unions except one: the saved-trip list, replaced by the
+bulk panel in one lane and gated per card in the other. The panel now takes `wrapRow` (each
+row keeps its LockGate) and `protect` (a locked trip is skipped by bulk delete and left out of
+exports), guarded by `tests/saved-trips-locks.test.mjs`. Two lanes both imported
+`recordHistory` into the page; the lock one is `recordLockHistory`.
+
+**Evidence at `69630a8` (deployed).**
+
+| Check | Result |
+| --- | --- |
+| Root suite | 1210 pass, 0 fail after the ledger recording; typecheck clean; build succeeds |
+| Backend suite | 93 pass on every rerun; one run straight after the root suite showed 4 failures that never reproduced and whose output was not kept |
+| Interaction ledger | 4 of 4 tuples, 74 clicks each, every step passing, one optional absent (the saved-trip bulk panel, which needs a saved trip), 0 console exceptions |
+| Design parity | 8 of 8 screens |
+| Documentation site | captured live at 1440 light and 390 dark, 0 px overflow, landing reports `69630a8`: `docs/interface/captures/site/` |
+| Social preview | both og:image URLs absolute and fetched without credentials: 200, image/png, 233776 bytes |
+| Journey smoke test | 12 of 14 planned, 2 with no departure at that hour, 0 failed |
+
+**Two faults the recordings caught, fixed before the evidence was kept.** Assertion steps proved
+an element existed while the capture showed the top of the page, and the logo step passed on
+the Language tab because settings tabs stay mounted; `scripts/ui-evidence/interaction-ledger.mjs`
+now scrolls the asserted element, or its nearest rendered ancestor, into view, and the logo step
+opens Appearance. The schedule editor said "America/Toronto (America/Toronto)"; it says Toronto
+time once.
+
+**Audit.** Present: regex builder, local history, exports, bulk actions, landing page, share
+graphic, app logo, scheduled settings. Partial, with what is missing written in the row: toy
+locks (not every element is lockable, no bulk lock wizard, no QR, browser storage rather than an
+operating-system vault, no encrypted history snapshots) and the unlock ladder (grading is local
+by design; no recorded lockout, so a recording never leaves a lock in its profile).
+
+**Known limits.** Lint (oxlint) is not clean on several new files, as it is not on existing ones;
+CI runs no lint by policy. The external schedule source cannot read a server without CORS
+headers, which the article states.
+
 ## Routing outage after a reboot, and self-repair, 14 September 2026
 
 **What happened.** The routing host rebooted at 06:01. `backend-otp-1` came back
@@ -150,9 +198,8 @@ What exists now, for whoever picks this up:
 
 ### Still owed
 
-- The lanes of the approved plan that have not started: history panel and bulk actions, regex on every dropdown,
-  scheduled settings and app logo, the Pages landing site, the lock family beyond its
-  primitives. Each starts from `main`; none of the deleted branches held work for them.
+Nothing from this list. Every lane it named shipped on 15 September 2026; see "The remaining
+lanes, 15 September 2026" at the top of this file.
 
 ## The old navigation design restored, 9 September 2026
 

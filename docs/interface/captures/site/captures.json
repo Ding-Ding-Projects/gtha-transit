@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "site": "https://ding-ding-projects.github.io/gtha-transit/",
+  "capturedAt": "2026-09-15T06:09:12.145Z",
+  "records": [
+    {
+      "page": "landing",
+      "url": "https://ding-ding-projects.github.io/gtha-transit/",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "horizontalOverflowPx": 0,
+      "reportedCommit": "69630a8",
+      "file": "landing-1440-light.png",
+      "sha256": "126948d690ba1aa26d4a9e312ab94651607e1c07ca89a1f63c6869c1f6235c80"
+    },
+    {
+      "page": "docs",
+      "url": "https://ding-ding-projects.github.io/gtha-transit/docs/",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "horizontalOverflowPx": 0,
+      "reportedCommit": null,
+      "file": "docs-1440-light.png",
+      "sha256": "1d489aac744a452311f8d148163dacd901d10f0d55b8d2adea11b85fa3964787"
+    },
+    {
+      "page": "landing",
+      "url": "https://ding-ding-projects.github.io/gtha-transit/",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "horizontalOverflowPx": 0,
+      "reportedCommit": "69630a8",
+      "file": "landing-390-dark.png",
+      "sha256": "731f7ef031346bac9c5c0f20189442ddf6599c353a84f817fdc74e52b9496510"
+    },
+    {
+      "page": "docs",
+      "url": "https://ding-ding-projects.github.io/gtha-transit/docs/",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "horizontalOverflowPx": 0,
+      "reportedCommit": null,
+      "file": "docs-390-dark.png",
+      "sha256": "6905a6d2ff554c88242dcc08fc425272e3212df258d77d9f282a7799590a9349"
+    }
+  ]
+}

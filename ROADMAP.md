@@ -12,6 +12,8 @@
 - [x] Deploy the web image from `main` and re-record the four interaction-ledger tuples and the design parity capture at the deployed commit (`86f7f2e`; 4 of 4 tuples, 8 of 8 screens).
 - [x] Rebuild the routing API image from `main` and deploy it (`gtha-transit-api:83bf0c2d`, replacing `e530ee3-candidate`).
 - [x] Ship the About destination: changelog viewer with search, categories, dates and export, and the offline guides browser, recorded in the ledger at `6e541bd`.
+- [x] Ship the remaining lanes: local version history with bulk actions and exports on saved trips, regex beside every filterable list, the GitHub Pages documentation site and social preview, app-logo presets and scheduled settings, and toy locks with the unlock ladder, Support Tickets and an authenticator; deployed and recorded at `69630a8`.
+- [ ] Extend toy locks to every rendered element with a bulk lock wizard, and record a lockout in the built interface without leaving a lock in the recording profile.
 - [ ] Add drive scripts and captures for the live chips, the appearance studio and the Catch panel (the tab strip is parked by owner decision).
 
 - [ ] Deploy and capture the electric preference controls. The second session reports 390 px and 1440 px light/dark checks on its deployed recovery build, but no capture or drive script was committed; re-verify with committed evidence after the next deploy.

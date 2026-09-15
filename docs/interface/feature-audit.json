@@ -50,14 +50,14 @@
     {
       "id": "regex-builder",
       "name": "Super-advanced regex builder beside every search",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "components/search-workbench.tsx"
       ],
       "documentation": "docs/interface/ui-verification.md",
       "test": "tests/search-workbench.test.mjs",
       "capture": "docs/interface/ledger/1440-light-1x.json",
-      "missing": "Not present on every dropdown and right-click menu, which the contract requires without exemption for short menus."
+      "note": "Every filterable dropdown and list has an adjacent regular-expression workbench; the disruption line filter gained one in this pass. Selects that pick a value to act on (walking distance, race team, export format, the builder's own case option) are not list filters and are listed with that reason in docs/interface/saved-trips.md and docs/interface/history.md. Recorded in all four ledger tuples at 69630a8."
     },
     {
       "id": "notifications",
@@ -77,31 +77,35 @@
     {
       "id": "local-history",
       "name": "Local version history for user-owned records",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "history/store.mjs",
         "history/vehicle-sightings.mjs",
         "lib/record-history.ts",
-        "lib/json-diff.ts"
+        "lib/json-diff.ts",
+        "lib/history-panel.ts",
+        "components/history-panel.tsx"
       ],
       "documentation": "docs/interface/history.md",
-      "test": "tests/record-history.test.mjs",
+      "test": "tests/history-panel.test.mjs",
       "capture": "docs/interface/ledger/1440-light-1x.json",
-      "missing": "Disruption history is recorded and browsable, and an append-only, content-addressed store for user-owned records with restore-as-new-revision, labels, retention, diff and redacted export is built and tested against an IndexedDB stub. No surface writes to it yet: the history panel with its date and action filters, and the call-site wiring for saved trips, settings, appearance and tabs, are not built."
+      "note": "Saved trips and preferences write revisions; the History panel beside each lists them with labels, a structural diff, restore as a new revision, redacted export in every format and a two-key forget. Other record kinds are named in KNOWN_HISTORY_KINDS and not yet written. Opened and closed in all four ledger tuples at 69630a8."
     },
     {
       "id": "exports",
       "name": "Export in every format that can carry the data",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "lib/export.ts",
         "components/notification-centre.tsx",
-        "app/page.tsx"
+        "app/page.tsx",
+        "components/saved-trips-panel.tsx",
+        "components/history-panel.tsx"
       ],
       "documentation": "docs/interface/notifications.md",
       "test": "tests/bulk-export.test.mjs",
-      "capture": "docs/interface/captures/notification-centre-1440-dark.png",
-      "missing": "Eleven formats now exist and state what each cannot carry before writing: JSON, JSON Lines, CSV, TSV, YAML, TOML, XML, Markdown, HTML, SQL and JSON Schema. The notification centre offers all of them honouring its filter. The journey export still writes only JSON and the disruption history only NDJSON; neither has been moved onto the shared writers yet."
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "note": "Saved trips and history revisions now carry all eleven formats with each format's loss stated before writing. Disruption history is deliberately excluded as an observed log rather than user-owned data. Recorded at 69630a8; the saved-trip bulk panel is optional in the ledger because a fresh profile has no trips."
     },
     {
       "id": "accessibility",
@@ -194,22 +198,37 @@
     {
       "id": "toy-locks",
       "name": "Per-element toy locks with six credential policies, and Support Tickets",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
-      "capture": null,
-      "reason": "Not built. Nothing here holds anything a person would want to put a speed bump in front of: no account, no saved credential, no private record beyond a locally stored trip."
+      "verdict": "partial",
+      "implementation": [
+        "lib/toy-locks.ts",
+        "lib/use-toy-locks.ts",
+        "components/toy-lock.tsx",
+        "components/locks-settings.tsx",
+        "lib/support-tickets.ts",
+        "lib/totp.ts",
+        "lib/authenticator.ts",
+        "lib/secret-history.ts"
+      ],
+      "documentation": "docs/interface/locks.md",
+      "test": "tests/toy-locks.test.mjs",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "missing": "Locks on every rendered element (shipped: saved trips, the Appearance, Language, Comfort and Narrator sections, the appearance studio and the change history); a bulk lock wizard (createLocks exists in lib only); QR rendering and reading, for which no dependency is available; an operating-system vault (browser storage is used); encrypted history snapshots. The ledger checks the Privacy surfaces but deliberately drives no credential entry.",
+      "note": "Six credential policies with salted PBKDF2, an inert gate refusing clicks in the capture phase, locked rows in search and the palette, Support Tickets with no network, an RFC 6238 authenticator and a hash-chained history behind its own lock. A locked saved trip is also skipped by the bulk tools. Privacy surfaces captured at 69630a8."
     },
     {
       "id": "unlock-ladder",
       "name": "The unlock ladder on a surface that can lock a visitor out",
-      "verdict": "not-applicable",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
+      "verdict": "partial",
+      "implementation": [
+        "lib/unlock-ladder.ts",
+        "components/toy-lock.tsx",
+        "lib/use-toy-locks.ts"
+      ],
+      "documentation": "docs/interface/locks.md",
+      "test": "tests/unlock-ladder.test.mjs",
       "capture": null,
-      "reason": "Nothing here authenticates a visitor or locks one out. There is no account, no sign-in and no lockout, so there is no wait for a ladder to shorten. It becomes applicable the moment any surface can refuse entry."
+      "missing": "Server-side grading, argued in docs/interface/locks.md as not applicable to locks that live only in this browser; a built-artifact drive of a lockout, which the ledger avoids so a recording never leaves a lock in its profile.",
+      "note": "All four rungs, School mode starting at sums, three skips per rolling hour, escalation kept, single-use expiring nonces, early mole submissions lost and one hit per mole, each never-rule proven red then green."
     },
     {
       "id": "adhd-modes",
@@ -263,15 +282,17 @@
     {
       "id": "bulk-actions",
       "name": "Multi-select and bulk actions on every list",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
         "lib/list-selection.ts",
-        "components/notification-centre.tsx"
+        "components/notification-centre.tsx",
+        "components/saved-trips-panel.tsx",
+        "components/history-panel.tsx"
       ],
       "documentation": "docs/interface/notifications.md",
       "test": "tests/bulk-export.test.mjs",
-      "capture": "docs/interface/captures/notification-centre-1440-dark.png",
-      "missing": "Built and shipped on the notification centre: multi-select, a select-all that states whether it means this page or every match, inverse selection, a preview separating what is selected from what will change with the reason for each skip, and a destructive action behind the two-key gate. The selection module is general, but the saved trips, the destination list, the vehicle tracker and the disruption history do not use it yet."
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "note": "Saved trips and history revisions now carry search, page-or-every-match selection, inversion, a preview with skip reasons and a two-key destructive confirmation; a locked saved trip is skipped by bulk delete and left out of exports. Disruption history is deliberately excluded as an observed log rather than user-owned data. Recorded at 69630a8; the saved-trip bulk panel is optional in the ledger because a fresh profile has no trips."
     },
     {
       "id": "changelog-viewer",
@@ -311,12 +332,20 @@
     {
       "id": "app-logo-customization",
       "name": "Logo presets and a bounded local custom upload",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
-      "capture": null,
-      "reason": "Not built. The shipped mark is fixed."
+      "verdict": "present",
+      "implementation": [
+        "lib/appearance/logo.ts",
+        "lib/appearance/logo-upload.ts",
+        "lib/appearance/document.ts",
+        "lib/appearance/use-appearance.ts",
+        "components/appearance-editor.tsx",
+        "components/brand-mark.tsx",
+        "components/workspace-navigation.tsx"
+      ],
+      "documentation": "docs/interface/appearance.md",
+      "test": "tests/appearance-logo.test.mjs",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "note": "Four bundled presets and a bounded upload that is always re-rasterised to a 256 by 256 PNG, never inserted as markup; preview before apply, reset, favicon swap, export and history through the appearance document. Presets captured in all four ledger tuples at 69630a8."
     },
     {
       "id": "file-converter",
@@ -365,24 +394,34 @@
     {
       "id": "share-embed-graphic",
       "name": "A real product embed graphic when a link is shared",
-      "verdict": "partial",
+      "verdict": "present",
       "implementation": [
-        "app/layout.tsx"
+        "app/layout.tsx",
+        "scripts/site/build-social-preview.mjs",
+        "public/social-preview.png",
+        "social-preview.png"
       ],
-      "documentation": null,
-      "test": null,
-      "capture": null,
-      "missing": "Open Graph tags are emitted, but there is no committed social-preview image at the repository root and nothing verifies that the served og:image is absolute and fetchable without credentials."
+      "documentation": "docs/interface/documentation-site.md",
+      "test": "tests/social-preview.test.mjs",
+      "capture": "social-preview.png",
+      "note": "A 1200 by 630 crop of a real capture. Verified live without credentials: the planner's og:image https://toronto-transit.org/social-preview.png and the site's https://ding-ding-projects.github.io/gtha-transit/assets/social-preview.png both return 200 image/png, 233776 bytes, absolute URLs."
     },
     {
       "id": "scheduled-settings",
       "name": "Scheduled language and appearance, with external sources",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
-      "capture": null,
-      "reason": "Not built. Journey scheduling is a routing input, not a settings schedule."
+      "verdict": "present",
+      "implementation": [
+        "lib/scheduled-settings.ts",
+        "lib/use-scheduled-settings.ts",
+        "lib/fetch-external-schedule.ts",
+        "components/scheduled-settings.tsx",
+        "components/settings-workspace.tsx",
+        "app/page.tsx"
+      ],
+      "documentation": "docs/interface/scheduled-settings.md",
+      "test": "tests/scheduled-settings.test.mjs",
+      "capture": "docs/interface/ledger/1440-light-1x.json",
+      "note": "Rules switch language, theme and an appearance preset in Toronto time across Daylight Saving, with an override until the next boundary, a next-change preview and starter rules. The external source is fetched only when the user presses Import; a server without CORS headers cannot be read from a browser, which the article states. Recorded in all four ledger tuples at 69630a8."
     },
     {
       "id": "external-editor",
@@ -410,12 +449,18 @@
     {
       "id": "landing-page",
       "name": "A documentation site carrying the same contracts",
-      "verdict": "absent",
-      "implementation": [],
-      "documentation": null,
-      "test": null,
-      "capture": null,
-      "reason": "There is no published documentation site. The docs live in the repository, and the planner's About destination reads them offline, which is not a site and does not satisfy this row."
+      "verdict": "present",
+      "implementation": [
+        "scripts/site/build-site.mjs",
+        "scripts/site/render.mjs",
+        "scripts/site/site-copy.mjs",
+        "scripts/site/site.css",
+        ".github/workflows/pages.yml"
+      ],
+      "documentation": "docs/interface/documentation-site.md",
+      "test": "tests/site-builder.test.mjs",
+      "capture": "docs/interface/captures/site/landing-1440-light.png",
+      "note": "Published by the Pages workflow at https://ding-ding-projects.github.io/gtha-transit/ (73 pages from 72 articles). Captured live at 1440 light and 390 dark with no horizontal overflow; the landing page reports commit 69630a8. Records in docs/interface/captures/site/captures.json."
     }
   ]
 }
