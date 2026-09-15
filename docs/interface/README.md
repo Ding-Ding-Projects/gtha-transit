@@ -3,6 +3,7 @@
 - [Workspace navigation and responsive design](workspaces.md)
 - [Settings workspace](settings.md)
 - [Appearance studio and element styles](appearance.md)
+- [Scheduled settings](scheduled-settings.md)
 - [Persistent tabbed navigation](tabs.md), not mounted since 9 September 2026 by owner decision
 - [Command palette](command-palette.md)
 - [About: the changelog viewer and guides](about.md)

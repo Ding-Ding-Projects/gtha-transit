@@ -16,6 +16,7 @@ import './notifications.css';
 import './command-palette.css';
 import './catch-vehicle.css';
 import './appearance.css';
+import './scheduled-settings.css';
 import './tab-strip.css';
 // The shell loads last so its navigation rules win over the old workspace ones.
 import './shell.css';

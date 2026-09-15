@@ -350,7 +350,7 @@ test('the comfort surface offers no vocabulary of its own', () => {
 
 test('the comfort rows are searchable and reachable from the palette', () => {
   const catalog = source('lib', 'settings-catalog.ts');
-  assert.match(catalog, /'appearance' \| 'language' \| 'comfort' \| 'narrator' \| 'privacy'/);
+  assert.match(catalog, /'appearance' \| 'language' \| 'comfort' \| 'narrator' \| 'schedule' \| 'privacy'/);
   const palette = source('lib', 'command-palette.ts');
   for (const id of ['comfort-focus', 'comfort-low-stimulation', 'comfort-time-awareness', 'comfort-one-thing', 'comfort-momentum', 'personal-vocabulary']) {
     assert.ok(palette.includes(`'${id}'`), `${id} has no keywords, so only its own label finds it`);

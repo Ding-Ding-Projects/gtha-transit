@@ -19,9 +19,9 @@
  * appearing inert and leaving the reader to guess.
  */
 
-export type SettingsSection = 'appearance' | 'language' | 'comfort' | 'narrator' | 'privacy';
+export type SettingsSection = 'appearance' | 'language' | 'comfort' | 'narrator' | 'schedule' | 'privacy';
 
-export const SETTINGS_SECTIONS: readonly SettingsSection[] = ['appearance', 'language', 'comfort', 'narrator', 'privacy'];
+export const SETTINGS_SECTIONS: readonly SettingsSection[] = ['appearance', 'language', 'comfort', 'narrator', 'schedule', 'privacy'];
 
 /**
  * Where the settings workspace remembers which section is open.
@@ -126,7 +126,7 @@ export type SettingsCatalogInput = {
   school?: { on: boolean; name: string };
   appearance?: {
     ready?: boolean;
-    global: { appName: string | null; seed: string | null; density: string; sizeScale: number; showEmoji: boolean };
+    global: { appName: string | null; seed: string | null; density: string; sizeScale: number; showEmoji: boolean; logoId: string };
     set: (patch: Record<string, unknown>) => void;
   };
 };
@@ -440,6 +440,30 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       unavailable: narration || undefined,
     },
     {
+      id: 'schedule-rules',
+      section: 'schedule',
+      label: t('Scheduled switching rules', '排程規則'),
+      description: t('Automatically switch language and appearance by time and day, in America/Toronto time', '按美國東部（多倫多）時區嘅時間同星期，自動切換語言同外觀'),
+      selector: '#schedule-rules',
+      control: { kind: 'none', reason: t('Use the full editor to add, edit or remove rules.', '請使用完整編輯器新增、修改或刪除規則。') },
+    },
+    {
+      id: 'schedule-override',
+      section: 'schedule',
+      label: t('Manual override', '手動覆蓋'),
+      description: t('Override the schedule until the next boundary it would otherwise change at', '覆蓋排程,直至下一個排程本來會轉換嘅時間點'),
+      selector: '#schedule-override',
+      control: { kind: 'none', reason: t('Setting an override is done at the control itself, which shows the current effective settings.', '設定覆蓋要喺個控制項度做，會顯示現時生效嘅設定。') },
+    },
+    {
+      id: 'schedule-external',
+      section: 'schedule',
+      label: t('Import from a settings address', '從設定網址匯入'),
+      description: t('Fetch a schedule document from a web address you enter, only when you choose to', '從你輸入嘅網址載入排程文件，只喺你主動選擇時進行'),
+      selector: '#schedule-external',
+      control: { kind: 'none', reason: t('Importing is done at the control itself, which validates the document before applying it.', '匯入要喺個控制項度做，會喺套用前驗證文件。') },
+    },
+    {
       id: 'local-data',
       section: 'privacy',
       label: t('Your journey stays yours', '你嘅行程，由你掌握'),
@@ -474,6 +498,7 @@ export function settingsCatalog(input: SettingsCatalogInput): SettingsEntry[] {
       { id: 'appearance-size', section: 'appearance', label: t('Text size', '文字大小'), description: t('Scale interface text', '縮放介面文字'), selector: '#appearance-size', value: `${Math.round(appearance.global.sizeScale * 100)}%`, control: { kind: 'range', min: .8, max: 1.5, step: .05, value: appearance.global.sizeScale, apply: value => appearance.set({ sizeScale: value }) } },
       { id: 'appearance-density', section: 'appearance', label: t('Interface density', '介面密度'), description: t('Compact, default or comfortable spacing', '緊密、預設或寬鬆間距'), selector: '#appearance-density', value: appearance.global.density, control: { kind: 'choice', value: appearance.global.density, choices: ['compact','default','comfortable'].map((value,index) => ({ value, label: t(['Compact','Default','Comfortable'][index],['緊密','預設','寬鬆'][index]) })), apply: value => appearance.set({ density: value }) } },
       { id: 'appearance-emoji', section: 'appearance', label: t('Decorative emoji', '裝飾表情符號'), description: t('Show decorative emoji in interface wording', '顯示介面文字內嘅裝飾表情符號'), selector: '#appearance-emoji', control: { kind: 'switch', value: appearance.global.showEmoji, apply: value => appearance.set({ showEmoji: value }) } },
+      { id: 'appearance-logo', section: 'appearance', label: t('App logo', '應用程式圖標'), description: t('Choose a bundled mark or upload your own', '揀內置圖標或上載自訂圖片'), selector: '#appearance-logo', value: appearance.global.logoId, control: { kind: 'none', reason: t('Choosing a mark is done at the control itself, which previews the choice before applying it.', '揀圖標要喺個控制項度做，會喺套用前預覽。') } },
       ...[['appearance-colour','Seed colours and colour formats','基礎顏色同色彩格式','#appearance-colours'],['appearance-elements','Element states and layers','元素狀態同圖層','#appearance-elements'],['appearance-presets','Appearance presets and import/export','外觀預設同匯入匯出','#appearance-presets']].map(([id,en,zh,selector]) => ({ id,section:'appearance' as const,label:t(en,zh),description:t('Open the complete editor and its preview','開啟完整編輯器同預覽'),selector,control:{kind:'none' as const,reason:t('Use the full editor for its preview and validation.','請使用完整編輯器查看預覽同驗證。')}})),
     );
     if (appearance.ready === false) for (const entry of entries) if (entry.id.startsWith('appearance-')) entry.unavailable = t('Appearance settings are still loading.', '外觀設定仍在載入中。');

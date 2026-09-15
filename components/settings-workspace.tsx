@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useRef, useState } from 'react';
-import { Accessibility, ArrowRight, Check, Languages, Mic2, Moon, Palette, Search, ShieldCheck, Sun, RotateCcw } from 'lucide-react';
+import { Accessibility, ArrowRight, Check, Clock, Languages, Mic2, Moon, Palette, Search, ShieldCheck, Sun, RotateCcw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
 import NarratorSettings from './narrator-settings';
@@ -9,6 +9,8 @@ import AppearanceEditor from './appearance-editor';
 import type { AppearanceController } from '../lib/appearance/use-appearance';
 import ComfortSettings from './comfort-settings';
 import SchoolMode from './school-mode';
+import ScheduledSettingsEditor from './scheduled-settings';
+import type { ScheduledSettingsController } from '../lib/use-scheduled-settings';
 import { schoolName, type SchoolState } from '../lib/school-mode';
 import type { NarratorController } from '../lib/narrator';
 import { useLocalSetting } from '../lib/use-local-setting';
@@ -45,7 +47,7 @@ function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: S
 const englishPreviews = ['Clear directions, at your pace.', 'Plan a straightforward journey.', 'A smoother route to your next stop.', 'Find your route and let the region connect.', 'Your next connection. Minus the timetable gymnastics.'];
 const cantonesePreviews = ['按需要規劃行程。', '清晰規劃每一程。', '下一站，輕鬆到達。', '搵好路線，出門就放心啲。', '轉車可以，轉到頭暈就唔使喇。'];
 
-export default function SettingsWorkspace({ appearance, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool }: {
+export default function SettingsWorkspace({ appearance, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool, schedule }: {
   appearance: AppearanceController;
   lang: Lang; setLang: (value: Lang) => void;
   dark: boolean; setDark: (value: boolean) => void;
@@ -55,6 +57,7 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
   adhd: AdhdState; setAdhd: (next: AdhdState | ((current: AdhdState) => AdhdState)) => void;
   vocabulary: VocabularyFile | null; setVocabulary: (next: VocabularyFile | null) => void;
   school: SchoolState; setSchool: (next: SchoolState) => void;
+  schedule: ScheduledSettingsController;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
@@ -72,6 +75,7 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
     ...(school.on ? [] : [{ id: 'language', label: t('Language', '語言'), icon: Languages }]),
     { id: 'comfort', label: t('Comfort', '舒適'), icon: Accessibility },
     { id: 'narrator', label: t('Narrator', '旁白'), icon: Mic2 },
+    { id: 'schedule', label: t('Schedule', '排程'), icon: Clock },
     { id: 'privacy', label: t('Privacy', '私隱'), icon: ShieldCheck },
   ];
   const entries = settingsCatalog({ appearance: { ready: appearance.ready, global: appearance.global, set: patch => appearance.update({ global: { ...appearance.global, ...patch } }) }, t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator,
@@ -137,6 +141,10 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
       <TabsContent value="narrator" className="settings-section" keepMounted>
         {findIn('narrator')}
         <NarratorSettings narrator={narrator} t={t} />
+      </TabsContent>
+      <TabsContent value="schedule" className="settings-section" keepMounted>
+        {findIn('schedule')}
+        <ScheduledSettingsEditor schedule={schedule} presets={appearance.presets} t={t} />
       </TabsContent>
       <TabsContent value="privacy" className="settings-section" keepMounted>
         {findIn('privacy')}

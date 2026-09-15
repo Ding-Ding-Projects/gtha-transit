@@ -103,6 +103,7 @@ export function sectionLabel(section: SettingsSection, t: Translate): string {
   if (section === 'language') return t('Language', '語言');
   if (section === 'comfort') return t('Comfort', '舒適');
   if (section === 'narrator') return t('Narrator', '旁白');
+  if (section === 'schedule') return t('Schedule', '排程');
   return t('Privacy', '私隱');
 }
 
@@ -121,6 +122,7 @@ export function sectionGlyph(section: SettingsSection): string {
   if (section === 'language') return 'translate';
   if (section === 'comfort') return 'layers';
   if (section === 'narrator') return 'volume_up';
+  if (section === 'schedule') return 'schedule';
   return 'check_circle';
 }
 
@@ -212,6 +214,9 @@ export function settingKeywords(id: string, t: Translate): string {
     pitch: t('tone high low', '音調 高 低'),
     quiet: t('mute silence screen reader', '靜音 讀屏'),
     preview: t('sample hear test listen', '試聽 樣本'),
+    'schedule-rules': t('time schedule automatic switch timer clock weekday toronto dst', '時間 排程 自動 切換 計時器 星期'),
+    'schedule-override': t('override temporary force until manual', '覆蓋 暫時 手動'),
+    'schedule-external': t('import url fetch external download settings file', '匯入 網址 下載 外部'),
     'local-data': t('privacy storage tracking analytics account', '私隱 儲存 追蹤 分析 帳戶'),
     'shared-links': t('share link url send', '分享 連結 網址'),
     reliability: t('accuracy official source trust', '準確 官方 來源'),

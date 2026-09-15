@@ -1,0 +1,17 @@
+.schedule-editor { display: grid; gap: 16px; }
+.schedule-editor header { display: flex; align-items: center; gap: 12px; }
+.schedule-editor header h3 { margin: 0; font-size: 21px; }
+.schedule-editor h4 { margin: 0 0 8px; font-size: 16px; }
+.schedule-editor button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid var(--border); border-radius: 12px; padding: 8px 14px; background: var(--surface2); color: var(--text); cursor: pointer; margin: 3px 3px 3px 0; }
+.schedule-editor button:disabled { opacity: .45; cursor: default; }
+.schedule-editor fieldset { min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin: 10px 0; }
+.schedule-editor label { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; padding: 4px 0; }
+.schedule-editor input:not([type='checkbox']), .schedule-editor select { min-width: 0; max-width: 100%; min-height: 44px; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); }
+.schedule-editor input[type='checkbox'] { width: 22px; height: 22px; flex: none; }
+.schedule-rule legend { width: 100%; padding: 4px 0; }
+.schedule-rule legend input { width: 100%; }
+.schedule-days { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; border: 0; padding: 0; }
+.schedule-days label { min-height: 40px; gap: 6px; flex: none; }
+.schedule-starters { display: grid; gap: 10px; margin: 10px 0; }
+.schedule-starters button { display: grid; gap: 4px; text-align: left; min-height: 64px; padding: 12px 14px; width: 100%; }
+.schedule-starters small { color: var(--muted); font-size: 12px; }

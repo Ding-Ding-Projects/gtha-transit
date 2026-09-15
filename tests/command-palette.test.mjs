@@ -31,10 +31,10 @@ const t = (en) => en;
 
 test('appearance controls share real setters and exact destinations with the palette', () => {
   const changes = [];
-  const appearance = { ready: true, global: { appName: 'Metro desk', seed: '#ff0000', density: 'default', sizeScale: 1, showEmoji: true }, set: patch => changes.push(patch) };
+  const appearance = { ready: true, global: { appName: 'Metro desk', seed: '#ff0000', density: 'default', sizeScale: 1, showEmoji: true, logoId: 'shipped' }, set: patch => changes.push(patch) };
   const entries = catalog({ appearance }).entries;
   const ids = entries.filter(entry => entry.id.startsWith('appearance-')).map(entry => entry.id);
-  assert.deepEqual(ids, ['appearance-name','appearance-size','appearance-density','appearance-emoji','appearance-colour','appearance-elements','appearance-presets']);
+  assert.deepEqual(ids, ['appearance-name','appearance-size','appearance-density','appearance-emoji','appearance-logo','appearance-colour','appearance-elements','appearance-presets']);
   entries.find(entry=>entry.id==='appearance-name').control.apply('Trip desk');
   entries.find(entry=>entry.id==='appearance-size').control.apply(1.25);
   entries.find(entry=>entry.id==='appearance-emoji').control.apply(false);

@@ -67,6 +67,7 @@ import {
 } from '../lib/school-mode';
 import { destinationHeading, workspaceDestinations } from '../lib/destinations';
 import { settingsCatalog } from '../lib/settings-catalog';
+import { useScheduledSettings } from '../lib/use-scheduled-settings';
 import { workspaceActions } from '../lib/command-palette';
 import { useNarrator } from '../lib/narrator';
 import { JourneyVehiclePreferencesPanel, type JourneyVehicleCriteria, type JourneyVehiclePreferenceOptions } from '../components/journey-vehicle-preferences';
@@ -446,6 +447,27 @@ export default function Home() {
    * mode into a permanent edit of somebody's preferences.
    */
   const appearance = useAppearance(dark);
+  const scheduled = useScheduledSettings(useMemo(() => new Date(liveNow), [liveNow]));
+  /**
+   * Applies the schedule's current effect, when it has one.
+   *
+   * `source: 'default'` (no rule or override active) deliberately does
+   * nothing here -- it means the schedule has no opinion right now, not that
+   * it wants everything reset to shipped defaults. School mode keeps its own
+   * authority over the language mode, so a scheduled language switch is
+   * skipped while it is on, exactly like the language tab itself is.
+   */
+  const scheduledPresetRef = useRef<string | null>(null);
+  useEffect(() => {
+    const effect = scheduled.effect;
+    if (effect.lang && !school.on && effect.lang !== lang) setLang(effect.lang);
+    if (effect.dark !== null && effect.dark !== dark) setDark(effect.dark);
+    if (effect.presetId && appearance.ready && effect.presetId !== scheduledPresetRef.current) {
+      const preset = appearance.presets.find(item => item.id === effect.presetId);
+      if (preset) { appearance.update({ global: preset.global }); scheduledPresetRef.current = effect.presetId; }
+    }
+    if (!effect.presetId) scheduledPresetRef.current = null;
+  }, [scheduled.effect.lang, scheduled.effect.dark, scheduled.effect.presetId, scheduled.effect.source, school.on, appearance.ready]);
   const shownLang = effectiveLanguage(school, lang) as Lang;
   const shownFunEn = effectiveFunLevel(school, funEn);
   const shownFunZh = effectiveFunLevel(school, funZh);
@@ -1031,7 +1053,7 @@ export default function Home() {
         {t('Skip to journey planner', '跳到行程規劃')}
       </a>
       <AppearanceInspector controller={appearance} t={t} />
-      <WorkspaceNavigation appName={appearance.global.appName ?? undefined} active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={shownLang} onLang={setLang} t={t} hideLanguages={school.on} />
+      <WorkspaceNavigation appName={appearance.global.appName ?? undefined} logoId={appearance.global.logoId} customLogoDataUrl={appearance.customLogo} active={tab} onChange={setTab} dark={dark} onTheme={() => setDark(!dark)} lang={shownLang} onLang={setLang} t={t} hideLanguages={school.on} />
       <CommandPalette t={t} destinations={paletteDestinations} settings={paletteSettings} actions={paletteActions} onNavigate={setTab} />
       <div className="workspace-topline">
         <div><span className="workspace-label">{t('GREATER TORONTO & HAMILTON', '大多倫多及咸美頓')}</span><h1 id="workspace-heading" tabIndex={-1}>{destinationHeading(t, tab)}</h1></div>
@@ -2245,7 +2267,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && <SettingsWorkspace appearance={appearance} lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} />}
+          {tab === 'settings' && <SettingsWorkspace appearance={appearance} lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} schedule={scheduled} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">
