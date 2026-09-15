@@ -58,6 +58,13 @@ which the boot unit does, would have dropped the matcher statistics. Fixed in
 `afdc269` (an unset value keeps the running API's) and corrected in place on the web
 host, backup `.env.backup-before-matcher-url`.
 
+**Web host redeployed from `main`.** `scripts/deploy.sh` at `86f7f2e` (values from the
+web host's recorded `.env`): container healthy, `https://toronto-transit.org/version.json`
+reports `86f7f2e71e181e2f55a8a4b223868fabae690734`, the routing API left running
+(started 9 September), `.env` kept the matcher URL, `ttc-next` still `shadow`. Root
+suite 1040 pass, 0 fail. No application code changed since `14a9fe2`, so the
+interaction ledger below targets the same interface.
+
 ## Session closeout, 9 September 2026, evening
 
 What exists now, for whoever picks this up:
