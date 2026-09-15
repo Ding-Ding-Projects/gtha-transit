@@ -30,16 +30,33 @@ files are kept as `/home/docker/*.service.before-reattach`. Details and evidence
 | Smoke test afterwards | 14 of 14 planned |
 | Watchdog passes on both hosts | `Result=success` |
 
-**Still owed.**
+### Routing host now runs `main`'s backend compose, and a real reboot recovered on its own
 
-- No real reboot of the routing host since the install. It also runs other
-  workloads, so that needs the owner's go-ahead.
-- `backend-ttc-stats-proxy-e7889a62` was started by hand outside Compose, is
-  detached and publishes a port, so the repair pass only logs it. It serves the
-  TTC shadow statistics and takes no part in routing; recreate it or move it into
-  the compose file when that lane resumes.
-- Set `OTP_BIND_ADDRESS` in the routing host's `.env` before deploying `main`'s
-  backend compose file.
+Deployed at `147a325` with the owner's approval. `gtha-transit-backend:147a3250` was
+built on the host from `git archive` of that commit. `compose.yaml`,
+`compose.override.yaml` and `.env` were backed up as `*.backup-before-147a3250`; the
+override, which only described the retired `api` service, is kept as
+`compose.override.yaml.retired-147a3250`. `.env` gained `OTP_BIND_ADDRESS`,
+`TTC_STATS_BIND_ADDRESS` and `BACKEND_IMAGE_TAG`. The old `backend-api-1` left as an
+orphan and the two hand-started containers (`backend-ttc-matcher-shadow-16313ac1`,
+`backend-ttc-stats-proxy-e7889a62`) were removed; their images are kept. The router
+configuration now matches `main` (YRT without `fuzzyTripMatching`), backup
+`runtime/otp/router-config.json.backup-before-147a3250`.
+
+| Check | Result |
+| --- | --- |
+| Services | `otp`, `metrolinx-proxy` (healthy, carries the `api` alias), `ttc-matcher`, `ttc-stats-proxy` on 18791, all attached |
+| Metrolinx proxy | GO and UP `live`; OTP applied GO 80 of 87, MiWay 129 of 130, YRT 138 of 138, zero `UnknownHostException` |
+| Public live coverage | `ttc-next` reported `shadow` through the new statistics bridge |
+| Reboot, 23:25:29 Toronto | the boot unit logged `recreating otp (running with 0 networks and 0 of 1 published ports)` and the same for `ttc-stats-proxy` at 23:26:41, then `stack attached and answering` at 23:27:37 and `Finished`. The same failure as the morning's outage, repaired with no one touching it, about two minutes after the reboot command |
+| After the reboot | smoke test 9 of 14 planned, 5 with no departure at that hour, 0 failed; HeapAndyville back up |
+| Second reboot fault | `metrolinx-proxy` and `ttc-matcher` came up with no upstream DNS (Docker started them before DHCP), so GO and UP stopped updating while journeys still planned. Recreated by hand, then detected by the repair pass in the next commit; GO 72 of 82 and UP 5 of 5 applied again and `ttc-next` back to `shadow` |
+
+**Web host `.env`.** `scripts/deploy.sh` had written `TTC_MATCHER_URL=` empty (the
+running API still held the real value, so nothing showed). Compose recreating the API,
+which the boot unit does, would have dropped the matcher statistics. Fixed in
+`afdc269` (an unset value keeps the running API's) and corrected in place on the web
+host, backup `.env.backup-before-matcher-url`.
 
 ## Session closeout, 9 September 2026, evening
 
@@ -89,8 +106,6 @@ What exists now, for whoever picks this up:
 
 - Re-record the interaction ledger at the deployed commit and re-run the parity capture;
   both target the restored rail and tabs, so no script changes are needed first.
-- Deploy `main`'s backend compose file and router configuration to the routing host,
-  where the proxy service is still named `api` (see the proxy section).
 - The lanes of the approved plan that have not started: About destination (changelog
   viewer, docs browser), history panel and bulk actions, regex on every dropdown,
   scheduled settings and app logo, the Pages landing site, the lock family beyond its

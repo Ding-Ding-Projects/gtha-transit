@@ -53,18 +53,15 @@ Docker itself is enabled at boot on every host. Every *running* service carries
 `unless-stopped` or `always`; the only containers without a restart policy are
 finished one-off build and verification containers.
 
-## One thing left for the owner to decide
+## The 8787 clash, settled by retirement
 
-On the routing host, `compose.yaml` asks for port 8787 for the routing API, and an
-unrelated workload binds the same port on every interface of that host. The API
-container predated the ports line and had been running with nothing published, so
-recreating it made it try to bind for the first time and it could not start.
-
-A `compose.override.yaml` on that host keeps it reachable on the compose network,
-which is how it was already being reached, rather than taking a port from a
-running workload belonging to something else. Which project should own that port
-is a decision for its owner — not something to settle by whichever container
-restarts last.
+The routing host's old compose file asked for port 8787 for a routing API that had
+already moved to the web host, and an unrelated workload binds that port on every
+interface there. A `compose.override.yaml` kept the leftover API off the port.
+Since the 14 September deploy of `main`'s backend compose file that service no
+longer exists on the routing host (its Metrolinx proxy role is the
+`metrolinx-proxy` service, which publishes nothing), so the override was retired
+as `compose.override.yaml.retired-147a3250` and nothing there asks for 8787.
 
 ## Running, but detached from its network
 
@@ -111,17 +108,41 @@ The boot unit was then proven on its own, with the timer stopped so it could not
 help. Detached at 15:43:12, `systemctl restart gtha-transit-backend-compose.service`
 returned `Result=success` and the router answered at 15:44:10. Stopped explicitly
 with `docker stop` (the 7 September failure) at 15:44:11, the same restart brought
-it back answering at 15:45:10. No real reboot has been done since the install.
+it back answering at 15:45:10.
+
+**A real reboot, 14 September 2026, 23:25:29 Toronto.** The morning's failure happened
+again on its own: OpenTripPlanner and the statistics bridge both came up with no
+network. The boot unit logged `recreating otp (running with 0 networks and 0 of 1
+published ports)` and the same for `ttc-stats-proxy` at 23:26:41, then `stack attached
+and answering` at 23:27:37. Nobody touched the host.
+
+**The reboot also found a second fault.** `metrolinx-proxy` and `ttc-matcher` kept their
+network, so the pass left them alone, but Docker's restart policy had started them
+before the host had a nameserver from DHCP, and Docker writes a container's resolver
+when it starts. Their `/etc/resolv.conf` read `# NO EXTERNAL NAMESERVERS DEFINED`,
+every outside lookup failed with `EAI_AGAIN`, GO and UP sat at `waiting` and the matcher
+logged `poll fetch/decode failed`. Journeys still planned, which is why only the
+live-coverage check noticed. Recreating the two fixed it.
+
+The repair pass now reads that marker from every running service. If the host has a
+nameserver it recreates the container (`started without an upstream DNS server`); if
+the host has none yet it waits rather than recreating into the same fault. Proven by
+writing the marker into the statistics bridge's resolver file: the next pass recreated
+it and the pass after was clean. A pass that repaired something exits non-zero, so
+systemd shows that one run as failed; that is the record of a repair, not a new fault.
 
 **Hand-started containers.** A container started by hand onto a project network is
 not a Compose service, so it cannot be recreated from the compose file. The repair
 pass reconnects one that publishes no ports with `docker network connect`; one
 that publishes ports is logged as `recreate it by hand` and does not hold the boot
-unit up. `backend-ttc-stats-proxy-e7889a62` on the routing host is in that second
-group. It serves the TTC shadow statistics only and takes no part in routing.
+unit up. The routing host has none left: the statistics bridge and the shadow
+matcher that used to be started by hand are the `ttc-stats-proxy` and
+`ttc-matcher` services since the 14 September deploy.
 
-**The port matters too.** `backend/compose.yaml` publishes OpenTripPlanner on
-`${OTP_BIND_ADDRESS:-127.0.0.1}:8790`. The routing API runs on the other host and
-reaches it there. `main` had lost that line; set `OTP_BIND_ADDRESS` in the routing
-host's `.env` before deploying `main`'s compose file, or routing stays down.
-`backend/compose-contract.test.mjs` fails if the line disappears again.
+**The ports matter too.** `backend/compose.yaml` publishes OpenTripPlanner on
+`${OTP_BIND_ADDRESS:-127.0.0.1}:8790` and the statistics bridge on
+`${TTC_STATS_BIND_ADDRESS:-127.0.0.1}:18791`. The routing API runs on the other host
+and reaches both there, so the routing host's `.env` sets both addresses to its LAN
+address, plus `BACKEND_IMAGE_TAG` so a boot never rebuilds the Node services from
+stale source. `backend/compose-contract.test.mjs` fails if either line or the image
+pin disappears.

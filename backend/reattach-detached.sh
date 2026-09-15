@@ -47,6 +47,24 @@ classify_manual() {
   echo connect
 }
 
+# Docker writes a container's resolver configuration when it starts. A container
+# its restart policy started at boot, before the host had a nameserver from DHCP,
+# keeps "NO EXTERNAL NAMESERVERS DEFINED" for life: it has a network, answers on
+# its ports, and cannot resolve a single outside name. That silently stopped the
+# GO and UP updates after the 14 September reboot. Recreating it once the host
+# has a nameserver fixes it; recreating before then would only repeat the fault.
+classify_dns() {
+  container_has_upstream=$1 host_has_nameserver=$2
+  if [ "$container_has_upstream" = yes ]; then echo ok; return; fi
+  if [ "$host_has_nameserver" = yes ]; then echo recreate; return; fi
+  echo wait
+}
+
+if [ "${1:-}" = --classify-dns ]; then
+  shift
+  classify_dns "$1" "$2"
+  exit 0
+fi
 if [ "${1:-}" = --classify ]; then
   shift
   classify "$1" "$2" "$3" "$4"
@@ -76,6 +94,16 @@ recreate() {
   docker compose up -d --force-recreate --no-deps "$1"
 }
 
+host_nameserver() {
+  for file in /etc/resolv.conf /run/systemd/resolve/resolv.conf; do
+    if [ -r "$file" ] && grep -Eq '^nameserver[[:space:]]+[^[:space:]]' "$file" \
+      && ! grep -Eq '^nameserver[[:space:]]+127\.0\.0\.53' "$file"; then
+      echo yes; return
+    fi
+  done
+  echo no
+}
+
 probe_ok() {
   [ -z "$PROBE_URL" ] && return 0
   curl -fsS -m 10 -X POST -H 'content-type: application/json' \
@@ -92,7 +120,15 @@ repair_pass() {
     if [ "$(classify "$1" "$2" "$3" "$4")" = recreate ]; then
       recreate "$service" "running with $2 networks and $4 of $3 published ports"
       clean=1
+      continue
     fi
+    [ "$1" = true ] || continue
+    upstream=yes
+    if docker exec "$id" cat /etc/resolv.conf 2>/dev/null | grep -q 'NO EXTERNAL NAMESERVERS DEFINED'; then upstream=no; fi
+    case $(classify_dns "$upstream" "$(host_nameserver)") in
+      recreate) recreate "$service" "started without an upstream DNS server"; clean=1 ;;
+      wait) log "$service has no upstream DNS and neither does the host yet"; clean=1 ;;
+    esac
   done
   project_networks=$(docker network ls --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Name}}')
   for id in $(docker ps -q --filter "status=running"); do

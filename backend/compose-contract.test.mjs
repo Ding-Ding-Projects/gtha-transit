@@ -79,6 +79,27 @@ test("an attached or stopped hand-started container is left alone", () => {
   assert.equal(classifyManual("false", 0, 0), "ok");
 });
 
+function classifyDns(...state) {
+  return execFileSync("sh", [script, "--classify-dns", ...state], { encoding: "utf8" }).trim();
+}
+
+test("a container started before the host had DNS is recreated once the host has it", () => {
+  assert.equal(classifyDns("no", "yes"), "recreate");
+});
+
+test("a container without DNS waits while the host has none either, instead of looping recreates", () => {
+  assert.equal(classifyDns("no", "no"), "wait");
+});
+
+test("a container with an upstream resolver is left alone", () => {
+  assert.equal(classifyDns("yes", "yes"), "ok");
+  assert.equal(classifyDns("yes", "no"), "ok");
+});
+
+test("the repair pass reads Docker's own no-upstream marker from each container", () => {
+  assert.match(readFileSync(script, "utf8"), /docker exec "\$id" cat \/etc\/resolv\.conf 2>\/dev\/null \| grep -q 'NO EXTERNAL NAMESERVERS DEFINED'/);
+});
+
 test("the boot unit retries until the stack is healthy and the timer keeps checking", () => {
   assert.match(installer, /^ExecStart=\$LIB\/reattach-detached\.sh --wait \$PROJECT$/m);
   assert.match(installer, /^Restart=on-failure$/m);

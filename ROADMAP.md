@@ -4,11 +4,11 @@
 
 - [x] Recover regional routing after the 14 September reboot left OpenTripPlanner running without its network (0 of 14 journeys, back to 14 of 14), and install a boot unit that verifies the stack plus a two-minute repair timer on both hosts. The timer path is proven by a deliberate detachment.
 - [x] Prove the boot unit alone repairs a detachment and an explicit stop (each answering in under a minute with the repair timer stopped).
-- [ ] Confirm a real reboot of the routing host comes back without help.
-- [ ] Set `OTP_BIND_ADDRESS` in the routing host's `.env` before deploying `main`'s backend compose file.
+- [x] Confirm a real reboot of the routing host comes back without help. Rebooted 14 September 23:25 Toronto; the boot unit recreated the detached `otp` and `ttc-stats-proxy` and reported the stack answering at 23:27:37.
+- [x] Deploy `main`'s backend compose file and router configuration to the routing host with `OTP_BIND_ADDRESS`, `TTC_STATS_BIND_ADDRESS` and a pinned backend image (`147a325`).
 - [x] Integrate the second session's line and this session's lane branches into `main` with every suite green (1017 root, 76 backend, 29 matcher), the build clean and no private wording. Not yet deployed.
 - [x] Recover regional routing after the OpenTripPlanner container was found detached from its network; YRT trip updates apply for the first time (434 of 435).
-- [ ] Recreate the routing host's proxy container so GO and UP updates apply again, and replace the hand-started shadow matcher with the `ttc-matcher` compose service.
+- [x] Recreate the routing host's proxy container so GO and UP updates apply again, and replace the hand-started shadow matcher with the `ttc-matcher` compose service (the statistics bridge is now the `ttc-stats-proxy` service too).
 - [ ] Rebuild and deploy the web and API images from `main`, then re-record the four interaction-ledger tuples and add drive scripts and captures for the live chips, the tab strip, the appearance studio and the Catch panel.
 
 - [ ] Deploy and capture the electric preference controls. The second session reports 390 px and 1440 px light/dark checks on its deployed recovery build, but no capture or drive script was committed; re-verify with committed evidence after the next deploy.
