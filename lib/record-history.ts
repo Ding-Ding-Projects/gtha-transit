@@ -136,6 +136,23 @@ function paginate(commits: readonly HistoryCommit[], options: { limit?: number; 
   return list;
 }
 
+let sharedBackend: HistoryBackend | undefined;
+
+/**
+ * One backend for the whole page, created on first use.
+ *
+ * Every panel that reads or writes history — the saved-trips list, the
+ * settings workspace, whatever calls this next — shares this instance rather
+ * than each opening its own `indexedDB.open()` connection to the same
+ * database. Falls back to `memoryBackend()` the same way a caller is expected
+ * to on its own: this origin having no `indexedDB` at all is not an error,
+ * just a browser this feature keeps working in for the lifetime of the page.
+ */
+export function defaultHistoryBackend(): HistoryBackend {
+  if (sharedBackend === undefined) sharedBackend = indexedDbBackend() ?? memoryBackend();
+  return sharedBackend;
+}
+
 /** An in-memory backend. What the test suite uses, and what a caller can fall back to when storage is refused. */
 export function memoryBackend(): HistoryBackend {
   const commits = new Map<string, HistoryCommit>();
@@ -545,6 +562,44 @@ export async function prune(backend: HistoryBackend, kind: HistoryKind, options:
     });
   } catch {
     return { removed: [] };
+  }
+}
+
+/* ---------------------------------------------------------------- forget -- */
+
+export type ForgetResult = {
+  /** Ids actually deleted. */
+  removed: string[];
+  /** An id that was asked for but refused, with why — the current head is never deleted by name. */
+  skipped: { id: string; reason: 'head' }[];
+};
+
+/**
+ * Delete specific commits by id, for a panel's own bulk "forget" action —
+ * the counterpart to `prune`'s age/rank retention, aimed instead at whatever
+ * a person selected.
+ *
+ * The current head is refused rather than silently kept: a history with no
+ * head cannot record its next real change against anything, since every
+ * write reads the head to find its parent. Refusing it here is the same
+ * "skip and say why" shape `previewBulk` already gives every other bulk
+ * action in this codebase, so a caller can show it the same way.
+ */
+export async function forgetCommits(backend: HistoryBackend, kind: HistoryKind, ids: readonly string[]): Promise<ForgetResult> {
+  try {
+    return await queueHistoryWrite(async () => {
+      const head = await backend.getHead(kind);
+      const removed: string[] = [];
+      const skipped: { id: string; reason: 'head' }[] = [];
+      for (const id of ids) {
+        if (id === head.commit) skipped.push({ id, reason: 'head' });
+        else removed.push(id);
+      }
+      if (removed.length > 0) await backend.deleteCommits(removed);
+      return { removed, skipped };
+    });
+  } catch {
+    return { removed: [], skipped: [] };
   }
 }
 

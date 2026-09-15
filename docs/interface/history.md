@@ -1,15 +1,16 @@
 # Local version history
 
 Every record this app keeps about you — a saved trip, your settings, School
-mode, and whatever gains its own history next — can have a local, append-only
+mode, and whatever gains its own history next — has a local, append-only
 version history: every real change kept as a labelled, restorable checkpoint,
 entirely in this browser.
 
-This page documents `lib/record-history.ts` and `lib/json-diff.ts`, the logic
-and storage underneath that feature. **The panel that reads them, and the
-call sites that write to them from a save, a settings change, a rename, are
-not built yet.** What is here is complete and tested on its own; nothing in
-the app calls it yet.
+This documents both halves: `lib/record-history.ts` and `lib/json-diff.ts`,
+the logic and storage underneath the feature, and `components/history-panel.tsx`,
+the panel that reads and writes them. Two call sites use it today — saved
+trips and the settings workspace's language, theme and playfulness settings —
+reachable from a **History** button beside the heading on each of those two
+surfaces.
 
 ## Git-shaped, honestly not Git
 
@@ -34,8 +35,8 @@ verifiable rather than an opaque random token.
 
 ## Append-only, and restoring never rewinds
 
-Nothing in this module deletes a commit except `prune`, deliberately and
-within the retention rules below. Everything else only ever adds.
+Nothing in this module deletes a commit except `forgetCommits` and `prune`,
+deliberately and within the rules below. Everything else only ever adds.
 
 **`restore` does not move the head backward.** Restoring an old snapshot
 writes a brand-new commit carrying that old snapshot, with `action:
@@ -43,7 +44,9 @@ writes a brand-new commit carrying that old snapshot, with `action:
 being restored. That is what makes it safe to restore something and then
 change your mind: restoring a restore is just another restore, appended the
 same way, and the state you restored *from* is still sitting right there in
-the chain rather than thrown away to make room.
+the chain rather than thrown away to make room. The panel's own **Restore**
+button applies the restored snapshot back to the live surface (the saved
+trips list, or the settings that produced it) the moment it lands.
 
 ## Labels are the one mutable field
 
@@ -51,7 +54,8 @@ A commit's id hashes `{ kind, parent, snapshot, at, action }` — deliberately
 not `label`. That is what makes `label()` safe: renaming a commit after the
 fact never changes its id, never breaks a child commit's `parent` pointer to
 it, and never needs the rest of the chain to be touched. Every other field on
-a written commit is fixed for good.
+a written commit is fixed for good. The panel exposes this as a plain text
+field on every row; it saves on blur, when the text actually changed.
 
 ## What gets recorded, and what does not
 
@@ -69,8 +73,8 @@ always; nothing about calling it after a save needs its own try/catch.
 - **A backend failure never throws.** A full IndexedDB quota, a browser that
   has refused storage mid-session, or any other backend error is caught and
   reported as `{ recorded: false, reason: 'storage' }`. The same is true of
-  `restore`, `label` and `prune` — every mutating function in this module
-  resolves to a result object on failure rather than rejecting.
+  `restore`, `label`, `prune` and `forgetCommits` — every mutating function in
+  this module resolves to a result object on failure rather than rejecting.
 
 ## Retention
 
@@ -88,13 +92,32 @@ numeric bounds are added together, not intersected, so raising either one
 only ever keeps more history, never less, and a commit is never removed for
 being merely *old* if it is also recent by rank, or merely low-ranked if it
 is also recent by age. The head and every labelled commit are kept regardless
-of what the two numbers say.
+of what the two numbers say. Nothing in the application calls `prune`
+automatically yet; it remains available for a future retention sweep.
+
+## Forgetting specific revisions
+
+`forgetCommits(backend, kind, ids)` is the panel's own bulk "forget" action —
+the counterpart to `prune`'s age/rank retention, aimed instead at whatever a
+person selected in the panel. It deletes exactly the ids it is given, with
+one exception: **the current head is always refused**, reported back as
+`{ removed: [...], skipped: [{ id, reason: 'head' }] }` rather than silently
+dropped from the request. A history with no head cannot record its next real
+change against anything, since every write reads the head to find its
+parent.
+
+The panel gates this behind the same two-key, full-slider destructive
+confirmation (`SuperConfirm`) every other irreversible bulk action in this
+codebase uses, and the same bulk-selection preview
+(`lib/list-selection.ts#previewBulk`) that separates "selected" from "will
+actually change" — here, the one thing that never changes is the head, and
+the preview's skip reason says so.
 
 ## Redaction on export
 
-`exportHistory(backend, kind, { from, to, actions }, format)` runs every
-selected commit through `exportRecords` (`lib/export.ts`), in any of its
-eleven formats, after first running each snapshot through `redact`.
+The panel's export button runs every selected commit's snapshot through
+`redact` (the same function `exportHistory` uses) before handing it to
+`exportRecords` (`lib/export.ts`), in any of its eleven formats.
 
 `redact` walks a snapshot recursively and replaces the value of any field
 whose name — case-insensitively, as a substring — contains `secret`,
@@ -111,6 +134,11 @@ changed between them without ever showing what either one was.
 The exported file's own note field says this happened, in the file, so an
 export never looks more complete than it is — the same honesty
 `describeLoss` already asks of every format in `lib/export.ts`.
+
+`exportHistory(backend, kind, { from, to, actions }, format)` remains
+available for a caller that wants a whole kind's history by date/action
+filter rather than by an on-screen selection; the panel builds its own export
+rows directly from what is loaded and selected, through the same `redact`.
 
 ## What a diff is
 
@@ -132,7 +160,11 @@ not because there was nothing to find.
 
 `diffCommits(backend, aId, bId)` is `diffJson` applied to two commits' own
 snapshots by id; a missing commit diffs as though its side were simply
-absent, rather than throwing.
+absent, rather than throwing. The panel does not call `diffCommits`: every
+commit it has loaded already carries its own `snapshot`, so it diffs a
+revision against its parent's already-loaded snapshot directly with
+`diffJson`, and says plainly when the parent fell outside the loaded window
+instead of guessing.
 
 ## Storage, and what happens when it is refused
 
@@ -151,17 +183,77 @@ for the lifetime of the page. Both implementations share one pagination
 helper, so `history()`'s newest-first ordering and `before`/`limit`
 semantics read identically regardless of which one is answering.
 
+`defaultHistoryBackend()` is the one backend the whole page shares: the saved
+trips history opener and the settings history opener both call it and get the
+same instance, rather than each opening its own `indexedDB.open()` connection
+to the same database. It resolves the fallback exactly once, on first use.
+
 ## Serialised writes
 
 `queueHistoryWrite(fn)` is a single global queue: every mutating operation in
-this module — recording, restoring, labelling, pruning — runs one at a time
-through it, so two writes fired without awaiting one another (a save and an
-auto-save landing in the same tick) never both read the same head and write a
-forked or stale one back. It is one queue for the whole module rather than
-one per kind — simpler, and correct for the write volumes a personal history
-actually sees, at the cost of writes to unrelated kinds not running
-concurrently with each other either. One entry failing does not wedge the
-ones behind it; each caller still sees its own call's own result.
+this module — recording, restoring, labelling, pruning, forgetting — runs one
+at a time through it, so two writes fired without awaiting one another (a
+save and an auto-save landing in the same tick) never both read the same head
+and write a forked or stale one back. It is one queue for the whole module
+rather than one per kind — simpler, and correct for the write volumes a
+personal history actually sees, at the cost of writes to unrelated kinds not
+running concurrently with each other either. One entry failing does not
+wedge the ones behind it; each caller still sees its own call's own result.
+
+## Wiring: what calls `recordHistory` today
+
+`app/page.tsx` keeps one baseline ref per wired kind (`savedHistoryBaseline`,
+`preferencesHistoryBaseline`), set once from the browser's own restored state
+on hydration without writing a commit, then diffed against on every later
+change through the same effects that already persist that state to
+`localStorage`:
+
+- **`saved-trips`** — every add or removal of a saved trip. The whole trips
+  array is the snapshot, so a revision is "the saved list as it stood", and
+  the action recorded is `save` when the list grew and `delete` when it
+  shrank.
+- **`preferences`** — `{ lang, dark, funEn, funZh }` from the settings
+  workspace, recorded as `settings-change`. Appearance, narrator, comfort
+  modes, vehicle criteria and other settings are not yet wired to their own
+  history kind; `KNOWN_HISTORY_KINDS` already names `appearance` for the day
+  that changes.
+
+Restoring from either panel updates its baseline ref *before* applying the
+restored value, so the very effect that would otherwise notice "the state
+changed" sees no difference from its own new baseline and does not write a
+second, redundant commit on top of the one `HistoryPanel` already wrote for
+the restore itself.
+
+## The panel
+
+`components/history-panel.tsx` is one panel, parameterised by `kind`, reused
+for both wired surfaces. It follows the shape `components/notification-centre.tsx`
+already established for a searchable, filterable, bulk-actionable, exportable
+list in this codebase, with what is specific to a commit history layered on
+top:
+
+- **Search**, through the shared `SearchWorkbench` (plain text by default,
+  the regular-expression builder beside it), matching each revision's label
+  and action.
+- **Filter by action**, showing only the actions present in the loaded
+  window, each with a live count.
+- **A date range**, by the commit's own Toronto calendar day.
+- **Multi-select, with select-all saying which all it means** — "select
+  these N" (the loaded page) and "select every match (N)" are the same two
+  honest answers `lib/list-selection.ts` already gives every other list here.
+- **A preview that separates what is selected from what will change** — here,
+  the one thing that never changes under a bulk action is the current
+  revision.
+- **Export**, in the same eleven formats every other export in this app
+  offers, redacted the same way `exportHistory` redacts.
+- **A diff toggle per row**, showing what changed against the previous
+  revision, with added/removed/changed counts and a bounded, truncation-aware
+  entry list.
+- **An editable label per row.**
+- **Restore**, disabled on the current revision (there is nothing to restore
+  it to).
+- **Forget, gated behind the two-key destructive confirmation**, disabled
+  when nothing selected can be forgotten.
 
 ## Verification
 
@@ -181,13 +273,22 @@ the parent chain growing with real changes, twenty concurrent
 orphan, restore always writing forward and never rewinding (including
 against an unknown commit id and a commit id from the wrong kind), labels
 sticking without changing the commit id, prune keeping the head, labelled
-commits and the most recent N while removing the rest, `diffCommits` against
-real and missing ids, and `actionsPresent`'s counts. Backend-agnostic
+commits and the most recent N while removing the rest, `forgetCommits`
+deleting exactly the ids it is given while always refusing the current head,
+`diffCommits` against real and missing ids, `defaultHistoryBackend` returning
+one shared working instance, and `actionsPresent`'s counts. Backend-agnostic
 behaviour — the size limit, a backend that throws, export and redaction,
 canonical JSON's key ordering, and `commitId`'s stability — is tested once
 against `memoryBackend()` or a deliberately broken hand-written backend.
 
-Two invariants were broken on purpose and watched go red, then restored and
+`tests/history-panel.test.mjs` — the panel's own pure filtering and
+formatting logic in `lib/history-panel.ts`: the Toronto calendar day a
+commit belongs to, the searchable sample text a commit produces, an
+action/date/search filter narrowing a commit list correctly on its own and
+combined with the others, and the per-action counts and first-seen action
+list a filter row renders from.
+
+Four invariants were broken on purpose and watched go red, then restored and
 watched go green, before this was trusted:
 
 - **`restore` pointed the head at the old commit instead of writing a new
@@ -199,17 +300,24 @@ watched go green, before this was trusted:
   Both the dedicated "never removes a labelled commit even when it is the
   oldest of all" test and the combined retention test failed, each reporting
   the labelled commit's id missing from what remained.
+- **`forgetCommits` deleted the current head when it was named in the
+  request.** "forgetCommits refuses to delete the current head, and says
+  why" failed: the head disappeared from the remaining history and the head
+  pointer itself was left dangling.
+- **`filterCommits`'s date-range lower bound was disabled.** Both
+  "filterCommits narrows by date range, inclusive of both ends" and the
+  combined action/date/search test failed, each keeping a commit that was
+  well before the requested `from` day.
 
 ## What is not done
 
-- **No panel.** Nothing renders this history, diffs it, offers restore, or
-  lets somebody type a label. That is the next piece of work this file makes
-  possible, not something this file does.
-- **No call sites.** Nothing in the app calls `recordHistory` yet — not saved
-  trips, not settings, not School mode, not tabs. Every kind in
-  `KNOWN_HISTORY_KINDS` is a name this module is ready for, not a feature
-  that is wired up.
-- **No date-range or action-filter UI**, though `exportHistory` already
-  accepts both and `actionsPresent` already gives a filter panel real counts
-  to render once one exists.
-- **No captures.** There is no built surface yet to capture.
+- **Not every kind is wired.** `appearance`, `tabs`, `notifications`,
+  `school-mode`, `authenticator` and `locks` are named in
+  `KNOWN_HISTORY_KINDS` and ready for a caller; nothing writes to them yet.
+- **`prune` is never called automatically.** Retention exists and is tested,
+  but nothing in the running application schedules it, so a very long-lived
+  browser profile's history for a wired kind grows without an automatic
+  sweep. `forgetCommits` covers the deliberate case; an automatic one remains
+  future work.
+- **No built-artifact captures.** The panel has focused logic tests and typed
+  integration, but no screenshot evidence from a real running build yet.

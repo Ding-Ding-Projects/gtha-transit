@@ -50,6 +50,9 @@ import JourneyTimeControls from '../components/journey-time-controls';
 import WorkspaceNavigation from '../components/workspace-navigation';
 import CommandPalette from '../components/command-palette';
 import NotificationCentre from '../components/notification-centre';
+import HistoryPanel from '../components/history-panel';
+import SavedTripsPanel from '../components/saved-trips-panel';
+import { recordHistory, defaultHistoryBackend, type HistoryCommit } from '../lib/record-history';
 import DimSum from '../components/dim-sum';
 import { emptyNotifications, notify, type NotificationState, type Severity } from '../lib/notifications';
 import { adhdClassNames, emptyAdhdState, isOn, type AdhdState } from '../lib/adhd-modes';
@@ -474,6 +477,33 @@ export default function Home() {
   }, []);
 
   /**
+   * Apply a restored `preferences` history snapshot back to the live settings.
+   *
+   * `preferencesHistoryBaseline` is updated first, before the setters that
+   * trigger the persistence effect above: without that, the effect would see
+   * its own restored values as a *new* change against the old baseline and
+   * write a second, redundant commit for the same restore `HistoryPanel`
+   * already recorded.
+   */
+  const restorePreferencesSnapshot = useCallback(
+    (snapshot: unknown) => {
+      const value = (snapshot ?? {}) as { lang?: unknown; dark?: unknown; funEn?: unknown; funZh?: unknown };
+      const restored = {
+        lang: (['en', 'zh', 'both'] as const).includes(value.lang as Lang) ? (value.lang as Lang) : lang,
+        dark: typeof value.dark === 'boolean' ? value.dark : dark,
+        funEn: typeof value.funEn === 'number' && value.funEn >= 1 && value.funEn <= 5 ? value.funEn : funEn,
+        funZh: typeof value.funZh === 'number' && value.funZh >= 1 && value.funZh <= 5 ? value.funZh : funZh,
+      };
+      preferencesHistoryBaseline.current = restored;
+      setLang(restored.lang);
+      setDark(restored.dark);
+      setFunEn(restored.funEn);
+      setFunZh(restored.funZh);
+    },
+    [lang, dark, funEn, funZh],
+  );
+
+  /**
    * What the command palette can reach.
    *
    * All three come from the same registries the surfaces themselves render from,
@@ -539,6 +569,17 @@ export default function Home() {
   const statusRequest = useRef<AbortController | null>(null),
     statusGeneration = useRef(0);
   const activeInputs = useRef('');
+  /**
+   * The baseline each local-history effect diffs the next change against.
+   *
+   * `null` means "not hydrated yet, so there is nothing real to diff against
+   * yet" — the very first post-hydration pass sets this without recording, so
+   * loading a browser's own saved state never writes a phantom "changed from
+   * nothing" revision. See `lib/record-history.ts`.
+   */
+  const savedHistoryBaseline = useRef<Saved[] | null>(null);
+  const preferencesHistoryBaseline = useRef<{ lang: Lang; dark: boolean; funEn: number; funZh: number } | null>(null);
+  const historyBackend = useMemo(() => defaultHistoryBackend(), []);
   useEffect(() => {
     if (
       activeInputs.current ===
@@ -698,13 +739,26 @@ export default function Home() {
           'warning',
         );
       }
-  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, electric, preferDivision, divisionMode]);
+    if (hydrated.current) {
+      const snapshot = { lang, dark, funEn, funZh };
+      if (preferencesHistoryBaseline.current !== null) {
+        void recordHistory(historyBackend, { kind: 'preferences', before: preferencesHistoryBaseline.current, after: snapshot, action: 'settings-change' });
+      }
+      preferencesHistoryBaseline.current = snapshot;
+    }
+  }, [lang, dark, funEn, funZh, vehicleCriteria, vehicleOptions, electric, preferDivision, divisionMode, historyBackend]);
   useEffect(() => {
-    if (hydrated.current)
+    if (hydrated.current) {
       try {
         localStorage.setItem('gtha-saved', JSON.stringify(saved));
       } catch {}
-  }, [saved]);
+      if (savedHistoryBaseline.current !== null) {
+        const action = saved.length > savedHistoryBaseline.current.length ? 'save' : saved.length < savedHistoryBaseline.current.length ? 'delete' : 'save';
+        void recordHistory(historyBackend, { kind: 'saved-trips', before: savedHistoryBaseline.current, after: saved, action });
+      }
+      savedHistoryBaseline.current = saved;
+    }
+  }, [saved, historyBackend]);
   async function refreshStatus() {
     statusRequest.current?.abort();
     const controller = new AbortController();
@@ -2102,7 +2156,25 @@ export default function Home() {
               <span className="eyebrow">
                 {t('READY FOR NEXT TIME', '下次出發更方便')}
               </span>
-              <h2>{t('Your saved trips', '你儲存嘅行程')}</h2>
+              <div className="page-panel__head-row">
+                <h2>{t('Your saved trips', '你儲存嘅行程')}</h2>
+                <HistoryPanel
+                  kind="saved-trips"
+                  backend={historyBackend}
+                  t={t}
+                  openerLabel={t('Trip history', '行程歷史')}
+                  panelLabel={t('Saved trip history', '已儲存行程歷史')}
+                  describeSnapshot={(snapshot) => {
+                    const trips = Array.isArray(snapshot) ? (snapshot as Saved[]) : [];
+                    return t(`${trips.length} saved trip${trips.length === 1 ? '' : 's'}`, `${trips.length} 個已儲存行程`);
+                  }}
+                  onRestore={(snapshot) => {
+                    const restored = (Array.isArray(snapshot) ? (snapshot as Saved[]) : []).slice(0, 100);
+                    savedHistoryBaseline.current = restored;
+                    setSaved(restored);
+                  }}
+                />
+              </div>
               <p>
                 {t(
                   'Kept only in this browser. Always search again for current schedules.',
@@ -2126,42 +2198,22 @@ export default function Home() {
                   </p>
                 </div>
               ) : (
-                saved.map((s) => (
-                  <article className="saved-card" key={s.id}>
-                    <button
-                      onClick={() => {
-                        setFrom(s.from);
-                        setPicking(null);
-                        setRequiredRoute(validRequiredRoute(s.requiredRoute) ? s.requiredRoute : null);
-                        setPreferDivision(s.preferDivision === true);
-                        setDivisionMode(s.divisionMode === 'route' ? 'route' : 'exact');
-                        setDestinations([...(s.via || []), s.to].map((place, index) => ({ id: `saved-destination-${index}`, place })));
-                        setPlanned(false);
-                        setJourneys([]);
-                        setTab('plan');
-                      }}
-                    >
-                      <MapPin size={20} />
-                      <span>
-                        <strong>{s.from.name}</strong>
-                        {s.via?.length ? <small>{t('Via', '經')}: {s.via.map(place => place.name).join(' → ')}</small> : null}
-                        <small>
-                          {t('to', '至')} {s.to.name}
-                        </small>
-                      </span>
-                      <ArrowRight size={18} />
-                    </button>
-                    <button
-                      className="icon-button"
-                      aria-label={t('Remove saved trip', '移除已儲存行程')}
-                      onClick={() =>
-                        setSaved((prev) => prev.filter((x) => x.id !== s.id))
-                      }
-                    >
-                      <X size={18} />
-                    </button>
-                  </article>
-                ))
+                <SavedTripsPanel
+                  saved={saved}
+                  setSaved={setSaved}
+                  t={t}
+                  onOpen={(s) => {
+                    setFrom(s.from);
+                    setPicking(null);
+                    setRequiredRoute(validRequiredRoute(s.requiredRoute) ? s.requiredRoute : null);
+                    setPreferDivision(s.preferDivision === true);
+                    setDivisionMode(s.divisionMode === 'route' ? 'route' : 'exact');
+                    setDestinations([...(s.via || []), s.to].map((place, index) => ({ id: `saved-destination-${index}`, place })));
+                    setPlanned(false);
+                    setJourneys([]);
+                    setTab('plan');
+                  }}
+                />
               )}
             </div>
           )}
@@ -2245,7 +2297,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {tab === 'settings' && <SettingsWorkspace appearance={appearance} lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} />}
+          {tab === 'settings' && <SettingsWorkspace appearance={appearance} lang={lang} setLang={setLang} dark={dark} setDark={setDark} funEn={funEn} setFunEn={setFunEn} funZh={funZh} setFunZh={setFunZh} narrator={narrator} t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} school={school} setSchool={setSchool} historyBackend={historyBackend} onRestorePreferences={restorePreferencesSnapshot} />}
         </section>
         {tab === 'plan' && <aside className="status-rail" aria-label={t('TTC service summary', 'TTC 服務摘要')}>
           <div className="rail-heading">

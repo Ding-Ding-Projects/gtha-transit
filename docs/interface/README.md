@@ -8,6 +8,8 @@
 - [About: the changelog viewer and guides](about.md)
 - [The changelog format](changelog.md)
 - [Notifications, bulk actions and export](notifications.md)
+- [Local version history](history.md)
+- [Saved trips: search, bulk actions and export](saved-trips.md)
 - [Comfort modes and your own wording](comfort.md)
 - [The dim sum surprise](dim-sum.md)
 - [Agency and route selection](../search/route-picker.md)

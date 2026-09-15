@@ -13,6 +13,7 @@ import './dim-sum.css';
 import './comfort.css';
 import './about.css';
 import './notifications.css';
+import './history-panel.css';
 import './command-palette.css';
 import './catch-vehicle.css';
 import './appearance.css';

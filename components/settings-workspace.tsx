@@ -4,6 +4,8 @@ import { useId, useMemo, useRef, useState } from 'react';
 import { Accessibility, ArrowRight, Check, Languages, Mic2, Moon, Palette, Search, ShieldCheck, Sun, RotateCcw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { SearchWorkbench, emptySearchState, useSearchMatches } from './search-workbench';
+import HistoryPanel from './history-panel';
+import type { HistoryBackend } from '../lib/record-history';
 import NarratorSettings from './narrator-settings';
 import AppearanceEditor from './appearance-editor';
 import type { AppearanceController } from '../lib/appearance/use-appearance';
@@ -45,7 +47,7 @@ function SettingsSearch({ entries, storageId, title, t, navigate }: { entries: S
 const englishPreviews = ['Clear directions, at your pace.', 'Plan a straightforward journey.', 'A smoother route to your next stop.', 'Find your route and let the region connect.', 'Your next connection. Minus the timetable gymnastics.'];
 const cantonesePreviews = ['按需要規劃行程。', '清晰規劃每一程。', '下一站，輕鬆到達。', '搵好路線，出門就放心啲。', '轉車可以，轉到頭暈就唔使喇。'];
 
-export default function SettingsWorkspace({ appearance, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool }: {
+export default function SettingsWorkspace({ appearance, lang, setLang, dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator, t, adhd, setAdhd, vocabulary, setVocabulary, school, setSchool, historyBackend, onRestorePreferences }: {
   appearance: AppearanceController;
   lang: Lang; setLang: (value: Lang) => void;
   dark: boolean; setDark: (value: boolean) => void;
@@ -55,6 +57,10 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
   adhd: AdhdState; setAdhd: (next: AdhdState | ((current: AdhdState) => AdhdState)) => void;
   vocabulary: VocabularyFile | null; setVocabulary: (next: VocabularyFile | null) => void;
   school: SchoolState; setSchool: (next: SchoolState) => void;
+  /** Shared with every other panel reading or writing local version history — see `defaultHistoryBackend()`. */
+  historyBackend: HistoryBackend;
+  /** Applies a restored `preferences` snapshot back to the live `lang`/`dark`/`funEn`/`funZh` state in `app/page.tsx`. */
+  onRestorePreferences: (snapshot: unknown) => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
@@ -95,7 +101,26 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
   };
   const findIn = (section: Section) => <SettingsSearch entries={entries.filter(entry => entry.section === section)} storageId={'settings-' + section + '-search'} title={t('Find in this section', '搜尋此部分')} t={t} navigate={navigate} />;
   return <div className="page-panel settings settings-workspace" data-ui="settings.workspace" ref={root}>
-    <h2 className="sr-only">{t('Settings & privacy', '設定及私隱')}</h2>
+    <div className="page-panel__head-row">
+      <h2 className="sr-only">{t('Settings & privacy', '設定及私隱')}</h2>
+      <HistoryPanel
+        kind="preferences"
+        backend={historyBackend}
+        t={t}
+        openerLabel={t('Settings history', '設定歷史')}
+        panelLabel={t('Settings history', '設定歷史')}
+        describeSnapshot={(snapshot) => {
+          const value = (snapshot ?? {}) as { lang?: unknown; dark?: unknown; funEn?: unknown; funZh?: unknown };
+          return [
+            typeof value.lang === 'string' ? value.lang : null,
+            typeof value.dark === 'boolean' ? (value.dark ? t('dark', '深色') : t('light', '淺色')) : null,
+            typeof value.funEn === 'number' ? t(`EN ${value.funEn}/5`, `英 ${value.funEn}/5`) : null,
+            typeof value.funZh === 'number' ? t(`ZH ${value.funZh}/5`, `中 ${value.funZh}/5`) : null,
+          ].filter(Boolean).join(' · ');
+        }}
+        onRestore={onRestorePreferences}
+      />
+    </div>
     <SettingsSearch entries={entries} storageId="settings-all-search" title={t('Find any setting', '搜尋所有設定')} t={t} navigate={navigate} />
     {storedTab.unavailable && <output className="settings-notice">{t('Your selected section could not be saved. The controls still work in this session.', '未能儲存所選部分，此次使用仍可操作。')}</output>}
     {navigationNotice && <output className="settings-notice">{navigationNotice}</output>}

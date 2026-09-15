@@ -4,12 +4,14 @@ import assert from 'node:assert/strict';
 import {
   memoryBackend,
   indexedDbBackend,
+  defaultHistoryBackend,
   recordHistory,
   history,
   diffCommits,
   restore,
   label as labelCommit,
   prune,
+  forgetCommits,
   actionsPresent,
   exportHistory,
   redact,
@@ -305,6 +307,60 @@ withBothBackends('actionsPresent counts commits by action', async (backend) => {
 
 withBothBackends('actionsPresent on a kind with no commits is an empty object', async (backend) => {
   assert.deepEqual(await actionsPresent(backend, 'nothing-recorded-yet'), {});
+});
+
+/* --------------------------------------------------------------- forget -- */
+
+withBothBackends('forgetCommits deletes exactly the requested ids', async (backend) => {
+  const kind = 'saved-trips';
+  const r1 = await recordHistory(backend, { kind, before: null, after: { trips: [1] }, action: 'save' });
+  const r2 = await recordHistory(backend, { kind, before: { trips: [1] }, after: { trips: [1, 2] }, action: 'save' });
+  const r3 = await recordHistory(backend, { kind, before: { trips: [1, 2] }, after: { trips: [1, 2, 3] }, action: 'save' });
+
+  const result = await forgetCommits(backend, kind, [r1.commit.id]);
+  assert.deepEqual(result, { removed: [r1.commit.id], skipped: [] });
+
+  const remaining = new Set((await history(backend, kind)).map((commit) => commit.id));
+  assert.equal(remaining.has(r1.commit.id), false);
+  assert.ok(remaining.has(r2.commit.id));
+  assert.ok(remaining.has(r3.commit.id));
+});
+
+withBothBackends('forgetCommits refuses to delete the current head, and says why', async (backend) => {
+  const kind = 'notifications';
+  const r1 = await recordHistory(backend, { kind, before: null, after: { a: 1 }, action: 'save' });
+  const r2 = await recordHistory(backend, { kind, before: { a: 1 }, after: { a: 2 }, action: 'save' });
+
+  const result = await forgetCommits(backend, kind, [r1.commit.id, r2.commit.id]);
+  assert.deepEqual(result, { removed: [r1.commit.id], skipped: [{ id: r2.commit.id, reason: 'head' }] });
+
+  const remaining = new Set((await history(backend, kind)).map((commit) => commit.id));
+  assert.equal(remaining.has(r1.commit.id), false, 'the non-head id is still removed');
+  assert.ok(remaining.has(r2.commit.id), 'the head survives even though it was asked for by name');
+
+  const head = await backend.getHead(kind);
+  assert.equal(head.commit, r2.commit.id, 'the head pointer itself is untouched');
+});
+
+test('forgetCommits against a throwing backend removes nothing and does not throw', async () => {
+  const result = await forgetCommits(brokenBackend(), 'locks', ['whatever']);
+  assert.deepEqual(result, { removed: [], skipped: [] });
+});
+
+/* ------------------------------------------------------- default backend -- */
+
+test('defaultHistoryBackend returns the same instance on every call', () => {
+  const first = defaultHistoryBackend();
+  const second = defaultHistoryBackend();
+  assert.equal(first, second, 'the whole point of a shared backend is that two callers get the same one');
+});
+
+test('defaultHistoryBackend is a working backend: a write round-trips through it', async () => {
+  const backend = defaultHistoryBackend();
+  const result = await recordHistory(backend, { kind: 'default-backend-smoke-test', before: null, after: { ok: true }, action: 'save' });
+  assert.equal(result.recorded, true);
+  const fetched = await backend.getCommit(result.commit.id);
+  assert.deepEqual(fetched.snapshot, { ok: true });
 });
 
 /* ------------------------------------------------------------------ export */

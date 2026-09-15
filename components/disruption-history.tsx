@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   ChevronDown,
@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Search,
 } from 'lucide-react';
+import { SearchWorkbench, emptySearchState, useSearchMatches, type SearchState } from './search-workbench';
 type Row = {
   id: string;
   title?: string;
@@ -32,6 +33,14 @@ export default function DisruptionHistory({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [refresh, setRefresh] = useState(0);
+  /**
+   * The Line dropdown and the `q` field above both narrow what the server
+   * returns. Once a page of records has landed, this narrows what is shown
+   * from *that* page — the regex-capable search every filterable list in this
+   * project carries, reusing the same workbench and matcher as everywhere
+   * else rather than a private query syntax of its own.
+   */
+  const [localSearch, setLocalSearch] = useState<SearchState>(emptySearchState);
   const params = () => {
     const p = new URLSearchParams({ limit: '50' });
     if (from) p.set('from', from);
@@ -96,6 +105,13 @@ export default function DisruptionHistory({
       setBusy(false);
     }
   }
+  const rowSamples = useMemo(
+    () => rows.map((row) => [row.title, row.alert?.title, row.description, row.alert?.description, row.status, ...(row.lines ?? [])].filter(Boolean).join(' ')),
+    [rows],
+  );
+  const localResult = useSearchMatches(rowSamples, localSearch);
+  const localQuery = (localSearch.mode === 'regex' ? localSearch.pattern : localSearch.query).trim();
+  const visibleRows = localQuery && !localResult.error ? rows.filter((_, index) => localResult.matches[index]) : rows;
   const stamp = (s: string) =>
     new Date(s).toLocaleString('en-CA', {
       timeZone: 'America/Toronto',
@@ -160,6 +176,14 @@ export default function DisruptionHistory({
           />
         </label>
       </div>
+      <SearchWorkbench
+        storageId="disruption-history-local-search"
+        label={t('Filter loaded records', '篩選已載入記錄')}
+        value={localSearch}
+        onChange={setLocalSearch}
+        samples={rowSamples}
+        t={t}
+      />
       <div className="results-toolbar">
         <button
           className="pill"
@@ -227,7 +251,19 @@ export default function DisruptionHistory({
           </p>
         </div>
       )}
-      {rows.map((row) => (
+      {!busy && !error && rows.length > 0 && !visibleRows.length && (
+        <div className="empty">
+          <Search />
+          <h3>{t('No loaded record matches this filter', '已載入記錄冇符合呢個篩選')}</h3>
+          <p>
+            {t(
+              `This narrows the ${rows.length} record${rows.length === 1 ? '' : 's'} already loaded. It does not query the server again.`,
+              `呢個篩選只會喺已載入嘅 ${rows.length} 條記錄之中搜尋，唔會再次查詢伺服器。`,
+            )}
+          </p>
+        </div>
+      )}
+      {visibleRows.map((row) => (
         <details className="history-record" key={row.id}>
           <summary>
             <div>

@@ -1,0 +1,240 @@
+/* ---------------------------------------------------------- history panel -- */
+
+/*
+ * The local version-history panel: the opener button beside the list it
+ * belongs to, and the dialog that searches, filters, diffs, restores, labels,
+ * bulk-selects and exports one record kind's revisions.
+ *
+ * Deliberately close to `.notification-centre` in `notifications.css` rather
+ * than inventing a second visual language for the same list shape — search,
+ * filter, bulk toolbar, status line, export row, scrollable rows, a
+ * destructive foot action gated by the shared two-key confirm.
+ */
+
+/*
+ * The small header row a page panel uses when it needs a history opener
+ * beside its own heading — the saved-trips list and the settings workspace,
+ * at minimum. Generic on purpose, so a third surface that starts calling
+ * `recordHistory` can reuse it rather than inventing its own layout.
+ */
+.page-panel__head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.page-panel__head-row h2 { margin: 0; }
+/* The settings workspace keeps its own visible heading elsewhere and only puts
+   a screen-reader-only one here, so the opener has nothing to sit opposite. */
+.settings-workspace .page-panel__head-row { justify-content: flex-end; }
+
+.history-panel-opener {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.history-panel-opener:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.history-panel {
+  border: 0;
+  padding: 0;
+  width: min(820px, calc(100vw - 32px));
+  max-height: min(780px, calc(100dvh - 64px));
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+  overflow: hidden;
+}
+.history-panel::backdrop { background: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent); }
+
+.history-panel__surface {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto auto auto auto 1fr auto;
+  gap: 10px;
+  padding: 16px;
+  max-height: inherit;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.history-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.history-panel__head h2 { margin: 0; font: var(--md-sys-typescale-headline-small); }
+.history-panel__close {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: var(--md-sys-shape-corner-full);
+  background: none; color: var(--md-sys-color-on-surface-variant); cursor: pointer;
+}
+.history-panel__intro { margin: 0; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+
+.history-panel__actions { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
+.history-panel__actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.history-panel__actions label.is-on { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+.history-panel__actions small { opacity: .7; }
+
+.history-panel__dates,
+.history-panel__bulk,
+.history-panel__export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: var(--md-sys-typescale-label-large); }
+.history-panel__dates input,
+.history-panel__export select { min-height: 40px; }
+.history-panel__bulk button,
+.history-panel__dates button,
+.history-panel__export button,
+.history-panel__foot button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.history-panel__bulk button:disabled,
+.history-panel__export button:disabled,
+.history-panel__foot button:disabled { opacity: .45; cursor: not-allowed; }
+
+.history-panel__status { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.history-panel__notice { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-primary); }
+.history-panel__loss { margin: 0; flex-basis: 100%; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-secondary); }
+
+.history-panel__list { list-style: none; margin: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 6px; }
+.history-panel__empty { padding: 24px 8px; text-align: center; color: var(--md-sys-color-on-surface-variant); }
+
+.history-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  border-inline-start: 4px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container);
+}
+.history-row--head { border-inline-start-color: var(--md-sys-color-primary); }
+.history-row__select { display: grid; place-items: center; min-width: 44px; min-height: 44px; margin: -6px 0; }
+.history-row__text { display: grid; gap: 6px; flex: 1; min-width: 0; }
+.history-row__line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.history-row__action { font: var(--md-sys-typescale-body-large); font-weight: 600; }
+.history-row__head-badge {
+  padding: 1px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  font: var(--md-sys-typescale-label-small);
+}
+.history-row__line time { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.history-row__text > small { color: var(--md-sys-color-on-surface-variant); overflow-wrap: anywhere; }
+.history-row__label-field { display: flex; }
+.history-row__label-field input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+}
+.history-row__diff-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.history-row__restore {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.history-row__restore:disabled { opacity: .45; cursor: not-allowed; }
+
+.history-row__diff { padding: 8px 10px; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-surface-container-low); }
+.history-row__diff p { margin: 0 0 6px; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.history-row__diff ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.history-diff-entry { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font: var(--md-sys-typescale-body-small); }
+.history-diff-entry code { font-family: var(--md-sys-typescale-mono, monospace); overflow-wrap: anywhere; }
+.history-diff-entry__kind { text-transform: uppercase; font-size: .75em; opacity: .7; }
+.history-diff-entry--added .history-diff-entry__kind { color: var(--md-sys-color-tertiary); }
+.history-diff-entry--removed .history-diff-entry__kind { color: var(--md-sys-color-error); }
+.history-diff-entry--changed .history-diff-entry__kind { color: var(--md-sys-color-secondary); }
+.history-diff-entry__before { text-decoration: line-through; opacity: .7; }
+
+.history-panel__foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--md-sys-color-outline-variant); padding-top: 10px; }
+.history-panel__forget { border-color: var(--md-sys-color-error) !important; color: var(--md-sys-color-error) !important; }
+
+/* ------------------------------------------------------- saved trips bulk -- */
+
+/*
+ * The saved-trips list gained a selection checkbox as its first child, ahead
+ * of the "open this trip" button `globals.css` already styles as
+ * `.saved-card > button:first-child`. `:first-child` requires the element
+ * itself to be the literal first child, so with a `<label>` now in that slot
+ * the old rule stops matching any button at all. `:nth-of-type` counts only
+ * among sibling `<button>`s, so it keeps finding the open button regardless
+ * of the checkbox in front of it, and loading after `globals.css` lets it win
+ * the cascade at equal specificity without needing `!important`.
+ */
+.saved-card > button:nth-of-type(1) { display: flex; align-items: center; gap: 12px; flex: 1; text-align: left; min-width: 0; }
+.saved-card__select { display: grid; place-items: center; min-width: 44px; min-height: 44px; }
+
+.saved-trips-panel { display: grid; gap: 10px; margin-top: 10px; }
+.saved-trips-panel__bulk,
+.saved-trips-panel__export {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: var(--md-sys-typescale-label-large);
+}
+.saved-trips-panel__bulk button,
+.saved-trips-panel__export button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  cursor: pointer;
+}
+.saved-trips-panel__bulk button:disabled,
+.saved-trips-panel__export button:disabled { opacity: .45; cursor: not-allowed; }
+.saved-trips-panel__export select { min-height: 40px; }
+.saved-trips-panel__delete { border-color: var(--md-sys-color-error) !important; color: var(--md-sys-color-error) !important; }
+.saved-trips-panel__status { font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-on-surface-variant); }
+.saved-trips-panel__loss { margin: 0; flex-basis: 100%; font: var(--md-sys-typescale-body-small); color: var(--md-sys-color-secondary); }
+.saved-trips-panel__empty { color: var(--md-sys-color-on-surface-variant); }
+
+@media (max-width: 520px) {
+  .history-panel { width: calc(100vw - 16px); max-height: calc(100dvh - 32px); }
+  .history-panel__surface { padding: 12px; }
+  .history-row { flex-wrap: wrap; }
+  .history-row__restore { flex: 1; justify-content: center; }
+  .history-panel__foot { justify-content: stretch; }
+  .history-panel__foot button { flex: 1; }
+}

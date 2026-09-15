@@ -9,3 +9,26 @@ Records are namespaced by `sourceUrl:id`. Route associations are stored separate
 The focused test file `tests/history-store.test.mjs` covers restart persistence, unchanged deduplication and `lastSeen`, changed versions, live disappearance, stale retention, source changes, episode reappearance, date filters, pagination, invalid cursors, and bounded limits. Run it with `node --test tests/history-store.test.mjs`.
 
 Commit b885fc065af9d56aaa264580a77608d8dd9ff1aa contains the implementation and focused tests.
+
+## The frontend surface
+
+`components/disruption-history.tsx`, mounted at the **History** destination,
+is the client for this store: date, line and server-side text filters that
+narrow what `/api/history` returns, and an export link that streams the
+server's own export of whatever those filters currently select.
+
+It also carries a second, local search — `SearchWorkbench`, the same
+regular-expression-capable field every filterable list in this codebase uses
+(see [the workbench](../search/regex-builder.md)) — beside the Line dropdown,
+narrowing only the page of records already loaded into the browser. It is
+additive on the existing server-side `q` field rather than a replacement for
+it: the server field decides what is fetched from a potentially large,
+append-only history; the local field decides what is shown from what has
+already arrived, and says so in its own empty state so a zero-result screen
+is never mistaken for "the server found nothing".
+
+This surface carries no bulk actions or delete: the records are the
+application's own observed history of official alerts, not something a
+person created and owns the way a saved trip or a version-history revision
+is, and the server already offers the whole thing as one export. Removing an
+observed record would misrepresent what was actually seen.
