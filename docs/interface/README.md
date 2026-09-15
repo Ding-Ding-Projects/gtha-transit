@@ -13,6 +13,7 @@
 - [Local version history](history.md)
 - [Saved trips: search, bulk actions and export](saved-trips.md)
 - [Comfort modes and your own wording](comfort.md)
+- [Toy locks, the unlock ladder, the authenticator and Support Tickets](locks.md)
 - [The dim sum surprise](dim-sum.md)
 - [Agency and route selection](../search/route-picker.md)
 - [Regular-expression workbench](../search/regex-builder.md)

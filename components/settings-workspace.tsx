@@ -19,6 +19,13 @@ import { useLocalSetting } from '../lib/use-local-setting';
 import { SETTINGS_SECTION_KEY, SETTINGS_SECTIONS, settingsCatalog, type SettingsEntry, type SettingsSection } from '../lib/settings-catalog';
 import { toggleMode, type AdhdMode, type AdhdState } from '../lib/adhd-modes';
 import { entryCount, type VocabularyFile } from '../lib/personal-vocabulary';
+import { LockGate } from './toy-lock';
+import { AuthenticatorCard, HistoryCard, LocksCard, SupportTicketsCard, sectionTarget } from './locks-settings';
+import { useToyLocks } from '../lib/use-toy-locks';
+import { isLockedNow, targetId, type LockTarget } from '../lib/toy-locks';
+
+/** The appearance studio's own lock, separate from the Appearance section's. */
+export const STUDIO_TARGET: LockTarget = { kind: 'appearance-studio', key: 'studio', label: { en: 'Appearance studio', zh: '外觀工作室' } };
 
 type Lang = 'en' | 'zh' | 'both';
 type Section = SettingsSection;
@@ -67,6 +74,8 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
 }) {
   const root = useRef<HTMLDivElement>(null);
   const id = useId().replaceAll(':', '');
+  const locks = useToyLocks();
+  const locked = locks.locks.filter((lock) => isLockedNow(lock, locks.grants[lock.id], Date.now())).map((lock) => targetId(lock.target));
   const storedTab = useLocalSetting(SETTINGS_SECTION_KEY);
   const stored = (SETTINGS_SECTIONS as readonly string[]).includes(storedTab.value || '') ? storedTab.value as Section : 'appearance';
   /* Somebody who was on the Language tab when the mode came on lands on Appearance
@@ -86,6 +95,7 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
   ];
   const entries = settingsCatalog({ appearance: { ready: appearance.ready, global: appearance.global, set: patch => appearance.update({ global: { ...appearance.global, ...patch } }) }, t, lang, setLang: value => setLang(value as Lang), dark, setDark, funEn, setFunEn, funZh, setFunZh, narrator,
     school: { on: school.on, name: schoolName(school) },
+    locked,
     comfort: { modes: adhd.modes, toggleMode: mode => setAdhd(current => toggleMode(current, mode as AdhdMode)), vocabularyEntries: entryCount(vocabulary) } });
   const [navigationTarget, setNavigationTarget] = useState<SearchEntry | null>(null);
   const previewVoiceAvailable = narrator.settings.language === 'en' ? !!narrator.englishVoice.voice : narrator.settings.language === 'zh' ? !!narrator.cantoneseVoice.voice : !!(narrator.englishVoice.voice || narrator.cantoneseVoice.voice);
@@ -134,7 +144,10 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
       </TabsList>
       <TabsContent value="appearance" className="settings-section" keepMounted>
         {findIn('appearance')}
-        <AppearanceEditor controller={appearance} t={t} />
+        <LockGate target={sectionTarget('appearance')} t={t} schoolOn={school.on}>
+        <LockGate target={STUDIO_TARGET} t={t} schoolOn={school.on}>
+          <AppearanceEditor controller={appearance} t={t} />
+        </LockGate>
         <section data-ui="settings.card" className="preference-card" aria-labelledby={id + '-appearance'}>
           <div className="preference-card-heading"><Palette size={23} aria-hidden="true" /><div><h3 id={id + '-appearance'}>{t('Colour theme', '色彩主題')}</h3><p>{t('Choose the light that feels right.', '揀一個睇得舒服嘅明暗。')}</p></div></div>
           <fieldset className="appearance-choices"><legend className="sr-only">{t('Colour theme', '色彩主題')}</legend>
@@ -142,9 +155,11 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
           </fieldset>
           <p className="settings-default">{t('Default: Light. Changes apply immediately throughout the planner.', '預設：淺色。變更會即時套用到整個規劃工具。')}</p>
         </section>
+        </LockGate>
       </TabsContent>
       {!school.on && <TabsContent value="language" className="settings-section" keepMounted>
         {findIn('language')}
+        <LockGate target={sectionTarget('language')} t={t} schoolOn={school.on}>
         <section data-ui="settings.card" className="preference-card" aria-labelledby={id + '-language'}>
           <div className="preference-card-heading"><Languages size={23} aria-hidden="true" /><div><h3 id={id + '-language'}>{t('Language', '語言')}</h3><p>{t('Use one language or see both together.', '用一種語言，或者同時睇兩種。')}</p></div></div>
           <fieldset className="language-choices"><legend className="sr-only">{t('Language mode', '語言模式')}</legend>
@@ -156,16 +171,23 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
           {[{ key: 'english', label: t('English playfulness', '英文趣味程度'), value: funEn, update: setFunEn, preview: englishPreviews, language: 'en' }, { key: 'cantonese', label: t('Cantonese playfulness', '廣東話趣味程度'), value: funZh, update: setFunZh, preview: cantonesePreviews, language: 'zh-Hant' }].map(item => <section data-ui="settings.card" key={item.key} className="preference-card tone-card"><header><label htmlFor={'settings-' + item.key + '-tone'}>{item.label}</label><output htmlFor={'settings-' + item.key + '-tone'}>{item.value}<small>/5</small></output></header><input data-ui="settings.field" id={'settings-' + item.key + '-tone'} type="range" min="1" max="5" step="1" value={item.value} onChange={event => item.update(Number(event.target.value))} /><div className="tone-scale"><span>{t('Serious', '認真')}</span><span>{t('Playful', '有趣')}</span></div><blockquote lang={item.language}>{item.preview[Math.max(0, Math.min(4, Math.floor(item.value) - 1))]}</blockquote><button data-ui="settings.action" type="button" className="settings-reset" onClick={() => item.update(5)}><RotateCcw size={14} aria-hidden="true" />{t('Reset to 5', '重設為 5')}</button></section>)}
         </div>
         <p className="settings-default">{t('English and Cantonese each default to level 5. Tone changes wording, including warnings and errors, without changing route facts.', '英文同廣東話預設各為第 5 級。語氣會改變包括警告同錯誤嘅用詞，但唔會改變路線事實。')}</p>
+        </LockGate>
       </TabsContent>}
       <TabsContent value="comfort" className="settings-section" keepMounted>
         {findIn('comfort')}
+        <LockGate target={sectionTarget('comfort')} t={t} schoolOn={school.on}>
         <ComfortSettings t={t} adhd={adhd} setAdhd={setAdhd} vocabulary={vocabulary} setVocabulary={setVocabulary} hideVocabulary={school.on} />
-        {/* Always here, whatever it is hiding: it is the only way back out. */}
+        </LockGate>
+        {/* Always here, whatever it is hiding: it is the only way back out. It sits
+            outside the Comfort section's toy lock for the same reason, so one lock
+            never stands in front of the way out of another. */}
         <SchoolMode t={t} state={school} setState={setSchool} />
       </TabsContent>
       <TabsContent value="narrator" className="settings-section" keepMounted>
         {findIn('narrator')}
-        <NarratorSettings narrator={narrator} t={t} />
+        <LockGate target={sectionTarget('narrator')} t={t} schoolOn={school.on}>
+          <NarratorSettings narrator={narrator} t={t} />
+        </LockGate>
       </TabsContent>
       <TabsContent value="schedule" className="settings-section" keepMounted>
         {findIn('schedule')}
@@ -176,6 +198,12 @@ export default function SettingsWorkspace({ appearance, lang, setLang, dark, set
         <section data-ui="settings.card" id="settings-local-data" tabIndex={-1} className="preference-card privacy-card"><ShieldCheck size={24} aria-hidden="true" /><h3>{t('Your journey stays yours', '你嘅行程，由你掌握')}</h3><p>{t('No account. No advertising. No analytics. Saved trips and preferences stay in this browser. Journey searches are sent to our routing service to calculate a route; precise locations are not retained in request logs.', '毋須帳戶，無廣告，無追蹤分析。已儲存行程同設定只留喺呢個瀏覽器。搜尋會傳送到路線服務計算行程，請求記錄唔會保留精確位置。')}</p></section>
         <section data-ui="settings.card" id="settings-sharing" tabIndex={-1} className="preference-card privacy-card"><h3>{t('Sharing a trip', '分享行程')}</h3><p>{t('Sharing a trip creates a link containing the journey locations. Only share locations you are comfortable disclosing. Clearing browser storage removes saved trips and settings.', '分享行程嘅連結包含行程地點，只分享你願意公開嘅位置。清除瀏覽器儲存資料會移除行程同設定。')}</p></section>
         <section data-ui="settings.card" id="settings-reliability" tabIndex={-1} className="preference-card privacy-card"><h3>{t('Data and reliability', '資料及可靠程度')}</h3><p>{t('This is an independent planner. Always allow time for transfers and check official notices before travelling.', '呢個係獨立規劃工具。請預留轉車時間，出發前查閱官方通告。')}</p></section>
+        {/* The Privacy section carries no toy lock of its own: it holds the list of
+            locks, the way out of them and the desk that explains it. */}
+        <LocksCard t={t} />
+        <AuthenticatorCard t={t} />
+        <SupportTicketsCard t={t} />
+        <HistoryCard t={t} onRestoreName={(name) => appearance.update({ global: { ...appearance.global, appName: name } })} />
       </TabsContent>
     </Tabs>
   </div>;

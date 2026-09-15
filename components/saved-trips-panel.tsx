@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { ArrowRight, MapPin, X } from 'lucide-react';
 import { SearchWorkbench, emptySearchState, useSearchMatches, type SearchState } from './search-workbench';
 import SuperConfirm from './super-confirm';
@@ -37,6 +37,14 @@ export type SavedTripsPanelProps = {
   setSaved: (next: SavedTrip[]) => void;
   onOpen: (trip: SavedTrip) => void;
   t: Translate;
+  /** Wraps each rendered row, which is how a per-trip lock puts its gate around the card. */
+  wrapRow?: (trip: SavedTrip, row: ReactNode) => ReactNode;
+  /**
+   * A reason this trip must be left out of every bulk action, or null. A locked trip is
+   * skipped by bulk delete and left out of an export, so the bulk tools are never a way
+   * around a lock that the card itself would refuse.
+   */
+  protect?: (trip: SavedTrip) => string | null;
 };
 
 const tripSample = (trip: SavedTrip): string =>
@@ -52,7 +60,9 @@ const tripSample = (trip: SavedTrip): string =>
  * one at a time before this: the delete button is kept for a single trip
  * a person is looking right at, and everything here is additive on top of it.
  */
-export default function SavedTripsPanel({ saved, setSaved, onOpen, t }: SavedTripsPanelProps) {
+const NO_PROTECTION = (): string | null => null;
+
+export default function SavedTripsPanel({ saved, setSaved, onOpen, t, wrapRow, protect = NO_PROTECTION }: SavedTripsPanelProps) {
   const [search, setSearch] = useState<SearchState>(emptySearchState);
   const [selection, setSelection] = useState<Selection>(emptySelection);
   const [format, setFormat] = useState<ExportFormat>('json');
@@ -66,7 +76,7 @@ export default function SavedTripsPanel({ saved, setSaved, onOpen, t }: SavedTri
     [saved, query, result.error, result.matches],
   );
   const chosen = selectedCount(selection, matched.length);
-  const preview = useMemo(() => previewBulk(selection, matched, matched.length), [selection, matched]);
+  const preview = useMemo(() => previewBulk(selection, matched, matched.length, protect), [selection, matched, protect]);
 
   const losses = useMemo(
     () => describeLoss(matched.map((trip) => ({ id: trip.id, from: trip.from.name, to: trip.to.name, via: (trip.via ?? []).map((place) => place.name) })), format),
@@ -74,7 +84,7 @@ export default function SavedTripsPanel({ saved, setSaved, onOpen, t }: SavedTri
   );
 
   const download = () => {
-    const rows = preview.affected.length ? preview.affected : matched;
+    const rows = preview.affected.length ? preview.affected : matched.filter((trip) => protect(trip) === null);
     const records = rows.map((trip) => ({
       id: trip.id,
       from: trip.from.name,
@@ -159,7 +169,8 @@ export default function SavedTripsPanel({ saved, setSaved, onOpen, t }: SavedTri
         <p className="saved-trips-panel__empty">{t('No saved trip matches this search.', '冇已儲存行程符合呢個搜尋。')}</p>
       )}
 
-      {matched.map((s) => (
+      {matched.map((s) => {
+        const row = (
         <article className="saved-card" key={s.id}>
           <label className="saved-card__select">
             <input type="checkbox" checked={isSelected(selection, s.id)} onChange={() => setSelection((current) => toggle(current, s.id))} />
@@ -178,7 +189,9 @@ export default function SavedTripsPanel({ saved, setSaved, onOpen, t }: SavedTri
             <X size={18} />
           </button>
         </article>
-      ))}
+        );
+        return wrapRow ? <Fragment key={s.id}>{wrapRow(s, row)}</Fragment> : row;
+      })}
 
       <SuperConfirm
         open={confirming}

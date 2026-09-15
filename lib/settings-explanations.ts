@@ -167,6 +167,30 @@ export const EXPLAINED_SETTINGS: readonly ExplainedSetting[] = Object.freeze([
     shipped: NOT_APPLICABLE,
   },
   {
+    id: 'toy-locks',
+    en: 'Lists the toy locks in this browser and where to set more. A lock is a speed bump for fun, and clearing this site\'s data removes every one.',
+    zh: '列出呢個瀏覽器入面嘅玩具鎖，同埋喺邊度加多把。鎖只係玩下嘅減速壆，清除本網站資料就會全部冇晒。',
+    shipped: 'No locks',
+  },
+  {
+    id: 'authenticator',
+    en: 'Keeps time-based one-time codes for accounts you add, computed in this browser from its clock with no network.',
+    zh: '為你加入嘅帳戶保存按時間轉嘅一次性驗證碼，用呢個瀏覽器嘅時鐘計，唔使上網。',
+    shipped: 'No entries',
+  },
+  {
+    id: 'support-tickets',
+    en: 'A pretend service desk that ends every ticket with the real way out of a forgotten lock. Nothing is ever sent.',
+    zh: '一個扮嘢嘅服務台，每張單最後都會話你知唔記得鎖嘅真正出路。乜都唔會傳送出去。',
+    shipped: 'No tickets',
+  },
+  {
+    id: 'secret-history',
+    en: 'An append-only record of changes to authenticator entries, the display name and locks, opened behind its own lock and holding no secret.',
+    zh: '只可以加唔可以改嘅紀錄，記低驗證器項目、顯示名稱同鎖嘅改動，要用自己把鎖先打開，入面冇任何秘密。',
+    shipped: 'Empty',
+  },
+  {
     id: 'local-data',
     en: 'Explains what the planner keeps: saved trips, local storage and routing requests. There is nothing to change here.',
     zh: '講解規劃工具保留咩資料:已儲存行程、本機儲存同路線請求。呢度冇嘢可以更改。',
