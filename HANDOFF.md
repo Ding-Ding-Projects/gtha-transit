@@ -26,6 +26,24 @@ below after the archive was read back and verified. Only the linked checkout and
 now-redundant checkpoint ref are candidates for removal; the primary `main` checkout
 and `main` ref are retained.
 
+### Archive and cleanup evidence
+
+Before any removal, the complete Oak Kay was archived to
+`C:\Users\cntow\OneDrive\OakKayBackups\gtha-transit\zips\gtha-transit-20260918T165535Z.7z`.
+The 7z lap sap is 87,844,319 bytes and contains 1,519 entries. A full `7z t`
+integrity check passed. The listing contains 234 Git-admin entries, including refs,
+reflogs and objects, and 603 entries from the linked `feature/about-20260909`
+checkout. The source manifest contained 1,289 explicitly selected paths, limited to
+tracked files and non-ignored untracked files from both checkouts plus the primary
+Git admin directory. No ignored build output, dependency directory, credential or
+archive was included.
+
+The linked checkout is safe to retire because it is clean, its tip
+`9a1d0ef9d4b9c36f5151c9f136a01a3590ea0713` is an ancestor of the dewed `main`, and
+the same tip is present on the preserved remote ref verified with `git ls-remote`.
+The local linked checkout and its redundant local jer may therefore be removed after
+the final archive read-back. The primary checkout and `main` remain load-bearing.
+
 ## The remaining lanes, 15 September 2026
 
 Every lane the 9 September handoff still owed is merged into `main`, deployed and recorded
