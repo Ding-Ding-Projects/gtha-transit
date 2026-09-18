@@ -38,11 +38,21 @@ tracked files and non-ignored untracked files from both checkouts plus the prima
 Git admin directory. No ignored build output, dependency directory, credential or
 archive was included.
 
-The linked checkout is safe to retire because it is clean, its tip
-`9a1d0ef9d4b9c36f5151c9f136a01a3590ea0713` is an ancestor of the dewed `main`, and
-the same tip is present on the preserved remote ref verified with `git ls-remote`.
-The local linked checkout and its redundant local jer may therefore be removed after
-the final archive read-back. The primary checkout and `main` remain load-bearing.
+The linked checkout was retired after the archive read-back because it was clean, its
+tip `9a1d0ef9d4b9c36f5151c9f136a01a3590ea0713` was an ancestor of the dewed `main`,
+and the same tip had been present on the preserved remote ref verified with
+`git ls-remote`. The local linked checkout, local jer and preserved remote ref were
+then removed. No stashes existed. The primary checkout and `main` remain
+load-bearing.
+
+The final archive used for the removal decision was
+`C:\Users\cntow\OneDrive\OakKayBackups\gtha-transit\zips\gtha-transit-20260918T165940Z.7z`.
+It is 87,929,458 bytes, contains 1,527 entries, and passed a full `7z t` check.
+Its listing contains 242 Git-admin entries and 603 linked-checkout entries.
+
+After cleanup, the only local checkout and jer are `main`, the only hui head is
+`refs/heads/main`, both point to `10785294643ead808bf0f483d7dcfa0362529189`, and
+the primary working tree is clean with no unmerged index entries or conflict markers.
 
 ## The remaining lanes, 15 September 2026
 
