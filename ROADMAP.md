@@ -36,7 +36,7 @@ The complete owner-requested scope is preserved in [PLAN.md](PLAN.md). Unchecked
 - [x] Tie a departure to the vehicle finishing the previous trip on its own block, disclosing the block, the method and the same-route-only limit of the block search.
 - [x] Plan the alternative trains a GO cancellation names, from the operator's own published wording, and say plainly where the timetable cannot confirm one.
 - [x] Add a journey smoke test across Toronto and the wider region, distinguishing a real timetable gap from a planner failure.
-- [x] Integrate or retire every outstanding branch and reduce the repository to one `main` locally and remotely, after archiving it.
+- [ ] Integrate or retire every outstanding branch and reduce the repository to one `main` locally and remotely, after archiving it. The remaining linked checkpoint is already an ancestor of `main`; archive and verified cleanup are the final steps.
 - [ ] Verify the block chain and the GO cancellation planner in the built interface with real captures. The race draw is captured; the block-chained vehicle card is not, because the planner combobox resisted three scripted attempts.
 - [x] Wire the dim-sum release code name and photo into the release workflow. It had never been wired at all rather than being exhausted; v0.1.0-96.1 is the first release to carry one.
 - [x] Fix the Metrolinx feeds. The credential was never the problem: the GO paths were missing `.proto`

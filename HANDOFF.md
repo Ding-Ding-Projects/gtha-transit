@@ -1,5 +1,31 @@
 # Implementation handoff
 
+## Primary-checkout closeout, 18 September 2026
+
+This closeout used the primary checkout only. The working tree was inspected before
+fetching, `origin` was fetched with pruning, and the checkout was fast-forwarded from
+`6166b2b203dc49c28de941b94907386e9dd675a0` to `950c706a01e1dd57818dbc060dd4a8b95118ea77`.
+The remote `main` ref was verified at that same commit with `git ls-remote`.
+
+The linked `feature/about-20260909` checkout was clean and held the unfinished
+checkpoint `9a1d0ef9d4b9c36f5151c9f136a01a3590ea0713`. That commit was already an
+ancestor of `origin/main`, so its content was not replayed or rewritten. Its deleted
+remote ref was recreated at the exact checkpoint and verified with `git ls-remote`
+before cleanup. The checkpoint remains explicitly unfinished: 73 changelog entries
+still lack dates, parser tests were absent on that checkpoint, the writer was not
+wired into prebuild there, and the generated JSON was ignored.
+
+The inventory found no uncommitted files, no staged files, no unmerged index entries,
+and no conflict markers in either checkout. No merge conflict resolution was needed.
+No release work was run. Open issues #1, #3 and #4 were scanned and remain outside
+this closeout because they request broader product, coverage, deployment or evidence
+work.
+
+The external archive and cleanup evidence are recorded in the dated archive section
+below after the archive was read back and verified. Only the linked checkout and its
+now-redundant checkpoint ref are candidates for removal; the primary `main` checkout
+and `main` ref are retained.
+
 ## The remaining lanes, 15 September 2026
 
 Every lane the 9 September handoff still owed is merged into `main`, deployed and recorded
