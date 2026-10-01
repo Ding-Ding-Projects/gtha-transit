@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": null,
+  "retrievalReceipt": "Exact source-retrieval timestamps were not retained for this local research pass.",
+  "purpose": "Verified regional fleet facts for later integration. Null values state that the cited source does not support the field.",
+  "agencies": [
+    {
+      "agencyId": "miway",
+      "agencyName": "MiWay",
+      "entries": [
+        {
+          "scope": "representative photograph only",
+          "unitLabel": null,
+          "manufacturer": null,
+          "model": null,
+          "vehicleYear": null,
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "No primary MiWay fleet record was verified for the photographed vehicle." },
+          "photo": {
+            "exactUnit": false,
+            "depictedUnitLabel": null,
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:MiWay_bus_at_UTM_IMG_6836.jpg",
+            "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/MiWay_bus_at_UTM_IMG_6836.jpg",
+            "creator": "Robert T Bell",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sha256": "ecc699b66feb4f32718bb57861de36cebfdbeb20fe3d4d667185e75f67f8044c"
+          },
+          "sources": ["https://commons.wikimedia.org/wiki/File:MiWay_bus_at_UTM_IMG_6836.jpg"]
+        }
+      ]
+    },
+    {
+      "agencyId": "hsr",
+      "agencyName": "Hamilton Street Railway",
+      "entries": [
+        {
+          "scope": "operator-published capacity boundary",
+          "unitLabel": null,
+          "manufacturer": null,
+          "model": null,
+          "vehicleYear": null,
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "Hamilton’s published COVID-era 30 and 50 customer figures are an operating restriction, not vehicle specifications." },
+          "photo": null,
+          "photoReason": "No HSR photograph is registered because the previously proposed Commons asset has an unresolved creator-attribution conflict.",
+          "sources": ["https://www.hamilton.ca/city-council/news-notices/news-releases/service-changes-hsr"]
+        }
+      ]
+    },
+    {
+      "agencyId": "burlington",
+      "agencyName": "Burlington Transit",
+      "entries": [
+        {
+          "scope": "exact photographed unit metadata",
+          "unitLabel": "71901",
+          "manufacturer": "Nova Bus",
+          "model": "LFS",
+          "vehicleYear": "2019",
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "No primary Burlington Transit vehicle-capacity specification was verified." },
+          "photo": null,
+          "photoReason": "Commons identifies unit 71901, but this addition intentionally does not register an image without a fresh validated file SHA-256 receipt.",
+          "sources": ["https://commons.wikimedia.org/wiki/File:Burlington_Transit_2019_NovaBus_LFS_71901.jpg"]
+        }
+      ]
+    },
+    {
+      "agencyId": "go",
+      "agencyName": "GO Transit",
+      "entries": [
+        {
+          "scope": "operator-published bus type",
+          "unitLabel": null,
+          "manufacturer": "Motor Coach Industries",
+          "model": "D4500",
+          "vehicleYear": null,
+          "capacity": { "seated": 55, "standing": null, "total": null, "basis": "operator-published seating count", "reason": "Metrolinx does not publish a standing count or a total-capacity definition on this source." },
+          "photo": null,
+          "photoReason": "A Commons image depicts unit 5006, but no fleet-series or capacity claim is inferred from that image.",
+          "sources": ["https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet"]
+        },
+        {
+          "scope": "operator-published bus type",
+          "unitLabel": null,
+          "manufacturer": "Alexander Dennis Limited",
+          "model": "Enviro500",
+          "vehicleYear": null,
+          "capacity": { "seated": 81, "standing": null, "total": null, "basis": "operator-published seating count", "reason": "Metrolinx does not publish a standing count or a total-capacity definition on this source." },
+          "photo": null,
+          "photoReason": "No image is registered without an independently validated file SHA-256 receipt.",
+          "sources": ["https://www.metrolinx.com/en/discover/whats-in-the-go-bus-fleet"]
+        },
+        {
+          "scope": "incoming fleet type",
+          "unitLabel": null,
+          "manufacturer": "Motor Coach Industries",
+          "model": "D45 CRT",
+          "vehicleYear": null,
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "GO identifies the incoming D45 CRT but does not publish its capacity or vehicle year." },
+          "photo": null,
+          "photoReason": "No image is registered without an independently validated file SHA-256 receipt.",
+          "sources": ["https://www.gotransit.com/en/about-go/our-vehicles"]
+        }
+      ]
+    },
+    {
+      "agencyId": "up",
+      "agencyName": "UP Express",
+      "entries": [
+        {
+          "scope": "operator-published trainset service",
+          "unitLabel": null,
+          "manufacturer": "Nippon Sharyo",
+          "model": "Diesel multiple unit",
+          "vehicleYear": null,
+          "serviceStartYear": 2015,
+          "capacity": { "seated": null, "standing": null, "total": null, "basis": null, "reason": "The cited 180-passenger figure applies to a UP Express train trip, not an individual DMU vehicle." },
+          "photo": null,
+          "photoReason": "Existing image metadata depicts unit 1012, but the per-trip capacity source does not identify that exact unit.",
+          "sources": [
+            "https://www.metrolinx.com/en/discover/the-differences-between-trains-light-rail-vehicles-and-subways",
+            "https://www.metrolinx.com/en/discover/celebrating-a-decade-of-up-express"
+          ]
+        }
+      ]
+    }
+  ]
+}
